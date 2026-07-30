@@ -1,0 +1,357 @@
+// === RG HQ — clock, backgrounds, theme, idle ===
+// Lifted from the raccoongang clock project and stripped for static hosting:
+// no /api/* calls. Background manifest is inline; weather goes straight to
+// Open-Meteo from the browser. Health panel and news ticker were backend-only
+// and are gone. Design system untouched (css/styles.css).
+
+// === Static background manifest (was GET /api/backgrounds) ===
+// Files live in /assets/backgrounds/. Original clock set — the two Discord
+// photos are in that folder but deliberately NOT in this rotation.
+const BG = '/assets/backgrounds/';
+const BACKGROUND_MANIFEST = {
+    day:       [BG + 'bg-day-1.png', BG + 'bg-day-2.jpg', BG + 'bg-day-3.png'],
+    afternoon: [BG + 'bg-afternoon-1.jpg', BG + 'bg-afternoon-2.jpg'],
+    evening:   [BG + 'bg-evening-1.jpg', BG + 'bg-evening-2.jpg', BG + 'bg-evening-3.png'],
+    night:     [BG + 'bg-night-1.png', BG + 'bg-night-2.png', BG + 'bg-night-3.png', BG + 'bg-night-4.png'],
+};
+
+// === Shared Navigation ===
+const SiteNavigation = {
+    links: [
+        ['/', 'Clock'],
+        ['/screensaver', 'Screensaver'],
+        ['/slamviz', 'SlamViz'],
+        ['/weather', 'Weather'],
+        ['/directory', 'Directory'],
+    ],
+
+    init() {
+        const path = location.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+        const center = document.querySelector('.nav-center');
+        if (center && !center.querySelector('.dropdown')) {
+            const dropdown = document.createElement('div');
+            dropdown.className = 'dropdown';
+            dropdown.innerHTML = '<button class="btn">Menu</button><div class="dropdown-content"></div>';
+            center.appendChild(dropdown);
+        }
+        const navRight = document.querySelector('.nav-right');
+        if (navRight && document.getElementById('theme-switch') && !document.getElementById('theme-menu')) {
+            const themeMenu = document.createElement('div');
+            themeMenu.id = 'theme-menu';
+            themeMenu.className = 'theme-menu';
+            themeMenu.innerHTML = renderThemeButtons();
+            navRight.appendChild(themeMenu);
+        }
+        document.querySelectorAll('.dropdown-content').forEach(menu => {
+            menu.innerHTML = this.links.map(([href, label]) =>
+                `<a href="${href}"${path === href ? ' aria-current="page"' : ''}>${label}</a>`
+            ).join('');
+        });
+    },
+};
+
+function renderThemeButtons() {
+    return [
+        ['auto', 'Auto'], ['day', 'Day'], ['afternoon', 'Afternoon'],
+        ['evening', 'Evening'], ['night', 'Night'],
+    ].map(([theme, label]) => `<button data-theme="${theme}"${theme === 'auto' ? ' class="active"' : ''}>${label}</button>`).join('');
+}
+
+// === Theme Management ===
+const ThemeManager = {
+    currentTheme: 'auto',
+    activeTheme: null,
+    manifest: BACKGROUND_MANIFEST,
+    rotationIndex: {},
+    rotationTimer: null,
+    ROTATE_MS: 10 * 60 * 1000,
+    STATES: ['day', 'afternoon', 'evening', 'night'],
+
+    init() {
+        for (const s of this.STATES) this.rotationIndex[s] = 0;
+        const saved = localStorage.getItem('rg-theme-mode') || 'auto';
+        this.setTheme(saved);
+        this.setupEventListeners();
+        this.updateTimeBasedTheme();
+        setInterval(() => this.updateTimeBasedTheme(), 60000);
+    },
+
+    rotateBackground(theme) {
+        const layer = document.getElementById(`bg-${theme}`);
+        const list = this.manifest[theme];
+        if (!layer || !list || !list.length) return;
+
+        const url = list[this.rotationIndex[theme] % list.length];
+        this.rotationIndex[theme]++;
+
+        const img = new Image();
+        img.onload = () => {
+            const wasActive = layer.classList.contains('active');
+            if (wasActive) layer.classList.remove('active');
+            layer.offsetHeight; // force reflow so the fade replays
+            layer.style.backgroundImage = `url("${url}")`;
+            if (wasActive || this.activeTheme === theme) {
+                requestAnimationFrame(() => layer.classList.add('active'));
+            }
+            this.preloadNext(theme);
+        };
+        img.onerror = () => console.warn(`[bg] failed to load ${url}`);
+        img.src = url;
+    },
+
+    preloadNext(theme) {
+        const list = this.manifest[theme];
+        if (!list || list.length < 2) return;
+        new Image().src = list[this.rotationIndex[theme] % list.length];
+    },
+
+    applyConcreteTheme(theme) {
+        const html = document.documentElement;
+        this.activeTheme = theme;
+
+        for (const s of this.STATES) {
+            const layer = document.getElementById(`bg-${s}`);
+            if (!layer) continue;
+            layer.classList.toggle('active', s === theme);
+        }
+        html.setAttribute('data-theme', theme);
+
+        const activeLayer = document.getElementById(`bg-${theme}`);
+        if (activeLayer && !activeLayer.style.backgroundImage && this.manifest[theme]?.length) {
+            const url = this.manifest[theme][0];
+            this.rotationIndex[theme] = 1;
+            activeLayer.style.backgroundImage = `url("${url}")`;
+            this.preloadNext(theme);
+        }
+
+        if (this.rotationTimer) clearInterval(this.rotationTimer);
+        if ((this.manifest[theme]?.length || 0) > 1) {
+            this.rotationTimer = setInterval(() => this.rotateBackground(theme), this.ROTATE_MS);
+        }
+    },
+
+    setTheme(mode) {
+        this.currentTheme = mode;
+        localStorage.setItem('rg-theme-mode', mode);
+
+        const themeSwitch = document.getElementById('theme-switch');
+        if (themeSwitch) {
+            themeSwitch.textContent = mode === 'auto' ? 'Auto' : mode.charAt(0).toUpperCase() + mode.slice(1);
+        }
+        document.querySelectorAll('.theme-menu button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === mode);
+        });
+
+        if (mode === 'auto') this.updateTimeBasedTheme();
+        else if (this.STATES.includes(mode)) this.applyConcreteTheme(mode);
+    },
+
+    //   06:00–11:59 → day · 12:00–16:59 → afternoon
+    //   17:00–19:59 → evening · 20:00–05:59 → night
+    pickThemeForHour(hour) {
+        if (hour >= 6 && hour < 12) return 'day';
+        if (hour >= 12 && hour < 17) return 'afternoon';
+        if (hour >= 17 && hour < 20) return 'evening';
+        return 'night';
+    },
+
+    updateTimeBasedTheme() {
+        if (this.currentTheme !== 'auto') return;
+        const next = this.pickThemeForHour(new Date().getHours());
+        if (next !== this.activeTheme) this.applyConcreteTheme(next);
+    },
+
+    setupEventListeners() {
+        const themeSwitch = document.getElementById('theme-switch');
+        const themeMenu = document.getElementById('theme-menu');
+
+        if (themeSwitch && themeMenu) {
+            themeSwitch.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themeMenu.classList.toggle('active');
+            });
+            themeMenu.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    this.setTheme(btn.dataset.theme);
+                    themeMenu.classList.remove('active');
+                });
+            });
+            document.addEventListener('click', () => themeMenu.classList.remove('active'));
+        }
+
+        // "Swap" button — rotates to the next background in the active theme.
+        if (themeSwitch && !document.getElementById('bg-swap-btn')) {
+            const btn = document.createElement('button');
+            btn.id = 'bg-swap-btn';
+            btn.className = 'btn';
+            btn.title = 'Swap background';
+            btn.textContent = '⤾';
+            btn.addEventListener('click', (e) => { e.stopPropagation(); this.swapBackground(); });
+            themeSwitch.parentElement.insertBefore(btn, themeSwitch);
+        }
+    },
+
+    swapBackground() {
+        const theme = this.activeTheme;
+        if (!theme) return;
+        const list = this.manifest[theme] || [];
+        if (list.length < 2) return;
+        this.rotateBackground(theme);
+    }
+};
+
+// === Clock ===
+const ClockManager = {
+    init() {
+        this.generateHourMarkers();
+        this.animate();
+    },
+
+    generateHourMarkers() {
+        const container = document.getElementById('hour-markers');
+        if (!container) return;
+        let svg = '';
+        for (let i = 0; i < 60; i++) {
+            const angle = i * 6;
+            const isHour = i % 5 === 0;
+            const innerR = isHour ? 82 : 86;
+            const outerR = 88;
+            const x1 = 100 + innerR * Math.sin(angle * Math.PI / 180);
+            const y1 = 100 - innerR * Math.cos(angle * Math.PI / 180);
+            const x2 = 100 + outerR * Math.sin(angle * Math.PI / 180);
+            const y2 = 100 - outerR * Math.cos(angle * Math.PI / 180);
+            const className = isHour ? 'hour-marker major' : 'hour-marker';
+            svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${className}"/>`;
+        }
+        container.innerHTML = svg;
+    },
+
+    update() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const milliseconds = now.getMilliseconds();
+
+        const displayHours = hours % 12 || 12;
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        const elHours = document.getElementById('hours');
+        const elMinutes = document.getElementById('minutes');
+        const elSeconds = document.getElementById('seconds');
+        const elAmPm = document.getElementById('ampm');
+        const elDate = document.getElementById('date');
+
+        if (elHours) elHours.textContent = String(displayHours).padStart(2, '0');
+        if (elMinutes) elMinutes.textContent = String(minutes).padStart(2, '0');
+        if (elSeconds) elSeconds.textContent = String(seconds).padStart(2, '0');
+        if (elAmPm) elAmPm.textContent = ampm;
+
+        if (elDate) {
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            elDate.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        this.updateAnalog(hours, minutes, seconds, milliseconds);
+    },
+
+    updateAnalog(hours, minutes, seconds, milliseconds) {
+        const hourHand = document.getElementById('hour-hand');
+        const minuteHand = document.getElementById('minute-hand');
+        const secondHand = document.getElementById('second-hand');
+        if (!hourHand || !minuteHand || !secondHand) return;
+
+        const hourAngle = ((hours % 12) + minutes / 60) * 30;
+        const minuteAngle = (minutes + seconds / 60) * 6;
+        const secondAngle = (seconds + milliseconds / 1000) * 6;
+
+        hourHand.style.transform = `rotate(${hourAngle}deg)`;
+        minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+        secondHand.style.transform = `rotate(${secondAngle}deg)`;
+    },
+
+    animate() {
+        this.update();
+        requestAnimationFrame(() => this.animate());
+    }
+};
+
+// === Weather (was GET /api/weather → now Open-Meteo direct, no key) ===
+const weatherCodes = {
+    0: 'Clear', 1: 'Clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Foggy', 48: 'Foggy',
+    51: 'Drizzle', 53: 'Drizzle', 55: 'Drizzle',
+    61: 'Rain', 63: 'Rain', 65: 'Rain',
+    71: 'Snow', 73: 'Snow', 75: 'Snow',
+    95: 'Storm',
+};
+
+const WEATHER_REFRESH_MS = 15 * 60 * 1000;
+
+function fetchWeather() {
+    const pill = document.getElementById('weather');
+    if (!pill) return;
+    if (!navigator.geolocation) { pill.style.display = 'none'; return; }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+            const { latitude, longitude } = pos.coords;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}` +
+                        `&longitude=${longitude}&current=temperature_2m,weather_code` +
+                        `&temperature_unit=fahrenheit`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const cur = data.current || {};
+            const temp = Math.round(cur.temperature_2m);
+            const desc = weatherCodes[cur.weather_code] || 'Unknown';
+            const elTemp = document.getElementById('weather-temp');
+            const elDesc = document.getElementById('weather-desc');
+            if (elTemp) elTemp.textContent = `${temp}°`;
+            if (elDesc) elDesc.textContent = desc;
+            pill.style.display = '';
+        } catch (err) {
+            console.warn('weather fetch failed', err);
+            pill.style.display = 'none';
+        }
+    }, () => { pill.style.display = 'none'; }, { timeout: 8000, maximumAge: 10 * 60 * 1000 });
+}
+
+// === Idle Mode (screensaver-only) ===
+// Fades chrome after IDLE_MS of no input. Any input wakes. Only runs where a
+// .clock-section is present.
+const IdleManager = {
+    IDLE_MS: 2 * 60 * 1000,
+    timer: null,
+
+    init() {
+        if (!document.querySelector('.clock-section')) return;
+        const wake = () => this.wake();
+        const opts = { passive: true };
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(ev => {
+            window.addEventListener(ev, wake, opts);
+        });
+        this.scheduleSleep();
+    },
+
+    scheduleSleep() {
+        if (this.timer) clearTimeout(this.timer);
+        this.timer = setTimeout(() => document.body.classList.add('idle'), this.IDLE_MS);
+    },
+
+    wake() {
+        if (document.body.classList.contains('idle')) document.body.classList.remove('idle');
+        this.scheduleSleep();
+    },
+};
+
+// === Init ===
+document.addEventListener('DOMContentLoaded', () => {
+    SiteNavigation.init();
+    ThemeManager.init();
+    if (document.getElementById('hours')) ClockManager.init();
+    IdleManager.init();
+    if (document.getElementById('weather')) {
+        fetchWeather();
+        setInterval(fetchWeather, WEATHER_REFRESH_MS);
+    }
+});

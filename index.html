@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Dynamic Backgrounds -->
+    <div class="bg-layer night" id="bg-night"></div>
+    <div class="bg-layer evening" id="bg-evening"></div>
+    <div class="bg-layer afternoon" id="bg-afternoon"></div>
+    <div class="bg-layer day" id="bg-day"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/" class="btn">RG</a>
+        </div>
+        <div class="nav-center"></div>
+        <div class="nav-right">
+            <button id="theme-switch" class="btn">Auto</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <section class="clock-section">
+            <!-- Digital Clock -->
+            <div class="digital-clock">
+                <div class="time-display">
+                    <span id="hours" class="time-unit">00</span>
+                    <span class="time-separator">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </span>
+                    <span id="minutes" class="time-unit">00</span>
+                </div>
+                <div class="time-meta">
+                    <span id="seconds" class="seconds">00</span>
+                    <span id="ampm" class="ampm">AM</span>
+                </div>
+            </div>
+
+            <!-- Analog Compass Clock -->
+            <div class="compass-clock">
+                <svg viewBox="0 0 200 200" class="compass-svg">
+                    <defs>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- Outer rings -->
+                    <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>
+                    <circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.1"/>
+
+                    <!-- Hour markers -->
+                    <g class="hour-markers" id="hour-markers"></g>
+
+                    <!-- Cardinal directions -->
+                    <text x="100" y="18" class="cardinal" text-anchor="middle" opacity="0.8">N</text>
+                    <text x="100" y="192" class="cardinal" text-anchor="middle" opacity="0.3">S</text>
+                    <text x="192" y="104" class="cardinal" text-anchor="middle" opacity="0.3">E</text>
+                    <text x="8" y="104" class="cardinal" text-anchor="middle" opacity="0.3">W</text>
+
+                    <!-- Hands -->
+                    <line id="hour-hand" x1="100" y1="100" x2="100" y2="48" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+                    <line id="minute-hand" x1="100" y1="100" x2="100" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                    <line id="second-hand" x1="100" y1="100" x2="100" y2="22" stroke="var(--accent)" stroke-width="0.5" stroke-linecap="round" filter="url(#glow)"/>
+
+                    <!-- Center dot -->
+                    <circle cx="100" cy="100" r="4" fill="var(--accent)" filter="url(#glow)"/>
+                    <circle cx="100" cy="100" r="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+
+            <!-- Date -->
+            <div class="date-display" id="date">Loading...</div>
+
+            <!-- Weather Pill -->
+            <div class="weather-pill" id="weather">
+                <span id="weather-temp">--°</span>
+                <span class="weather-divider"></span>
+                <span id="weather-desc">--</span>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <a href="/slamviz" class="action-btn">SlamViz</a>
+            <a href="/weather" class="action-btn">Weather</a>
+            <a href="/directory" class="action-btn">Directory</a>
+        </section>
+    </main>
+
+    <script src="/js/site.js"></script>
+</body>
+</html>

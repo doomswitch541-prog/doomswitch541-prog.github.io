@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Directory — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/directory.css">
+</head>
+<body>
+    <!-- Dynamic Backgrounds -->
+    <div class="bg-layer night" id="bg-night"></div>
+    <div class="bg-layer evening" id="bg-evening"></div>
+    <div class="bg-layer afternoon" id="bg-afternoon"></div>
+    <div class="bg-layer day" id="bg-day"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/" class="btn">RG</a>
+        </div>
+        <div class="nav-center"></div>
+        <div class="nav-right">
+            <button id="theme-switch" class="btn">Auto</button>
+        </div>
+    </nav>
+
+    <main class="directory-page">
+        <header class="page-header">
+            <h1>Directory</h1>
+            <p>Quick access to tools and resources</p>
+        </header>
+
+        <div class="directory-grid">
+            <!-- Internal Tools -->
+            <section class="directory-section">
+                <h2>Tools</h2>
+                <div class="link-grid">
+                    <a href="/" class="link-card">
+                        <span class="link-icon">◉</span>
+                        <span class="link-text">Clock</span>
+                    </a>
+                    <a href="/screensaver" class="link-card">
+                        <span class="link-icon">◆</span>
+                        <span class="link-text">Screensaver</span>
+                    </a>
+                    <a href="/slamviz" class="link-card">
+                        <span class="link-icon">◈</span>
+                        <span class="link-text">SlamViz</span>
+                    </a>
+                    <a href="/weather" class="link-card">
+                        <span class="link-icon">◎</span>
+                        <span class="link-text">Weather</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- External Resources -->
+            <section class="directory-section">
+                <h2>External</h2>
+                <div class="link-grid">
+                    <a href="https://tradingview.com" target="_blank" rel="noopener" class="link-card external">
+                        <span class="link-icon">◉</span>
+                        <span class="link-text">TradingView</span>
+                    </a>
+                    <a href="https://weather.com" target="_blank" rel="noopener" class="link-card external">
+                        <span class="link-icon">◎</span>
+                        <span class="link-text">Weather</span>
+                    </a>
+                    <a href="https://nuforc.org" target="_blank" rel="noopener" class="link-card external">
+                        <span class="link-icon">◈</span>
+                        <span class="link-text">UFO Reports</span>
+                    </a>
+                    <a href="https://websdr.org" target="_blank" rel="noopener" class="link-card external">
+                        <span class="link-icon">○</span>
+                        <span class="link-text">Shortwave</span>
+                    </a>
+                    <a href="https://seti.org" target="_blank" rel="noopener" class="link-card external">
+                        <span class="link-icon">▣</span>
+                        <span class="link-text">SETI</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/js/site.js"></script>
+</body>
+</html>

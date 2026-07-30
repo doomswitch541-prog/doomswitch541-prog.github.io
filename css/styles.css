@@ -1,0 +1,800 @@
+/* === Raccoon Gang — Pixel Art Adaptive Theme === */
+
+:root {
+  /* Base variables — will be overridden by theme */
+  --bg-primary: #0a0810;
+  --bg-overlay: rgba(10, 8, 16, 0.4);
+  
+  /* Glass layers */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  --glass-highlight: rgba(255, 255, 255, 0.1);
+  
+  /* Text */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-tertiary: rgba(255, 255, 255, 0.35);
+  
+  /* Accent — will change based on theme */
+  --accent: #c49a6c;
+  --accent-soft: rgba(196, 154, 108, 0.2);
+  --accent-glow: rgba(196, 154, 108, 0.4);
+  
+  /* Spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1.25rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 5rem;
+  
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 300ms ease;
+  --transition-slow: 600ms ease;
+}
+
+/* === Night Theme (bg-night-1) — Cosmic Purple/Pink === */
+[data-theme="night"] {
+  --bg-primary: #0f0c15;
+  --bg-overlay: rgba(15, 12, 21, 0.5);
+  --glass-bg: rgba(180, 140, 180, 0.06);
+  --glass-border: rgba(200, 160, 200, 0.1);
+  --glass-border-hover: rgba(220, 180, 220, 0.18);
+  --glass-highlight: rgba(200, 160, 200, 0.12);
+  --text-primary: rgba(255, 245, 255, 0.95);
+  --text-secondary: rgba(220, 190, 220, 0.65);
+  --text-tertiary: rgba(180, 150, 180, 0.4);
+  --accent: #d4a5a5;
+  --accent-soft: rgba(212, 165, 165, 0.2);
+  --accent-glow: rgba(212, 165, 165, 0.4);
+}
+
+/* === Evening Theme (bg-evening-1) — Dusk Coral/Violet, between Day and Night === */
+[data-theme="evening"] {
+  --bg-primary: #1c1424;
+  --bg-overlay: rgba(28, 20, 36, 0.45);
+  --glass-bg: rgba(230, 170, 180, 0.07);
+  --glass-border: rgba(230, 170, 200, 0.12);
+  --glass-border-hover: rgba(240, 190, 220, 0.2);
+  --glass-highlight: rgba(230, 180, 210, 0.14);
+  --text-primary: rgba(255, 245, 245, 0.95);
+  --text-secondary: rgba(240, 200, 210, 0.7);
+  --text-tertiary: rgba(220, 170, 180, 0.45);
+  --accent: #e69b78;
+  --accent-soft: rgba(230, 155, 120, 0.22);
+  --accent-glow: rgba(230, 155, 120, 0.45);
+}
+
+/* === Day Theme (bg-day-1) — Sunset Orange/Blue === */
+[data-theme="day"] {
+  --bg-primary: #1a1420;
+  --bg-overlay: rgba(26, 20, 32, 0.4);
+  --glass-bg: rgba(255, 200, 160, 0.06);
+  --glass-border: rgba(255, 180, 140, 0.1);
+  --glass-border-hover: rgba(255, 200, 160, 0.18);
+  --glass-highlight: rgba(255, 180, 140, 0.12);
+  --text-primary: rgba(255, 250, 245, 0.95);
+  --text-secondary: rgba(255, 220, 190, 0.7);
+  --text-tertiary: rgba(255, 190, 160, 0.45);
+  --accent: #ff9f6e;
+  --accent-soft: rgba(255, 159, 110, 0.2);
+  --accent-glow: rgba(255, 159, 110, 0.4);
+}
+
+/* === Afternoon Theme (bg-afternoon-1) — Warm Gold/Amber, between Day and Evening === */
+[data-theme="afternoon"] {
+  --bg-primary: #1d1620;
+  --bg-overlay: rgba(29, 22, 32, 0.42);
+  --glass-bg: rgba(245, 200, 140, 0.07);
+  --glass-border: rgba(245, 195, 135, 0.11);
+  --glass-border-hover: rgba(250, 210, 150, 0.19);
+  --glass-highlight: rgba(245, 200, 140, 0.13);
+  --text-primary: rgba(255, 250, 240, 0.95);
+  --text-secondary: rgba(250, 220, 180, 0.7);
+  --text-tertiary: rgba(230, 195, 150, 0.45);
+  --accent: #f5c47a;
+  --accent-soft: rgba(245, 196, 122, 0.22);
+  --accent-glow: rgba(245, 196, 122, 0.45);
+}
+
+/* === Reset & Base === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* === Dynamic Background === */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+  transition: opacity var(--transition-slow);
+}
+
+.bg-layer.night,
+.bg-layer.day,
+.bg-layer.evening,
+.bg-layer.afternoon {
+  opacity: 0;
+}
+
+.bg-layer.active {
+  opacity: 1;
+}
+
+/* === Overlay for readability === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(0px);
+  z-index: -1;
+  transition: background var(--transition-slow);
+}
+
+/* === Idle Mode — fade chrome so the background breathes ===
+   Toggled by IdleManager in script.js. Activates only on the screensaver
+   page (presence of .clock-section). Any input event removes .idle. */
+body.idle { cursor: none; }
+body.idle .navbar,
+body.idle .quick-actions,
+body.idle .news-section,
+body.idle .weather-pill,
+body.idle .date-display,
+body.idle .time-meta {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+.navbar,
+.quick-actions,
+.news-section,
+.weather-pill,
+.date-display,
+.time-meta {
+  transition: opacity 600ms ease;
+}
+
+/* === Navigation — Glass Pill === */
+.navbar {
+  position: fixed;
+  top: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  z-index: 1000;
+  box-shadow: 
+    0 4px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all var(--transition-base);
+  margin: 0 var(--space-lg);
+}
+
+.nav-left, .nav-center, .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-right { position: relative; }
+
+.nav-center {
+  padding: 0 4px;
+  border-left: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
+}
+
+/* === Buttons === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.btn:hover {
+  color: var(--text-primary);
+  background: var(--glass-highlight);
+}
+
+.btn-primary {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+}
+
+.btn-primary:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-color: var(--accent);
+}
+
+/* === Dropdown === */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.96);
+  opacity: 0;
+  visibility: hidden;
+  min-width: 180px;
+  padding: 6px;
+  background: rgba(10, 8, 16, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  transition: all var(--transition-fast);
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown-content:hover {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+.dropdown-content a {
+  display: block;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.dropdown-content a:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg);
+}
+
+/* === Weather Widget (top bar) === */
+.weather-widget-shell {
+  position: relative;
+  display: inline-flex;
+}
+
+.weather-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill, 999px);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  user-select: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.weather-widget:hover {
+  background: var(--glass-highlight);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.weather-widget .wx-icon { font-size: 0.95rem; line-height: 1; }
+.weather-widget .wx-temp { color: var(--text-primary); font-weight: 500; }
+.weather-widget .wx-wind { color: var(--text-tertiary); font-size: 0.8125rem; font-family: 'JetBrains Mono', monospace; margin-left: 2px; }
+.weather-widget.wx-stale { opacity: 0.55; }
+.weather-widget[hidden] { display: none; }
+
+.weather-detail-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(410px, calc(100vw - 2rem));
+  padding: var(--space-md);
+  background: rgba(16, 12, 24, 0.92);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(22px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-5px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
+  z-index: 1200;
+}
+
+.weather-detail-panel.active { opacity: 1; visibility: visible; transform: translateY(0); }
+.weather-panel-head { display: flex; justify-content: space-between; gap: var(--space-md); padding: 0.25rem 0.25rem var(--space-sm); color: var(--text-primary); font-size: 0.82rem; }
+.weather-location-name { color: var(--text-primary); font-size: 0.9rem; font-weight: 500; }
+.weather-coordinates { margin-top: 0.2rem; color: var(--text-tertiary); font: 0.66rem 'JetBrains Mono', monospace; }
+.weather-updated { color: var(--text-tertiary); font: 0.7rem 'JetBrains Mono', monospace; white-space: nowrap; }
+.weather-hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-sm); padding: var(--space-md) 0; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); }
+.weather-hero-icon { font-size: 2.1rem; line-height: 1; }
+.weather-hero-reading { display: grid; gap: 0.15rem; }
+.weather-hero-reading strong { color: var(--text-primary); font: 1.65rem 'JetBrains Mono', monospace; font-weight: 300; line-height: 1; }
+.weather-hero-reading span { color: var(--text-secondary); font-size: 0.76rem; }
+.weather-hero-range { display: grid; gap: 0.3rem; color: var(--text-secondary); font: 0.68rem 'JetBrains Mono', monospace; text-align: right; }
+.weather-metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: var(--space-sm) 0; }
+.weather-metric { display: flex; justify-content: space-between; gap: var(--space-sm); padding: 0.5rem; border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 0.72rem; }
+.weather-metric:hover { background: var(--glass-highlight); }
+.weather-metric strong { color: var(--text-primary); font: 0.66rem 'JetBrains Mono', monospace; font-weight: 400; text-align: right; }
+.weather-sun-row { display: flex; justify-content: space-between; gap: var(--space-md); padding: 0.65rem 0.5rem; border-top: 1px solid var(--glass-border); color: var(--text-secondary); font-size: 0.7rem; }
+.weather-sun-row strong { margin-left: 0.25rem; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-weight: 400; }
+.weather-source { margin: 0.35rem 0.25rem 0; padding-top: 0.55rem; border-top: 1px solid var(--glass-border); color: var(--text-tertiary); font: 0.63rem 'JetBrains Mono', monospace; }
+
+@media (max-width: 520px) {
+  .weather-detail-panel { width: min(350px, calc(100vw - 1rem)); padding: var(--space-sm); }
+  .weather-metric-grid { grid-template-columns: 1fr; }
+  .weather-sun-row { align-items: flex-start; flex-direction: column; gap: var(--space-xs); }
+}
+
+/* === System Health === */
+.system-health-btn {
+  gap: 0.4rem;
+}
+
+.health-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--text-tertiary);
+  box-shadow: 0 0 0 3px transparent;
+  flex: 0 0 auto;
+}
+
+.health-dot.online { background: #7fb069; box-shadow: 0 0 8px rgba(127, 176, 105, 0.45); }
+.health-dot.degraded { background: #d6aa6d; box-shadow: 0 0 8px rgba(214, 170, 109, 0.4); }
+.health-dot.offline { background: #c97b7b; box-shadow: 0 0 8px rgba(201, 123, 123, 0.4); }
+.health-dot.idle { background: var(--text-tertiary); }
+
+.system-health-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(320px, calc(100vw - 2rem));
+  padding: var(--space-sm);
+  background: rgba(16, 12, 24, 0.92);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(22px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-5px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
+  z-index: 1200;
+}
+
+.system-health-panel.active { opacity: 1; visibility: visible; transform: translateY(0); }
+.health-panel-head { display: flex; justify-content: space-between; padding: 0.35rem 0.45rem 0.65rem; color: var(--text-primary); }
+.health-updated { color: var(--text-tertiary); font: 0.7rem 'JetBrains Mono', monospace; }
+.health-rows { display: grid; gap: 2px; }
+.health-row { display: grid; grid-template-columns: auto minmax(60px, auto) 1fr; gap: var(--space-xs); align-items: center; padding: 0.45rem; border-radius: var(--radius-sm); }
+.health-row:hover { background: var(--glass-highlight); }
+.health-name { color: var(--text-secondary); font-size: 0.78rem; }
+.health-detail { color: var(--text-tertiary); font: 0.68rem 'JetBrains Mono', monospace; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.health-empty { padding: var(--space-md); color: var(--text-secondary); text-align: center; font-size: 0.78rem; }
+
+@media (max-width: 640px) {
+  .system-health-btn .health-label { display: none; }
+  .system-health-btn { padding-inline: 0.65rem; }
+}
+
+/* === Theme Menu === */
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: none;
+  min-width: 160px;
+  padding: 6px;
+  background: rgba(10, 8, 16, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.theme-menu.active {
+  display: block;
+}
+
+.theme-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.theme-menu button:hover,
+.theme-menu button.active {
+  color: var(--accent);
+  background: var(--glass-bg);
+}
+
+/* === Main Container === */
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: calc(var(--space-2xl) + var(--space-lg)) var(--space-lg) var(--space-2xl);
+  gap: var(--space-2xl);
+}
+
+/* === Clock Section === */
+.clock-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  width: 100%;
+  max-width: 600px;
+}
+
+/* === Digital Clock === */
+.digital-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.time-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-family: 'Inter', sans-serif;
+  font-weight: 200;
+  font-size: clamp(5rem, 18vw, 9rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  text-shadow: 0 2px 40px var(--accent-soft);
+}
+
+.time-unit {
+  font-variant-numeric: tabular-nums;
+}
+
+.time-separator {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0 var(--space-xs);
+  animation: pulse-separator 2s ease-in-out infinite;
+}
+
+.time-separator .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+@keyframes pulse-separator {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 0.9; transform: scale(1); }
+}
+
+.time-meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+}
+
+.seconds {
+  font-size: 1.25rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+
+.ampm {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* === Compass Clock === */
+.compass-clock {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  opacity: 0.7;
+  transition: all var(--transition-base);
+}
+
+.compass-clock:hover {
+  opacity: 0.95;
+  transform: scale(1.02);
+}
+
+.compass-svg {
+  width: 100%;
+  height: 100%;
+  color: var(--text-primary);
+  filter: drop-shadow(0 0 10px var(--accent-soft));
+}
+
+.compass-svg .cardinal {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  fill: var(--accent);
+}
+
+.hour-marker {
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.3;
+}
+
+.hour-marker.major {
+  stroke-width: 1.5;
+  opacity: 0.6;
+}
+
+#hour-hand,
+#minute-hand,
+#second-hand {
+  transform-origin: 100px 100px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#second-hand {
+  transition: transform 0.1s linear;
+  stroke: var(--accent);
+}
+
+.compass-svg circle[fill="var(--accent)"] {
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+/* === Date Display === */
+.date-display {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+
+/* === Weather Pill === */
+.weather-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.weather-pill:hover {
+  border-color: var(--glass-border-hover);
+  background: var(--glass-highlight);
+}
+
+.weather-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--glass-border);
+}
+
+/* === Quick Actions === */
+.quick-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 28px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+  color: var(--text-primary);
+  background: var(--glass-highlight);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-soft);
+  transform: translateY(-1px);
+}
+
+/* === News Ticker === */
+.news-section {
+  width: 100%;
+  max-width: 640px;
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+.news-section:hover {
+  opacity: 1;
+}
+
+.news-ticker {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+
+.news-content {
+  display: flex;
+  animation: scroll 50s linear infinite;
+  white-space: nowrap;
+}
+
+.news-content span {
+  padding: 0 var(--space-lg);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+}
+
+/* === Dark form controls — fixes unstyled <option> dropdowns ===
+   color-scheme tells the browser to render native pickers, scrollbars, and
+   <option> dropdowns in dark mode. Without this, <select> popovers paint
+   white on the OS level and look like a broken light-theme flash. */
+:root {
+    color-scheme: dark;
+}
+select, input, textarea {
+    color-scheme: dark;
+}
+/* Belt-and-suspenders for browsers that don't honor color-scheme on <option>.
+   Most native dropdowns ignore CSS, but enough Chromium/Firefox versions
+   respect background/color on <option> to be worth it. */
+option {
+    background-color: #1a1420;
+    color: var(--text-primary);
+}
+
+.news-content span::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: var(--space-sm);
+  vertical-align: middle;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* === Glass Card Component === */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-fast);
+}
+
+.glass-card:hover {
+  border-color: var(--glass-border-hover);
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .time-display {
+    font-size: clamp(4rem, 22vw, 6rem);
+    gap: 4px;
+  }
+  
+  .time-separator {
+    gap: 1rem;
+  }
+  
+  .time-separator .dot {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .compass-clock {
+    width: 160px;
+    height: 160px;
+  }
+  
+  .navbar {
+    top: var(--space-md);
+    padding: 6px;
+    margin: 0 var(--space-sm);
+  }
+  
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+}

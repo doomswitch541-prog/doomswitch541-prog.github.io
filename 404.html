@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Lost signal — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .lost {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-lg);
+            padding: var(--space-lg);
+            text-align: center;
+        }
+        .lost-code {
+            font-family: 'Inter', sans-serif;
+            font-weight: 200;
+            font-size: clamp(5rem, 20vw, 10rem);
+            line-height: 1;
+            letter-spacing: -0.04em;
+            color: var(--text-primary);
+            text-shadow: 0 2px 40px var(--accent-soft);
+        }
+        .lost-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+        .lost-msg {
+            max-width: 36ch;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- static night background (no JS on this page) -->
+    <div class="bg-layer night active" id="bg-night"
+         style="background-image:url('/assets/backgrounds/bg-night-1.png')"></div>
+
+    <main class="lost">
+        <div class="lost-label">Lost signal</div>
+        <div class="lost-code">404</div>
+        <p class="lost-msg">Nothing transmitting on this frequency. The page you're after moved or never existed.</p>
+        <a href="/" class="action-btn">Back to the clock</a>
+    </main>
+</body>
+</html>

@@ -1,0 +1,1978 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Raccoon Gang Dashboard</title>
+
+<style>
+  :root{
+    --accent:#36e6ff;
+    --accent2:#6bf4c9;
+    --panel-bg: rgba(6,12,18,0.6);
+    --raccoon-brown: #8B4513;
+    --raccoon-gray: #696969;
+  }
+  html,body{height:100%;margin:0;background:#02060a;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#bff7ff;overflow:hidden}
+  .app{position:relative;width:100vw;height:100vh;touch-action:none}
+
+  /* Globe container (behind HUD) */
+  #globe-wrap{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:740px;
+    height:740px;
+    z-index:1;       /* behind HUD */
+    pointer-events:auto; /* Enable interaction */
+  }
+  canvas#globe { width:100%; height:100%; display:block; cursor:grab; }
+  canvas#globe:active { cursor:grabbing; }
+
+  /* HUD container (always on top) */
+  .hud {
+    position:absolute; inset:0; z-index:50; pointer-events:none;
+    -webkit-user-select:none; user-select:none;
+  }
+
+  /* frame and title */
+  .frame {
+    position:absolute; left:8%; right:8%; top:6%; bottom:10%;
+    border-radius:14px; pointer-events:none;
+    box-shadow: inset 0 0 100px rgba(0,60,80,0.06);
+    border:1px solid rgba(64,200,255,0.03);
+  }
+  .title {
+    position:absolute; top:2.6%; left:50%; transform:translateX(-50%); z-index:60;
+    padding:8px 22px; border-radius:8px; background:linear-gradient(180deg, rgba(2,12,18,0.6), rgba(2,8,12,0.3));
+    color:var(--accent); font-weight:800; letter-spacing:1.6px; pointer-events:none;
+  }
+
+  /* SIDEs - clickable panels inside must accept pointer events */
+  .side {
+    position:absolute; top:8%; bottom:12%; width:13%; display:flex; flex-direction:column; gap:14px;
+    padding:12px; pointer-events:none;
+  }
+  .left{ left:1.8%; }
+  .right{ right:1.8%; align-items:flex-end; }
+
+  .panel {
+    background: linear-gradient(180deg, rgba(8,18,26,0.62), rgba(6,10,14,0.24));
+    border-radius:10px; padding:12px; border:1px solid rgba(80,200,255,0.045);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.6), inset 0 2px 12px rgba(70,220,255,0.02);
+    pointer-events:auto; /* panels receive pointer */
+  }
+
+  .gauge-row { display:flex; gap:10px; align-items:center }
+  .ring { width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(70,200,255,0.05); }
+  .label { font-size:12px;color:#9ff3ff;font-weight:700 }
+  .small { font-size:11px;color:#9fefffcc }
+
+  .bars{ margin-top:10px; display:flex; flex-direction:column; gap:8px }
+  .bar { height:8px; background:rgba(255,255,255,0.03); border-radius:6px; overflow:hidden }
+  .fill { height:100%; width:30%; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width 450ms cubic-bezier(.2,.9,.3,1) }
+
+  /* RADAR overlay — centered above globe */
+  .radar-wrap{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:420px; height:420px; z-index:55; pointer-events:none;
+  }
+  .radar {
+    position:absolute; inset:0; border-radius:50%; border:2px solid rgba(60,220,255,0.06);
+    box-shadow: 0 0 40px rgba(0,150,180,0.04), inset 0 0 40px rgba(64,220,255,0.02);
+    overflow:hidden; pointer-events:none;
+  }
+  .blip {
+    position:absolute; width:10px; height:10px; border-radius:50%; background:radial-gradient(#ff7a7a,#ff2d2d); box-shadow:0 0 18px #ff7a7a66; opacity:0.2;
+  }
+
+  /* bottom controls */
+  .bottom {
+    position:absolute; left:8%; right:8%; bottom:4%; display:flex; justify-content:center; gap:8px; z-index:60; pointer-events:none; flex-wrap:wrap;
+  }
+  .btn { pointer-events:auto; padding:8px 14px; border-radius:8px; background:linear-gradient(90deg, rgba(6,16,22,0.6), rgba(6,12,16,0.2)); border:1px solid rgba(60,220,255,0.06); color:#9ff7ff; font-weight:700; cursor:pointer; transition: all 0.2s; font-size:13px; }
+  .btn:hover { background:linear-gradient(90deg, rgba(10,20,28,0.8), rgba(8,14,20,0.4)); border-color: rgba(60,220,255,0.12); }
+  .btn.active { background:linear-gradient(90deg, rgba(60,220,255,0.3), rgba(60,220,255,0.1)); border-color: var(--accent); }
+
+  /* site navigation — the console's real destinations. Kept visually distinct
+     from the panel buttons below so the two never read as the same control. */
+  .sitenav { position:absolute; top:52px; left:0; right:0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; padding:10px 12px; pointer-events:none; z-index:65; }
+  .sitenav .navlink { pointer-events:auto; text-decoration:none; display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px; font-size:12px; font-weight:700; letter-spacing:.08em; color:#bff7ff; background:rgba(4,12,18,0.72); border:1px solid rgba(60,220,255,0.14); backdrop-filter:blur(6px); transition:all .2s; }
+  .sitenav .navlink:hover, .sitenav .navlink:focus-visible { color:#eafeff; border-color:var(--accent); background:rgba(10,26,36,0.9); outline:none; }
+  .sitenav .navlink[aria-current="page"] { color:#001318; background:linear-gradient(90deg, rgba(60,220,255,0.9), rgba(60,220,255,0.55)); border-color:var(--accent); }
+  @media (max-width:480px){
+    /* The title wraps at this width and the HUD stacks, so the nav moves to a
+       bottom bar — clear of everything, thumb-reachable, and the shape a PWA
+       wants anyway. Sits above the panel row until that gets its own pass. */
+    .sitenav {
+      position:fixed; top:auto; bottom:0; gap:6px; padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+      background:rgba(2,9,13,0.94); border-top:1px solid rgba(60,220,255,0.16); backdrop-filter:blur(10px);
+      z-index:120;
+    }
+    .sitenav .navlink { padding:10px 14px; font-size:11px; }  /* ~40px tap target */
+  }
+
+  /* popup panels */
+  .popup { position:absolute; top:18%; left:50%; transform:translateX(-50%) scale(.98); width:460px; padding:16px; border-radius:12px; background:rgba(8,18,26,0.82); border:1px solid rgba(60,220,255,0.06); box-shadow:0 20px 60px rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition:all .22s ease; z-index:70; }
+  .popup.active{ opacity:1; pointer-events:auto; transform:translateX(-50%) scale(1); }
+
+  /* right radial gauge canvas fix */
+  .radial { width:110px; height:110px; border-radius:50%; position:relative; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#021217,#03161a); border:1px solid rgba(255,60,60,0.06) }
+  .radial .val { position:absolute; font-weight:800; color:#ff6b7f; font-size:18px }
+
+  /* close button for popups */
+  .close-btn { position:absolute; top:8px; right:8px; width:24px; height:24px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition: background 0.2s; }
+  .close-btn:hover { background:rgba(255,255,255,0.2); }
+  .close-btn::before, .close-btn::after { content:''; position:absolute; width:12px; height:2px; background:var(--accent); }
+  .close-btn::before { transform:rotate(45deg); }
+  .close-btn::after { transform:rotate(-45deg); }
+
+  /* Location tooltip with raccoon */
+  .location-tooltip {
+    position: absolute; 
+    background: rgba(8,18,26,0.95); 
+    border: 1px solid rgba(60,220,255,0.3);
+    border-radius: 8px; 
+    padding: 12px; 
+    color: #bff7ff; 
+    font-size: 12px; 
+    pointer-events: none; 
+    z-index: 100; 
+    opacity: 0; 
+    transition: opacity 0.2s;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    min-width: 200px;
+  }
+  .location-tooltip.active { opacity: 1; }
+  .location-tooltip h4 { margin: 0 0 8px 0; color: var(--accent); font-size: 14px; }
+  .location-tooltip p { margin: 4px 0; color: #9ff3ff; }
+  .location-tooltip .raccoon-status { color: #FFD700; font-weight: bold; }
+
+  /* Raccoon emoji display */
+  .raccoon-display {
+    position: absolute;
+    font-size: 48px;
+    pointer-events: none;
+    z-index: 90;
+    opacity: 0;
+    transition: all 0.3s ease;
+    transform: translate(-50%, -50%);
+  }
+  .raccoon-display.active {
+    opacity: 1;
+    animation: raccoonDance 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes raccoonDance {
+    0% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
+    100% { transform: translate(-50%, -50%) rotate(5deg) scale(1.1); }
+  }
+
+  /* Raccoon gang badge */
+  .gang-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--raccoon-brown), var(--raccoon-gray));
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 5px;
+  }
+
+  /* Raccoon operation indicator */
+  .raccoon-operation {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    pointer-events: none;
+    z-index: 85;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+  }
+  .raccoon-operation.active {
+    opacity: 1;
+    animation: raccoonOperation 2s ease-in-out infinite;
+  }
+  @keyframes raccoonOperation {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+  }
+
+  /* Alert system */
+  .alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .alert {
+    background: rgba(8,18,26,0.95);
+    border: 1px solid rgba(60,220,255,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    color: #bff7ff;
+    font-size: 12px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 300px;
+  }
+  .alert.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .alert-title {
+    font-weight: bold;
+    color: var(--accent);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert-icon {
+    font-size: 16px;
+  }
+  .alert-message {
+    color: #9ff3ff;
+    line-height: 1.4;
+  }
+  .alert-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .alert-close:hover {
+    background: rgba(255,255,255,0.2);
+  }
+  .alert-close::before,
+  .alert-close::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 2px;
+    background: var(--accent);
+  }
+  .alert-close::before {
+    transform: rotate(45deg);
+  }
+  .alert-close::after {
+    transform: rotate(-45deg);
+  }
+
+  /* responsive - keep HUD visible on all sizes */
+  @media (max-width:1100px){
+    #globe-wrap{ width:520px; height:520px; }
+    .side{ 
+      width:18%; /* Make panels wider on smaller screens */
+      padding:8px;
+      gap:10px;
+    }
+    .panel { padding:8px; }
+    .frame{ left:4%; right:4%; top:4%; bottom:8%; }
+    .bottom { left:6%; right:6%; bottom:2%; gap:6px; }
+    .btn { padding:6px 10px; font-size:12px; }
+    .radar-wrap { width:320px; height:320px; }
+  }
+
+  @media (max-width:768px){
+    #globe-wrap{ width:400px; height:400px; }
+    .side{ 
+      width:22%; 
+      padding:6px;
+      gap:8px;
+    }
+    .panel { padding:6px; }
+    .ring { width:40px; height:40px; }
+    .radial { width:80px; height:80px; }
+    .radial .val { font-size:14px; }
+    .radar-wrap { width:240px; height:240px; }
+    .popup { width:90%; max-width:400px; }
+    .bottom { gap:4px; }
+    .btn { padding:5px 8px; font-size:11px; }
+  }
+
+  @media (max-width:480px){
+    #globe-wrap{ width:300px; height:300px; }
+    /* 25% is ~97px at 390 — not enough for a ring plus "NEURAL INPUT" beside
+       it, so the labels clipped. The rails float over the globe anyway. */
+    .side{
+      width:33%;
+      padding:4px;
+      gap:6px;
+      bottom:22%;   /* clear the fixed button strip and site nav */
+    }
+    .panel { padding:4px; }
+    /* 32px was too tight for the 12px ring labels — "Rx/g" wrapped mid-word. */
+    .ring { width:40px; height:40px; flex:0 0 40px; }
+    .ring > div { white-space:nowrap; }
+    .small { font-size:9px; }
+    .label { font-size:10px; }
+    .radial { width:60px; height:60px; }
+    .radial .val { font-size:12px; }
+    .radar-wrap { width:180px; height:180px; }
+
+    /* Seven buttons wrap to three rows at 390px and eat the view. One
+       scrollable strip keeps every button reachable and one row tall.
+       It sits above the site nav rather than on top of it. */
+    .bottom {
+      position:fixed; left:0; right:0; top:auto;
+      bottom:calc(52px + env(safe-area-inset-bottom));  /* clear of .sitenav */
+      z-index:110;
+      flex-wrap:nowrap; justify-content:flex-start;
+      gap:6px; padding:6px 10px;
+      overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .bottom::-webkit-scrollbar { display:none; }
+    .btn { flex:0 0 auto; padding:9px 12px; font-size:11px; }  /* ~36px tap target */
+  }
+
+  /* Large screen adjustments */
+  @media (min-width:1400px){
+    #globe-wrap{ 
+      width:900px; 
+      height:900px; 
+    }
+    .side {
+      width: 12%;
+    }
+  }
+
+  @media (min-width:1800px){
+    #globe-wrap{ 
+      width:1000px; 
+      height:1000px; 
+    }
+    .side {
+      width: 11%;
+    }
+  }
+
+  @media (min-width:2400px){
+    #globe-wrap{ 
+      width:1200px; 
+      height:1200px; 
+    }
+    .side {
+      width: 10%;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="app" id="app">
+
+    <!-- Alert container -->
+    <div class="alert-container" id="alert-container"></div>
+
+    <!-- Globe (behind) -->
+    <div id="globe-wrap"><canvas id="globe"></canvas></div>
+
+    <!-- Location tooltip -->
+    <div class="location-tooltip" id="location-tooltip">
+      <h4 id="tooltip-title">Location</h4>
+      <p id="tooltip-info">Information</p>
+    </div>
+
+    <!-- Raccoon display -->
+    <div class="raccoon-display" id="raccoon-display">🦝</div>
+
+    <!-- Raccoon operation indicators -->
+    <div class="raccoon-operation" id="raccoon-operation">🦝</div>
+
+    <!-- HUD overlay -->
+    <div class="hud">
+
+      <div class="title">RACCOON GANG HQ 🦝</div>
+
+      <div class="frame"></div>
+
+      <!-- Left side -->
+      <div class="side left">
+        <div class="panel">
+          <div class="gauge-row">
+            <div class="ring"><div style="font-size:12px;color:var(--accent);font-weight:800">Rx/g</div></div>
+            <div>
+              <div class="label" id="rx-val">--</div>
+              <div class="small">NEURAL INPUT</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="gauge-row">
+            <div class="ring"><div style="font-size:12px;color:var(--accent2);font-weight:800">KT/g</div></div>
+            <div>
+              <div class="label" id="kt-val">--</div>
+              <div class="small">THERM OUTPUT</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="small">ATMOS</div>
+          <div class="bars">
+            <div class="small">OXYGEN <span style="float:right" id="oxy-txt">21%</span></div>
+            <div class="bar"><div class="fill" id="oxy" style="width:21%"></div></div>
+
+            <div class="small">CARBON <span style="float:right" id="carb-txt">0.04%</span></div>
+            <div class="bar"><div class="fill" id="carb" style="width:4%"></div></div>
+
+            <div class="small">NITROGEN <span style="float:right" id="nitro-txt">78%</span></div>
+            <div class="bar"><div class="fill" id="nitro" style="width:78%"></div></div>
+          </div>
+        </div>
+
+        <div class="panel" style="text-align:center">
+          <div style="font-weight:900;font-size:20px;color:var(--accent)">14</div>
+          <div class="small">RACCOONS / m</div>
+        </div>
+      </div>
+
+      <!-- Right side -->
+      <div class="side right">
+        <div class="panel" style="text-align:right">
+          <div style="font-weight:800;color:var(--accent2)">MK-14</div>
+          <div class="small">CORE STATUS</div>
+
+          <div style="margin-top:10px" class="small">CORE TEMP</div>
+          <div class="bar"><div class="fill" id="core-fill" style="width:36%"></div></div>
+
+          <div style="margin-top:8px" class="small">ATM PRESSURE</div>
+          <div class="bar"><div class="fill" id="atm-fill" style="width:58%"></div></div>
+
+          <div style="height:10px"></div>
+          <div style="display:flex;justify-content:flex-end">
+            <div class="radial" id="core-radial">
+              <canvas id="radial-canvas" width="110" height="110" style="border-radius:50%"></canvas>
+              <div class="val" id="radial-val">36°C</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="text-align:right">
+          <div class="small">SCALE</div>
+          <div style="font-weight:800;color:var(--accent2)">1 / 5 nm</div>
+        </div>
+      </div>
+
+      <!-- radar overlay centered above globe -->
+      <div class="radar-wrap">
+        <div class="radar">
+          <div class="blip" id="b1" style="left:66%; top:22%"></div>
+          <div class="blip" id="b2" style="left:38%; top:72%"></div>
+          <div class="blip" id="b3" style="left:18%; top:44%"></div>
+        </div>
+      </div>
+
+      <!-- site navigation -->
+      <nav class="sitenav" aria-label="Site">
+        <a class="navlink" href="/">CLOCK</a>
+        <a class="navlink" href="/screensaver">SCREENSAVER</a>
+        <a class="navlink" href="/slamviz">SLAMVIZ</a>
+        <a class="navlink" href="/weather">WEATHER</a>
+        <a class="navlink" href="/directory">DIRECTORY</a>
+      </nav>
+
+      <!-- bottom controls -->
+      <div class="bottom">
+        <a href="/" class="btn">HOME</a>
+        <div class="btn" data-panel="thermal" data-key="1">THERMAL</div>
+        <div class="btn" data-panel="atmos" data-key="2">ATMOS</div>
+        <div class="btn" data-panel="struct" data-key="3">STRUCTURE</div>
+        <div class="btn" data-panel="security" data-key="4">SECURITY</div>
+        <div class="btn" data-panel="network" data-key="5">NETWORK</div>
+        <div class="btn" data-panel="settings" data-key="6">⚙️ SETTINGS</div>
+      </div>
+
+      <!-- popups -->
+      <div id="thermal" class="popup">
+        <div class="close-btn"></div>
+        <h3 style="margin:0;color:var(--accent)">THERMAL MAP</h3>
+        <p style="color:#bff7ff99">Raccoon thermal signatures across surface.</p>
+        <div style="margin-top:15px; height:120px; background:linear-gradient(90deg, #001122, #003366, #0066cc, #ff6600, #ff0000); border-radius:8px; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:10px; left:10px; color:#fff; font-size:12px;">COLD 🦝</div>
+          <div style="position:absolute; top:10px; right:10px; color:#fff; font-size:12px;">HOT 🦝</div>
+          <div style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); color:#fff; font-size:12px;">PERFECT 🦝</div>
+        </div>
+      </div>
+      <div id="atmos" class="popup">
+        <div class="close-btn"></div>
+        <h3 style="margin:0;color:var(--accent)">ATMOSPHERE REGULATION</h3>
+        <p style="color:#bff7ff99">Optimal conditions for raccoon operations.</p>
+        <div style="margin-top:15px;">
+          <div style="margin-bottom:10px">
+            <div class="small">OXYGEN LEVELS</div>
+            <div class="bar"><div class="fill" style="width:21%"></div></div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div class="small">PRESSURE</div>
+            <div class="bar"><div class="fill" style="width:58%"></div></div>
+          </div>
+          <div>
+            <div class="small">HUMIDITY</div>
+            <div class="bar"><div class="fill" style="width:42%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div id="struct" class="popup">
+        <div class="close-btn"></div>
+        <h3 style="margin:0;color:var(--accent)">STRUCTURAL VISUALIZER</h3>
+        <p style="color:#bff7ff99">Raccoon den integrity monitoring system.</p>
+        <div style="margin-top:15px; display:flex; justify-content:space-between;">
+          <div style="text-align:center">
+            <div style="font-size:24px; font-weight:bold; color:#6bf4c9;">98.2%</div>
+            <div class="small">DEN INTEGRITY</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:24px; font-weight:bold; color:#36e6ff;">100%</div>
+            <div class="small">TRASH CAN STATUS</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:24px; font-weight:bold; color:#ffcc7a;">87.5%</div>
+            <div class="small">MASK INVENTORY</div>
+          </div>
+        </div>
+      </div>
+      <div id="security" class="popup">
+        <div class="close-btn"></div>
+        <h3 style="margin:0;color:var(--accent)">SECURITY NODE</h3>
+        <p style="color:#bff7ff99">Raccoon gang security systems.</p>
+        <div style="margin-top:15px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="small">INTRUSION DETECTION</span>
+            <span style="color:#6bf4c9;">ACTIVE 🦝</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="small">FIREWALL STATUS</span>
+            <span style="color:#6bf4c9;">ONLINE</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="small">ACCESS LOGS</span>
+            <span style="color:#ffcc7a;">3 RACCOONS</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span class="small">THREAT LEVEL</span>
+            <span style="color:#36e6ff;">MINIMAL</span>
+          </div>
+        </div>
+      </div>
+      <div id="network" class="popup">
+        <div class="close-btn"></div>
+        <h3 style="margin:0;color:var(--accent)">NETWORK TOPOLOGY</h3>
+        <p style="color:#bff7ff99">Global raccoon gang network connections.</p>
+        <div id="network-log" style="margin-top: 15px; font-size: 11px; max-height: 100px; overflow-y: auto; border: 1px solid rgba(60,220,255,0.1); border-radius: 4px; padding: 8px;"></div>
+        <div style="margin-top:15px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="small">ACTIVE NODES</span>
+            <span style="color:#6bf4c9;" id="network-nodes">2</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="small">CONNECTIONS</span>
+            <span style="color:#36e6ff;" id="network-connections">18</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="small">OPERATIONS</span>
+            <span style="color:#ffcc7a;" id="network-operations">5</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span class="small">BANDWIDTH</span>
+            <span style="color:#6bf4c9;">87.4 GB/s</span>
+          </div>
+        </div>
+      </div>
+      <div id="settings" class="popup">
+        <div class="close-btn"></div>
+        <h3 style="margin:0;color:var(--accent)">SYSTEM SETTINGS</h3>
+        <p style="color:#bff7ff99">Configure dashboard and simulation parameters.</p>
+        <div class="settings-content">
+          <div class="setting-group">
+            <div class="setting-label">ROTATION SPEED</div>
+            <div class="setting-control">
+              <input type="range" class="setting-slider" id="rotation-slider" min="0" max="200" value="100">
+              <span class="setting-value" id="rotation-value">100%</span>
+            </div>
+          </div>
+          
+          <div class="setting-group">
+            <div class="setting-label">VISUAL EFFECTS</div>
+            <div class="setting-control">
+              <div class="setting-toggle">
+                <span class="small">BLOOM EFFECT</span>
+                <div class="toggle-switch active" id="bloom-toggle">
+                  <div class="toggle-slider"></div>
+                </div>
+              </div>
+            </div>
+            <div class="setting-control">
+              <div class="setting-toggle">
+                <span class="small">CITY LIGHTS</span>
+                <div class="toggle-switch active" id="lights-toggle">
+                  <div class="toggle-slider"></div>
+                </div>
+              </div>
+            </div>
+            <div class="setting-control">
+              <div class="setting-toggle">
+                <span class="small">CONNECTION LINES</span>
+                <div class="toggle-switch active" id="lines-toggle">
+                  <div class="toggle-slider"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-label">SYSTEM STATISTICS</div>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <span class="stat-label">FPS:</span>
+                <span class="stat-value" id="fps-count">60</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Hotspots:</span>
+                <span class="stat-value" id="hotspots-count">22</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Satellites:</span>
+                <span class="stat-value">3</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Alerts:</span>
+                <span class="stat-value" id="alerts-count">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-label">ACTIONS</div>
+            <div class="setting-control">
+              <button class="btn" onclick="resetCamera()" style="padding:6px 12px;">🔄 Reset Camera</button>
+              <button class="btn" onclick="togglePause()" style="padding:6px 12px;">⏸ Pause</button>
+              <button class="btn" onclick="clearAlerts()" style="padding:6px 12px;">🗑️ Clear Alerts</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- hud -->
+  </div> <!-- app -->
+
+<!-- Three.js r128, vendored into assets/vendor/three/ — byte-identical to what
+     cdnjs and jsdelivr were serving. Self-hosted so the globe doesn't depend on
+     a third-party CDN being up, and so a frozen version stays frozen. -->
+<script src="assets/vendor/three/three.min.js"></script>
+<script src="assets/vendor/three/OrbitControls.js"></script>
+<script src="assets/vendor/three/EffectComposer.js"></script>
+<script src="assets/vendor/three/RenderPass.js"></script>
+<script src="assets/vendor/three/UnrealBloomPass.js"></script>
+<script src="assets/vendor/three/LuminosityHighPassShader.js"></script>
+<script src="assets/vendor/three/CopyShader.js"></script>
+
+<script>
+// Initialize Three.js scene
+let scene, camera, renderer, earth, clouds, atmosphere, cityLights, sats = [];
+let controls, composer, raycaster, mouse;
+let hotspots = [];
+let connectionLines = [];
+let raccoonOperations = [];
+let networkNodes = [];
+let sun, sunAngle = 0;
+let stars = [];
+let rotationSpeed = 1;
+let isPaused = false;
+
+// FPS counter
+let fps = 60;
+let lastTime = performance.now();
+let frameCount = 0;
+
+// Alert counter
+let alertCount = 0;
+
+// Location data with expanded US locations
+const locationData = [
+  // International locations
+  { name: "London", lat: 51.5074, lon: -0.1278, population: "9.0M", status: "ACTIVE", temp: "18°C", raccoonGang: false },
+  { name: "Tokyo", lat: 35.6762, lon: 139.6503, population: "13.9M", status: "ACTIVE", temp: "26°C", raccoonGang: false },
+  { name: "Sydney", lat: -33.8688, lon: 151.2093, population: "5.3M", status: "ACTIVE", temp: "19°C", raccoonGang: false },
+  { name: "Cairo", lat: 30.0444, lon: 31.2357, population: "20.9M", status: "ACTIVE", temp: "35°C", raccoonGang: false },
+  { name: "São Paulo", lat: -23.5505, lon: -46.6333, population: "12.3M", status: "ACTIVE", temp: "24°C", raccoonGang: false },
+  { name: "Mumbai", lat: 19.0760, lon: 72.8777, population: "20.4M", status: "ACTIVE", temp: "32°C", raccoonGang: false },
+  { name: "Beijing", lat: 39.9042, lon: 116.4074, population: "21.5M", status: "ACTIVE", temp: "28°C", raccoonGang: false },
+  { name: "Paris", lat: 48.8534, lon: 2.3488, population: "2.1M", status: "ACTIVE", temp: "19°C", raccoonGang: false },
+  { name: "Berlin", lat: 52.5244, lon: 13.4105, population: "3.7M", status: "ACTIVE", temp: "17°C", raccoonGang: false },
+  { name: "Moscow", lat: 55.7522, lon: 37.6156, population: "12.5M", status: "ACTIVE", temp: "15°C", raccoonGang: false },
+  { name: "Rome", lat: 41.8919, lon: 12.5113, population: "2.8M", status: "ACTIVE", temp: "22°C", raccoonGang: false },
+  { name: "Johannesburg", lat: -26.20227, lon: 28.04363, population: "5.6M", status: "ACTIVE", temp: "25°C", raccoonGang: false },
+  { name: "Lagos", lat: 6.52437930, lon: 3.37920570, population: "14.8M", status: "ACTIVE", temp: "30°C", raccoonGang: false },
+  { name: "Nairobi", lat: -1.2833, lon: 36.8167, population: "4.4M", status: "ACTIVE", temp: "24°C", raccoonGang: false },
+  { name: "Buenos Aires", lat: -34.6132, lon: -58.3772, population: "2.9M", status: "ACTIVE", temp: "23°C", raccoonGang: false },
+  { name: "Lima", lat: -12.046374, lon: -77.042793, population: "9.7M", status: "ACTIVE", temp: "21°C", raccoonGang: false },
+  { name: "Singapore", lat: 1.3147, lon: 103.8454, population: "5.7M", status: "ACTIVE", temp: "29°C", raccoonGang: false },
+  { name: "Seoul", lat: 37.566, lon: 126.9784, population: "9.7M", status: "ACTIVE", temp: "20°C", raccoonGang: false },
+  { name: "Dubai", lat: 25.20484930, lon: 55.27078280, population: "3.1M", status: "ACTIVE", temp: "35°C", raccoonGang: false },
+  
+  // US Locations - East Coast
+  { name: "New York", lat: 40.7128, lon: -74.0060, population: "8.3M", status: "ACTIVE", temp: "22°C", raccoonGang: false },
+  { name: "Boston", lat: 42.3601, lon: -71.0589, population: "0.7M", status: "ACTIVE", temp: "20°C", raccoonGang: false },
+  { name: "Philadelphia", lat: 39.9526, lon: -75.1652, population: "1.6M", status: "ACTIVE", temp: "21°C", raccoonGang: false },
+  { name: "Miami", lat: 25.7617, lon: -80.1918, population: "0.5M", status: "ACTIVE", temp: "29°C", raccoonGang: false },
+  { name: "Atlanta", lat: 33.7490, lon: -84.3880, population: "0.5M", status: "ACTIVE", temp: "26°C", raccoonGang: false },
+  
+  // US Locations - Central
+  { name: "Chicago", lat: 41.8781, lon: -87.6298, population: "2.7M", status: "ACTIVE", temp: "19°C", raccoonGang: false },
+  { name: "Detroit", lat: 42.3314, lon: -83.0458, population: "0.6M", status: "ACTIVE", temp: "18°C", raccoonGang: false },
+  { name: "Dallas", lat: 32.7767, lon: -96.7970, population: "1.3M", status: "ACTIVE", temp: "28°C", raccoonGang: false },
+  { name: "Denver", lat: 39.7392, lon: -104.9903, population: "0.7M", status: "ACTIVE", temp: "16°C", raccoonGang: false },
+  { name: "Phoenix", lat: 33.4484, lon: -112.0740, population: "1.6M", status: "ACTIVE", temp: "35°C", raccoonGang: false },
+  
+  // US Locations - West Coast
+  { name: "Los Angeles", lat: 34.0522, lon: -118.2437, population: "4.0M", status: "ACTIVE", temp: "24°C", raccoonGang: false },
+  { name: "San Francisco", lat: 37.7749, lon: -122.4194, population: "0.9M", status: "ACTIVE", temp: "18°C", raccoonGang: false },
+  { name: "Seattle", lat: 47.6062, lon: -122.3321, population: "0.7M", status: "ACTIVE", temp: "15°C", raccoonGang: false },
+  { name: "Las Vegas", lat: 36.1699, lon: -115.1398, population: "0.6M", status: "ACTIVE", temp: "31°C", raccoonGang: false },
+  
+  // Raccoon Gang Headquarters
+  { name: "New Orleans", lat: 29.9511, lon: -90.0715, population: "1.3M", status: "RACCOON GANG HQ", temp: "28°C", raccoonGang: true, hq: true },
+  { name: "Sacramento", lat: 38.5816, lon: -121.4944, population: "0.5M", status: "RACCOON GANG WEST", temp: "31°C", raccoonGang: true },
+  { name: "Chicago Outpost", lat: 41.8781, lon: -87.6298, population: "2.7M", status: "RACCOON GANG CENTRAL", temp: "19°C", raccoonGang: true },
+  { name: "Miami Base", lat: 25.7617, lon: -80.1918, population: "0.5M", status: "RACCOON GANG SOUTH", temp: "29°C", raccoonGang: true }
+];
+
+// Alert messages
+const alertMessages = [
+  { icon: "🦝", title: "New Operation", message: "Trash can discovered in Tokyo" },
+  { icon: "⚠️", title: "Security Alert", message: "Animal control spotted in London - avoid!" },
+  { icon: "📦", title: "Supply Drop", message: "Supply shipment arriving at New Orleans HQ" },
+  { icon: "🔐", title: "Network Activity", message: "Secure channel established with Sacramento" },
+  { icon: "🦝", title: "Intelligence", message: "New food source identified in Sydney" },
+  { icon: "⚡", title: "Power Surge", message: "Energy spike detected - operations online" },
+  { icon: "🗑️", title: "Resource Alert", message: "Dumpster diving opportunity in Chicago" },
+  { icon: "🌙", title: "Night Ops", message: "Optimal conditions for nocturnal activities" }
+];
+
+function initScene() {
+  // Check if Three.js loaded properly
+  if(typeof THREE === 'undefined') {
+    console.error('Three.js failed to load');
+    return;
+  }
+
+  /* ---------------------------
+     Renderer + scene + camera
+     --------------------------- */
+  const canvas = document.getElementById('globe');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.9;
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(32, 1, 0.1, 5000);
+  camera.position.set(0, 0, 360);
+
+  // Raycaster for mouse interaction
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  /* ---------------------------
+     Controls
+     --------------------------- */
+  if(typeof OrbitControls !== 'undefined') {
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 200;
+    controls.maxDistance = 500;
+    controls.enablePan = false;
+  }
+
+  /* ---------------------------
+     Resize helper
+     --------------------------- */
+  function resizeGlobe(){
+    const wrap = document.getElementById('globe-wrap');
+    const w = Math.max(200, Math.floor(wrap.clientWidth));
+    const h = Math.max(200, Math.floor(wrap.clientHeight));
+    renderer.setSize(w, h, false);
+    if(composer) composer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resizeGlobe, { passive:true });
+
+  /* ---------------------------
+     Postprocessing (Bloom)
+     --------------------------- */
+  if(typeof EffectComposer !== 'undefined') {
+    composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(800,800), 0.9, 0.35, 0.9);
+    bloomPass.threshold = 0.18;
+    composer.addPass(bloomPass);
+  }
+
+  /* ---------------------------
+     Lighting - Sun for day/night cycle
+     --------------------------- */
+  sun = new THREE.DirectionalLight(0xffffff, 2.0);
+  sun.position.set(200, 0, 0);
+  scene.add(sun);
+  
+  // Add ambient light for dark side
+  scene.add(new THREE.AmbientLight(0x0d2a34, 0.2));
+
+  /* ---------------------------
+     Particle Starfield
+     --------------------------- */
+  function createStarfield() {
+    const starGeometry = new THREE.BufferGeometry();
+    const starCount = 2000;
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+
+    for (let i = 0; i < starCount; i++) {
+      const x = (Math.random() - 0.5) * 2000;
+      const y = (Math.random() - 0.5) * 2000;
+      const z = (Math.random() - 0.5) * 2000;
+      
+      positions.push(x, y, z);
+      
+      // Varying star colors
+      const color = new THREE.Color();
+      const colorChoice = Math.random();
+      if (colorChoice < 0.3) {
+        color.setHSL(0.6, 0.2, 1); // Blue-white
+      } else if (colorChoice < 0.6) {
+        color.setHSL(0.1, 0.3, 1); // Yellow-white
+      } else {
+        color.setHSL(0.8, 0.2, 1); // Red-white
+      }
+      colors.push(color.r, color.g, color.b);
+      
+      sizes.push(Math.random() * 2 + 0.5);
+    }
+
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+    const starMaterial = new THREE.PointsMaterial({
+      size: 2,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true
+    });
+
+    const starfield = new THREE.Points(starGeometry, starMaterial);
+    scene.add(starfield);
+    stars.push(starfield);
+  }
+
+  /* ---------------------------
+     Original Earth textures (canvas) — working version from before
+     --------------------------- */
+  function makeEarthCanvas(w=2048, h=1024){
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+
+    // Ocean gradient - deeper, more realistic blue
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0, '#0a2f4d');
+    g.addColorStop(0.3, '#0d3d5c');
+    g.addColorStop(0.5, '#0f4a6e');
+    g.addColorStop(0.7, '#0d3d5c');
+    g.addColorStop(1, '#0a2f4d');
+    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+
+    // Helper to convert lat/lon to canvas x/y (equirectangular projection)
+    function latLonToXY(lat, lon) {
+      const x = ((lon + 180) / 360) * w;
+      const y = ((90 - lat) / 180) * h;
+      return { x, y };
+    }
+
+    // Draw continents with more vibrant, visible colors
+    ctx.fillStyle = '#4a7c59';
+    ctx.strokeStyle = '#2d5a3d';
+    ctx.lineWidth = 4;
+
+    // North America
+    ctx.beginPath();
+    const namerica = [
+      [71,-170], [70,-156], [68,-140], [60,-135], [54,-130], [48,-123], [45,-124],
+      [42,-124], [38,-123], [34,-118], [32,-117], [30,-114], [28,-110], [26,-109],
+      [25,-106], [23,-106], [21,-105], [19,-104], [17,-99], [16,-96], [15,-92],
+      [15,-88], [18,-88], [20,-87], [25,-82], [28,-80], [30,-81], [26,-80], [22,-79],
+      [10,-84], [9,-79], [10,-75], [12,-72], [11,-61], [20,-76], [25,-81], [28,-83],
+      [30,-82], [32,-81], [35,-76], [38,-76], [41,-71], [43,-70], [45,-64], [47,-53],
+      [49,-55], [51,-56], [53,-58], [55,-60], [57,-64], [60,-65], [62,-65], [65,-70],
+      [68,-85], [70,-90], [71,-100], [71,-120], [71,-140], [71,-170]
+    ];
+    namerica.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // South America
+    ctx.beginPath();
+    const samerica = [
+      [12,-71], [10,-72], [8,-78], [4,-81], [0,-79], [-4,-81], [-8,-79], [-12,-77],
+      [-16,-73], [-20,-70], [-25,-70], [-30,-71], [-35,-72], [-40,-73], [-45,-72],
+      [-50,-72], [-55,-68], [-55,-65], [-52,-69], [-48,-73], [-44,-74], [-40,-75],
+      [-35,-74], [-30,-72], [-25,-71], [-20,-69], [-16,-70], [-12,-71], [-8,-70],
+      [-4,-69], [0,-71], [4,-70], [8,-68], [11,-66], [12,-71]
+    ];
+    samerica.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Europe
+    ctx.beginPath();
+    const europe = [
+      [71,25], [70,30], [69,35], [68,40], [66,45], [64,48], [60,50], [58,55], [56,60],
+      [55,58], [53,55], [51,52], [50,48], [48,44], [46,40], [44,38], [43,36], [42,36],
+      [40,34], [38,28], [36,26], [36,12], [38,10], [40,8], [43,0], [45,-2], [48,-4],
+      [50,-2], [52,0], [54,4], [56,8], [58,10], [60,12], [62,15], [64,18], [66,20],
+      [68,22], [70,24], [71,25]
+    ];
+    europe.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Africa
+    ctx.beginPath();
+    const africa = [
+      [37,10], [35,12], [32,15], [28,18], [24,20], [20,22], [15,25], [10,28], [5,30],
+      [0,32], [-5,35], [-10,36], [-15,36], [-20,35], [-25,33], [-30,31], [-35,29],
+      [-35,25], [-33,22], [-30,20], [-25,18], [-20,17], [-15,16], [-10,15], [-5,15],
+      [0,15], [5,16], [10,18], [12,20], [14,24], [16,28], [18,32], [20,34], [24,36],
+      [28,36], [32,34], [34,30], [36,25], [37,20], [37,15], [37,10]
+    ];
+    africa.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Asia
+    ctx.beginPath();
+    const asia = [
+      [70,60], [68,65], [66,70], [64,75], [62,80], [60,85], [58,90], [56,95], [54,100],
+      [52,105], [50,110], [48,115], [46,120], [44,125], [42,130], [40,135], [38,140],
+      [36,142], [34,144], [32,145], [30,146], [28,145], [26,144], [24,142], [22,140],
+      [20,138], [18,135], [16,132], [14,128], [12,124], [10,118], [10,110], [12,105],
+      [15,100], [18,95], [22,90], [26,85], [30,80], [34,76], [38,72], [42,68], [46,64],
+      [50,62], [54,60], [58,58], [62,56], [66,55], [70,56], [72,58], [70,60]
+    ];
+    asia.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Australia
+    ctx.beginPath();
+    const australia = [
+      [-10,113], [-12,115], [-15,118], [-18,122], [-22,126], [-26,130], [-30,134],
+      [-34,138], [-38,142], [-39,145], [-38,148], [-36,150], [-33,152], [-30,153],
+      [-26,154], [-22,153], [-18,151], [-15,148], [-12,145], [-10,140], [-11,135],
+      [-12,130], [-11,125], [-10,120], [-10,113]
+    ];
+    australia.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Antarctica (bottom) - bright white/blue for ice
+    ctx.fillStyle = '#e8f4f8';
+    ctx.strokeStyle = '#b8d8e8';
+    ctx.lineWidth = 4;
+    const antarctica = [
+      [-60,-180], [-65,-120], [-68,-60], [-70,0], [-68,60], [-65,120], [-60,180],
+      [-90,180], [-90,-180], [-60,-180]
+    ];
+    ctx.beginPath();
+    antarctica.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Greenland
+    ctx.fillStyle = '#567d67';
+    ctx.beginPath();
+    const greenland = [
+      [83,-35], [81,-30], [78,-25], [75,-22], [72,-22], [70,-25], [68,-30], [66,-35],
+      [65,-40], [64,-45], [64,-50], [66,-53], [68,-52], [70,-50], [72,-48], [74,-46],
+      [76,-44], [78,-42], [80,-40], [82,-38], [83,-35]
+    ];
+    greenland.forEach((p, i) => {
+      const xy = latLonToXY(p[0], p[1]);
+      if (i === 0) ctx.moveTo(xy.x, xy.y);
+      else ctx.lineTo(xy.x, xy.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Add terrain texture/noise for realism and depth
+    ctx.globalCompositeOperation = 'overlay';
+    for (let i = 0; i < 5000; i++) {
+      const x = Math.random() * w;
+      const y = Math.random() * h;
+      const size = Math.random() * 2 + 0.5;
+      const brightness = Math.random() > 0.5 ? 100 : 30;
+      ctx.fillStyle = `rgba(${brightness}, ${Math.random() * 80 + 60}, ${Math.random() * 40 + 30}, ${Math.random() * 0.2 + 0.1})`;
+      ctx.fillRect(x, y, size, size);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Add shadow to continents for 3D depth
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 3;
+
+    // Add coastal highlights for definition
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(120,220,180,0.12)';
+    ctx.strokeStyle = 'rgba(100,200,160,0.35)';
+    ctx.lineWidth = 3;
+
+    // Re-stroke continents for definition and glow
+    [namerica, samerica, europe, africa, asia, australia, greenland].forEach(continent => {
+      ctx.beginPath();
+      continent.forEach((p, i) => {
+        const xy = latLonToXY(p[0], p[1]);
+        if (i === 0) ctx.moveTo(xy.x, xy.y);
+        else ctx.lineTo(xy.x, xy.y);
+      });
+      ctx.closePath();
+      ctx.stroke();
+    });
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+
+    return c;
+  }
+
+  function makeCloudCanvas(w=1024,h=512){
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = 'rgba(255,255,255,0)';
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    for(let i=0;i<350;i++){
+      ctx.beginPath();
+      const x = Math.random()*w;
+      const y = Math.random()*h;
+      const r = 20 + Math.random()*140;
+      ctx.globalAlpha = 0.02 + Math.random()*0.12;
+      ctx.ellipse(x,y,r, r*0.5, Math.random()*Math.PI, 0, Math.PI*2);
+      ctx.fill();
+    }
+    return c;
+  }
+
+  /* ---------------------------
+     Earth + clouds + atmosphere
+     --------------------------- */
+  const dayCanvas = makeEarthCanvas(2048, 1024);
+  const cloudCanvas = makeCloudCanvas(1024,512);
+
+  const dayTex = new THREE.CanvasTexture(dayCanvas);
+  dayTex.encoding = THREE.sRGBEncoding;
+  const cloudTex = new THREE.CanvasTexture(cloudCanvas);
+  cloudTex.encoding = THREE.sRGBEncoding;
+
+  // Earth mesh - using PBR material for realism
+  const earthGeom = new THREE.SphereGeometry(95, 128, 128);
+  const earthMat = new THREE.MeshStandardMaterial({
+    map: dayTex,
+    roughness: 0.7,
+    metalness: 0.1,
+    emissive: new THREE.Color(0x000000),
+    emissiveIntensity: 0
+  });
+  earth = new THREE.Mesh(earthGeom, earthMat);
+  scene.add(earth);
+
+  // City lights (only visible on dark side)
+  const cityGeo = new THREE.BufferGeometry();
+  const positions = [];
+  for (let i=0;i<2000;i++){
+    const phi = Math.acos(2*Math.random()-1);
+    const theta = 2*Math.PI*Math.random();
+    const r = 96.2;
+    positions.push(
+      r*Math.sin(phi)*Math.cos(theta),
+      r*Math.cos(phi),
+      r*Math.sin(phi)*Math.sin(theta)
+    );
+  }
+  cityGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions,3));
+  const cityMat = new THREE.PointsMaterial({ 
+    color:0xffd700, 
+    size:0.6, 
+    transparent:true, 
+    opacity:0.8,
+    blending: THREE.AdditiveBlending
+  });
+  cityLights = new THREE.Points(cityGeo, cityMat);
+  scene.add(cityLights);
+
+  // clouds - using StandardMaterial for better lighting
+  const cloudGeom = new THREE.SphereGeometry(97.2, 128, 128);
+  const cloudMat = new THREE.MeshStandardMaterial({
+    map: cloudTex,
+    transparent: true,
+    opacity: 0.5,
+    depthWrite: false,
+    roughness: 1.0,
+    metalness: 0.0
+  });
+  clouds = new THREE.Mesh(cloudGeom, cloudMat);
+  scene.add(clouds);
+
+  // atmosphere glow (backside shader)
+  const atmGeom = new THREE.SphereGeometry(102, 64, 64);
+  const atmMat = new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vNormal;
+      void main(){ vNormal = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `
+      varying vec3 vNormal;
+      void main(){
+        float intensity = pow(0.6 - dot(vNormal, vec3(0,0,1.0)), 2.0);
+        gl_FragColor = vec4(0.12,0.95,1.0, 1.0) * intensity * 0.75;
+      }`,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true
+  });
+  atmosphere = new THREE.Mesh(atmGeom, atmMat);
+  scene.add(atmosphere);
+
+  // Add night outlines as a separate sphere slightly larger than Earth
+  function makeNightOutlineCanvas(w=2048, h=1024){
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    
+    // Transparent background
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.fillRect(0,0,w,h);
+    
+    // Draw continental outlines
+    ctx.strokeStyle = 'rgba(30,100,60,0.8)';
+    ctx.lineWidth = 3;
+    
+    // Stylized continental outlines
+    for(let i=0;i<15;i++){
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(30,100,60,${Math.random()*0.3+0.5})`;
+      const x = Math.random()*w;
+      const y = Math.random()*h;
+      const r = Math.random()*200+100;
+      ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.stroke();
+    }
+    
+    // Add some continental blob outlines
+    ctx.fillStyle = 'rgba(15,75,40,0.4)';
+    for(let i=0;i<8;i++){
+      ctx.beginPath();
+      const x = Math.random()*w;
+      const y = Math.random()*h;
+      const rw = Math.random()*400+100;
+      const rh = Math.random()*150+50;
+      ctx.ellipse(x,y,rw,rh,Math.random()*Math.PI,0,Math.PI*2);
+      ctx.fill();
+    }
+    
+    return c;
+  }
+
+  const nightOutlineCanvas = makeNightOutlineCanvas(2048, 1024);
+  const nightOutlineTex = new THREE.CanvasTexture(nightOutlineCanvas);
+  nightOutlineTex.encoding = THREE.sRGBEncoding;
+
+  // Night outline sphere (slightly larger than Earth)
+  const nightOutlineGeom = new THREE.SphereGeometry(96.5, 96, 96);
+  const nightOutlineMat = new THREE.MeshBasicMaterial({
+    map: nightOutlineTex,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false
+  });
+  const nightOutline = new THREE.Mesh(nightOutlineGeom, nightOutlineMat);
+  scene.add(nightOutline);
+
+  /* ---------------------------
+     Interactive Hotspots
+     --------------------------- */
+  const hotspotGeom = new THREE.SphereGeometry(1.8, 16, 16);
+
+  locationData.forEach((location, i) => {
+    // Convert lat/lon to 3D coordinates
+    const phi = (90 - location.lat) * (Math.PI / 180);
+    const theta = (location.lon + 180) * (Math.PI / 180);
+    const radius = 98;
+
+    const x = -(radius * Math.sin(phi) * Math.cos(theta));
+    const z = radius * Math.sin(phi) * Math.sin(theta);
+    const y = radius * Math.cos(phi);
+
+    // Different colors for raccoon gang locations
+    const hotspotColor = location.raccoonGang ? 0xFFD700 : 0x00ff88;
+    const hotspotMat = new THREE.MeshBasicMaterial({ 
+      color: hotspotColor,
+      transparent: true,
+      opacity: 0.8
+    });
+
+    const hotspot = new THREE.Mesh(hotspotGeom, hotspotMat);
+    hotspot.position.set(x, y, z);
+    hotspot.userData = location;
+    earth.add(hotspot);
+    hotspots.push(hotspot);
+
+    // Add pulsing ring around hotspot
+    const ringGeom = new THREE.RingGeometry(2.5, 3.5, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: hotspotColor,
+      transparent: true,
+      opacity: 0.3,
+      side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(ringGeom, ringMat);
+    ring.position.copy(hotspot.position);
+    ring.lookAt(new THREE.Vector3(0, 0, 0));
+    ring.userData = { hotspot: hotspot, phase: i * 0.3 };
+    earth.add(ring);
+  });
+
+  /* ---------------------------
+     Network Communication Nodes
+     --------------------------- */
+  function createNetworkNodes() {
+    // Create communication nodes between gang locations
+    const gangLocations = locationData.filter(loc => loc.raccoonGang);
+    
+    gangLocations.forEach((location, i) => {
+      // Create network node above each gang location
+      const nodeGeom = new THREE.SphereGeometry(1.5, 8, 8);
+      const nodeMat = new THREE.MeshBasicMaterial({
+        color: 0xFFD700,
+        transparent: true,
+        opacity: 0.9
+      });
+      const node = new THREE.Mesh(nodeGeom, nodeMat);
+      
+      // Position node slightly above the hotspot
+      const pos = hotspots[locationData.findIndex(loc => loc.name === location.name)].position.clone();
+      pos.normalize().multiplyScalar(105);
+      node.position.copy(pos);
+      scene.add(node);
+      networkNodes.push(node);
+    });
+  }
+
+  /* ---------------------------
+     Connection Lines
+     --------------------------- */
+  function createConnectionLines() {
+    // Create connections between cities
+    for (let i = 0; i < locationData.length; i++) {
+      for (let j = i + 1; j < locationData.length; j++) {
+        // Connect only raccoon gang locations to each other
+        if (locationData[i].raccoonGang && locationData[j].raccoonGang) {
+          const points = [];
+          const start = hotspots[i].position.clone();
+          const end = hotspots[j].position.clone();
+          
+          // Create curved path
+          const mid = start.clone().add(end).multiplyScalar(0.5);
+          mid.normalize().multiplyScalar(120);
+          
+          for (let t = 0; t <= 1; t += 0.05) {
+            const point = new THREE.Vector3();
+            point.copy(start).lerp(end, t);
+            point.normalize().multiplyScalar(95 + Math.sin(t * Math.PI) * 25);
+            points.push(point);
+          }
+          
+          const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+          const lineMat = new THREE.LineBasicMaterial({
+            color: 0xFFD700,
+            transparent: true,
+            opacity: 0.3,
+            linewidth: 2
+          });
+          
+          const line = new THREE.Line(lineGeom, lineMat);
+          earth.add(line);
+          connectionLines.push(line);
+        }
+      }
+    }
+  }
+
+
+  // Create raccoon operations between gang locations
+  function createRaccoonOperations() {
+    const gangLocations = locationData.filter(loc => loc.raccoonGang);
+    
+    // Create operations between all gang locations
+    for (let i = 0; i < gangLocations.length; i++) {
+      for (let j = i + 1; j < gangLocations.length; j++) {
+        const startIdx = locationData.findIndex(loc => loc.name === gangLocations[i].name);
+        const endIdx = locationData.findIndex(loc => loc.name === gangLocations[j].name);
+        
+        if (startIdx === -1 || endIdx === -1) continue;
+        
+        // Create multiple operations between each pair
+        for (let k = 0; k < 2; k++) {
+          const points = [];
+          const start = hotspots[startIdx].position.clone();
+          const end = hotspots[endIdx].position.clone();
+          
+          // Create different paths for each operation
+          const offset = new THREE.Vector3(
+            Math.sin(k * 0.5) * 8,
+            Math.cos(k * 0.5) * 8,
+            Math.sin(k * 0.3) * 8
+          );
+          
+          for (let t = 0; t <= 1; t += 0.05) {
+            const point = new THREE.Vector3();
+            point.copy(start).lerp(end, t);
+            point.add(offset.clone().multiplyScalar(Math.sin(t * Math.PI) * 0.5));
+            point.normalize().multiplyScalar(95 + Math.sin(t * Math.PI) * 20);
+            points.push(point);
+          }
+          
+          const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+          const lineMat = new THREE.LineBasicMaterial({
+            color: 0xFFD700,
+            transparent: true,
+            opacity: 0.4,
+            linewidth: 3
+          });
+          
+          const line = new THREE.Line(lineGeom, lineMat);
+          scene.add(line);
+          raccoonOperations.push(line);
+          
+          // Add moving raccoon emoji along the path
+          const raccoonGeom = new THREE.SphereGeometry(2.5, 16, 16);
+          const raccoonMat = new THREE.MeshBasicMaterial({
+            color: 0xFFD700,
+            transparent: true,
+            opacity: 0.8
+          });
+          
+          const raccoon = new THREE.Mesh(raccoonGeom, raccoonMat);
+          raccoon.userData = { 
+            path: points, 
+            progress: Math.random(), 
+            speed: 0.001 + Math.random() * 0.002,
+            phase: k * 0.5
+          };
+          scene.add(raccoon);
+          raccoonOperations.push(raccoon);
+        }
+      }
+    }
+  }
+
+  /* ---------------------------
+     Satellites + orbit lines
+     --------------------------- */
+  const satGeo = new THREE.SphereGeometry(2.6, 8, 8);
+  function addSat(radius, inclination, speed, phase, color=0xffd380){
+    const mat = new THREE.MeshBasicMaterial({ color });
+    const s = new THREE.Mesh(satGeo, mat);
+    scene.add(s);
+
+    // dashed orbit (approximated with many segments)
+    const segs = 128;
+    const pts = [];
+    for (let i=0;i<=segs;i++){
+      const a = (i/segs)*Math.PI*2;
+      pts.push(new THREE.Vector3(Math.cos(a)*radius, 0, Math.sin(a)*radius));
+    }
+    const orbGeom = new THREE.BufferGeometry().setFromPoints(pts);
+    const orbMat = new THREE.LineDashedMaterial({ color:0x3fe6ff, dashSize: 2.6, gapSize: 5, linewidth:1, transparent:true, opacity:0.5 });
+    const orb = new THREE.Line(orbGeom, orbMat);
+    orb.computeLineDistances();
+    orb.rotation.x = THREE.MathUtils.degToRad(inclination);
+    scene.add(orb);
+
+    sats.push({ s, radius, inclination, speed, phase, orb });
+  }
+  addSat(130, 18, 0.46, 0);
+  addSat(165, 48, -0.31, 1.3);
+  addSat(150, -26, 0.62, 0.6);
+
+  // Initialize all systems
+  createStarfield();
+  createNetworkNodes();
+  // Static connection lines between raccoon gang locations
+  createConnectionLines();
+  updateStats();
+
+  /* ---------------------------
+     Alert System
+     --------------------------- */
+  function showAlert(title, message, icon) {
+    const alertContainer = document.getElementById('alert-container');
+    const alert = document.createElement('div');
+    alert.className = 'alert';
+    alert.innerHTML = `
+      <div class="alert-title">
+        <span class="alert-icon">${icon}</span>
+        <span>${title}</span>
+      </div>
+      <div class="alert-message">${message}</div>
+      <div class="alert-close"></div>
+    `;
+    
+    alertContainer.appendChild(alert);
+    alertCount++;
+    updateStats();
+    
+    // Show alert
+    setTimeout(() => {
+      alert.classList.add('show');
+    }, 100);
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+      alert.classList.remove('show');
+      setTimeout(() => {
+        if (alertContainer.contains(alert)) {
+          alertContainer.removeChild(alert);
+          alertCount--;
+          updateStats();
+        }
+      }, 300);
+    }, 5000);
+    
+    // Add close functionality
+    alert.querySelector('.alert-close').addEventListener('click', () => {
+      alert.classList.remove('show');
+      setTimeout(() => {
+        if (alertContainer.contains(alert)) {
+          alertContainer.removeChild(alert);
+          alertCount--;
+          updateStats();
+        }
+      }, 300);
+    });
+  }
+
+  // Random alert system
+  function triggerRandomAlert() {
+    if (Math.random() < 0.3) { // 30% chance every 10 seconds
+      const alertData = alertMessages[Math.floor(Math.random() * alertMessages.length)];
+      showAlert(alertData.title, alertData.message, alertData.icon);
+    }
+  }
+
+  // Update stats
+  function updateStats() {
+    document.getElementById('network-nodes').textContent = networkNodes.length;
+    document.getElementById('network-connections').textContent = connectionLines.length;
+    document.getElementById('network-operations').textContent = raccoonOperations.filter(op => op.path).length;
+    document.getElementById('fps-count').textContent = fps;
+    document.getElementById('hotspots-count').textContent = hotspots.length;
+    document.getElementById('alerts-count').textContent = alertCount;
+  }
+
+  // Update FPS
+  function updateFPS() {
+    frameCount++;
+    const currentTime = performance.now();
+    if (currentTime >= lastTime + 1000) {
+      fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+      document.getElementById('fps-count').textContent = fps;
+      frameCount = 0;
+      lastTime = currentTime;
+    }
+  }
+
+  /* ---------------------------
+     Mouse interaction
+     --------------------------- */
+  canvas.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // Check for hotspot hover
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(hotspots);
+    
+    const tooltip = document.getElementById('location-tooltip');
+    const raccoonDisplay = document.getElementById('raccoon-display');
+    
+    if (intersects.length > 0) {
+      const hotspot = intersects[0].object;
+      const data = hotspot.userData;
+      
+      let statusText = data.status;
+      if (data.raccoonGang) {
+        statusText += ' <span class="gang-badge">RACCOON GANG</span>';
+      }
+      
+      document.getElementById('tooltip-title').textContent = data.name;
+      document.getElementById('tooltip-info').innerHTML = 
+        `Population: ${data.population}<br>` +
+        `Status: <span class="raccoon-status">${statusText}</span><br>` +
+        `Temperature: ${data.temp}`;
+      
+      tooltip.style.left = event.clientX + 10 + 'px';
+      tooltip.style.top = event.clientY - 40 + 'px';
+      tooltip.classList.add('active');
+      canvas.style.cursor = 'pointer';
+      
+      // Show raccoon emoji for gang locations
+      if (data.raccoonGang) {
+        raccoonDisplay.style.left = event.clientX + 'px';
+        raccoonDisplay.style.top = event.clientY - 60 + 'px';
+        raccoonDisplay.classList.add('active');
+        raccoonDisplay.textContent = data.hq ? '🦝👑' : '🦝';
+      } else {
+        raccoonDisplay.classList.remove('active');
+      }
+    } else {
+      tooltip.classList.remove('active');
+      raccoonDisplay.classList.remove('active');
+      canvas.style.cursor = 'grab';
+    }
+  });
+
+  canvas.addEventListener('click', (event) => {
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(hotspots);
+
+    if (intersects.length > 0) {
+      const hotspot = intersects[0].object;
+      const data = hotspot.userData;
+      console.log('Clicked on:', data);
+
+      // Stop earth rotation
+      isPaused = true;
+      const pauseBtn = document.querySelector('.btn[onclick="togglePause()"]');
+      if (pauseBtn) pauseBtn.textContent = "▶ Play";
+
+      // Get the hotspot's world position
+      const worldPos = new THREE.Vector3();
+      hotspot.getWorldPosition(worldPos);
+
+      // Calculate the angle to rotate earth so this city faces the camera
+      const currentAngle = Math.atan2(worldPos.x, worldPos.z);
+      const targetRotation = earth.rotation.y - currentAngle;
+
+      // Animate earth rotation to bring city to front
+      const startRotation = earth.rotation.y;
+      const startTime = performance.now();
+      const duration = 1500; // 1.5 seconds
+
+      function animateEarthRotation() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing function for smooth animation
+        const easeProgress = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        earth.rotation.y = startRotation + (targetRotation - startRotation) * easeProgress;
+        clouds.rotation.y = earth.rotation.y * (0.0011 / 0.0016);
+        atmosphere.rotation.y = earth.rotation.y * (0.0009 / 0.0016);
+        nightOutline.rotation.y = earth.rotation.y;
+
+        if (progress < 1) {
+          requestAnimationFrame(animateEarthRotation);
+        }
+      }
+
+      animateEarthRotation();
+
+      // Show alert for special locations
+      if (data.hq) {
+        showAlert("HQ Focused", `Focusing on ${data.name} - Raccoon Gang Headquarters!`, "🦝👑");
+      } else if (data.raccoonGang) {
+        showAlert("Gang Location", `Focusing on ${data.name} outpost`, "🦝");
+      } else {
+        showAlert("Location Focus", `Viewing ${data.name}`, "🌍");
+      }
+    }
+  });
+
+  /* ---------------------------
+     Renderer loop
+     --------------------------- */
+  let last = performance.now();
+  function animate(now){
+    requestAnimationFrame(animate);
+    now *= 0.001;
+    const dt = Math.min(0.05, now - (last*0.001 || 0));
+    last = performance.now();
+
+    // Update FPS
+    updateFPS();
+
+    // update controls
+    if(controls) controls.update();
+
+    // Day/night cycle
+    sunAngle += 0.002 * rotationSpeed;
+    sun.position.x = Math.cos(sunAngle) * 200;
+    sun.position.z = Math.sin(sunAngle) * 200;
+    sun.position.y = 50;
+
+    // Calculate city lights visibility based on sun position
+    const sunDirection = new THREE.Vector3(sun.position.x, sun.position.y, sun.position.z).normalize();
+    cityLights.material.opacity = 0.8;
+    
+    // Make city lights only visible on dark side
+    const dotProduct = sunDirection.dot(new THREE.Vector3(0, 0, 1));
+    if (dotProduct > 0) {
+      cityLights.material.opacity = Math.max(0, 0.8 * (1 - dotProduct));
+    }
+
+    // Show night outlines when it's dark
+    nightOutlineMat.opacity = Math.max(0, (1 - dotProduct) * 0.6);
+
+    // rotate stuff
+    if (!isPaused) {
+      earth.rotation.y += 0.0016 * rotationSpeed;
+      clouds.rotation.y += 0.0011 * rotationSpeed;
+      atmosphere.rotation.y += 0.0009 * rotationSpeed;
+      nightOutline.rotation.y += 0.0016 * rotationSpeed;
+    }
+
+    // Animate stars
+    if (stars.length > 0) {
+      stars.forEach(star => {
+        star.rotation.y += 0.0001 * rotationSpeed;
+        star.rotation.x += 0.0002 * rotationSpeed;
+      });
+    }
+
+    // Animate network nodes
+    networkNodes.forEach((node, i) => {
+      const scale = 1 + Math.sin(now * 3 + i * 0.5) * 0.3;
+      node.scale.set(scale, scale, scale);
+      node.material.opacity = 0.6 + Math.sin(now * 4 + i * 0.7) * 0.3;
+    });
+
+    // Animate hotspot rings
+    earth.children.forEach(child => {
+      if (child.userData.hotspot) {
+        const scale = 1 + Math.sin(now * 2 + child.userData.phase) * 0.2;
+        child.scale.set(scale, scale, scale);
+        child.material.opacity = 0.3 + Math.sin(now * 2 + child.userData.phase) * 0.2;
+      }
+    });
+
+    // Animate connection lines - DISABLED (static lines removed)
+    // connectionLines.forEach((line, i) => {
+    //   if (line.material.opacity > 0.1) {
+    //     line.material.opacity = 0.2 + Math.sin(now * 3 + i * 0.5) * 0.1;
+    //   }
+    // });
+
+
+    // Animate raccoon operations - DISABLED (static operations removed)
+    // raccoonOperations.forEach((op, i) => {
+    //   if (op.path) {
+    //     // This is a raccoon moving along a path
+    //     op.userData.progress += op.userData.speed * rotationSpeed;
+    //     if (op.userData.progress > 1) op.userData.progress = 0;
+    //
+    //     const idx = Math.floor(op.userData.progress * (op.userData.path.length - 1));
+    //     const nextIdx = Math.min(idx + 1, op.userData.path.length - 1);
+    //
+    //     const current = op.userData.path[idx];
+    //     const next = op.userData.path[nextIdx];
+    //     const t = (op.userData.progress * (op.userData.path.length - 1)) - idx;
+    //
+    //     const pos = new THREE.Vector3();
+    //     pos.copy(current).lerp(next, t);
+    //     op.position.copy(pos);
+    //
+    //     // Make raccoon pulse
+    //     const scale = 1 + Math.sin(now * 5 + op.userData.phase) * 0.2;
+    //     op.scale.set(scale, scale, scale);
+    //   } else {
+    //     // This is a connection line
+    //     if (op.material.opacity > 0.1) {
+    //       op.material.opacity = 0.4 + Math.sin(now * 4 + i * 0.7) * 0.2;
+    //     }
+    //   }
+    // });
+
+    // city flicker
+    if (cityLights.material.opacity > 0.1) {
+      cityLights.material.opacity *= 0.95 + Math.abs(Math.sin(now*3.0))*0.05;
+    }
+
+    // sats
+    sats.forEach((o,i)=>{
+      const a = now*o.speed + o.phase;
+      let pos = new THREE.Vector3(Math.cos(a)*o.radius, Math.sin(a*1.25)*(o.radius*0.22), Math.sin(a)*o.radius);
+      pos.applyAxisAngle(new THREE.Vector3(1,0,0), THREE.MathUtils.degToRad(o.inclination));
+      o.s.position.copy(pos);
+    });
+
+    if(composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
+  }
+  animate();
+
+  // start size
+  resizeGlobe();
+
+  // Start alert system
+  setInterval(triggerRandomAlert, 10000);
+
+  // Initial alert
+  setTimeout(() => {
+    showAlert("System Online", "Raccoon Gang network activated", "🦝");
+  }, 2000);
+}
+
+// Global functions for settings
+function resetCamera() {
+  if(controls) {
+    controls.reset();
+    showAlert("View Reset", "Camera position reset", "🔄");
+  }
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  showAlert(isPaused ? "Paused" : "Resumed", `Simulation ${isPaused ? 'paused' : 'resumed'}`, "⏸");
+  const pauseBtn = document.querySelector('.btn[onclick="togglePause()"]');
+  if (pauseBtn) pauseBtn.textContent = isPaused ? "▶ Play" : "⏸ Pause";
+}
+
+function clearAlerts() {
+  const alertContainer = document.getElementById('alert-container');
+  alertContainer.innerHTML = '';
+  alertCount = 0;
+  updateStats();
+  showAlert("Alerts Cleared", "All alerts have been cleared", "🗑️");
+}
+
+// Initialize everything when DOM is ready
+window.addEventListener('DOMContentLoaded', () => {
+  // Wait a bit for scripts to load
+  setTimeout(() => {
+    initScene();
+    
+    // Settings panel controls
+    const rotationSlider = document.getElementById('rotation-slider');
+    const rotationValue = document.getElementById('rotation-value');
+    
+    rotationSlider.addEventListener('input', (e) => {
+      rotationSpeed = e.target.value / 100;
+      rotationValue.textContent = e.target.value + '%';
+    });
+    
+    // Toggle switches
+    document.getElementById('bloom-toggle').addEventListener('click', function() {
+      this.classList.toggle('active');
+      if(composer) {
+        composer.enabled = this.classList.contains('active');
+      }
+    });
+    
+    document.getElementById('lights-toggle').addEventListener('click', function() {
+      this.classList.toggle('active');
+      if(cityLights) {
+        cityLights.visible = this.classList.contains('active');
+      }
+    });
+    
+    document.getElementById('lines-toggle').addEventListener('click', function() {
+      this.classList.toggle('active');
+      const isActive = this.classList.contains('active');
+      // Toggle connection lines
+      connectionLines.forEach(line => {
+        line.visible = isActive;
+      });
+    });
+    
+    // HUD interactivity
+    document.querySelectorAll('.btn').forEach(b=>{
+      b.addEventListener('click', (e)=>{
+        // A .btn can now do one of three things: go somewhere (data-href),
+        // open a panel (data-panel), or run its own onclick (Reset Camera,
+        // Pause, Clear Alerts). Those last ones have neither attribute, so
+        // bail rather than calling getElementById(undefined).
+        if (b.dataset.href) { window.location.href = b.dataset.href; return; }
+        const id = b.dataset.panel;
+        if (!id) return;
+        const panel = document.getElementById(id);
+        if (!panel) return;
+        document.querySelectorAll('.popup').forEach(p=>p.classList.remove('active'));
+        panel.classList.add('active');
+      });
+    });
+
+    // Mark the nav link for the page we're on.
+    (function initSiteNav(){
+      const here = window.location.pathname.replace(/index\.html$/, '');
+      document.querySelectorAll('.sitenav .navlink').forEach(a=>{
+        const to = a.getAttribute('href');
+        if (to === here || (to !== '/' && here.startsWith(to))) a.setAttribute('aria-current','page');
+      });
+    })();
+
+    // close buttons for popups
+    document.querySelectorAll('.close-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        btn.parentElement.classList.remove('active');
+      });
+    });
+
+    // HUD animated values
+    const rcan = document.getElementById('radial-canvas');
+    const rctx = rcan.getContext('2d');
+    function hudLoop(){
+      const t = performance.now();
+      const oxy = 20 + Math.sin(t*0.0009)*1.6;
+      const carb = 0.04 + Math.abs(Math.cos(t*0.0012))*0.03;
+      const nit = 78 + Math.sin(t*0.0006)*1.1;
+      document.getElementById('oxy').style.width = oxy + '%';
+      document.getElementById('oxy-txt').textContent = oxy.toFixed(1) + '%';
+      document.getElementById('carb').style.width = (carb*100) + '%';
+      document.getElementById('carb-txt').textContent = carb.toFixed(2) + '%';
+      document.getElementById('nitro').style.width = nit + '%';
+      document.getElementById('nitro-txt').textContent = nit.toFixed(1) + '%';
+
+      document.getElementById('rx-val').textContent = Math.floor(Math.abs(Math.sin(t*0.0011))*980) + ' Rx';
+      document.getElementById('kt-val').textContent = Math.floor(Math.abs(Math.cos(t*0.0015))*640) + ' KT';
+
+      const coreVal = 30 + Math.floor(Math.abs(Math.sin(t*0.0009))*8);
+      document.getElementById('radial-val').textContent = coreVal + '°C';
+      drawRadial(coreVal);
+
+      document.getElementById('core-fill').style.width = (20 + Math.abs(Math.sin(t*0.0006))*60) + '%';
+      document.getElementById('atm-fill').style.width = (40 + Math.abs(Math.cos(t*0.0009))*40) + '%';
+
+      requestAnimationFrame(hudLoop);
+    }
+    hudLoop();
+
+    // radial gauge draw
+    function drawRadial(val){
+      const w = rcan.width, h = rcan.height;
+      rctx.clearRect(0,0,w,h);
+      const cx = w/2, cy = h/2, r = 42;
+      // background ring
+      rctx.beginPath(); rctx.arc(cx,cy,r,0,Math.PI*2); rctx.lineWidth=8; rctx.strokeStyle='rgba(255,255,255,0.06)'; rctx.stroke();
+      // arc
+      const start = -Math.PI/2;
+      const pct = Math.min(Math.max((val-10)/80,0),1);
+      const end = start + pct*Math.PI*2;
+      rctx.beginPath(); rctx.lineWidth=8; rctx.lineCap='round';
+      const lg = rctx.createLinearGradient(0,0,w,0);
+      lg.addColorStop(0,'#ff6b7f'); lg.addColorStop(1,'#ffcc7a');
+      rctx.strokeStyle = lg;
+      rctx.arc(cx,cy,r,start,end); rctx.stroke();
+    }
+
+    // Radar blips animation (no sweep line)
+    const blips = [document.getElementById('b1'), document.getElementById('b2'), document.getElementById('b3')];
+    function radarTick(){
+      const now = performance.now();
+      blips.forEach((b,i)=>{
+        const op = 0.15 + Math.abs(Math.sin(now*0.002 + i*0.6))*0.85;
+        b.style.opacity = (op>0.35) ? 1 : 0.18;
+        // tiny float
+        const left = parseFloat(b.style.left);
+        const top  = parseFloat(b.style.top);
+        const nl = Math.min(92, Math.max(6, left + Math.sin(now*0.0006 + i)*0.18));
+        const nt = Math.min(92, Math.max(6, top + Math.cos(now*0.0005 + i)*0.12));
+        b.style.left = nl + '%'; b.style.top = nt + '%';
+      });
+      requestAnimationFrame(radarTick);
+    }
+    radarTick();
+
+    // Camera slight parallax on mouse
+    document.getElementById('app').addEventListener('mousemove', (e)=>{
+      if(camera && scene) {
+        const rect = document.getElementById('app').getBoundingClientRect();
+        const nx = ((e.clientX - rect.left) / rect.width) - 0.5;
+        const ny = ((e.clientY - rect.top) / rect.height) - 0.5;
+        camera.position.x += (nx*40 - camera.position.x) * 0.06;
+        camera.position.y += (-ny*40 - camera.position.y) * 0.06;
+        camera.lookAt(0,0,0);
+      }
+    });
+  }, 500); // Wait 500ms for scripts to load
+});
+</script>
+</body>
+</html>

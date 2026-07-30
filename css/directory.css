@@ -1,0 +1,99 @@
+/* === Directory Styles — 2026 Refined === */
+
+.directory-page {
+    padding: calc(var(--space-2xl) + var(--space-lg)) var(--space-lg) var(--space-2xl);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+    letter-spacing: -0.03em;
+}
+
+.page-header p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+}
+
+.directory-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+.directory-section h2 {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-xs);
+}
+
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-sm);
+}
+
+.link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-lg) var(--space-md);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.link-card:hover {
+    border-color: var(--glass-border-hover);
+    background: var(--glass-highlight);
+    transform: translateY(-2px);
+}
+
+.link-card.external {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.link-icon {
+    font-size: 1.25rem;
+    color: var(--accent);
+    opacity: 0.8;
+}
+
+.link-text {
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .link-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .directory-page {
+        padding: calc(var(--space-xl)) var(--space-md) var(--space-lg);
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+}

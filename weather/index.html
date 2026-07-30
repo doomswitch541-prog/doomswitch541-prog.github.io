@@ -1,0 +1,3356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Celestial Drift</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: rgba(255, 234, 167, 0.2);
+        }
+
+        :root {
+            --accent: #ffffff;
+            --soft-gold: #ffeaa7;
+            --chart-line: rgba(255, 234, 167, 0.8);
+            --chart-grid: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: #000;
+            color: var(--accent);
+            position: relative;
+            /* 100vw includes the vertical scrollbar's width, so on a desktop
+               browser it is wider than the viewport and shifts the layout. */
+            width: 100%;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: pan-y;
+        }
+
+        /* Background with high quality display */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+            backface-visibility: hidden;
+            transform: translate3d(0, 0, 0);
+            filter: brightness(0.8) contrast(1.08) saturate(1.15);
+            image-rendering: auto;
+            image-rendering: -webkit-optimize-contrast;
+        }
+
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .background img {
+                image-rendering: -webkit-optimize-contrast;
+            }
+        }
+
+        /* Minimal dark gradient overlay for readability */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background:
+                radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%),
+                linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.2) 0%,
+                    rgba(0, 0, 0, 0.05) 40%,
+                    rgba(0, 0, 0, 0.4) 100%
+                );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Content with generous spacing */
+        .content {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+            padding: 45vh 8vw 8vh 8vw;
+        }
+
+        /* Single vertical accent bar */
+        .accent-bar {
+            position: absolute;
+            left: 4vw;
+            top: 20vh;
+            width: 1px;
+            height: 60vh;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                var(--soft-gold) 20%,
+                var(--soft-gold) 80%,
+                transparent
+            );
+            opacity: 0.6;
+            z-index: 5;
+        }
+
+        /* Elegant serif title */
+        .main-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(3rem, 14vw, 12rem);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            line-height: 0.85;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            text-shadow:
+                0 0 40px rgba(255, 255, 255, 0.3),
+                0 2px 20px rgba(0, 0, 0, 0.8);
+            max-width: 85%;
+        }
+
+        /* Monospace metadata */
+        .metadata {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.6rem, 1.2vw, 0.85rem);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--soft-gold);
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        /* Subtitle */
+        .subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1rem, 3vw, 2.2rem);
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+            margin-bottom: 3rem;
+        }
+
+        /* Minimal line decoration */
+        .line-decoration {
+            width: 60px;
+            height: 1px;
+            background: var(--soft-gold);
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+        }
+
+        /* Small number accent */
+        .day-number {
+            position: absolute;
+            top: 6vh;
+            right: 6vw;
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.65rem, 1.5vw, 1rem);
+            letter-spacing: 0.3em;
+            color: var(--soft-gold);
+            opacity: 0.6;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        /* Minimal HUD widget - enhanced for mobile with scrolling */
+        .hud-widget {
+            position: fixed;
+            top: 4vh;
+            left: 4vw;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(30px) saturate(130%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            padding: 0;
+            z-index: 50;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: min(450px, 92vw);
+            max-height: 85vh;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hud-widget-header {
+            padding: 1rem 1.3rem 0.8rem 1.3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+
+        .hud-widget-scroll {
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1rem 0.8rem 1.3rem 0.8rem;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 234, 167, 0.3) transparent;
+        }
+
+        .hud-content::-webkit-scrollbar,
+        .hud-widget-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .hud-content::-webkit-scrollbar-track,
+        .hud-widget-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .hud-content::-webkit-scrollbar-thumb,
+        .hud-widget-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 234, 167, 0.3);
+            border-radius: 3px;
+        }
+
+        .hud-content::-webkit-scrollbar-thumb:hover,
+        .hud-widget-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 234, 167, 0.5);
+        }
+
+        .hud-content {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 234, 167, 0.3) transparent;
+        }
+
+        /* Desktop horizontal layout - full width spread */
+        /* ── Site nav ─────────────────────────────────────────────────────
+           In this page's own gold rather than the console cyan, so it belongs
+           to the design. On a phone the HUD owns the top of the screen, so the
+           nav is a bottom bar and the pagination lifts above it; from 769px it
+           floats in the empty top-right of the HUD. */
+        /* On a phone this is a full-width bar, not floating pills. A fixed bar
+           always sits over whatever is at that scroll position, and with bare
+           pills the page's serif title showed through the gaps between them. */
+        .sitenav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.55rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom));
+            background: rgba(4, 9, 18, 0.92);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            z-index: 110;
+        }
+        .sitenav .navlink {
+            text-decoration: none;
+            padding: 0.5rem 0.85rem;
+            border-radius: 999px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--soft-gold);
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sitenav .navlink:hover,
+        .sitenav .navlink:focus-visible {
+            color: #fff;
+            border-color: var(--soft-gold);
+            background: rgba(0, 0, 0, 0.55);
+            outline: none;
+        }
+        .sitenav .navlink[aria-current="page"] {
+            color: #1a1a1a;
+            background: var(--soft-gold);
+            border-color: var(--soft-gold);
+        }
+
+
+        @media (min-width: 769px) {
+            .sitenav {
+                left: auto;
+                right: 4vw;
+                top: 5vh;
+                bottom: auto;
+                padding: 0;
+                background: none;
+                backdrop-filter: none;
+                border-top: none;
+            }
+            .sitenav .navlink { font-size: 0.6rem; padding: 0.55rem 1rem; }
+
+            .content {
+                padding-top: 52vh;
+                transition: padding-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .content.hud-collapsed {
+                padding-top: 30vh;
+            }
+
+            .accent-bar {
+                top: 45vh;
+                height: 45vh;
+                transition: top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .accent-bar.hud-collapsed {
+                top: 25vh;
+            }
+
+            .hud-widget {
+                left: 2vw;
+                right: 2vw;
+                width: auto;
+                max-width: none;
+                /* Now that the sections wrap to more than one row below 1400px,
+                   the panel can grow past the viewport. Cap it and scroll rather
+                   than letting the last row fall off the bottom of the screen. */
+                max-height: 88vh;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            /* The seven fixed minimums here total 1180px, plus 144px of gaps —
+               about 1324px of floor inside a container that is only 96vw wide.
+               minmax() minimums don't compress, so between 769px and ~1400px
+               the grid overflowed its own panel and clipped the right-hand
+               sections. Every track now has a 0 floor and its old minimum
+               becomes the *preferred* width, so the columns squeeze instead of
+               spilling. Identical at wide widths, no longer broken below. */
+            /* The original seven-column template had fixed minimums totalling
+               1180px plus 144px of gaps — about 1324px of floor inside a
+               container only 96vw wide. minmax() minimums don't compress, so
+               every width from 769px to ~1400px overflowed the panel and
+               clipped the right-hand sections. Squeezing seven columns into
+               900px isn't the answer either — the text just clips inside each
+               column instead. So the seven-across layout now starts at 1400px
+               where it genuinely fits (see the block further down), and this
+               band wraps into as many columns as will hold their content. */
+            .hud-content {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+                grid-auto-rows: auto;
+                gap: 1.2rem 1.5rem;
+                align-items: start;
+            }
+
+            /* Grid and flex children default to min-width:auto, which refuses to
+               shrink below their content — that's what pushed "DEW POINT",
+               "WIND GUST" and "VISIBILITY" past the panel edge even at 1200px. */
+            .hud-content > * { min-width: 0; }
+
+            .hud-location { margin-bottom: 0; }
+            .hud-clock { margin-bottom: 0; }
+
+            #weatherSection {
+                border: none;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 0 0 0 1.5rem;
+                margin: 0;
+            }
+
+            #astronomySection {
+                border: none;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 0 0 0 1.5rem;
+                margin: 0;
+            }
+
+            #windSection {
+                border: none;
+                padding: 0 0 0 1.5rem;
+                margin: 0;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            #extendedSection {
+                padding: 0 0 0 1.5rem;
+                margin: 0;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                border-top: none;
+            }
+
+            #chartsSection {
+                padding: 0 0 0 1.5rem;
+                margin: 0;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                border-top: none;
+            }
+
+            #apiStatsSection {
+                padding: 0 0 0 1.5rem;
+                margin: 0;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                border-top: none;
+            }
+
+            /* Single column layout for weather items */
+            .hud-weather {
+                display: flex;
+                flex-direction: column;
+                gap: 0.7rem;
+                align-items: flex-start;
+            }
+
+            .hud-weather .hud-divider {
+                display: none;
+            }
+
+            /* Compact speedometer on desktop */
+            .wind-speedometer {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.8rem;
+            }
+
+            .speedometer-info {
+                text-align: center;
+            }
+
+            /* Extended section compact. auto-fit rather than a hard 2 columns,
+               so it drops to a single column when the section itself is narrow
+               instead of clipping against the section's overflow:hidden. */
+            .weather-extended {
+                grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+                gap: 0.5rem;
+            }
+
+            .weather-data-value {
+                font-size: 1rem;
+            }
+
+            .weather-data-label {
+                font-size: 0.55rem;
+            }
+
+            /* API stats compact */
+            .api-stats-content {
+                grid-template-columns: 1fr;
+                gap: 0.6rem;
+            }
+
+            .api-stat-item.full-width {
+                grid-column: 1;
+            }
+
+            /* Settings compact */
+            .interval-options {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.4rem;
+            }
+        }
+
+        /* Large desktop - even more spread */
+        @media (min-width: 1400px) {
+            /* The original seven-across layout, restored at the width where its
+               ~1324px of column floor actually fits. Location above clock in
+               column one, every section spanning both rows beside it. */
+            .hud-content {
+                grid-template-columns:
+                    minmax(140px, auto) minmax(160px, 1fr) minmax(180px, 1fr)
+                    minmax(160px, 1fr) minmax(160px, 1fr) minmax(180px, 1fr) minmax(200px, 1fr);
+                grid-template-rows: auto auto;
+                gap: 1rem 2rem;
+            }
+
+            .hud-location { grid-column: 1 / 2; grid-row: 1 / 2; }
+            .hud-clock    { grid-column: 1 / 2; grid-row: 2 / 3; }
+            #weatherSection   { grid-column: 2 / 3; grid-row: 1 / 3; }
+            #astronomySection { grid-column: 3 / 4; grid-row: 1 / 3; }
+            #windSection      { grid-column: 4 / 5; grid-row: 1 / 3; }
+            #extendedSection  { grid-column: 5 / 6; grid-row: 1 / 3; }
+            #chartsSection    { grid-column: 6 / 7; grid-row: 1 / 3; }
+            #apiStatsSection  { grid-column: 7 / 8; grid-row: 1 / 3; }
+
+            .wind-speedometer {
+                flex-direction: row;
+                gap: 1.2rem;
+            }
+
+            .speedometer-info {
+                text-align: left;
+            }
+
+            .weather-extended {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.6rem;
+            }
+
+            .weather-data-value {
+                font-size: 1.1rem;
+            }
+
+            .api-stats-content {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .api-stat-item.full-width {
+                grid-column: 1 / -1;
+            }
+
+            .interval-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Extra large desktop */
+        @media (min-width: 1800px) {
+            .weather-extended {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .hud-widget.collapsed {
+            padding: 0.7rem 1.1rem;
+        }
+
+        .hud-toggle {
+            background: transparent;
+            border: none;
+            color: var(--soft-gold);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 0.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .hud-toggle:hover,
+        .hud-toggle:active {
+            color: var(--accent);
+        }
+
+        .hud-content {
+            max-height: 75vh;
+            opacity: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.4s ease,
+                        padding 0.4s ease;
+            padding: 1rem 1.3rem 1.3rem 1.3rem;
+        }
+
+        .hud-widget.collapsed .hud-content {
+            max-height: 0;
+            opacity: 0;
+            padding: 0 1.3rem;
+            overflow: hidden;
+        }
+
+        .hud-clock {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.6rem, 4vw, 2.5rem);
+            font-weight: 300;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hud-clock .ampm {
+            font-size: 0.5em;
+            opacity: 0.7;
+            margin-left: 0.3rem;
+            vertical-align: top;
+        }
+
+        .hud-weather {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem 1rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.8);
+            min-width: 0;
+            width: 100%;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.3s ease;
+            padding: 0.2rem;
+        }
+
+        .hud-item:hover,
+        .hud-item:active {
+            color: var(--soft-gold);
+        }
+
+        .hud-item i {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .hud-divider {
+            opacity: 0.3;
+        }
+
+        /* Location selector - touch optimized */
+        .hud-location {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .location-select {
+            position: relative;
+            display: inline-block;
+        }
+
+        .location-trigger {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            color: var(--soft-gold);
+            background: transparent;
+            border: 1px solid rgba(255, 234, 167, 0.3);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: all 0.3s ease;
+            min-height: 44px;
+        }
+
+        .location-trigger:hover,
+        .location-trigger:active {
+            border-color: var(--soft-gold);
+            background: rgba(255, 234, 167, 0.08);
+        }
+
+        .location-trigger::after {
+            content: '▼';
+            font-size: 0.6rem;
+            opacity: 0.6;
+            transition: transform 0.3s ease;
+        }
+
+        .location-select.open .location-trigger::after {
+            transform: rotate(180deg);
+        }
+
+        .location-options {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(25px) saturate(130%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .location-select.open .location-options {
+            max-height: 280px;
+            opacity: 1;
+        }
+
+        .location-option {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        .location-option:hover,
+        .location-option:active {
+            background: rgba(255, 234, 167, 0.15);
+            color: var(--soft-gold);
+        }
+
+        /* Astronomy Section - single column, proper spacing */
+        .astronomy-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .sun-arc-container,
+        .moon-arc-container {
+            position: relative;
+            width: 100%;
+            margin: 0;
+            min-width: 0; /* Allow flex shrinking */
+        }
+
+        .sun-arc,
+        .moon-arc {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+        }
+
+        .arc-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .arc-stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .arc-stat-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .arc-stat-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--soft-gold);
+            font-weight: 700;
+        }
+
+        .sun-times,
+        .moon-times {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.5rem;
+        }
+
+        .sun-time,
+        .moon-time {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .sun-time i {
+            color: var(--soft-gold);
+            font-size: 0.7rem;
+        }
+
+        .moon-time i {
+            color: #a8c5e0;
+            font-size: 0.7rem;
+        }
+
+        .arc-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .moon-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.8rem;
+        }
+
+        .moon-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .moon-phase-shadow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            transition: all 0.5s ease;
+        }
+
+        .moon-info {
+            flex: 1;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+        }
+
+        .moon-phase-name {
+            color: var(--soft-gold);
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .moon-illumination {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .solar-data {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        @media (min-width: 600px) {
+            .solar-data {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Wind speedometer - mobile optimized */
+        .wind-speedometer {
+            margin: 1.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            min-width: 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .speedometer-gauge {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 400px) {
+            .speedometer-gauge {
+                width: 90px;
+                height: 90px;
+            }
+        }
+
+        .gauge-compass {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .compass-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--soft-gold);
+            opacity: 0.6;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            transform-origin: center;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .gauge-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 234, 167, 0.3);
+            position: relative;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
+        }
+
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: var(--soft-gold);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            box-shadow: 0 0 10px rgba(255, 234, 167, 0.7);
+        }
+
+        .gauge-label-from {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.45rem;
+            color: rgba(255, 234, 167, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .gauge-needle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 3px;
+            height: 40px;
+            background: linear-gradient(to top, var(--soft-gold), rgba(255, 234, 167, 0.3));
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+            box-shadow: 0 0 8px rgba(255, 234, 167, 0.5);
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Arrow tip for needle */
+        .gauge-needle::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 8px solid var(--soft-gold);
+        }
+
+        /* Tail of the needle (opposite direction) */
+        .gauge-needle-tail {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            transform-origin: top center;
+            transform: translate(-50%, 0) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+            border-radius: 0 0 2px 2px;
+        }
+
+        .gauge-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-marker {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1.5px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            transform-origin: center center;
+        }
+
+        .speedometer-info {
+            flex: 1;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            min-width: 0;
+        }
+
+        .speedometer-speed {
+            font-size: 1.5rem;
+            color: var(--soft-gold);
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .speedometer-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+        }
+
+        .speedometer-direction {
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+        }
+
+        .speedometer-direction .direction-from {
+            font-size: 0.55rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Additional weather data */
+        .weather-extended {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.2rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* .collapsible-section sets overflow:hidden, so anything wider than its
+           column is cut rather than wrapped — that's why "DEW POINT" rendered as
+           "DEW POI" and "VISIBILITY" as "VISIBIL". Grid children default to
+           min-width:auto and refuse to shrink, so give them a zero floor and let
+           the longer labels wrap instead of running off the edge. */
+        .weather-extended > *,
+        .api-stats-content > * { min-width: 0; }
+
+        .weather-data-label,
+        .api-stat-label { overflow-wrap: anywhere; }
+
+        .weather-data-item {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+        }
+
+        .weather-data-value {
+            font-size: 1.3rem;
+            color: var(--soft-gold);
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .weather-data-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* Weather Charts */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+            min-width: 0;
+        }
+
+        .chart-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 0; /* Allow shrinking */
+        }
+
+        .chart-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            max-width: 100%;
+            height: 70px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            display: block;
+        }
+
+        /* Hourly Forecast */
+        .hourly-forecast {
+            display: flex;
+            gap: 0.6rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 234, 167, 0.3) transparent;
+        }
+
+        .hourly-forecast::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .hourly-forecast::-webkit-scrollbar-thumb {
+            background: rgba(255, 234, 167, 0.3);
+            border-radius: 2px;
+        }
+
+        .hourly-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            min-width: 50px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .hourly-time {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .hourly-icon {
+            font-size: 1rem;
+            color: var(--soft-gold);
+        }
+
+        .hourly-temp {
+            color: var(--soft-gold);
+            font-weight: 700;
+        }
+
+        /* Pagination - touch friendly */
+        .pagination {
+            position: fixed;
+            bottom: 4vh;
+            right: 4vw;
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .pagination-btn {
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--accent);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .pagination-btn:hover:not(:disabled),
+        .pagination-btn:active:not(:disabled) {
+            border-color: var(--soft-gold);
+            color: var(--soft-gold);
+            transform: scale(1.1);
+            background: rgba(255, 234, 167, 0.1);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        .pagination-home {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 1.3rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+        }
+
+        .pagination-home:hover,
+        .pagination-home:active {
+            color: var(--soft-gold);
+            border-color: var(--soft-gold);
+            transform: scale(1.1) rotate(90deg);
+            background: rgba(255, 234, 167, 0.1);
+        }
+
+        .page-indicator {
+            color: var(--accent);
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            font-family: 'Space Mono', monospace;
+            opacity: 0.7;
+        }
+
+        /* Responsive - Tablet */
+        @media (max-width: 768px) {
+            body {
+                min-height: 100vh;
+            }
+
+            .hud-widget {
+                position: fixed;
+                top: 2vh;
+                left: 3vw;
+                right: 3vw;
+                width: auto;
+                max-width: none;
+                max-height: 70vh;
+                overflow-y: auto;
+                z-index: 100;
+            }
+
+            .hud-content {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+
+            /* Flex children are flex-shrink:1 by default. Inside the widget's
+               max-height:70vh that meant expanding two or three sections crushed
+               them all toward zero height instead of scrolling — the boxes piled
+               into each other and their contents clipped against
+               .collapsible-section's overflow:hidden. It read as "the weather
+               boxes aren't loading"; they were loading and being squashed.
+               flex-shrink:0 keeps each section at its natural height and lets the
+               widget scroll, which is what max-height + overflow-y:auto intended. */
+            .hud-content > * { flex-shrink: 0; }
+
+            .collapsible-section {
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 0.6rem;
+                margin-top: 0.6rem;
+            }
+
+            .section-content {
+                max-height: 2000px;
+            }
+
+            .background {
+                position: fixed;
+                z-index: 1;
+            }
+
+            .overlay {
+                position: fixed;
+                z-index: 2;
+            }
+
+            .content {
+                position: relative;
+                /* Extra bottom padding reserves room for the fixed nav bar —
+                   below 768px the pager and title flow inline at the end of the
+                   page and would otherwise sit underneath it. */
+                padding: 3rem 6vw calc(4rem + 56px) 6vw;
+                min-height: auto;
+                justify-content: flex-start;
+                z-index: 10;
+            }
+
+            .accent-bar {
+                display: none;
+            }
+
+            .day-number {
+                position: relative;
+                top: auto;
+                right: auto;
+                writing-mode: horizontal-tb;
+                text-orientation: mixed;
+                margin-bottom: 1rem;
+                z-index: 10;
+            }
+
+            .speedometer-gauge {
+                width: 100px;
+                height: 100px;
+            }
+
+            .gauge-needle {
+                height: 34px;
+            }
+
+            .compass-label {
+                font-size: 0.5rem;
+            }
+
+            .pagination {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                justify-content: center;
+                margin: 2rem auto 4rem auto;
+                gap: 1.2rem;
+                z-index: 10;
+            }
+
+            /* auto-fit rather than a hard 4 columns — four boxes across a phone
+               is ~72px each, which clips against the section's overflow:hidden. */
+            .weather-extended {
+                grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 480px) {
+            .content {
+                /* Bottom value keeps clearance for the fixed nav bar. */
+                padding: 2rem 5vw calc(3rem + 56px) 5vw;
+            }
+
+            .main-title {
+                max-width: 95%;
+                margin-bottom: 1rem;
+            }
+
+            .subtitle {
+                margin-bottom: 2rem;
+            }
+
+            .line-decoration {
+                width: 50px;
+                margin-bottom: 1rem;
+            }
+
+            .day-number {
+                font-size: 0.6rem;
+            }
+
+            .hud-widget {
+                width: calc(100% - 6vw);
+                margin: 2.5vh 3vw 0 3vw;
+            }
+
+            .hud-widget.collapsed {
+                width: auto;
+                margin-left: 5vw;
+                margin-right: auto;
+            }
+
+            .hud-clock {
+                font-size: 1.4rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .hud-weather {
+                font-size: 0.6rem;
+                gap: 0.5rem 0.8rem;
+            }
+
+            .location-trigger {
+                font-size: 0.65rem;
+                padding: 0.45rem 0.9rem;
+            }
+
+            .location-option {
+                font-size: 0.65rem;
+                padding: 0.7rem 0.9rem;
+            }
+
+            .wind-speedometer {
+                gap: 1rem;
+                margin: 1rem 0;
+                flex-direction: row;
+            }
+
+            .speedometer-gauge {
+                width: 90px;
+                height: 90px;
+                flex-shrink: 0;
+            }
+
+            .speedometer-info {
+                text-align: left;
+            }
+
+            .gauge-needle {
+                height: 30px;
+            }
+
+            .compass-label {
+                font-size: 0.45rem;
+            }
+
+            .interval-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .gauge-center {
+                width: 8px;
+                height: 8px;
+            }
+
+            .speedometer-speed {
+                font-size: 1.2rem;
+            }
+
+            .speedometer-label,
+            .weather-data-label,
+            .api-stat-label {
+                font-size: 0.55rem;
+            }
+
+            .weather-data-value,
+            .api-stat-value {
+                font-size: 0.95rem;
+            }
+
+            .weather-extended {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.6rem;
+                margin-top: 0.8rem;
+                padding-top: 0;
+                border-top: none;
+            }
+
+            .api-stats-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.6rem;
+            }
+
+            .api-stats-section {
+                margin-top: 1rem;
+                padding-top: 1rem;
+            }
+
+            .api-stats-header {
+                font-size: 0.65rem;
+            }
+
+            .api-history-log {
+                max-height: 150px;
+            }
+
+            .pagination {
+                margin: 1.5rem auto 3rem auto;
+                gap: 1rem;
+            }
+
+            .pagination-btn,
+            .pagination-home {
+                width: 46px;
+                height: 46px;
+            }
+
+            .page-indicator {
+                font-size: 0.65rem;
+            }
+
+            .chart-canvas {
+                height: 50px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 360px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .speedometer-gauge {
+                width: 70px;
+                height: 70px;
+            }
+
+            .gauge-needle {
+                height: 24px;
+            }
+
+            .compass-label {
+                font-size: 0.35rem;
+            }
+
+            .weather-extended {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.4rem;
+            }
+
+            .weather-data-value {
+                font-size: 0.85rem;
+            }
+
+            .weather-data-label {
+                font-size: 0.5rem;
+            }
+
+            .interval-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pagination-btn,
+            .pagination-home {
+                width: 42px;
+                height: 42px;
+            }
+        }
+
+        /* API Stats within HUD */
+        .api-stats-section {
+            margin-top: 1.2rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .api-stats-header {
+            background: transparent;
+            border: none;
+            color: var(--soft-gold);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 0.3rem 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            text-align: left;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            min-height: 44px;
+        }
+
+        .api-stats-header:hover,
+        .api-stats-header:active {
+            color: var(--accent);
+        }
+
+        .api-stats-header i {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .api-stats-header::after {
+            content: '▼';
+            font-size: 0.6rem;
+            opacity: 0.6;
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .api-stats-section.collapsed .api-stats-header::after {
+            transform: rotate(-90deg);
+        }
+
+        .api-stats-content {
+            max-height: 200px;
+            opacity: 1;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.3s ease,
+                        margin 0.3s ease;
+            margin-top: 0.8rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .api-stats-section.collapsed .api-stats-content {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .api-stat-item {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+        }
+
+        .api-stat-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .api-stat-value {
+            color: var(--soft-gold);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .api-stat-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .api-stat-coords {
+            font-size: 0.7rem;
+            color: var(--soft-gold);
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            margin-bottom: 0.3rem;
+        }
+
+        .api-stat-pulse {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            background: var(--soft-gold);
+            border-radius: 50%;
+            margin-right: 0.4rem;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(255, 234, 167, 0.7);
+            }
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 0 4px rgba(255, 234, 167, 0);
+            }
+        }
+
+        /* Collapsible sections - compact grid layout */
+        .collapsible-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 0;
+            margin-bottom: 0.6rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            min-width: 0; /* Allow flex shrinking */
+        }
+
+        .collapsible-section:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 234, 167, 0.15);
+        }
+
+        .collapsible-section:first-child {
+            margin-top: 0;
+        }
+
+        .section-header {
+            background: transparent;
+            border: none;
+            color: var(--soft-gold);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            cursor: pointer;
+            padding: 0.7rem 0.6rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            width: 100%;
+            text-align: left;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            min-height: 40px;
+        }
+
+        .section-header:hover,
+        .section-header:active {
+            color: var(--accent);
+        }
+
+        .section-header i {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .section-header::after {
+            content: '−';
+            font-size: 1rem;
+            opacity: 0.6;
+            margin-left: auto;
+            transition: transform 0.3s ease;
+            font-weight: 300;
+        }
+
+        .collapsible-section.collapsed .section-header::after {
+            content: '+';
+        }
+
+        .section-content {
+            max-height: 3000px;
+            opacity: 1;
+            overflow-x: hidden;
+            overflow-y: visible;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.3s ease,
+                        padding 0.3s ease;
+            padding: 0 0.6rem 0.9rem 0.6rem;
+        }
+
+        .collapsible-section.collapsed .section-content {
+            max-height: 0;
+            opacity: 0;
+            padding: 0 0.6rem;
+        }
+
+        /* Settings section */
+        .settings-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .interval-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .interval-option {
+            position: relative;
+        }
+
+        .interval-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .interval-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            padding: 0.6rem 0.4rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 44px;
+            text-align: center;
+        }
+
+        .interval-option input[type="radio"]:checked + .interval-label {
+            background: rgba(255, 234, 167, 0.15);
+            border-color: var(--soft-gold);
+            color: var(--soft-gold);
+            font-weight: 700;
+        }
+
+        .interval-label:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* API History Log */
+        .api-history {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .api-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .api-history-clear {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .api-history-clear:hover {
+            border-color: var(--soft-gold);
+            color: var(--soft-gold);
+        }
+
+        .api-history-log {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            max-height: 200px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 234, 167, 0.3) transparent;
+        }
+
+        .api-history-log::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .api-history-log::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .api-history-log::-webkit-scrollbar-thumb {
+            background: rgba(255, 234, 167, 0.3);
+            border-radius: 2px;
+        }
+
+        .api-history-empty {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+            padding: 0.5rem 0;
+        }
+
+        .api-history-entry {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.4rem 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            border-left: 2px solid rgba(255, 234, 167, 0.4);
+        }
+
+        .api-history-entry:first-child {
+            border-left-color: var(--soft-gold);
+            background: rgba(255, 234, 167, 0.05);
+        }
+
+        .api-history-time {
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+        }
+
+        .api-history-location {
+            color: var(--soft-gold);
+            font-weight: 700;
+        }
+
+        .api-history-data {
+            display: flex;
+            gap: 0.6rem;
+            color: rgba(255, 255, 255, 0.7);
+            flex-wrap: wrap;
+        }
+
+        .api-history-data span {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .api-history-data i {
+            font-size: 0.5rem;
+            opacity: 0.6;
+        }
+
+        /* Mobile: history entry compact layout */
+        @media (max-width: 480px) {
+            .api-history-entry {
+                grid-template-columns: 1fr;
+                gap: 0.3rem;
+            }
+
+            .api-history-data {
+                gap: 0.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Minimal HUD Widget -->
+    <div class="hud-widget" id="hudWidget">
+        <div class="hud-widget-header">
+            <button class="hud-toggle" id="hudToggle" aria-label="Toggle HUD">
+                <span id="toggleIcon">−</span>
+                <span id="toggleText">HUD</span>
+            </button>
+            <div class="hud-location">
+                <div class="location-select" id="locationSelect">
+                    <button class="location-trigger" aria-label="Select location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="selectedLocation">HQ</span>
+                    </button>
+                    <div class="location-options" role="menu">
+                        <div class="location-option" data-location="hq" role="menuitem">HQ</div>
+                        <div class="location-option" data-location="dt" role="menuitem">DT</div>
+                        <div class="location-option" data-location="ft" role="menuitem">FT</div>
+                        <div class="location-option" data-location="uni" role="menuitem">UNI</div>
+                        <div class="location-option" data-location="lsu" role="menuitem">LSU</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hud-clock" id="hudClock">
+                <span id="clockTime">12:00</span><span class="ampm" id="clockAmpm">AM</span>
+            </div>
+        </div>
+
+        <div class="hud-content hud-widget-scroll">
+            <!-- Weather Section (Collapsible) -->
+            <div class="collapsible-section" id="weatherSection">
+                <button class="section-header" id="weatherHeader" aria-label="Toggle weather data">
+                    <i class="fas fa-cloud-sun"></i>
+                    <span>Weather</span>
+                </button>
+                <div class="section-content">
+                    <div class="hud-weather">
+                        <div class="hud-item" id="hudTemp">
+                            <i class="fas fa-thermometer-half"></i>
+                            <span>--°F</span>
+                        </div>
+                        <span class="hud-divider">|</span>
+                        <div class="hud-item" id="hudConditions">
+                            <i class="fas fa-cloud"></i>
+                            <span>Loading...</span>
+                        </div>
+                        <span class="hud-divider">|</span>
+                        <div class="hud-item" id="hudUV">
+                            <i class="fas fa-sun"></i>
+                            <span>UV --</span>
+                        </div>
+                    </div>
+
+                    <!-- Hourly Forecast -->
+                    <div style="margin-top: 1rem;">
+                        <div class="chart-title">6-Hour Forecast</div>
+                        <div class="hourly-forecast" id="hourlyForecast">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Astronomy Section (NEW) -->
+            <div class="collapsible-section" id="astronomySection">
+                <button class="section-header" id="astronomyHeader" aria-label="Toggle astronomy data">
+                    <i class="fas fa-moon"></i>
+                    <span>Astronomy</span>
+                </button>
+                <div class="section-content">
+                    <div class="astronomy-container">
+                        <!-- Sun Arc -->
+                        <div class="sun-arc-container">
+                            <div class="arc-label">☀ Solar Path</div>
+                            <canvas class="sun-arc" id="sunArcCanvas"></canvas>
+                            <div class="sun-times">
+                                <div class="sun-time">
+                                    <i class="fas fa-sunrise"></i>
+                                    <span id="sunriseTime">--:--</span>
+                                </div>
+                                <div class="sun-time">
+                                    <i class="fas fa-sun"></i>
+                                    <span id="solarNoon">--:--</span>
+                                </div>
+                                <div class="sun-time">
+                                    <i class="fas fa-sunset"></i>
+                                    <span id="sunsetTime">--:--</span>
+                                </div>
+                            </div>
+
+                            <!-- Sun Stats Grid -->
+                            <div class="arc-stats">
+                                <div class="arc-stat-item">
+                                    <span class="arc-stat-label">Sun Angle</span>
+                                    <span class="arc-stat-value" id="solarElevation">--°</span>
+                                </div>
+                                <div class="arc-stat-item">
+                                    <span class="arc-stat-label">Day Length</span>
+                                    <span class="arc-stat-value" id="dayLength">--h</span>
+                                </div>
+                                <div class="arc-stat-item">
+                                    <span class="arc-stat-label">Azimuth</span>
+                                    <span class="arc-stat-value" id="solarAzimuth">--°</span>
+                                </div>
+                                <div class="arc-stat-item">
+                                    <span class="arc-stat-label">Civil Twilight</span>
+                                    <span class="arc-stat-value" id="civilTwilight">--:--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Moon Arc -->
+                        <div class="moon-arc-container">
+                            <div class="arc-label">🌙 Lunar Path</div>
+                            <canvas class="moon-arc" id="moonArcCanvas"></canvas>
+                            <div class="moon-times">
+                                <div class="moon-time">
+                                    <i class="fas fa-moon"></i>
+                                    <span id="moonriseTime">--:--</span>
+                                </div>
+                                <div class="moon-time">
+                                    <i class="fas fa-star"></i>
+                                    <span id="moonPhaseDisplay">New Moon</span>
+                                </div>
+                                <div class="moon-time">
+                                    <i class="fas fa-moon"></i>
+                                    <span id="moonsetTime">--:--</span>
+                                </div>
+                            </div>
+
+                            <!-- Moon Stats Grid -->
+                            <div class="arc-stats">
+                                <div class="arc-stat-item">
+                                    <span class="arc-stat-label">Phase</span>
+                                    <span class="arc-stat-value" id="moonPhaseName">New Moon</span>
+                                </div>
+                                <div class="arc-stat-item">
+                                    <span class="arc-stat-label">Illumination</span>
+                                    <span class="arc-stat-value" id="moonIllumination">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wind Speedometer (Collapsible) -->
+            <div class="collapsible-section" id="windSection">
+                <button class="section-header" id="windHeader" aria-label="Toggle wind data">
+                    <i class="fas fa-wind"></i>
+                    <span>Wind</span>
+                </button>
+                <div class="section-content">
+                    <div class="wind-speedometer">
+                        <div class="speedometer-gauge">
+                            <div class="gauge-circle">
+                                <div class="gauge-compass" id="gaugeCompass"></div>
+                                <div class="gauge-markers" id="gaugeMarkers"></div>
+                                <div class="gauge-needle-tail" id="gaugeNeedleTail"></div>
+                                <div class="gauge-needle" id="gaugeNeedle"></div>
+                                <div class="gauge-center"></div>
+                                <div class="gauge-label-from">from</div>
+                            </div>
+                        </div>
+                        <div class="speedometer-info">
+                            <div class="speedometer-speed" id="windSpeed">-- <span style="font-size: 0.6em;">mph</span></div>
+                            <div class="speedometer-label">WIND SPEED</div>
+                            <div class="speedometer-direction" id="windDirection">
+                                <span class="direction-from">From</span>
+                                <i class="fas fa-location-arrow"></i>
+                                <span class="direction-text">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extended Weather Data (Collapsible) -->
+            <div class="collapsible-section" id="extendedSection">
+                <button class="section-header" id="extendedHeader" aria-label="Toggle extended data">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Extended</span>
+                </button>
+                <div class="section-content">
+                    <div class="weather-extended">
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="feelsLike">--°</div>
+                            <div class="weather-data-label">FEELS LIKE</div>
+                        </div>
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="dewPoint">--°</div>
+                            <div class="weather-data-label">DEW POINT</div>
+                        </div>
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="humidity">--%</div>
+                            <div class="weather-data-label">HUMIDITY</div>
+                        </div>
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="cloudCover">--%</div>
+                            <div class="weather-data-label">CLOUD COVER</div>
+                        </div>
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="pressure">-- hPa</div>
+                            <div class="weather-data-label">PRESSURE</div>
+                        </div>
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="windGusts">-- mph</div>
+                            <div class="weather-data-label">WIND GUSTS</div>
+                        </div>
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="precipitation">-- in</div>
+                            <div class="weather-data-label">PRECIP</div>
+                        </div>
+                        <div class="weather-data-item">
+                            <div class="weather-data-value" id="visibility">-- mi</div>
+                            <div class="weather-data-label">VISIBILITY</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Charts Section (NEW) -->
+            <div class="collapsible-section collapsed" id="chartsSection">
+                <button class="section-header" id="chartsHeader" aria-label="Toggle weather charts">
+                    <i class="fas fa-chart-area"></i>
+                    <span>Trends</span>
+                </button>
+                <div class="section-content">
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <div class="chart-title">Temperature (24h)</div>
+                            <canvas class="chart-canvas" id="tempChart" width="200" height="70"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart-title">Pressure (24h)</div>
+                            <canvas class="chart-canvas" id="pressureChart" width="200" height="70"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart-title">Wind Speed (24h)</div>
+                            <canvas class="chart-canvas" id="windChart" width="200" height="70"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart-title">Humidity (24h)</div>
+                            <canvas class="chart-canvas" id="humidityChart" width="200" height="70"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart-title">UV Index (24h)</div>
+                            <canvas class="chart-canvas" id="uvChart" width="200" height="70"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart-title">Cloud Cover (24h)</div>
+                            <canvas class="chart-canvas" id="cloudChart" width="200" height="70"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Stats Section (Collapsible) -->
+            <div class="collapsible-section collapsed" id="apiStatsSection">
+                <button class="section-header" id="apiStatsHeader" aria-label="Toggle API statistics">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>API Stats</span>
+                </button>
+                <div class="section-content">
+                    <div class="api-stats-content">
+                        <div class="api-stat-item">
+                            <div class="api-stat-value" id="apiCallCount">0</div>
+                            <div class="api-stat-label">Total Calls</div>
+                        </div>
+                        <div class="api-stat-item">
+                            <div class="api-stat-value" id="apiLastCall">--:--</div>
+                            <div class="api-stat-label">Last Call</div>
+                        </div>
+                        <div class="api-stat-item full-width">
+                            <div class="api-stat-coords" id="apiCoords">
+                                <span class="api-stat-pulse"></span>30.1025, -92.1247
+                            </div>
+                            <div class="api-stat-label">Coordinates</div>
+                        </div>
+                    </div>
+                    <!-- API History Log -->
+                    <div class="api-history">
+                        <div class="api-history-header">
+                            <span class="api-stat-label">CALL HISTORY</span>
+                            <button class="api-history-clear" id="clearHistory" aria-label="Clear history">Clear</button>
+                        </div>
+                        <div class="api-history-log" id="apiHistoryLog">
+                            <div class="api-history-empty">No calls yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section (NEW) -->
+            <div class="collapsible-section collapsed" id="settingsSection">
+                <button class="section-header" id="settingsHeader" aria-label="Toggle settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </button>
+                <div class="section-content">
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <span class="setting-label">Update Frequency</span>
+                        </div>
+                        <div class="interval-options">
+                            <div class="interval-option">
+                                <input type="radio" id="interval30s" name="interval" value="30000">
+                                <label for="interval30s" class="interval-label">30s</label>
+                            </div>
+                            <div class="interval-option">
+                                <input type="radio" id="interval1m" name="interval" value="60000">
+                                <label for="interval1m" class="interval-label">1m</label>
+                            </div>
+                            <div class="interval-option">
+                                <input type="radio" id="interval5m" name="interval" value="300000" checked>
+                                <label for="interval5m" class="interval-label">5m</label>
+                            </div>
+                            <div class="interval-option">
+                                <input type="radio" id="interval15m" name="interval" value="900000">
+                                <label for="interval15m" class="interval-label">15m</label>
+                            </div>
+                            <div class="interval-option">
+                                <input type="radio" id="interval30m" name="interval" value="1800000">
+                                <label for="interval30m" class="interval-label">30m</label>
+                            </div>
+                            <div class="interval-option">
+                                <input type="radio" id="intervalNever" name="interval" value="0">
+                                <label for="intervalNever" class="interval-label">Never</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- end hud-widget-scroll -->
+    </div> <!-- end hud-widget -->
+
+    <nav class="sitenav" aria-label="Site">
+        <a class="navlink" href="/">CLOCK</a>
+        <a class="navlink" href="/screensaver">SCREENSAVER</a>
+        <a class="navlink" href="/slamviz">SLAMVIZ</a>
+        <a class="navlink" href="/weather">WEATHER</a>
+        <a class="navlink" href="/directory">DIRECTORY</a>
+    </nav>
+
+    <!-- Background layer with high-quality image -->
+    <div class="background">
+        <img src="assets/skyresonance-one.jpeg" alt="" loading="eager" decoding="async">
+    </div>
+    <div class="overlay"></div>
+
+    <!-- Vertical accent -->
+    <div class="accent-bar"></div>
+
+    <!-- Day number -->
+    <div class="day-number">006 / 365</div>
+
+    <!-- Main content with generous negative space -->
+    <div class="content">
+        <div class="metadata">Day Six</div>
+        <h1 class="main-title">Celestial<br>Drift</h1>
+        <div class="line-decoration"></div>
+        <p class="subtitle">Where sky meets eternity</p>
+    </div>
+
+    <!-- Minimal pagination -->
+    <div class="pagination">
+        <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')" aria-label="Previous page">←</button>
+        <span class="page-indicator" id="pageIndicator">Day 6/365</span>
+        <button class="pagination-btn" id="nextBtn" onclick="navigate('next')" aria-label="Next page">→</button>
+        <a href="/weather" class="pagination-home" title="View All Days" aria-label="View all 365 days">⊞</a>
+    </div>
+
+    <script>
+        // 365 Days navigation
+        const daysOfPages = [
+            { day: 1, name: 'Paradise Motel', file: 'motel.html' },
+            { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
+            { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
+            { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
+            { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
+            { day: 6, name: 'Celestial Drift', file: 'day6.html' },
+            { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
+            { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
+            { day: 9, name: 'NERV Terminal', file: 'day9.html' },
+            { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
+        ];
+
+        const currentPageFile = window.location.pathname.split('/').pop();
+        const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
+
+        if (currentIndex !== -1) {
+            document.getElementById('pageIndicator').textContent =
+                `Day ${daysOfPages[currentIndex].day}/365`;
+        }
+
+        function navigate(direction) {
+            let newIndex;
+
+            if (direction === 'prev') {
+                newIndex = currentIndex - 1;
+            } else if (direction === 'next') {
+                newIndex = currentIndex + 1;
+            }
+
+            if (newIndex >= 0 && newIndex < daysOfPages.length) {
+                window.location.href = daysOfPages[newIndex].file;
+            }
+        }
+
+        // Disable navigation buttons at boundaries
+        if (currentIndex !== -1) {
+            if (currentIndex === 0) {
+                document.getElementById('prevBtn').disabled = true;
+            }
+            if (currentIndex === daysOfPages.length - 1) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
+        // ============================================================
+        // HUD WIDGET - CLOCK & WEATHER
+        // ============================================================
+
+        // Toggle HUD
+        const hudWidget = document.getElementById('hudWidget');
+        const hudToggle = document.getElementById('hudToggle');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        const contentEl = document.querySelector('.content');
+        const accentBar = document.querySelector('.accent-bar');
+
+        // Adaptive content positioning based on HUD height
+        function updateContentPosition() {
+            const hudHeight = Math.max(hudWidget.offsetHeight, hudWidget.scrollHeight);
+            const vhOffset = window.innerHeight * 0.04; // 4vh top position
+            const gap = 40; // 40px gap
+            const topMargin = vhOffset + hudHeight + gap;
+            contentEl.style.marginTop = topMargin + 'px';
+        }
+
+        // Update on resize
+        window.addEventListener('resize', updateContentPosition);
+
+        // Use ResizeObserver to watch HUD size changes in real-time
+        const resizeObserver = new ResizeObserver(() => {
+            updateContentPosition();
+        });
+        resizeObserver.observe(hudWidget);
+
+        // Also observe mutations for content changes (like new history entries)
+        const mutationObserver = new MutationObserver(() => {
+            updateContentPosition();
+        });
+        mutationObserver.observe(hudWidget, { childList: true, subtree: true, characterData: true });
+
+        // Update continuously during CSS transitions
+        hudWidget.addEventListener('transitionstart', () => {
+            const updateDuringTransition = () => {
+                updateContentPosition();
+                if (hudWidget.getAnimations().length > 0) {
+                    requestAnimationFrame(updateDuringTransition);
+                }
+            };
+            requestAnimationFrame(updateDuringTransition);
+        });
+
+        // Initial update
+        updateContentPosition();
+
+        hudToggle.addEventListener('click', () => {
+            hudWidget.classList.toggle('collapsed');
+            toggleIcon.textContent = hudWidget.classList.contains('collapsed') ? '+' : '−';
+
+            // Toggle content position classes for desktop
+            if (hudWidget.classList.contains('collapsed')) {
+                contentEl.classList.add('hud-collapsed');
+                if (accentBar) accentBar.classList.add('hud-collapsed');
+            } else {
+                contentEl.classList.remove('hud-collapsed');
+                if (accentBar) accentBar.classList.remove('hud-collapsed');
+            }
+        });
+
+        // Clock Update
+        const clockTime = document.getElementById('clockTime');
+        const clockAmpm = document.getElementById('clockAmpm');
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            hours = hours % 12;
+            if (hours === 0) hours = 12;
+
+            const paddedMin = minutes.toString().padStart(2, '0');
+            clockTime.textContent = `${hours}:${paddedMin}`;
+            clockAmpm.textContent = ampm;
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Location data
+        const locations = {
+            hq: { lat: 30.1025, lon: -92.1247, name: 'HQ' },
+            dt: { lat: 30.2167, lon: -92.0333, name: 'DT' },
+            ft: { lat: 30.2181, lon: -92.0144, name: 'FT' },
+            uni: { lat: 30.2122, lon: -92.0200, name: 'UNI' },
+            lsu: { lat: 30.4145, lon: -91.1783, name: 'LSU' }
+        };
+
+        let currentLocation = 'hq';
+
+        // API Stats tracking
+        let apiCallCount = 0;
+        let previousWindSpeed = null;
+        let apiHistory = [];
+        const MAX_HISTORY = 20;
+
+        // Weather data storage for charts
+        let tempHistory = [];
+        let pressureHistory = [];
+        let windHistory = [];
+        let humidityHistory = [];
+        let uvHistory = [];
+        let cloudHistory = [];
+        const MAX_CHART_POINTS = 24;
+
+        function updateApiStats(weatherData = null) {
+            apiCallCount++;
+            const location = locations[currentLocation];
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+
+            document.getElementById('apiCallCount').textContent = apiCallCount;
+            document.getElementById('apiCoords').innerHTML = `
+                <span class="api-stat-pulse"></span>${location.lat.toFixed(4)}, ${location.lon.toFixed(4)}
+            `;
+            document.getElementById('apiLastCall').textContent = timeString;
+
+            // Add to history if we have weather data
+            if (weatherData) {
+                const historyEntry = {
+                    time: timeString,
+                    location: location.name,
+                    coords: `${location.lat.toFixed(4)}, ${location.lon.toFixed(4)}`,
+                    temp: weatherData.temp,
+                    feelsLike: weatherData.feelsLike,
+                    wind: weatherData.windSpeed,
+                    windDir: weatherData.windDirection,
+                    humidity: weatherData.humidity,
+                    cloudCover: weatherData.cloudCover,
+                    uv: weatherData.uv
+                };
+
+                apiHistory.unshift(historyEntry);
+                if (apiHistory.length > MAX_HISTORY) {
+                    apiHistory.pop();
+                }
+
+                renderApiHistory();
+
+                // Update chart data
+                tempHistory.push({ time: now, value: parseFloat(weatherData.temp) });
+                pressureHistory.push({ time: now, value: parseFloat(weatherData.pressure) });
+                windHistory.push({ time: now, value: parseFloat(weatherData.windSpeed) });
+                humidityHistory.push({ time: now, value: parseFloat(weatherData.humidity) });
+                uvHistory.push({ time: now, value: parseFloat(weatherData.uv) });
+                cloudHistory.push({ time: now, value: parseFloat(weatherData.cloudCover) });
+
+                if (tempHistory.length > MAX_CHART_POINTS) tempHistory.shift();
+                if (pressureHistory.length > MAX_CHART_POINTS) pressureHistory.shift();
+                if (windHistory.length > MAX_CHART_POINTS) windHistory.shift();
+                if (humidityHistory.length > MAX_CHART_POINTS) humidityHistory.shift();
+                if (uvHistory.length > MAX_CHART_POINTS) uvHistory.shift();
+                if (cloudHistory.length > MAX_CHART_POINTS) cloudHistory.shift();
+
+                updateCharts();
+            }
+        }
+
+        function renderApiHistory() {
+            const historyLog = document.getElementById('apiHistoryLog');
+
+            if (apiHistory.length === 0) {
+                historyLog.innerHTML = '<div class="api-history-empty">No calls yet</div>';
+                return;
+            }
+
+            historyLog.innerHTML = apiHistory.map((entry, index) => `
+                <div class="api-history-entry">
+                    <span class="api-history-time">${entry.time}</span>
+                    <span class="api-history-location">${entry.location}</span>
+                    <div class="api-history-data">
+                        <span><i class="fas fa-thermometer-half"></i> ${entry.temp}°F</span>
+                        <span><i class="fas fa-temperature-low"></i> ${entry.feelsLike}°F</span>
+                        <span><i class="fas fa-wind"></i> ${entry.wind}mph ${getWindDirectionName(entry.windDir)}</span>
+                        <span><i class="fas fa-tint"></i> ${entry.humidity}%</span>
+                        <span><i class="fas fa-cloud"></i> ${entry.cloudCover}%</span>
+                        <span><i class="fas fa-sun"></i> UV ${entry.uv}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearApiHistory() {
+            apiHistory = [];
+            apiCallCount = 0;
+            tempHistory = [];
+            pressureHistory = [];
+            windHistory = [];
+            humidityHistory = [];
+            uvHistory = [];
+            cloudHistory = [];
+            document.getElementById('apiCallCount').textContent = '0';
+            document.getElementById('apiLastCall').textContent = '--:--';
+            renderApiHistory();
+            updateCharts();
+        }
+
+        // Clear history button
+        document.getElementById('clearHistory').addEventListener('click', clearApiHistory);
+
+        // Collapsible sections
+        const collapsibleSections = [
+            { section: 'weatherSection', header: 'weatherHeader' },
+            { section: 'astronomySection', header: 'astronomyHeader' },
+            { section: 'windSection', header: 'windHeader' },
+            { section: 'extendedSection', header: 'extendedHeader' },
+            { section: 'chartsSection', header: 'chartsHeader' },
+            { section: 'apiStatsSection', header: 'apiStatsHeader' },
+            { section: 'settingsSection', header: 'settingsHeader' }
+        ];
+
+        // On mobile, collapse most sections by default to prevent overflow
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            ['astronomySection', 'windSection', 'extendedSection', 'chartsSection', 'apiStatsSection', 'settingsSection'].forEach(id => {
+                document.getElementById(id).classList.add('collapsed');
+            });
+        }
+
+        collapsibleSections.forEach(({ section, header }) => {
+            const sectionEl = document.getElementById(section);
+            const headerEl = document.getElementById(header);
+
+            headerEl.addEventListener('click', () => {
+                sectionEl.classList.toggle('collapsed');
+            });
+        });
+
+        // Weather Update (using Open-Meteo API)
+        const weatherIcons = {
+            0: { text: 'Clear Sky', icon: 'fa-sun' },
+            1: { text: 'Mainly Clear', icon: 'fa-cloud-sun' },
+            2: { text: 'Partly Cloudy', icon: 'fa-cloud-sun' },
+            3: { text: 'Overcast', icon: 'fa-cloud' },
+            45: { text: 'Fog', icon: 'fa-smog' },
+            48: { text: 'Rime Fog', icon: 'fa-smog' },
+            51: { text: 'Light Drizzle', icon: 'fa-cloud-rain' },
+            53: { text: 'Drizzle', icon: 'fa-cloud-rain' },
+            55: { text: 'Dense Drizzle', icon: 'fa-cloud-showers-heavy' },
+            61: { text: 'Slight Rain', icon: 'fa-cloud-rain' },
+            63: { text: 'Rain', icon: 'fa-cloud-showers-heavy' },
+            65: { text: 'Heavy Rain', icon: 'fa-cloud-showers-heavy' },
+            71: { text: 'Slight Snow', icon: 'fa-snowflake' },
+            73: { text: 'Snow', icon: 'fa-snowflake' },
+            75: { text: 'Heavy Snow', icon: 'fa-snowflake' },
+            80: { text: 'Rain Showers', icon: 'fa-cloud-showers-heavy' },
+            95: { text: 'Thunderstorm', icon: 'fa-bolt' }
+        };
+
+        async function fetchWeather() {
+            const location = locations[currentLocation];
+            const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,uv_index,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,surface_pressure,precipitation,visibility,is_day&hourly=temperature_2m,weather_code&daily=sunrise,sunset,sunshine_duration&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=2`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                // Parse all weather data
+                const temp = data.current.temperature_2m.toFixed(1);
+                const feelsLike = data.current.apparent_temperature.toFixed(1);
+                const humidity = data.current.relative_humidity_2m;
+                const dewPoint = data.current.dew_point_2m.toFixed(1);
+                const uv = data.current.uv_index;
+                const code = data.current.weather_code;
+                const windSpeed = data.current.wind_speed_10m.toFixed(1);
+                const windDirection = data.current.wind_direction_10m;
+                const windGusts = data.current.wind_gusts_10m.toFixed(1);
+                const cloudCover = data.current.cloud_cover;
+                const pressure = data.current.surface_pressure.toFixed(0);
+                const precipitation = data.current.precipitation.toFixed(2);
+                const visibility = (data.current.visibility / 1609.34).toFixed(1);
+                const isDay = data.current.is_day;
+
+                // Track API call with weather data for history
+                updateApiStats({
+                    temp: temp,
+                    feelsLike: feelsLike,
+                    windSpeed: windSpeed,
+                    windDirection: windDirection,
+                    windGusts: windGusts,
+                    humidity: humidity,
+                    uv: uv,
+                    cloudCover: cloudCover,
+                    pressure: pressure,
+                    precipitation: precipitation,
+                    visibility: visibility,
+                    isDay: isDay
+                });
+
+                const condition = weatherIcons[code] || { text: 'Unknown', icon: 'fa-question-circle' };
+
+                // Update temperature
+                let tempIcon = 'fa-thermometer-half';
+                if (temp <= 32) tempIcon = 'fa-thermometer-empty';
+                if (temp >= 85) tempIcon = 'fa-thermometer-full';
+
+                document.getElementById('hudTemp').innerHTML = `
+                    <i class="fas ${tempIcon}"></i>
+                    <span>${temp}°F</span>
+                `;
+
+                // Update conditions
+                document.getElementById('hudConditions').innerHTML = `
+                    <i class="fas ${condition.icon}"></i>
+                    <span>${condition.text}</span>
+                `;
+
+                // Update UV
+                let uvIcon = 'fa-sun';
+                if (uv >= 8) uvIcon = 'fa-exclamation-triangle';
+
+                document.getElementById('hudUV').innerHTML = `
+                    <i class="fas ${uvIcon}"></i>
+                    <span>UV ${uv}</span>
+                `;
+
+                // Update wind speedometer
+                updateWindSpeedometer(windSpeed, windDirection);
+
+                // Update extended data
+                document.getElementById('feelsLike').textContent = `${feelsLike}°`;
+                document.getElementById('dewPoint').textContent = `${dewPoint}°`;
+                document.getElementById('humidity').textContent = `${humidity}%`;
+                document.getElementById('cloudCover').textContent = `${cloudCover}%`;
+                document.getElementById('pressure').textContent = `${pressure} hPa`;
+                document.getElementById('windGusts').textContent = `${windGusts} mph`;
+                document.getElementById('precipitation').textContent = `${precipitation} in`;
+                document.getElementById('visibility').textContent = `${visibility} mi`;
+
+                // Update hourly forecast
+                updateHourlyForecast(data.hourly);
+
+                // Update astronomy data
+                updateAstronomyData(data.daily, location.lat, location.lon);
+
+            } catch (error) {
+                console.error('Error fetching weather:', error);
+                updateApiStats(null);
+                document.getElementById('hudTemp').innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>--°F</span>
+                `;
+                document.getElementById('hudConditions').innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Error</span>
+                `;
+            }
+        }
+
+        // Hourly Forecast
+        function updateHourlyForecast(hourlyData) {
+            const hourlyContainer = document.getElementById('hourlyForecast');
+            const currentHour = new Date().getHours();
+
+            let html = '';
+            for (let i = 1; i <= 6; i++) {
+                const temp = hourlyData.temperature_2m[i];
+                const code = hourlyData.weather_code[i];
+                const hour = (currentHour + i) % 24;
+                const condition = weatherIcons[code] || { text: 'Unknown', icon: 'fa-question-circle' };
+
+                html += `
+                    <div class="hourly-item">
+                        <div class="hourly-time">${hour}:00</div>
+                        <i class="fas ${condition.icon} hourly-icon"></i>
+                        <div class="hourly-temp">${temp.toFixed(0)}°</div>
+                    </div>
+                `;
+            }
+
+            hourlyContainer.innerHTML = html;
+        }
+
+        // Astronomy Data
+        function updateAstronomyData(dailyData, lat, lon) {
+            const sunrise = new Date(dailyData.sunrise[0]);
+            const sunset = new Date(dailyData.sunset[0]);
+            const sunshineDuration = dailyData.sunshine_duration[0];
+
+            // Format times
+            const sunriseStr = sunrise.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            const sunsetStr = sunset.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            // Calculate solar noon (midpoint)
+            const solarNoon = new Date((sunrise.getTime() + sunset.getTime()) / 2);
+            const solarNoonStr = solarNoon.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            // Calculate day length
+            const dayLengthMs = sunset - sunrise;
+            const dayLengthHours = (dayLengthMs / (1000 * 60 * 60)).toFixed(1);
+
+            const sunriseTimeEl = document.getElementById('sunriseTime');
+            const sunsetTimeEl = document.getElementById('sunsetTime');
+            const solarNoonEl = document.getElementById('solarNoon');
+            const dayLengthEl = document.getElementById('dayLength');
+
+            if (sunriseTimeEl) sunriseTimeEl.textContent = sunriseStr;
+            if (sunsetTimeEl) sunsetTimeEl.textContent = sunsetStr;
+            if (solarNoonEl) solarNoonEl.textContent = solarNoonStr;
+            if (dayLengthEl) dayLengthEl.textContent = `${dayLengthHours}h`;
+
+            // Calculate solar position
+            const now = new Date();
+            const solarPos = calculateSolarPosition(now, lat, lon);
+
+            const solarElevationEl = document.getElementById('solarElevation');
+            const solarAzimuthEl = document.getElementById('solarAzimuth');
+
+            if (solarElevationEl) solarElevationEl.textContent = `${solarPos.elevation.toFixed(1)}°`;
+            if (solarAzimuthEl) solarAzimuthEl.textContent = `${solarPos.azimuth.toFixed(0)}°`;
+
+            // Calculate civil twilight (sunrise - 30 minutes)
+            const civilTwilight = new Date(sunrise.getTime() - 30 * 60 * 1000);
+            const civilTwilightStr = civilTwilight.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            const civilTwilightEl = document.getElementById('civilTwilight');
+            if (civilTwilightEl) civilTwilightEl.textContent = civilTwilightStr;
+
+            // Draw sun arc
+            drawSunArc(sunrise, sunset, now);
+
+            // Update moon phase and arc
+            updateMoonPhase(now, lat, lon);
+        }
+
+        function calculateSolarPosition(date, lat, lon) {
+            // Calculate solar position (elevation and azimuth)
+            const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+            const declination = 23.45 * Math.sin((360/365) * (dayOfYear - 81) * Math.PI / 180);
+
+            const hour = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+            const hourAngle = 15 * (hour - 12) + lon;
+
+            const latRad = lat * Math.PI / 180;
+            const decRad = declination * Math.PI / 180;
+            const haRad = hourAngle * Math.PI / 180;
+
+            // Calculate elevation
+            const elevation = Math.asin(
+                Math.sin(latRad) * Math.sin(decRad) +
+                Math.cos(latRad) * Math.cos(decRad) * Math.cos(haRad)
+            ) * 180 / Math.PI;
+
+            // Calculate azimuth
+            const azimuth = Math.atan2(
+                Math.sin(haRad),
+                Math.cos(haRad) * Math.sin(latRad) - Math.tan(decRad) * Math.cos(latRad)
+            ) * 180 / Math.PI;
+
+            return {
+                elevation: Math.max(0, elevation),
+                azimuth: (azimuth + 180) % 360
+            };
+        }
+
+        function resizeCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.warn('Canvas not found:', canvasId);
+                return { width: 400, height: 200 };
+            }
+
+            const container = canvas.parentElement;
+            const containerWidth = container.offsetWidth || 400;
+
+            // Ensure minimum width
+            const effectiveWidth = Math.max(containerWidth, 200);
+
+            // Set display size (CSS pixels)
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+
+            // Set actual size in memory (scaled for retina)
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = effectiveWidth * dpr;
+            canvas.height = (effectiveWidth * 0.5) * dpr; // 2:1 aspect ratio
+
+            // Scale context to match retina
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            return { width: effectiveWidth, height: effectiveWidth * 0.5 };
+        }
+
+        function drawSunArc(sunrise, sunset, now) {
+            const canvas = document.getElementById('sunArcCanvas');
+            if (!canvas) return;
+
+            const size = resizeCanvas('sunArcCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = size.width;
+            const height = size.height;
+            const padding = 20;
+            const radius = width / 2 - padding;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw horizon line
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - 15);
+            ctx.lineTo(width - padding, height - 15);
+            ctx.stroke();
+
+            // Draw arc path
+            ctx.strokeStyle = 'rgba(255, 234, 167, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(width / 2, height - 15, radius, Math.PI, 0);
+            ctx.stroke();
+
+            // Calculate sun position
+            const totalDayTime = sunset - sunrise;
+            const elapsedTime = now - sunrise;
+            const progress = Math.max(0, Math.min(1, elapsedTime / totalDayTime));
+
+            // Draw active portion of arc (sunrise to current position)
+            if (progress > 0 && progress <= 1) {
+                const gradient = ctx.createLinearGradient(padding, height - 15, width - padding, height - 15);
+                gradient.addColorStop(0, '#ffd93d');
+                gradient.addColorStop(0.5, '#ffeaa7');
+                gradient.addColorStop(1, '#ffb347');
+
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(width / 2, height - 15, radius, Math.PI, Math.PI + (progress * Math.PI));
+                ctx.stroke();
+            }
+
+            // Calculate and draw sun position
+            const angle = Math.PI - (progress * Math.PI);
+            const sunX = width / 2 + Math.cos(angle) * radius;
+            const sunY = height - 15 - Math.sin(angle) * radius;
+
+            // Draw sun with glow
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ffeaa7';
+            ctx.fillStyle = '#ffeaa7';
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Draw sun rays
+            ctx.strokeStyle = '#ffeaa7';
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 8; i++) {
+                const rayAngle = (Math.PI * 2 / 8) * i;
+                const startX = sunX + Math.cos(rayAngle) * 10;
+                const startY = sunY + Math.sin(rayAngle) * 10;
+                const endX = sunX + Math.cos(rayAngle) * 15;
+                const endY = sunY + Math.sin(rayAngle) * 15;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+            }
+
+            // Draw markers at sunrise, noon, sunset
+            ctx.fillStyle = 'rgba(255, 234, 167, 0.5)';
+            const markers = [0, 0.5, 1]; // sunrise, noon, sunset
+            markers.forEach(pos => {
+                const markerAngle = Math.PI - (pos * Math.PI);
+                const markerX = width / 2 + Math.cos(markerAngle) * radius;
+                const markerY = height - 15 - Math.sin(markerAngle) * radius;
+                ctx.beginPath();
+                ctx.arc(markerX, markerY, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawMoonArc(moonrise, moonset, now, phase) {
+            const canvas = document.getElementById('moonArcCanvas');
+            if (!canvas) return;
+
+            const size = resizeCanvas('moonArcCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = size.width;
+            const height = size.height;
+            const padding = 20;
+            const radius = width / 2 - padding;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw horizon line
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - 15);
+            ctx.lineTo(width - padding, height - 15);
+            ctx.stroke();
+
+            // Draw arc path
+            ctx.strokeStyle = 'rgba(168, 197, 224, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(width / 2, height - 15, radius, Math.PI, 0);
+            ctx.stroke();
+
+            // Calculate moon position
+            const totalNightTime = moonset - moonrise;
+            const elapsedTime = now - moonrise;
+            const progress = Math.max(0, Math.min(1, elapsedTime / totalNightTime));
+
+            // Draw active portion of arc (moonrise to current position)
+            if (progress > 0 && progress <= 1) {
+                const gradient = ctx.createLinearGradient(padding, height - 15, width - padding, height - 15);
+                gradient.addColorStop(0, '#a8c5e0');
+                gradient.addColorStop(0.5, '#c5d9ed');
+                gradient.addColorStop(1, '#8fb3d9');
+
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(width / 2, height - 15, radius, Math.PI, Math.PI + (progress * Math.PI));
+                ctx.stroke();
+            }
+
+            // Calculate and draw moon position
+            const angle = Math.PI - (progress * Math.PI);
+            const moonX = width / 2 + Math.cos(angle) * radius;
+            const moonY = height - 15 - Math.sin(angle) * radius;
+
+            // Draw moon with glow
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#a8c5e0';
+            ctx.fillStyle = '#d4e4f7';
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Draw phase shadow on moon
+            if (phase < 0.5) {
+                // Waxing - shadow on left
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.beginPath();
+                ctx.arc(moonX - 3.5, moonY, 7, Math.PI / 2, Math.PI * 1.5);
+                ctx.fill();
+            } else {
+                // Waning - shadow on right
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.beginPath();
+                ctx.arc(moonX + 3.5, moonY, 7, Math.PI * 1.5, Math.PI / 2);
+                ctx.fill();
+            }
+
+            // Draw markers at moonrise, peak, moonset
+            ctx.fillStyle = 'rgba(168, 197, 224, 0.5)';
+            const markers = [0, 0.5, 1]; // moonrise, peak, moonset
+            markers.forEach(pos => {
+                const markerAngle = Math.PI - (pos * Math.PI);
+                const markerX = width / 2 + Math.cos(markerAngle) * radius;
+                const markerY = height - 15 - Math.sin(markerAngle) * radius;
+                ctx.beginPath();
+                ctx.arc(markerX, markerY, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function calculateMoonriseMoonset(date, lat, lon, phase) {
+            // Simplified moon rise/set calculation
+            // In reality, moon times vary significantly each day
+            const dayStart = new Date(date);
+            dayStart.setHours(0, 0, 0, 0);
+
+            // Approximate moonrise/moonset based on phase
+            // Full moon rises around sunset, new moon rises around sunrise
+            const phaseOffset = phase * 24; // Hours offset based on phase
+
+            const moonrise = new Date(dayStart.getTime() + (6 + phaseOffset) * 60 * 60 * 1000);
+            const moonset = new Date(dayStart.getTime() + (18 + phaseOffset) * 60 * 60 * 1000);
+
+            return { moonrise, moonset };
+        }
+
+        function updateMoonPhase(date, lat, lon) {
+            // Calculate moon phase (0 = new moon, 0.5 = full moon, 1 = new moon)
+            const referenceNewMoon = new Date('2000-01-06');
+            const daysSinceReference = (date - referenceNewMoon) / (1000 * 60 * 60 * 24);
+            const synodicMonth = 29.53058867;
+            const phase = (daysSinceReference % synodicMonth) / synodicMonth;
+
+            // Calculate illumination
+            const illumination = (1 - Math.cos(phase * 2 * Math.PI)) / 2 * 100;
+
+            // Determine phase name
+            let phaseName;
+            if (phase < 0.033 || phase > 0.967) phaseName = 'New Moon';
+            else if (phase < 0.216) phaseName = 'Waxing Crescent';
+            else if (phase < 0.283) phaseName = 'First Quarter';
+            else if (phase < 0.466) phaseName = 'Waxing Gibbous';
+            else if (phase < 0.533) phaseName = 'Full Moon';
+            else if (phase < 0.716) phaseName = 'Waning Gibbous';
+            else if (phase < 0.783) phaseName = 'Last Quarter';
+            else phaseName = 'Waning Crescent';
+
+            const moonPhaseNameEl = document.getElementById('moonPhaseName');
+            const moonPhaseDisplayEl = document.getElementById('moonPhaseDisplay');
+            const moonIlluminationEl = document.getElementById('moonIllumination');
+
+            if (moonPhaseNameEl) moonPhaseNameEl.textContent = phaseName;
+            if (moonPhaseDisplayEl) moonPhaseDisplayEl.textContent = phaseName;
+            if (moonIlluminationEl) moonIlluminationEl.textContent = `${illumination.toFixed(0)}%`;
+
+            // Update moon visual (if it exists)
+            const shadow = document.getElementById('moonPhaseShadow');
+            if (shadow) {
+                if (phase < 0.5) {
+                    // Waxing - shadow on left
+                    shadow.style.clipPath = `inset(0 ${(1 - phase * 2) * 50}% 0 0)`;
+                } else {
+                    // Waning - shadow on right
+                    shadow.style.clipPath = `inset(0 0 0 ${((phase - 0.5) * 2) * 50}%)`;
+                }
+            }
+
+            // Calculate moonrise and moonset
+            const { moonrise, moonset } = calculateMoonriseMoonset(date, lat, lon, phase);
+
+            // Format times
+            const moonriseStr = moonrise.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            const moonsetStr = moonset.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            const moonriseTimeEl = document.getElementById('moonriseTime');
+            const moonsetTimeEl = document.getElementById('moonsetTime');
+
+            if (moonriseTimeEl) moonriseTimeEl.textContent = moonriseStr;
+            if (moonsetTimeEl) moonsetTimeEl.textContent = moonsetStr;
+
+            // Draw moon arc
+            drawMoonArc(moonrise, moonset, date, phase);
+        }
+
+        // Weather Charts
+        function updateCharts() {
+            drawChart('tempChart', tempHistory, '°F', '#ff6b6b', '#ff8787');
+            drawChart('pressureChart', pressureHistory, 'hPa', '#4ecdc4', '#6ce0d7');
+            drawChart('windChart', windHistory, 'mph', '#a8dadc', '#c5e5e7');
+            drawChart('humidityChart', humidityHistory, '%', '#95e1d3', '#aae8dc');
+            drawChart('uvChart', uvHistory, '', '#ffd93d', '#ffe066');
+            drawChart('cloudChart', cloudHistory, '%', '#b8bedd', '#c9cbd9');
+        }
+
+        function drawChart(canvasId, data, unit, color1, color2) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 20;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (data.length < 1) {
+                // Show "No data" message
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.font = '10px Space Mono';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data yet', width / 2, height / 2);
+                return;
+            }
+
+            // Find min/max with padding
+            const values = data.map(d => d.value);
+            let min = Math.min(...values);
+            let max = Math.max(...values);
+            let range = max - min;
+
+            // Add 10% padding to top and bottom for better visualization
+            if (range === 0) {
+                range = Math.max(Math.abs(min) * 0.2, 1);
+                min = min - range / 2;
+                max = min + range;
+            } else {
+                const padding_amount = range * 0.1;
+                min -= padding_amount;
+                max += padding_amount;
+                range = max - min;
+            }
+
+            // Draw simple grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 3; i++) {
+                const y = padding + (height - 2 * padding) * (i / 3);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+
+            // Calculate points
+            const points = data.map((point, i) => {
+                const xProgress = data.length === 1 ? 0.5 : i / (data.length - 1);
+                return {
+                    x: padding + (width - 2 * padding) * xProgress,
+                    y: height - padding - ((point.value - min) / range) * (height - 2 * padding)
+                };
+            });
+
+            // Draw simple line connecting points
+            if (data.length > 1) {
+                ctx.strokeStyle = color1;
+                ctx.lineWidth = 2;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                points.forEach((p, i) => {
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                ctx.stroke();
+            }
+
+            // Draw simple dots at data points
+            ctx.fillStyle = color1;
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw min/max/current labels
+            ctx.font = '9px Space Mono';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+
+            // Max (top)
+            ctx.textAlign = 'left';
+            ctx.fillText(`${max.toFixed(1)}${unit}`, padding + 2, padding + 10);
+
+            // Min (bottom)
+            ctx.fillText(`${min.toFixed(1)}${unit}`, padding + 2, height - padding - 2);
+
+            // Current (last point)
+            if (data.length > 0) {
+                const lastValue = values[values.length - 1];
+                ctx.textAlign = 'right';
+                ctx.fillStyle = color1;
+                ctx.fillText(`${lastValue.toFixed(1)}${unit}`, width - padding - 2, points[points.length - 1].y - 5);
+            }
+        }
+
+        // Wind speedometer functions
+        function updateWindSpeedometer(speed, direction) {
+            document.getElementById('windSpeed').innerHTML = `${speed} <span style="font-size: 0.6em;">mph</span>`;
+
+            const directionName = getWindDirectionName(direction);
+            const directionIcon = document.querySelector('#windDirection i');
+            directionIcon.style.transform = `rotate(${direction + 180 - 45}deg)`;
+            document.querySelector('#windDirection .direction-text').textContent = `${directionName} (${Math.round(direction)}°)`;
+
+            const needleAngle = direction;
+            document.getElementById('gaugeNeedle').style.transform = `translate(-50%, -100%) rotate(${needleAngle}deg)`;
+            document.getElementById('gaugeNeedleTail').style.transform = `translate(-50%, 0) rotate(${needleAngle}deg)`;
+
+            previousWindSpeed = parseFloat(speed);
+        }
+
+        function getWindDirectionName(degrees) {
+            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+            const index = Math.round(degrees / 22.5) % 16;
+            return directions[index];
+        }
+
+        // Create gauge markers
+        function createGaugeMarkers() {
+            const markersContainer = document.getElementById('gaugeMarkers');
+            const markerCount = 16;
+
+            for (let i = 0; i < markerCount; i++) {
+                const marker = document.createElement('div');
+                marker.className = 'gauge-marker';
+                const angle = i * 22.5;
+                marker.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-48px)`;
+                if (i % 4 === 0) {
+                    marker.style.height = '10px';
+                    marker.style.background = 'rgba(255, 234, 167, 0.5)';
+                } else if (i % 2 === 0) {
+                    marker.style.height = '8px';
+                    marker.style.background = 'rgba(255, 255, 255, 0.4)';
+                }
+                markersContainer.appendChild(marker);
+            }
+        }
+
+        // Create compass labels
+        function createCompassLabels() {
+            const compassContainer = document.getElementById('gaugeCompass');
+            const directions = [
+                { label: 'N', angle: 0 },
+                { label: 'NE', angle: 45 },
+                { label: 'E', angle: 90 },
+                { label: 'SE', angle: 135 },
+                { label: 'S', angle: 180 },
+                { label: 'SW', angle: 225 },
+                { label: 'W', angle: 270 },
+                { label: 'NW', angle: 315 }
+            ];
+
+            directions.forEach(dir => {
+                const label = document.createElement('div');
+                label.className = 'compass-label';
+                label.textContent = dir.label;
+                const radius = 58;
+                const angleRad = (dir.angle - 90) * Math.PI / 180;
+                const x = radius * Math.cos(angleRad);
+                const y = radius * Math.sin(angleRad);
+                label.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+                compassContainer.appendChild(label);
+            });
+        }
+
+        // Initialize gauge
+        createGaugeMarkers();
+        createCompassLabels();
+
+        // Location selector functionality
+        const locationSelect = document.getElementById('locationSelect');
+        const locationTrigger = locationSelect.querySelector('.location-trigger');
+        const locationOptions = locationSelect.querySelectorAll('.location-option');
+        const selectedLocationSpan = document.getElementById('selectedLocation');
+
+        locationTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            locationSelect.classList.toggle('open');
+        });
+
+        locationOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const location = option.dataset.location;
+                currentLocation = location;
+                selectedLocationSpan.textContent = locations[location].name;
+                locationSelect.classList.remove('open');
+
+                // Clear trend history when location changes
+                tempHistory = [];
+                pressureHistory = [];
+                windHistory = [];
+                humidityHistory = [];
+                uvHistory = [];
+                cloudHistory = [];
+                updateCharts();
+
+                fetchWeather();
+            });
+        });
+
+        // Close location dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!locationSelect.contains(e.target)) {
+                locationSelect.classList.remove('open');
+            }
+        });
+
+        // API refresh interval management
+        let weatherInterval = null;
+        let currentInterval = 300000; // 5 minutes default
+
+        function setWeatherInterval(intervalMs) {
+            if (weatherInterval) {
+                clearInterval(weatherInterval);
+                weatherInterval = null;
+            }
+
+            currentInterval = intervalMs;
+
+            if (intervalMs > 0) {
+                weatherInterval = setInterval(fetchWeather, intervalMs);
+            }
+        }
+
+        // Interval selector event handlers
+        const intervalInputs = document.querySelectorAll('input[name="interval"]');
+        intervalInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                const newInterval = parseInt(e.target.value);
+                setWeatherInterval(newInterval);
+            });
+        });
+
+        // Initial weather fetch with slight delay to ensure DOM is ready
+        setTimeout(() => {
+            fetchWeather();
+            setWeatherInterval(currentInterval);
+        }, 100);
+
+        // Handle window resize for responsive canvases
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Redraw arcs on resize
+                const sunCanvas = document.getElementById('sunArcCanvas');
+                const moonCanvas = document.getElementById('moonArcCanvas');
+                if (sunCanvas && moonCanvas) {
+                    fetchWeather(); // This will trigger redraw
+                }
+            }, 250);
+        });
+
+        // Mark the nav link for the page we're on. Matches /365, /365/ and
+        // /365.html so it works under Netlify's Pretty URLs either way.
+        (function initSiteNav(){
+            const here = window.location.pathname.replace(/(index)?\.html$/, '').replace(/\/$/, '') || '/';
+            document.querySelectorAll('.sitenav .navlink').forEach(a=>{
+                const to = a.getAttribute('href');
+                if (to === here) a.setAttribute('aria-current','page');
+            });
+        })();
+    </script>
+</body>
+</html>
