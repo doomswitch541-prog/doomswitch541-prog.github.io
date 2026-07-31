@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en" data-field-mode="echo">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Echo Field — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --abyss: #041219;
+            --abyss-deep: #02090d;
+            --brine: #75e6c8;
+            --foam: #e9f5ee;
+            --iodine: #5278e8;
+            --ink: #5e3e78;
+            --coral: #ff8066;
+            --quiet: rgba(233, 245, 238, 0.48);
+            --hairline: rgba(117, 230, 200, 0.2);
+        }
+
+        html[data-field-mode="deep"] {
+            --abyss: #01080d;
+            --abyss-deep: #000407;
+            --brine: #8ae7d0;
+            --iodine: #334b93;
+            --ink: #251d3a;
+        }
+
+        html[data-field-mode="confluence"] {
+            --abyss: #081019;
+            --abyss-deep: #03070d;
+            --brine: #8cebd3;
+            --iodine: #6988ff;
+            --ink: #6b386e;
+        }
+
+        html[data-field-mode="drift"] {
+            --abyss: #07151b;
+            --abyss-deep: #031015;
+            --brine: #91ddc9;
+            --iodine: #6e7fc4;
+            --ink: #735276;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            min-height: -webkit-fill-available;
+            overflow: hidden;
+            background: var(--abyss-deep);
+            overscroll-behavior: none;
+        }
+
+        body {
+            position: fixed;
+            inset: 0;
+            height: 100dvh;
+            color: var(--foam);
+            font-family: 'Azeret Mono', monospace;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% 42%, transparent 0 20%, rgba(2, 9, 13, 0.18) 68%, rgba(2, 9, 13, 0.78) 100%),
+                linear-gradient(180deg, rgba(82, 120, 232, 0.045), transparent 42%, rgba(117, 230, 200, 0.035));
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0.12;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+            mix-blend-mode: soft-light;
+        }
+
+        .field {
+            position: fixed;
+            inset: 0;
+            isolation: isolate;
+            background:
+                radial-gradient(circle at 32% 30%, rgba(94, 62, 120, 0.15), transparent 32%),
+                radial-gradient(circle at 72% 70%, rgba(82, 120, 232, 0.12), transparent 36%),
+                var(--abyss);
+        }
+
+        #ink-layer {
+            position: absolute;
+            inset: -8%;
+            z-index: 0;
+            overflow: hidden;
+            -webkit-filter: url(#liquid);
+            filter: url(#liquid);
+            opacity: 0.78;
+            pointer-events: none;
+        }
+
+        .ink-bloom {
+            position: absolute;
+            width: var(--size);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0.05);
+            background: radial-gradient(circle at 42% 38%, var(--color) 0 8%, var(--color) 30%, transparent 69%);
+            filter: blur(14px);
+            opacity: 0;
+            animation: bloom var(--life) cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+        }
+
+        @keyframes bloom {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.05); }
+            16% { opacity: 0.72; }
+            72% { opacity: 0.24; }
+            100% { opacity: 0; transform: translate(calc(-50% + var(--drift-x)), calc(-50% + var(--drift-y))) scale(1); }
+        }
+
+        #echo-canvas {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .masthead {
+            position: fixed;
+            top: max(1.6rem, env(safe-area-inset-top));
+            left: clamp(1.2rem, 4vw, 4rem);
+            z-index: 7;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin-bottom: 0.4rem;
+            color: var(--brine);
+            font-size: 0.58rem;
+            font-weight: 500;
+            letter-spacing: 0.19em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 1.8rem;
+            height: 1px;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(3.5rem, 8vw, 7.5rem);
+            font-weight: 400;
+            line-height: 0.78;
+            letter-spacing: -0.055em;
+            text-shadow: 0 0 40px rgba(117, 230, 200, 0.1);
+        }
+
+        h1 em {
+            color: rgba(233, 245, 238, 0.62);
+            font-weight: 400;
+        }
+
+        .readout {
+            position: fixed;
+            top: max(1.9rem, env(safe-area-inset-top));
+            right: clamp(1.2rem, 4vw, 4rem);
+            z-index: 7;
+            display: grid;
+            grid-template-columns: auto auto;
+            column-gap: 1rem;
+            row-gap: 0.35rem;
+            min-width: 10rem;
+            color: var(--quiet);
+            font-size: 0.58rem;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .readout dt {
+            color: rgba(233, 245, 238, 0.3);
+        }
+
+        .readout dd {
+            text-align: right;
+            color: var(--foam);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .readout .state {
+            color: var(--brine);
+        }
+
+        .mode-picker {
+            position: fixed;
+            top: max(1.2rem, env(safe-area-inset-top));
+            right: clamp(1.2rem, 3vw, 2rem);
+            z-index: 12;
+        }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: 1px solid rgba(117, 230, 200, 0.14);
+            border-radius: 50%;
+            background: rgba(3, 15, 21, 0.42);
+            color: var(--brine);
+            font: 400 1.15rem/1 'Azeret Mono', monospace;
+            cursor: pointer;
+            -webkit-backdrop-filter: blur(16px) saturate(125%);
+            backdrop-filter: blur(16px) saturate(125%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+        }
+
+        .mode-toggle:hover,
+        .mode-toggle:focus-visible,
+        body.mode-open .mode-toggle {
+            border-color: rgba(117, 230, 200, 0.42);
+            background: rgba(9, 29, 35, 0.72);
+            outline: none;
+        }
+
+        body.mode-open .mode-toggle {
+            transform: rotate(45deg);
+        }
+
+        .mode-menu {
+            position: absolute;
+            top: calc(100% + 0.6rem);
+            right: 0;
+            display: grid;
+            min-width: 10rem;
+            padding: 0.35rem;
+            border: 1px solid rgba(117, 230, 200, 0.14);
+            border-radius: 1rem;
+            background: rgba(3, 15, 21, 0.82);
+            -webkit-backdrop-filter: blur(22px) saturate(130%);
+            backdrop-filter: blur(22px) saturate(130%);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.38);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
+        }
+
+        body.mode-open .mode-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .mode-option {
+            display: grid;
+            grid-template-columns: 1.7rem 1fr;
+            align-items: center;
+            min-height: 44px;
+            padding: 0 0.7rem;
+            border: 0;
+            border-radius: 0.7rem;
+            background: transparent;
+            color: rgba(233, 245, 238, 0.48);
+            font: 400 0.58rem/1 'Azeret Mono', monospace;
+            letter-spacing: 0.12em;
+            text-align: left;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .mode-option span:first-child {
+            color: rgba(233, 245, 238, 0.22);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .mode-option:hover,
+        .mode-option:focus-visible {
+            background: rgba(117, 230, 200, 0.06);
+            color: var(--foam);
+            outline: none;
+        }
+
+        .mode-option[aria-checked="true"] {
+            color: var(--brine);
+        }
+
+        .mode-scrim {
+            position: fixed;
+            inset: 0;
+            z-index: 11;
+            display: none;
+            background: transparent;
+        }
+
+        body.mode-open .mode-scrim {
+            display: block;
+        }
+
+        .prompt {
+            position: fixed;
+            left: clamp(1.2rem, 4vw, 4rem);
+            bottom: max(5.5rem, calc(env(safe-area-inset-bottom) + 4.6rem));
+            z-index: 7;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            color: var(--quiet);
+            font-size: 0.6rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            pointer-events: none;
+            transition: opacity 500ms ease;
+        }
+
+        .prompt::before {
+            content: '';
+            width: 0.42rem;
+            height: 0.42rem;
+            border: 1px solid var(--brine);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(117, 230, 200, 0.55);
+            animation: breathe 2.8s ease-in-out infinite;
+        }
+
+        body.has-listened .prompt {
+            opacity: 0.34;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.35; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.15); }
+        }
+
+        .sitenav {
+            position: fixed;
+            z-index: 10;
+            left: 50%;
+            bottom: max(1rem, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            padding: 0.35rem;
+            border: 1px solid rgba(117, 230, 200, 0.13);
+            border-radius: 999px;
+            background: rgba(3, 15, 21, 0.58);
+            -webkit-backdrop-filter: blur(18px) saturate(125%);
+            backdrop-filter: blur(18px) saturate(125%);
+            box-shadow: 0 12px 38px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .navlink {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0.62rem 1rem;
+            border-radius: 999px;
+            color: rgba(233, 245, 238, 0.42);
+            font-size: 0.55rem;
+            letter-spacing: 0.11em;
+            text-decoration: none;
+            transition: color 160ms ease, background 160ms ease;
+        }
+
+        .navlink:hover,
+        .navlink:focus-visible {
+            color: var(--foam);
+            background: rgba(117, 230, 200, 0.07);
+            outline: none;
+        }
+
+        .navlink[aria-current="page"] {
+            color: var(--brine);
+        }
+
+        .navlink[aria-current="page"]::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0.3rem;
+            width: 0.22rem;
+            height: 0.22rem;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+            transform: translateX(-50%);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (min-width: 701px) {
+            .readout {
+                top: 5.4rem;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .masthead {
+                top: max(1.2rem, env(safe-area-inset-top));
+            }
+
+            h1 {
+                font-size: clamp(3.2rem, 18vw, 5.4rem);
+            }
+
+            .readout {
+                top: auto;
+                right: 1.2rem;
+                bottom: max(5.45rem, calc(env(safe-area-inset-bottom) + 4.5rem));
+                min-width: 8rem;
+            }
+
+            .mode-picker {
+                top: max(1rem, env(safe-area-inset-top));
+                right: 1rem;
+            }
+
+            .prompt {
+                bottom: max(8.3rem, calc(env(safe-area-inset-bottom) + 7.5rem));
+                max-width: 9rem;
+                line-height: 1.5;
+            }
+
+            .sitenav {
+                max-width: calc(100vw - 1.25rem);
+                overflow-x: auto;
+                scrollbar-width: none;
+            }
+
+            .sitenav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .navlink {
+                flex: 0 0 auto;
+                min-height: 44px;
+                padding: 0.58rem 0.72rem;
+                font-size: 0.5rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .prompt::before {
+                animation: none;
+            }
+
+            .ink-bloom {
+                animation-duration: 2s;
+            }
+        }
+    </style>
+</head>
+<body>
+    <svg width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="liquid" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="11" result="blur"></feGaussianBlur>
+            <feColorMatrix in="blur" mode="matrix"
+                values="1 0 0 0 0
+                        0 1 0 0 0
+                        0 0 1 0 0
+                        0 0 0 18 -8"
+                result="liquid"></feColorMatrix>
+            <feBlend in="SourceGraphic" in2="liquid"></feBlend>
+        </filter>
+    </svg>
+
+    <main class="field" aria-label="Interactive sonar visualization">
+        <div id="ink-layer" aria-hidden="true"></div>
+        <canvas id="echo-canvas"></canvas>
+
+        <header class="masthead">
+            <div class="eyebrow">Active listening field</div>
+            <h1>Echo <em>Field</em></h1>
+        </header>
+
+        <dl class="readout" aria-hidden="true">
+            <dt>Contacts</dt><dd id="contact-count">00</dd>
+            <dt>Echoes</dt><dd id="echo-count">000</dd>
+            <dt>State</dt><dd class="state" id="field-state">QUIET</dd>
+        </dl>
+
+        <p class="prompt">Click or touch to sound the field</p>
+        <p class="sr-only" id="echo-status" aria-live="polite">Echo Field ready. Click, touch, or press Space to send a pulse.</p>
+    </main>
+
+    <div class="mode-scrim" id="mode-scrim"></div>
+    <div class="mode-picker">
+        <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Change field mode" aria-expanded="false">◌</button>
+        <div class="mode-menu" role="menu" aria-label="Field modes">
+            <button class="mode-option" type="button" data-mode="echo" role="menuitemradio" aria-checked="true"><span>01</span><span>Echo</span></button>
+            <button class="mode-option" type="button" data-mode="deep" role="menuitemradio" aria-checked="false"><span>02</span><span>Deep</span></button>
+            <button class="mode-option" type="button" data-mode="confluence" role="menuitemradio" aria-checked="false"><span>03</span><span>Confluence</span></button>
+            <button class="mode-option" type="button" data-mode="drift" role="menuitemradio" aria-checked="false"><span>04</span><span>Drift</span></button>
+        </div>
+    </div>
+
+    <nav class="sitenav" aria-label="Site">
+        <a class="navlink" href="/">HOME</a>
+        <a class="navlink" href="/screensaver">SCREENSAVER</a>
+        <a class="navlink" href="/visuals" aria-current="page">VISUALS</a>
+        <a class="navlink" href="/weather">WEATHER</a>
+        <a class="navlink" href="/directory">DIRECTORY</a>
+    </nav>
+
+    <script>
+        (() => {
+            const canvas = document.getElementById('echo-canvas');
+            const ctx = canvas.getContext('2d');
+            const inkLayer = document.getElementById('ink-layer');
+            const contactCount = document.getElementById('contact-count');
+            const echoCount = document.getElementById('echo-count');
+            const fieldState = document.getElementById('field-state');
+            const echoStatus = document.getElementById('echo-status');
+            const modeToggle = document.getElementById('mode-toggle');
+            const modeScrim = document.getElementById('mode-scrim');
+            const modeOptions = [...document.querySelectorAll('.mode-option')];
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const COLORS = {
+                brine: '#75e6c8',
+                foam: '#e9f5ee',
+                iodine: '#5278e8',
+                coral: '#ff8066',
+                quiet: 'rgba(117, 230, 200, 0.14)'
+            };
+
+            const MODES = {
+                echo: {
+                    drift: 1,
+                    contactBase: 1,
+                    contour: 1,
+                    connection: 1,
+                    bloom: 1,
+                    pulseSpeed: 430,
+                    autoInterval: 11000,
+                    labels: true
+                },
+                deep: {
+                    drift: 0.35,
+                    contactBase: 0.12,
+                    contour: 0.42,
+                    connection: 0.72,
+                    bloom: 1.15,
+                    pulseSpeed: 300,
+                    autoInterval: 0,
+                    labels: true
+                },
+                confluence: {
+                    drift: 0.82,
+                    contactBase: 0.72,
+                    contour: 0.8,
+                    connection: 1.35,
+                    bloom: 1.08,
+                    pulseSpeed: 390,
+                    autoInterval: 8500,
+                    labels: true
+                },
+                drift: {
+                    drift: 0.28,
+                    contactBase: 0.62,
+                    contour: 1.55,
+                    connection: 0.45,
+                    bloom: 1.45,
+                    pulseSpeed: 245,
+                    autoInterval: 6500,
+                    labels: false
+                }
+            };
+
+            let width = 0;
+            let height = 0;
+            let dpr = 1;
+            let lastTime = performance.now();
+            let lastAutoPing = performance.now();
+            let echoes = 0;
+            let contacts = [];
+            let pulses = [];
+            let pointer = { x: 0, y: 0, visible: false };
+            let stateTimer = null;
+            let resizeFrame = null;
+            let pulseId = 0;
+            let interferenceSeen = new Set();
+            let modeName = 'echo';
+            let mode = MODES.echo;
+
+            const random = (min, max) => min + Math.random() * (max - min);
+
+            function setMode(nextName, { persist = true, announce = true } = {}) {
+                if (!MODES[nextName]) nextName = 'echo';
+                modeName = nextName;
+                mode = MODES[nextName];
+                document.documentElement.setAttribute('data-field-mode', nextName);
+                modeOptions.forEach(option => {
+                    option.setAttribute('aria-checked', String(option.dataset.mode === nextName));
+                });
+                interferenceSeen = new Set();
+                lastAutoPing = performance.now();
+                if (persist) {
+                    try {
+                        localStorage.setItem('rg-echo-field-mode', nextName);
+                    } catch {
+                        // Mode still works when storage is unavailable.
+                    }
+                }
+                if (announce) {
+                    setState(nextName.toUpperCase(), 900);
+                    echoStatus.textContent = `${nextName} field mode active.`;
+                }
+            }
+
+            function openModeMenu() {
+                document.body.classList.add('mode-open');
+                modeToggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeModeMenu() {
+                document.body.classList.remove('mode-open');
+                modeToggle.setAttribute('aria-expanded', 'false');
+            }
+
+            function makeContact(index) {
+                const edge = Math.random();
+                const margin = Math.min(width, height) * 0.11;
+                let x;
+                let y;
+
+                if (edge < 0.25) {
+                    x = random(margin, width - margin);
+                    y = random(margin, height * 0.32);
+                } else if (edge < 0.5) {
+                    x = random(width * 0.68, width - margin);
+                    y = random(margin, height - margin);
+                } else if (edge < 0.75) {
+                    x = random(margin, width - margin);
+                    y = random(height * 0.68, height - margin);
+                } else {
+                    x = random(margin, width * 0.32);
+                    y = random(margin, height - margin);
+                }
+
+                return {
+                    id: index + 1,
+                    x,
+                    y,
+                    vx: random(-5.5, 5.5),
+                    vy: random(-5.5, 5.5),
+                    phase: random(0, Math.PI * 2),
+                    radius: random(1.2, 2.7),
+                    signal: random(0.15, 0.42),
+                    echo: 0,
+                    trail: []
+                };
+            }
+
+            function seedContacts() {
+                const amount = width < 600 ? 18 : 28;
+                contacts = Array.from({ length: amount }, (_, index) => makeContact(index));
+                contactCount.textContent = String(amount).padStart(2, '0');
+            }
+
+            function resize() {
+                const previousWidth = width || window.innerWidth;
+                const previousHeight = height || window.innerHeight;
+                width = window.innerWidth;
+                height = window.innerHeight;
+                dpr = Math.min(window.devicePixelRatio || 1, 2);
+                canvas.width = Math.round(width * dpr);
+                canvas.height = Math.round(height * dpr);
+                canvas.style.width = `${width}px`;
+                canvas.style.height = `${height}px`;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                if (!contacts.length) {
+                    seedContacts();
+                } else {
+                    const scaleX = width / previousWidth;
+                    const scaleY = height / previousHeight;
+                    contacts.forEach(contact => {
+                        contact.x *= scaleX;
+                        contact.y *= scaleY;
+                        contact.trail = [];
+                    });
+                }
+
+                if (!pointer.visible) {
+                    pointer.x = width / 2;
+                    pointer.y = height / 2;
+                }
+            }
+
+            function queueResize() {
+                if (resizeFrame) cancelAnimationFrame(resizeFrame);
+                resizeFrame = requestAnimationFrame(() => {
+                    resizeFrame = null;
+                    resize();
+                });
+            }
+
+            function setState(label, duration = 900) {
+                fieldState.textContent = label;
+                clearTimeout(stateTimer);
+                stateTimer = setTimeout(() => {
+                    fieldState.textContent = pulses.length ? 'LISTENING' : 'QUIET';
+                }, duration);
+            }
+
+            function spawnBloom(x, y, intensity = 1, color = null) {
+                const bloom = document.createElement('span');
+                bloom.className = 'ink-bloom';
+                const palette = color || (Math.random() > 0.62 ? '#5278e8' : '#5e3e78');
+                const size = random(90, 190) * Math.max(0.65, intensity) * mode.bloom;
+                bloom.style.left = `${x}px`;
+                bloom.style.top = `${y}px`;
+                bloom.style.setProperty('--size', `${size}px`);
+                bloom.style.setProperty('--color', palette);
+                bloom.style.setProperty('--life', reduceMotion ? '2s' : `${random(8, 13)}s`);
+                bloom.style.setProperty('--drift-x', `${random(-36, 36)}px`);
+                bloom.style.setProperty('--drift-y', `${random(-28, 28)}px`);
+                inkLayer.appendChild(bloom);
+                bloom.addEventListener('animationend', () => bloom.remove(), { once: true });
+            }
+
+            function soundField(x, y, isAutomatic = false) {
+                const maxRadius = Math.hypot(
+                    Math.max(x, width - x),
+                    Math.max(y, height - y)
+                ) + 40;
+
+                pulses.push({
+                    id: ++pulseId,
+                    x,
+                    y,
+                    radius: 0,
+                    previousRadius: 0,
+                    maxRadius,
+                    speed: reduceMotion ? Math.min(mode.pulseSpeed, 260) : mode.pulseSpeed,
+                    automatic: isAutomatic,
+                    hits: new Set()
+                });
+
+                spawnBloom(x, y, 1.35, isAutomatic ? '#5278e8' : '#75e6c8');
+                if (!isAutomatic) {
+                    document.body.classList.add('has-listened');
+                    setState('SOUNDING', 650);
+                }
+            }
+
+            function updateContacts(dt, elapsed) {
+                const margin = 24;
+                const speedFactor = (reduceMotion ? 0.18 : 1) * mode.drift;
+
+                contacts.forEach(contact => {
+                    contact.x += contact.vx * dt * speedFactor;
+                    contact.y += contact.vy * dt * speedFactor;
+                    contact.x += Math.sin(elapsed * 0.00019 + contact.phase) * dt * 2.2 * speedFactor;
+                    contact.y += Math.cos(elapsed * 0.00017 + contact.phase) * dt * 2 * speedFactor;
+
+                    if (contact.x < margin || contact.x > width - margin) contact.vx *= -1;
+                    if (contact.y < margin || contact.y > height - margin) contact.vy *= -1;
+                    contact.x = Math.max(margin, Math.min(width - margin, contact.x));
+                    contact.y = Math.max(margin, Math.min(height - margin, contact.y));
+
+                    contact.echo = Math.max(0, contact.echo - dt * 0.17);
+                    contact.trail.push({ x: contact.x, y: contact.y, strength: contact.echo });
+                    if (contact.trail.length > 22) contact.trail.shift();
+                });
+            }
+
+            function updatePulses(dt) {
+                pulses.forEach(pulse => {
+                    pulse.previousRadius = pulse.radius;
+                    pulse.radius += pulse.speed * dt;
+
+                    contacts.forEach(contact => {
+                        if (pulse.hits.has(contact.id)) return;
+                        const distance = Math.hypot(contact.x - pulse.x, contact.y - pulse.y);
+                        if (distance >= pulse.previousRadius - 4 && distance <= pulse.radius + 4) {
+                            pulse.hits.add(contact.id);
+                            contact.echo = 1;
+                            echoes++;
+                            echoCount.textContent = String(echoes).padStart(3, '0').slice(-3);
+                            spawnBloom(contact.x, contact.y, 0.7 + contact.signal, Math.random() > 0.8 ? '#ff8066' : null);
+                        }
+                    });
+                });
+
+                const completed = pulses.filter(pulse => pulse.radius >= pulse.maxRadius);
+                completed.forEach(pulse => {
+                    if (!pulse.automatic) {
+                        const count = pulse.hits.size;
+                        setState(count ? 'REACQUIRED' : 'LOST', 1100);
+                        echoStatus.textContent = count
+                            ? `${count} contacts answered the last pulse.`
+                            : 'No contacts answered the last pulse.';
+                    }
+                });
+                pulses = pulses.filter(pulse => pulse.radius < pulse.maxRadius);
+            }
+
+            function drawContours(elapsed) {
+                ctx.save();
+                ctx.lineWidth = 0.55;
+                for (let row = 0; row < 7; row++) {
+                    ctx.beginPath();
+                    const baseY = height * (0.18 + row * 0.105);
+                    for (let x = -20; x <= width + 20; x += 18) {
+                        const y = baseY
+                            + Math.sin(x * 0.006 + elapsed * 0.00008 + row) * (12 + row * 1.5)
+                            + Math.cos(x * 0.0026 - elapsed * 0.00005 + row * 1.7) * 8;
+                        if (x === -20) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.strokeStyle = `rgba(117, 230, 200, ${(0.018 + row * 0.002) * mode.contour})`;
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            function drawConnections() {
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                for (let i = 0; i < contacts.length; i++) {
+                    const a = contacts[i];
+                    if (a.echo < 0.08) continue;
+                    for (let j = i + 1; j < contacts.length; j++) {
+                        const b = contacts[j];
+                        if (b.echo < 0.08) continue;
+                        const distance = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (distance > 190) continue;
+                        const strength = Math.min(a.echo, b.echo) * (1 - distance / 190);
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        const bend = Math.sin((a.phase + b.phase) * 0.5) * 16;
+                        ctx.quadraticCurveTo(
+                            (a.x + b.x) / 2 + bend,
+                            (a.y + b.y) / 2 - bend,
+                            b.x,
+                            b.y
+                        );
+                        ctx.strokeStyle = `rgba(117, 230, 200, ${strength * 0.34 * mode.connection})`;
+                        ctx.lineWidth = 0.7;
+                        ctx.stroke();
+                    }
+                }
+                ctx.restore();
+            }
+
+            function drawContacts(elapsed) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.font = '9px "Azeret Mono", monospace';
+                ctx.textBaseline = 'middle';
+
+                contacts.forEach(contact => {
+                    if (contact.trail.length > 1) {
+                        ctx.beginPath();
+                        contact.trail.forEach((point, index) => {
+                            if (index === 0) ctx.moveTo(point.x, point.y);
+                            else ctx.lineTo(point.x, point.y);
+                        });
+                        ctx.strokeStyle = `rgba(82, 120, 232, ${0.025 + contact.echo * 0.13})`;
+                        ctx.lineWidth = 0.6;
+                        ctx.stroke();
+                    }
+
+                    const flicker = 0.68 + Math.sin(elapsed * 0.0014 + contact.phase) * 0.22;
+                    const alpha = Math.min(1, contact.signal * flicker * mode.contactBase + contact.echo * 0.68);
+                    const radius = contact.radius + contact.echo * 2.3;
+
+                    ctx.beginPath();
+                    ctx.arc(contact.x, contact.y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(117, 230, 200, ${alpha})`;
+                    ctx.shadowColor = COLORS.brine;
+                    ctx.shadowBlur = 5 + contact.echo * 16;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    if (mode.labels && contact.echo > 0.42) {
+                        ctx.beginPath();
+                        ctx.arc(contact.x, contact.y, 9 + contact.echo * 8, -0.65, 1.1);
+                        ctx.strokeStyle = `rgba(233, 245, 238, ${contact.echo * 0.48})`;
+                        ctx.lineWidth = 0.65;
+                        ctx.stroke();
+
+                        ctx.fillStyle = `rgba(233, 245, 238, ${contact.echo * 0.56})`;
+                        ctx.fillText(`E-${String(contact.id).padStart(2, '0')}`, contact.x + 14, contact.y - 9);
+                    }
+                });
+                ctx.restore();
+            }
+
+            function drawPulses() {
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                pulses.forEach(pulse => {
+                    const progress = pulse.radius / pulse.maxRadius;
+                    const alpha = Math.sin(Math.min(1, progress) * Math.PI) * (pulse.automatic ? 0.18 : 0.48);
+
+                    ctx.beginPath();
+                    ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = pulse.automatic
+                        ? `rgba(82, 120, 232, ${alpha})`
+                        : `rgba(117, 230, 200, ${alpha})`;
+                    ctx.lineWidth = pulse.automatic ? 0.6 : 1;
+                    ctx.shadowColor = pulse.automatic ? COLORS.iodine : COLORS.brine;
+                    ctx.shadowBlur = pulse.automatic ? 4 : 10;
+                    ctx.stroke();
+
+                    if (!pulse.automatic && pulse.radius > 16) {
+                        ctx.beginPath();
+                        ctx.arc(pulse.x, pulse.y, pulse.radius * 0.985, 0.3, 1.7);
+                        ctx.strokeStyle = `rgba(233, 245, 238, ${alpha * 0.55})`;
+                        ctx.lineWidth = 0.45;
+                        ctx.stroke();
+                    }
+                });
+                ctx.restore();
+            }
+
+            function pulseIntersections(first, second) {
+                const dx = second.x - first.x;
+                const dy = second.y - first.y;
+                const distance = Math.hypot(dx, dy);
+                if (!distance || distance > first.radius + second.radius || distance < Math.abs(first.radius - second.radius)) {
+                    return [];
+                }
+
+                const along = (first.radius ** 2 - second.radius ** 2 + distance ** 2) / (2 * distance);
+                const heightSquared = first.radius ** 2 - along ** 2;
+                if (heightSquared < 0) return [];
+
+                const heightFromLine = Math.sqrt(heightSquared);
+                const centerX = first.x + along * dx / distance;
+                const centerY = first.y + along * dy / distance;
+                const offsetX = -dy * heightFromLine / distance;
+                const offsetY = dx * heightFromLine / distance;
+
+                return [
+                    { x: centerX + offsetX, y: centerY + offsetY },
+                    { x: centerX - offsetX, y: centerY - offsetY }
+                ];
+            }
+
+            function drawInterference() {
+                if (modeName !== 'confluence' || pulses.length < 2) return;
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+
+                for (let i = 0; i < pulses.length; i++) {
+                    for (let j = i + 1; j < pulses.length; j++) {
+                        const first = pulses[i];
+                        const second = pulses[j];
+                        const points = pulseIntersections(first, second);
+                        if (!points.length) continue;
+
+                        const key = `${Math.min(first.id, second.id)}-${Math.max(first.id, second.id)}`;
+                        if (!interferenceSeen.has(key)) {
+                            interferenceSeen.add(key);
+                            points.forEach((point, index) => {
+                                spawnBloom(point.x, point.y, 0.55, index ? '#5278e8' : '#ff8066');
+                            });
+                            setState('CONFLUENCE', 1200);
+                        }
+
+                        ctx.beginPath();
+                        ctx.moveTo(points[0].x, points[0].y);
+                        ctx.lineTo(points[1].x, points[1].y);
+                        ctx.strokeStyle = 'rgba(140, 235, 211, 0.13)';
+                        ctx.lineWidth = 0.55;
+                        ctx.stroke();
+
+                        points.forEach((point, index) => {
+                            ctx.beginPath();
+                            ctx.arc(point.x, point.y, 2.4, 0, Math.PI * 2);
+                            ctx.fillStyle = index ? 'rgba(105, 136, 255, 0.82)' : 'rgba(255, 128, 102, 0.82)';
+                            ctx.shadowColor = index ? '#6988ff' : '#ff8066';
+                            ctx.shadowBlur = 14;
+                            ctx.fill();
+                        });
+                    }
+                }
+                ctx.restore();
+            }
+
+            function drawPointer() {
+                if (!pointer.visible) return;
+                ctx.save();
+                ctx.translate(pointer.x, pointer.y);
+                ctx.strokeStyle = 'rgba(233, 245, 238, 0.28)';
+                ctx.lineWidth = 0.6;
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, -0.7, 0.55);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, 2.45, 3.7);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function animate(now) {
+                const dt = Math.min(0.05, (now - lastTime) / 1000);
+                lastTime = now;
+
+                ctx.clearRect(0, 0, width, height);
+                updateContacts(dt, now);
+                updatePulses(dt);
+                drawContours(now);
+                drawConnections();
+                drawContacts(now);
+                drawPulses();
+                drawInterference();
+                drawPointer();
+
+                if (!reduceMotion && mode.autoInterval > 0 && now - lastAutoPing > mode.autoInterval && pulses.length === 0) {
+                    soundField(random(width * 0.2, width * 0.8), random(height * 0.25, height * 0.75), true);
+                    lastAutoPing = now;
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            canvas.addEventListener('pointermove', event => {
+                pointer.x = event.clientX;
+                pointer.y = event.clientY;
+                pointer.visible = true;
+            }, { passive: true });
+
+            canvas.addEventListener('pointerleave', () => {
+                pointer.visible = false;
+            });
+
+            canvas.addEventListener('pointerdown', event => {
+                event.preventDefault();
+                pointer.x = event.clientX;
+                pointer.y = event.clientY;
+                pointer.visible = true;
+                soundField(event.clientX, event.clientY);
+            });
+
+            modeToggle.addEventListener('click', () => {
+                document.body.classList.contains('mode-open') ? closeModeMenu() : openModeMenu();
+            });
+
+            modeScrim.addEventListener('click', closeModeMenu);
+
+            modeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    setMode(option.dataset.mode);
+                    closeModeMenu();
+                });
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    closeModeMenu();
+                    return;
+                }
+                if (event.target.closest('a, button, input, select, textarea')) return;
+                if (event.key === ' ' || event.key === 'Enter') {
+                    event.preventDefault();
+                    soundField(pointer.visible ? pointer.x : width / 2, pointer.visible ? pointer.y : height / 2);
+                }
+                if (event.key.toLowerCase() === 'r') {
+                    seedContacts();
+                    pulses = [];
+                    setState('RESET', 700);
+                    echoStatus.textContent = 'The contact field has been reset.';
+                }
+            });
+
+            window.addEventListener('resize', queueResize, { passive: true });
+            window.addEventListener('orientationchange', queueResize, { passive: true });
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', queueResize, { passive: true });
+            }
+
+            const requestedMode = new URLSearchParams(window.location.search).get('mode');
+            let savedMode = null;
+            try {
+                savedMode = localStorage.getItem('rg-echo-field-mode');
+            } catch {
+                // Storage is optional.
+            }
+            setMode(MODES[requestedMode] ? requestedMode : (MODES[savedMode] ? savedMode : 'echo'), {
+                persist: false,
+                announce: false
+            });
+
+            resize();
+            setTimeout(() => {
+                if (!reduceMotion && mode.autoInterval > 0) soundField(width * 0.67, height * 0.58, true);
+            }, 900);
+            requestAnimationFrame(animate);
+        })();
+    </script>
+</body>
+</html>
