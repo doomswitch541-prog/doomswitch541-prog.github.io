@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="minimal">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#050506">
+    <title>Clock — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@200;300;400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050506;
+            --ink: #f2f2f4;
+            --dim: #6a6a72;
+            --faint: #303038;
+            --accent: #5c86f5;
+            --accent-glow: rgba(92, 134, 245, 0.6);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.6s ease;
+        }
+        /* faint graph-paper grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 56px 56px;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.6s ease;
+        }
+        .clock {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2.4rem;           /* roomier than before */
+            padding: 3rem;
+            width: 100%;
+            max-width: 680px;
+        }
+        .time {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 300;
+            font-feature-settings: "zero" 1;   /* slashed zero */
+            font-size: clamp(3.6rem, 16vw, 7rem);
+            line-height: 1;
+            letter-spacing: -0.01em;
+        }
+        .time .unit { font-variant-numeric: tabular-nums; }
+        .time .sep {
+            color: var(--faint);
+            font-size: 0.6em;
+            transform: translateY(-0.04em);
+        }
+        .ampm {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.35em;
+            color: var(--dim);
+            padding-left: 0.35em;
+        }
+        /* seconds-of-minute progress hairline */
+        .progress {
+            width: min(64%, 360px);
+            height: 1px;
+            background: var(--faint);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress .fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+        .date {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 400;
+            letter-spacing: 0.24em;
+            color: var(--dim);
+            text-transform: uppercase;
+        }
+        /* signal glyph — bars fill up across the minute, like the hairline */
+        .status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.7rem;
+            margin-top: 0.6rem;
+        }
+        .bars { display: flex; align-items: flex-end; gap: 3px; height: 20px; }
+        .bars span {
+            width: 3px;
+            height: 4px;
+            background: var(--faint);
+            border-radius: 1px;
+            transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                        background 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+        }
+        .bars span.on { background: var(--ink); }
+        .bars span:nth-child(1).on { height: 6px; }
+        .bars span:nth-child(2).on { height: 11px; }
+        .bars span:nth-child(3).on { height: 15px; }
+        .bars span:nth-child(4).on { height: 20px; }
+        /* the bar currently filling glows and breathes */
+        .bars span.tip {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: barpulse 1.3s ease-in-out infinite;
+        }
+        @keyframes barpulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+        .dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+
+        /* ===================== MODES ===================== */
+        /* pulse — the whole readout gently breathes and the colons blink */
+        html[data-mode="pulse"] .time { animation: breathe 4s ease-in-out infinite; }
+        html[data-mode="pulse"] .dot { animation-duration: 1.4s; }
+        html[data-mode="pulse"] .time .sep { animation: sepblink 1s steps(1, end) infinite; }
+        @keyframes breathe { 0%, 100% { opacity: 0.82; transform: scale(0.994); } 50% { opacity: 1; transform: scale(1); } }
+        @keyframes sepblink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        /* neon — same layout, electric glow */
+        html[data-mode="neon"] { --accent: #38e8ff; --accent-glow: rgba(56, 232, 255, 0.7); }
+        html[data-mode="neon"] body { background: #04060a; }
+        html[data-mode="neon"] body::before { opacity: 1.4; }
+        html[data-mode="neon"] .time {
+            color: #eafcff;
+            text-shadow: 0 0 6px rgba(56, 232, 255, 0.55), 0 0 20px rgba(56, 232, 255, 0.3);
+        }
+        html[data-mode="neon"] .time .sep { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+        html[data-mode="neon"] .date { color: rgba(56, 232, 255, 0.6); text-shadow: 0 0 10px rgba(56, 232, 255, 0.25); }
+        html[data-mode="neon"] .ampm { color: rgba(56, 232, 255, 0.5); }
+
+        /* ===================== DOCK + MODE FAB ===================== */
+        .dock {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.4rem calc(1rem + env(safe-area-inset-bottom));
+            pointer-events: none;   /* let the clock breathe; children re-enable */
+        }
+        .dock > *, .dock .fab-wrap * { pointer-events: auto; }
+        .dock-home {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--dim);
+            text-decoration: none;
+            padding: 0.6rem 0.3rem;
+            transition: color 0.3s ease;
+        }
+        .dock-home:hover, .dock-home:focus-visible { color: var(--ink); outline: none; }
+
+        .fab-wrap { position: relative; }
+        .fab {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(16px);
+            color: var(--ink);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+        }
+        .fab:hover { border-color: var(--accent); }
+        body.fab-open .fab { border-color: var(--accent); box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 16px var(--accent-glow); }
+        /* sliders glyph — echoes the signal bars */
+        .fab-ico { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; width: 16px; }
+        .fab-ico i {
+            display: block; height: 2px; border-radius: 1px;
+            background: var(--accent); box-shadow: 0 0 6px var(--accent);
+            transition: width 0.3s ease;
+        }
+        .fab-ico i:nth-child(1) { width: 16px; }
+        .fab-ico i:nth-child(2) { width: 9px; }
+        .fab-ico i:nth-child(3) { width: 13px; }
+
+        .fab-menu {
+            position: absolute;
+            right: 0;
+            bottom: calc(100% + 12px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        body.fab-open .fab-menu { opacity: 1; visibility: visible; }
+        .fab-opt {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 0.55rem 0.95rem;
+            border-radius: 999px;
+            cursor: pointer;
+            white-space: nowrap;
+            color: var(--dim);
+            background: rgba(10, 10, 14, 0.72);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            transform: translateY(8px);
+            opacity: 0;
+            transition: color 0.25s ease, border-color 0.25s ease,
+                        box-shadow 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+        }
+        body.fab-open .fab-opt { transform: translateY(0); opacity: 1; }
+        body.fab-open .fab-opt:nth-child(1) { transition-delay: 0.02s; }
+        body.fab-open .fab-opt:nth-child(2) { transition-delay: 0.06s; }
+        body.fab-open .fab-opt:nth-child(3) { transition-delay: 0.10s; }
+        .fab-opt:hover { color: var(--ink); border-color: rgba(255, 255, 255, 0.3); }
+        .fab-opt.active {
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .fab-scrim {
+            position: fixed;
+            inset: 0;
+            z-index: 55;
+            background: transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: visibility 0.25s ease;
+        }
+        body.fab-open .fab-scrim { opacity: 1; visibility: visible; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bars span.tip, .dot,
+            html[data-mode="pulse"] .time,
+            html[data-mode="pulse"] .time .sep { animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <main class="clock">
+        <div class="time">
+            <span class="unit" id="hh">00</span>
+            <span class="sep">:</span>
+            <span class="unit" id="mm">00</span>
+            <span class="sep">:</span>
+            <span class="unit" id="ss">00</span>
+            <span class="ampm" id="ap">AM</span>
+        </div>
+        <div class="progress"><div class="fill" id="bar"></div></div>
+        <div class="date" id="date">—</div>
+        <div class="status">
+            <div class="bars"><span></span><span></span><span></span><span></span></div>
+            <div class="dot"></div>
+        </div>
+    </main>
+
+    <!-- Dock: home link on the left, mode FAB on the right -->
+    <nav class="dock" aria-label="Clock controls">
+        <a class="dock-home" href="/" aria-label="Back to HQ">HQ</a>
+        <div class="fab-wrap">
+            <div class="fab-menu" role="menu">
+                <button class="fab-opt" data-mode="neon" role="menuitemradio">Neon</button>
+                <button class="fab-opt" data-mode="pulse" role="menuitemradio">Pulse</button>
+                <button class="fab-opt" data-mode="minimal" role="menuitemradio">Minimal</button>
+            </div>
+            <button class="fab" aria-label="Change mode" aria-expanded="false">
+                <span class="fab-ico"><i></i><i></i><i></i></span>
+            </button>
+        </div>
+    </nav>
+    <div class="fab-scrim"></div>
+
+    <script>
+        const pad = (n) => String(n).padStart(2, '0');
+        const DAYS = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+        const MONS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const hh = document.getElementById('hh'), mm = document.getElementById('mm'),
+              ss = document.getElementById('ss'), ap = document.getElementById('ap'),
+              dateEl = document.getElementById('date'), bar = document.getElementById('bar');
+        const bars = [...document.querySelectorAll('.bars span')];
+
+        function tick() {
+            const d = new Date();
+            hh.textContent = pad(d.getHours() % 12 || 12);
+            mm.textContent = pad(d.getMinutes());
+            ss.textContent = pad(d.getSeconds());
+            ap.textContent = d.getHours() >= 12 ? 'PM' : 'AM';
+            dateEl.textContent = `${DAYS[d.getDay()]} · ${MONS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+
+            // seconds-of-minute fraction drives both the hairline and the bars
+            const frac = (d.getSeconds() + d.getMilliseconds() / 1000) / 60;
+            bar.style.width = (frac * 100).toFixed(2) + '%';
+
+            // bars fill up across the minute, resetting each minute
+            const active = Math.min(bars.length - 1, Math.floor(frac * bars.length));
+            bars.forEach((b, i) => {
+                b.classList.toggle('on', i <= active);
+                b.classList.toggle('tip', i === active);
+            });
+        }
+        tick();
+        setInterval(tick, 100);
+
+        // ===== Modes =====
+        const root = document.documentElement;
+        const opts = [...document.querySelectorAll('.fab-opt')];
+        function setMode(m) {
+            root.setAttribute('data-mode', m);
+            localStorage.setItem('rg-clock-mode', m);
+            opts.forEach(o => o.classList.toggle('active', o.dataset.mode === m));
+        }
+        // ?mode=neon|pulse|minimal wins (shareable), else last choice, else minimal
+        const wanted = new URLSearchParams(location.search).get('mode');
+        const known = ['minimal', 'pulse', 'neon'];
+        setMode(known.includes(wanted) ? wanted : (localStorage.getItem('rg-clock-mode') || 'minimal'));
+
+        // ===== FAB open/close (iOS-safe: button + scrim, no document click race) =====
+        const fab = document.querySelector('.fab');
+        const scrim = document.querySelector('.fab-scrim');
+        const openFab = () => { document.body.classList.add('fab-open'); fab.setAttribute('aria-expanded', 'true'); };
+        const closeFab = () => { document.body.classList.remove('fab-open'); fab.setAttribute('aria-expanded', 'false'); };
+        fab.addEventListener('click', () =>
+            document.body.classList.contains('fab-open') ? closeFab() : openFab());
+        scrim.addEventListener('click', closeFab);
+        opts.forEach(o => o.addEventListener('click', () => { setMode(o.dataset.mode); closeFab(); }));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFab(); });
+    </script>
+</body>
+</html>

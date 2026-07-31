@@ -18,7 +18,8 @@ const BACKGROUND_MANIFEST = {
 // === Shared Navigation ===
 const SiteNavigation = {
     links: [
-        ['/', 'Clock'],
+        ['/', 'Home'],
+        ['/clock', 'Clock'],
         ['/screensaver', 'Screensaver'],
         ['/visuals', 'Visuals'],
         ['/weather', 'Weather'],
@@ -27,30 +28,8 @@ const SiteNavigation = {
 
     init() {
         const path = location.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
-        const center = document.querySelector('.nav-center');
-        if (center && !center.querySelector('.dropdown')) {
-            const dropdown = document.createElement('div');
-            dropdown.className = 'dropdown';
-            dropdown.innerHTML =
-                '<button class="menu-toggle btn" aria-label="Menu" aria-haspopup="true" aria-expanded="false">' +
-                '<span class="bars"><span></span><span></span><span></span></span></button>' +
-                '<div class="dropdown-content"></div>';
-            center.appendChild(dropdown);
 
-            // Desktop opens on hover (CSS); phones have no hover, so tap toggles.
-            const toggle = dropdown.querySelector('.menu-toggle');
-            const content = dropdown.querySelector('.dropdown-content');
-            toggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const open = dropdown.classList.toggle('open');
-                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-            });
-            content.addEventListener('click', (e) => e.stopPropagation());
-            document.addEventListener('click', () => {
-                dropdown.classList.remove('open');
-                toggle.setAttribute('aria-expanded', 'false');
-            });
-        }
+        // Theme menu lives in the pill's right side (unchanged).
         const navRight = document.querySelector('.nav-right');
         if (navRight && document.getElementById('theme-switch') && !document.getElementById('theme-menu')) {
             const themeMenu = document.createElement('div');
@@ -59,11 +38,59 @@ const SiteNavigation = {
             themeMenu.innerHTML = renderThemeButtons();
             navRight.appendChild(themeMenu);
         }
-        document.querySelectorAll('.dropdown-content').forEach(menu => {
-            menu.innerHTML = this.links.map(([href, label]) =>
-                `<a href="${href}"${path === href ? ' aria-current="page"' : ''}>${label}</a>`
-            ).join('');
-        });
+
+        // The pill stays as it is (RG + theme). Navigation now lives in a
+        // corner button that opens a slide-out drawer.
+        if (document.querySelector('.navbar') && !document.querySelector('.nav-menu-btn')) {
+            this.buildDrawer(path);
+        }
+    },
+
+    buildDrawer(path) {
+        const btn = document.createElement('button');
+        btn.className = 'nav-menu-btn';
+        btn.setAttribute('aria-label', 'Open menu');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.innerHTML = '<span class="bars"><span></span><span></span><span></span></span>';
+
+        const scrim = document.createElement('div');
+        scrim.className = 'nav-scrim';
+
+        const drawer = document.createElement('aside');
+        drawer.className = 'nav-drawer';
+        drawer.setAttribute('aria-hidden', 'true');
+        drawer.innerHTML =
+            '<div class="nav-drawer-head">' +
+                '<span class="nav-drawer-brand">RG&nbsp;HQ</span>' +
+                '<button class="nav-drawer-close" aria-label="Close menu">&times;</button>' +
+            '</div>' +
+            '<nav class="nav-drawer-links">' +
+                this.links.map(([href, label], i) =>
+                    `<a href="${href}" style="--i:${i}"${path === href ? ' aria-current="page"' : ''}>` +
+                    `<span class="nav-drawer-label">${label}</span><span class="nav-drawer-arrow">&rsaquo;</span></a>`
+                ).join('') +
+            '</nav>';
+
+        document.body.append(scrim, drawer, btn);
+
+        // iOS-safe open/close: real <button> + a real scrim element each own their
+        // own click handler. No document-level click race, no CSS :hover opening —
+        // both of which were why the tap-to-open failed on iPhone.
+        const open = () => {
+            document.body.classList.add('nav-open');
+            btn.setAttribute('aria-expanded', 'true');
+            drawer.setAttribute('aria-hidden', 'false');
+        };
+        const close = () => {
+            document.body.classList.remove('nav-open');
+            btn.setAttribute('aria-expanded', 'false');
+            drawer.setAttribute('aria-hidden', 'true');
+        };
+        btn.addEventListener('click', () =>
+            document.body.classList.contains('nav-open') ? close() : open());
+        scrim.addEventListener('click', close);
+        drawer.querySelector('.nav-drawer-close').addEventListener('click', close);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
     },
 };
 
