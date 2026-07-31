@@ -145,24 +145,83 @@
         @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 
         /* ===================== MODES ===================== */
-        /* pulse — the whole readout gently breathes and the colons blink */
-        html[data-mode="pulse"] .time { animation: breathe 4s ease-in-out infinite; }
-        html[data-mode="pulse"] .dot { animation-duration: 1.4s; }
-        html[data-mode="pulse"] .time .sep { animation: sepblink 1s steps(1, end) infinite; }
-        @keyframes breathe { 0%, 100% { opacity: 0.82; transform: scale(0.994); } 50% { opacity: 1; transform: scale(1); } }
-        @keyframes sepblink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        /* fx layers — parked at opacity 0 until a mode switches them on */
+        .fx { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
 
-        /* neon — same layout, electric glow */
-        html[data-mode="neon"] { --accent: #38e8ff; --accent-glow: rgba(56, 232, 255, 0.7); }
-        html[data-mode="neon"] body { background: #04060a; }
-        html[data-mode="neon"] body::before { opacity: 1.4; }
+        /* ---------- PULSE: a cracked, seismic grid ---------- */
+        .fx-cracks { z-index: 0; display: flex; align-items: center; justify-content: center; }
+        .fx-cracks svg { width: 150vmax; height: 150vmax; overflow: visible; }
+        .crack {
+            fill: none;
+            stroke: #8becff;
+            stroke-width: 0.16;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 0;
+            opacity: 0.14;
+            filter: drop-shadow(0 0 0.6px #8becff);
+        }
+        .fx-pulse { z-index: 0; display: flex; align-items: center; justify-content: center; }
+        .fx-pulse .ring {
+            position: absolute;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow), inset 0 0 12px var(--accent-glow);
+            opacity: 0;
+        }
+        html[data-mode="pulse"] .fx-cracks,
+        html[data-mode="pulse"] .fx-pulse { opacity: 1; }
+        html[data-mode="pulse"] .progress .fill { box-shadow: 0 0 10px var(--accent), 0 0 22px var(--accent); }
+        html[data-mode="pulse"] .dot { animation-duration: 1.1s; }
+
+        /* ---------- NEON: broken sign + CRT ---------- */
+        .fx-scan {
+            z-index: 3;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.22) 2px 3px);
+            animation: scan-drift 8s linear infinite;
+        }
+        .fx-bloom { z-index: 0; display: flex; align-items: center; justify-content: center; }
+        .fx-bloom::before {
+            content: '';
+            width: 62vmin; height: 30vmin;
+            border-radius: 50%;
+            background: radial-gradient(closest-side, rgba(56,232,255,0.22), transparent 72%);
+            filter: blur(22px);
+            animation: bloom-breathe 3.6s ease-in-out infinite;
+        }
+        html[data-mode="neon"] { --accent: #38e8ff; --accent-glow: rgba(56,232,255,0.7); }
+        html[data-mode="neon"] body { background: #03050a; }
+        html[data-mode="neon"] .fx-scan,
+        html[data-mode="neon"] .fx-bloom { opacity: 1; }
+        html[data-mode="neon"] .clock { animation: neon-hue 16s ease-in-out infinite; }
         html[data-mode="neon"] .time {
             color: #eafcff;
-            text-shadow: 0 0 6px rgba(56, 232, 255, 0.55), 0 0 20px rgba(56, 232, 255, 0.3);
+            text-shadow:
+                -3px 0 rgba(255, 45, 107, 0.5),
+                 3px 0 rgba(56, 232, 255, 0.5),
+                 0 0 8px rgba(56, 232, 255, 0.5),
+                 0 0 26px rgba(56, 232, 255, 0.35);
+            animation: neon-flicker 7s steps(1, end) infinite;
         }
         html[data-mode="neon"] .time .sep { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        html[data-mode="neon"] .date { color: rgba(56, 232, 255, 0.6); text-shadow: 0 0 10px rgba(56, 232, 255, 0.25); }
+        html[data-mode="neon"] .date {
+            color: rgba(56, 232, 255, 0.62);
+            text-shadow: 0 0 10px rgba(56, 232, 255, 0.3);
+            animation: neon-flicker 7s steps(1, end) infinite;
+            animation-delay: 0.4s;
+        }
         html[data-mode="neon"] .ampm { color: rgba(56, 232, 255, 0.5); }
+
+        @keyframes scan-drift { from { background-position-y: 0; } to { background-position-y: 12px; } }
+        @keyframes bloom-breathe { 0%, 100% { opacity: 0.7; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
+        @keyframes neon-hue { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(-26deg); } }
+        @keyframes neon-flicker {
+            0%, 100% { opacity: 1; }
+            91% { opacity: 1; } 92% { opacity: 0.4; } 93% { opacity: 1; }
+            95% { opacity: 0.7; } 96% { opacity: 1; }
+        }
 
         /* ===================== DOCK + MODE FAB ===================== */
         .dock {
@@ -269,12 +328,20 @@
 
         @media (prefers-reduced-motion: reduce) {
             .bars span.tip, .dot,
-            html[data-mode="pulse"] .time,
-            html[data-mode="pulse"] .time .sep { animation: none; }
+            .fx-scan, .fx-bloom::before,
+            html[data-mode="neon"] .clock,
+            html[data-mode="neon"] .time,
+            html[data-mode="neon"] .date { animation: none; }
         }
     </style>
 </head>
 <body>
+    <!-- experimental mode fx — inert until pulse/neon -->
+    <div class="fx fx-bloom"></div>
+    <div class="fx fx-cracks"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg></div>
+    <div class="fx fx-pulse"></div>
+    <div class="fx fx-scan"></div>
+
     <main class="clock">
         <div class="time">
             <span class="unit" id="hh">00</span>
@@ -317,6 +384,56 @@
               dateEl = document.getElementById('date'), bar = document.getElementById('bar');
         const bars = [...document.querySelectorAll('.bars span')];
 
+        // ===== experimental fx: pulse cracks + heartbeat =====
+        const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const clockEl = document.querySelector('.clock');
+        const cracksSvg = document.querySelector('.fx-cracks svg');
+        const fxPulse = document.querySelector('.fx-pulse');
+        let lastSec = -1;
+
+        // organic hairline cracks radiating from the centre of the grid
+        (function buildCracks(n) {
+            const NS = 'http://www.w3.org/2000/svg';
+            for (let k = 0; k < n; k++) {
+                const base = (k / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+                let d = 'M50 50', r = 0;
+                const segs = 4 + Math.floor(Math.random() * 3);
+                for (let s = 0; s < segs; s++) {
+                    r += 9 + Math.random() * 11;
+                    const a = base + (Math.random() - 0.5) * 0.6;
+                    d += ` L${(50 + Math.cos(a) * r).toFixed(1)} ${(50 + Math.sin(a) * r).toFixed(1)}`;
+                }
+                const p = document.createElementNS(NS, 'path');
+                p.setAttribute('d', d);
+                p.setAttribute('class', 'crack');
+                p.setAttribute('pathLength', '1');
+                cracksSvg.appendChild(p);
+            }
+        })(9);
+        const crackPaths = [...cracksSvg.querySelectorAll('.crack')];
+
+        // one heartbeat: sonar ring rips out, cracks re-draw + flash, clock thumps
+        function beat() {
+            const ring = document.createElement('div');
+            ring.className = 'ring';
+            fxPulse.appendChild(ring);
+            ring.animate(
+                [{ transform: 'scale(0.3)', opacity: 0.6 }, { transform: 'scale(10)', opacity: 0 }],
+                { duration: 1100, easing: 'cubic-bezier(0.2,0.7,0.3,1)' }
+            ).onfinish = () => ring.remove();
+
+            crackPaths.forEach((p, i) => p.animate(
+                [{ strokeDashoffset: 1, opacity: 0.75, filter: 'brightness(2.6)' },
+                 { strokeDashoffset: 0, opacity: 0.14, filter: 'brightness(1)' }],
+                { duration: 620 + i * 22, easing: 'cubic-bezier(0.2,0.7,0.3,1)', fill: 'forwards' }
+            ));
+
+            clockEl.animate(
+                [{ transform: 'scale(1)' }, { transform: 'scale(1.016)' }, { transform: 'scale(1)' }],
+                { duration: 440, easing: 'ease-out' }
+            );
+        }
+
         function tick() {
             const d = new Date();
             hh.textContent = pad(d.getHours() % 12 || 12);
@@ -335,6 +452,13 @@
                 b.classList.toggle('on', i <= active);
                 b.classList.toggle('tip', i === active);
             });
+
+            // heartbeat on each new second (pulse mode only)
+            const sec = d.getSeconds();
+            if (sec !== lastSec) {
+                lastSec = sec;
+                if (!REDUCE && document.documentElement.getAttribute('data-mode') === 'pulse') beat();
+            }
         }
         tick();
         setInterval(tick, 100);
@@ -346,6 +470,7 @@
             root.setAttribute('data-mode', m);
             localStorage.setItem('rg-clock-mode', m);
             opts.forEach(o => o.classList.toggle('active', o.dataset.mode === m));
+            if (m === 'pulse' && !REDUCE) beat();   // don't wait a second for the first beat
         }
         // ?mode=neon|pulse|minimal wins (shareable), else last choice, else minimal
         const wanted = new URLSearchParams(location.search).get('mode');
