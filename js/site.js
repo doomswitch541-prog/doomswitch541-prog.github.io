@@ -20,7 +20,7 @@ const SiteNavigation = {
     links: [
         ['/', 'Clock'],
         ['/screensaver', 'Screensaver'],
-        ['/slamviz', 'SlamViz'],
+        ['/visuals', 'Visuals'],
         ['/weather', 'Weather'],
         ['/directory', 'Directory'],
     ],
@@ -31,8 +31,25 @@ const SiteNavigation = {
         if (center && !center.querySelector('.dropdown')) {
             const dropdown = document.createElement('div');
             dropdown.className = 'dropdown';
-            dropdown.innerHTML = '<button class="btn">Menu</button><div class="dropdown-content"></div>';
+            dropdown.innerHTML =
+                '<button class="menu-toggle btn" aria-label="Menu" aria-haspopup="true" aria-expanded="false">' +
+                '<span class="bars"><span></span><span></span><span></span></span></button>' +
+                '<div class="dropdown-content"></div>';
             center.appendChild(dropdown);
+
+            // Desktop opens on hover (CSS); phones have no hover, so tap toggles.
+            const toggle = dropdown.querySelector('.menu-toggle');
+            const content = dropdown.querySelector('.dropdown-content');
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const open = dropdown.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+            content.addEventListener('click', (e) => e.stopPropagation());
+            document.addEventListener('click', () => {
+                dropdown.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+            });
         }
         const navRight = document.querySelector('.nav-right');
         if (navRight && document.getElementById('theme-switch') && !document.getElementById('theme-menu')) {

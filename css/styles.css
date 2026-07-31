@@ -277,6 +277,7 @@ body.idle .time-meta {
   transition: all var(--transition-fast);
 }
 
+.dropdown.open .dropdown-content,
 .dropdown:hover .dropdown-content,
 .dropdown-content:hover {
   transform: translateX(-50%) scale(1);
@@ -284,19 +285,104 @@ body.idle .time-meta {
   visibility: visible;
 }
 
+/* === Circular glass menu toggle (replaces the "Menu" text button) ===
+   Its own glass disc inside the pill: same blur/border language as the
+   navbar. Three thin bars sit in the light Inter weight of the wordmark. */
+.menu-toggle {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  justify-content: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px) saturate(150%);
+}
+
+.menu-toggle:hover {
+  background: var(--glass-highlight);
+  border-color: var(--glass-border-hover);
+}
+
+.menu-toggle .bars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 15px;
+}
+
+.menu-toggle .bars span {
+  height: 1.5px;
+  width: 100%;
+  background: var(--text-secondary);
+  border-radius: 1px;
+  transform-origin: center;
+  transition: background var(--transition-fast),
+              transform var(--transition-base),
+              opacity var(--transition-fast);
+}
+
+.menu-toggle:hover .bars span,
+.dropdown.open .menu-toggle .bars span {
+  background: var(--text-primary);
+}
+
+/* Bars fold into an X while the menu is open — on desktop hover and on tap.
+   Centre-to-centre spacing is 4.5px (1.5px bar + 3px gap), so ±4.5px meets
+   in the middle. */
+.dropdown.open .menu-toggle .bars span:nth-child(1),
+.dropdown:hover .menu-toggle .bars span:nth-child(1) {
+  transform: translateY(4.5px) rotate(45deg);
+}
+.dropdown.open .menu-toggle .bars span:nth-child(2),
+.dropdown:hover .menu-toggle .bars span:nth-child(2) {
+  opacity: 0;
+}
+.dropdown.open .menu-toggle .bars span:nth-child(3),
+.dropdown:hover .menu-toggle .bars span:nth-child(3) {
+  transform: translateY(-4.5px) rotate(-45deg);
+}
+
+.dropdown.open .menu-toggle,
+.dropdown:hover .menu-toggle {
+  background: var(--glass-highlight);
+  border-color: var(--glass-border-hover);
+}
+
 .dropdown-content a {
+  position: relative;
   display: block;
-  padding: 10px 14px;
+  padding: 10px 14px 10px 22px;
   font-size: 0.8125rem;
   color: var(--text-secondary);
   text-decoration: none;
   border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast),
+              background var(--transition-fast),
+              padding var(--transition-fast);
 }
 
 .dropdown-content a:hover {
   color: var(--text-primary);
-  background: var(--glass-bg);
+  background: var(--glass-highlight);
+  padding-left: 26px;
+}
+
+/* Current page: accent text + a glowing leading dot, seated in the left pad. */
+.dropdown-content a[aria-current="page"] {
+  color: var(--accent);
+}
+
+.dropdown-content a[aria-current="page"]::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  transform: translateY(-50%);
 }
 
 /* === Weather Widget (top bar) === */
@@ -473,6 +559,9 @@ body.idle .time-meta {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  /* dvh tracks the *visible* viewport, so the clock stays centred and doesn't
+     scroll under the mobile URL bar the way 100vh (large-viewport) does. */
+  min-height: 100dvh;
   padding: calc(var(--space-2xl) + var(--space-lg)) var(--space-lg) var(--space-2xl);
   gap: var(--space-2xl);
 }

@@ -94,12 +94,12 @@
             position: relative;
             z-index: 10;
             width: 100%;
-            min-height: 100vh;
+            /* Header group sits at the TOP now. It used to be justify-content:
+               flex-end with 45vh top padding, which parked it at the bottom. */
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
             align-items: flex-start;
-            padding: 45vh 8vw 8vh 8vw;
+            padding: 1.75rem 8vw 0 8vw;
         }
 
         /* Single vertical accent bar */
@@ -123,11 +123,13 @@
         /* Elegant serif title */
         .main-title {
             font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(3rem, 14vw, 12rem);
+            /* Masthead scale — same face/weight/shadow, sized for the top of
+               the page instead of a full-bleed hero. */
+            font-size: clamp(2.4rem, 8vw, 5rem);
             font-weight: 300;
-            letter-spacing: -0.02em;
-            line-height: 0.85;
-            margin-bottom: 1.5rem;
+            letter-spacing: -0.01em;
+            line-height: 0.9;
+            margin-bottom: 1rem;
             color: var(--accent);
             text-shadow:
                 0 0 40px rgba(255, 255, 255, 0.3),
@@ -184,7 +186,8 @@
         /* Minimal HUD widget - enhanced for mobile with scrolling */
         .hud-widget {
             position: fixed;
-            top: 4vh;
+            /* Sits just below the "Weather" header group at the top. */
+            top: 13vh;
             left: 4vw;
             background: rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(30px) saturate(130%);
@@ -307,12 +310,7 @@
             .sitenav .navlink { font-size: 0.6rem; padding: 0.55rem 1rem; }
 
             .content {
-                padding-top: 52vh;
-                transition: padding-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            .content.hud-collapsed {
-                padding-top: 30vh;
+                padding-top: 1.75rem;
             }
 
             .accent-bar {
@@ -333,7 +331,7 @@
                 /* Now that the sections wrap to more than one row below 1400px,
                    the panel can grow past the viewport. Cap it and scroll rather
                    than letting the last row fall off the bottom of the screen. */
-                max-height: 88vh;
+                max-height: 84vh;
                 overflow-y: auto;
                 overflow-x: hidden;
             }
@@ -1233,7 +1231,7 @@
 
             .hud-widget {
                 position: fixed;
-                top: 2vh;
+                top: 13vh;
                 left: 3vw;
                 right: 3vw;
                 width: auto;
@@ -1281,10 +1279,7 @@
 
             .content {
                 position: relative;
-                /* Extra bottom padding reserves room for the fixed nav bar —
-                   below 768px the pager and title flow inline at the end of the
-                   page and would otherwise sit underneath it. */
-                padding: 3rem 6vw calc(4rem + 56px) 6vw;
+                padding: 1.25rem 6vw 0 6vw;
                 min-height: auto;
                 justify-content: flex-start;
                 z-index: 10;
@@ -1337,8 +1332,7 @@
         /* Responsive - Mobile */
         @media (max-width: 480px) {
             .content {
-                /* Bottom value keeps clearance for the fixed nav bar. */
-                padding: 2rem 5vw calc(3rem + 56px) 5vw;
+                padding: 1rem 5vw 0 5vw;
             }
 
             .main-title {
@@ -2247,86 +2241,30 @@
     <nav class="sitenav" aria-label="Site">
         <a class="navlink" href="/">CLOCK</a>
         <a class="navlink" href="/screensaver">SCREENSAVER</a>
-        <a class="navlink" href="/slamviz">SLAMVIZ</a>
+        <a class="navlink" href="/visuals">VISUALS</a>
         <a class="navlink" href="/weather">WEATHER</a>
         <a class="navlink" href="/directory">DIRECTORY</a>
     </nav>
 
     <!-- Background layer with high-quality image -->
     <div class="background">
-        <img src="assets/skyresonance-one.jpeg" alt="" loading="eager" decoding="async">
+        <img src="/assets/skyresonance-one.jpeg" alt="" loading="eager" decoding="async">
     </div>
     <div class="overlay"></div>
 
     <!-- Vertical accent -->
     <div class="accent-bar"></div>
 
-    <!-- Day number -->
+    <!-- Day counter — minimal top-left touch -->
     <div class="day-number">006 / 365</div>
 
-    <!-- Main content with generous negative space -->
-    <div class="content">
-        <div class="metadata">Day Six</div>
-        <h1 class="main-title">Celestial<br>Drift</h1>
+    <!-- Header group — moved to the top, pared to a single word -->
+    <header class="content">
+        <h1 class="main-title">Weather</h1>
         <div class="line-decoration"></div>
-        <p class="subtitle">Where sky meets eternity</p>
-    </div>
-
-    <!-- Minimal pagination -->
-    <div class="pagination">
-        <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')" aria-label="Previous page">←</button>
-        <span class="page-indicator" id="pageIndicator">Day 6/365</span>
-        <button class="pagination-btn" id="nextBtn" onclick="navigate('next')" aria-label="Next page">→</button>
-        <a href="/weather" class="pagination-home" title="View All Days" aria-label="View all 365 days">⊞</a>
-    </div>
+    </header>
 
     <script>
-        // 365 Days navigation
-        const daysOfPages = [
-            { day: 1, name: 'Paradise Motel', file: 'motel.html' },
-            { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
-            { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
-            { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
-            { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
-            { day: 6, name: 'Celestial Drift', file: 'day6.html' },
-            { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
-            { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
-            { day: 9, name: 'NERV Terminal', file: 'day9.html' },
-            { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
-        ];
-
-        const currentPageFile = window.location.pathname.split('/').pop();
-        const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
-
-        if (currentIndex !== -1) {
-            document.getElementById('pageIndicator').textContent =
-                `Day ${daysOfPages[currentIndex].day}/365`;
-        }
-
-        function navigate(direction) {
-            let newIndex;
-
-            if (direction === 'prev') {
-                newIndex = currentIndex - 1;
-            } else if (direction === 'next') {
-                newIndex = currentIndex + 1;
-            }
-
-            if (newIndex >= 0 && newIndex < daysOfPages.length) {
-                window.location.href = daysOfPages[newIndex].file;
-            }
-        }
-
-        // Disable navigation buttons at boundaries
-        if (currentIndex !== -1) {
-            if (currentIndex === 0) {
-                document.getElementById('prevBtn').disabled = true;
-            }
-            if (currentIndex === daysOfPages.length - 1) {
-                document.getElementById('nextBtn').disabled = true;
-            }
-        }
-
         // ============================================================
         // HUD WIDGET - CLOCK & WEATHER
         // ============================================================
@@ -2339,43 +2277,9 @@
         const contentEl = document.querySelector('.content');
         const accentBar = document.querySelector('.accent-bar');
 
-        // Adaptive content positioning based on HUD height
-        function updateContentPosition() {
-            const hudHeight = Math.max(hudWidget.offsetHeight, hudWidget.scrollHeight);
-            const vhOffset = window.innerHeight * 0.04; // 4vh top position
-            const gap = 40; // 40px gap
-            const topMargin = vhOffset + hudHeight + gap;
-            contentEl.style.marginTop = topMargin + 'px';
-        }
-
-        // Update on resize
-        window.addEventListener('resize', updateContentPosition);
-
-        // Use ResizeObserver to watch HUD size changes in real-time
-        const resizeObserver = new ResizeObserver(() => {
-            updateContentPosition();
-        });
-        resizeObserver.observe(hudWidget);
-
-        // Also observe mutations for content changes (like new history entries)
-        const mutationObserver = new MutationObserver(() => {
-            updateContentPosition();
-        });
-        mutationObserver.observe(hudWidget, { childList: true, subtree: true, characterData: true });
-
-        // Update continuously during CSS transitions
-        hudWidget.addEventListener('transitionstart', () => {
-            const updateDuringTransition = () => {
-                updateContentPosition();
-                if (hudWidget.getAnimations().length > 0) {
-                    requestAnimationFrame(updateDuringTransition);
-                }
-            };
-            requestAnimationFrame(updateDuringTransition);
-        });
-
-        // Initial update
-        updateContentPosition();
+        // The header group now lives at the TOP of the page. The old routine
+        // that measured the HUD and pushed .content down by its full height
+        // (which parked the header at the bottom) has been removed.
 
         hudToggle.addEventListener('click', () => {
             hudWidget.classList.toggle('collapsed');
