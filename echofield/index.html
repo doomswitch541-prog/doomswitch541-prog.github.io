@@ -45,6 +45,14 @@
             --ink: #735276;
         }
 
+        html[data-field-mode="tide"] {
+            --abyss: #06151a;
+            --abyss-deep: #020b0f;
+            --brine: #7ce8d8;
+            --iodine: #557fd6;
+            --ink: #446579;
+        }
+
         *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
@@ -146,6 +154,14 @@
             touch-action: none;
         }
 
+        html[data-field-mode="tide"] #echo-canvas {
+            cursor: grab;
+        }
+
+        body.is-dragging #echo-canvas {
+            cursor: grabbing;
+        }
+
         .masthead {
             position: fixed;
             top: max(1.6rem, env(safe-area-inset-top));
@@ -227,7 +243,15 @@
             z-index: 12;
         }
 
-        .mode-toggle {
+        .settings-picker {
+            position: fixed;
+            top: max(1.2rem, env(safe-area-inset-top));
+            right: calc(clamp(1.2rem, 3vw, 2rem) + 3.35rem);
+            z-index: 12;
+        }
+
+        .mode-toggle,
+        .settings-toggle {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -247,7 +271,10 @@
 
         .mode-toggle:hover,
         .mode-toggle:focus-visible,
-        body.mode-open .mode-toggle {
+        body.mode-open .mode-toggle,
+        .settings-toggle:hover,
+        .settings-toggle:focus-visible,
+        body.settings-open .settings-toggle {
             border-color: rgba(117, 230, 200, 0.42);
             background: rgba(9, 29, 35, 0.72);
             outline: none;
@@ -257,7 +284,12 @@
             transform: rotate(45deg);
         }
 
-        .mode-menu {
+        body.settings-open .settings-toggle {
+            transform: rotate(180deg);
+        }
+
+        .mode-menu,
+        .settings-menu {
             position: absolute;
             top: calc(100% + 0.6rem);
             right: 0;
@@ -276,10 +308,114 @@
             transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
         }
 
-        body.mode-open .mode-menu {
+        body.mode-open .mode-menu,
+        body.settings-open .settings-menu {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
+        }
+
+        .settings-menu {
+            right: -3.35rem;
+            width: min(16rem, calc(100vw - 2rem));
+            padding: 0.8rem;
+            gap: 0.25rem;
+        }
+
+        .settings-title {
+            padding: 0.25rem 0.25rem 0.55rem;
+            color: rgba(233, 245, 238, 0.34);
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .tuning-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            min-height: 62px;
+            padding: 0.35rem 0.25rem;
+            color: rgba(233, 245, 238, 0.58);
+            font-size: 0.58rem;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        .tuning-row output {
+            color: var(--brine);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .tuning-row input {
+            grid-column: 1 / -1;
+            width: 100%;
+            height: 28px;
+            margin-top: 0.15rem;
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            accent-color: var(--brine);
+            cursor: pointer;
+        }
+
+        .tuning-row input::-webkit-slider-runnable-track {
+            height: 1px;
+            background: rgba(117, 230, 200, 0.28);
+        }
+
+        .tuning-row input::-webkit-slider-thumb {
+            width: 18px;
+            height: 18px;
+            margin-top: -8.5px;
+            border: 1px solid rgba(117, 230, 200, 0.55);
+            border-radius: 50%;
+            -webkit-appearance: none;
+            background: #071a20;
+            box-shadow: 0 0 12px rgba(117, 230, 200, 0.2);
+        }
+
+        .tuning-row input::-moz-range-track {
+            height: 1px;
+            background: rgba(117, 230, 200, 0.28);
+        }
+
+        .tuning-row input::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border: 1px solid rgba(117, 230, 200, 0.55);
+            border-radius: 50%;
+            background: #071a20;
+            box-shadow: 0 0 12px rgba(117, 230, 200, 0.2);
+        }
+
+        .setting-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 44px;
+            padding: 0 0.7rem;
+            border: 0;
+            border-radius: 0.7rem;
+            background: transparent;
+            color: rgba(233, 245, 238, 0.48);
+            font: 400 0.58rem/1 'Azeret Mono', monospace;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .setting-action:hover,
+        .setting-action:focus-visible {
+            background: rgba(117, 230, 200, 0.06);
+            color: var(--foam);
+            outline: none;
+        }
+
+        .setting-action strong {
+            color: var(--brine);
+            font-size: inherit;
+            font-weight: 400;
         }
 
         .mode-option {
@@ -315,7 +451,8 @@
             color: var(--brine);
         }
 
-        .mode-scrim {
+        .mode-scrim,
+        .settings-scrim {
             position: fixed;
             inset: 0;
             z-index: 11;
@@ -323,7 +460,8 @@
             background: transparent;
         }
 
-        body.mode-open .mode-scrim {
+        body.mode-open .mode-scrim,
+        body.settings-open .settings-scrim {
             display: block;
         }
 
@@ -457,6 +595,16 @@
                 right: 1rem;
             }
 
+            .settings-picker {
+                top: max(1rem, env(safe-area-inset-top));
+                right: 4.35rem;
+            }
+
+            .mode-menu,
+            .settings-menu {
+                top: calc(100% + 1.65rem);
+            }
+
             .prompt {
                 bottom: max(8.3rem, calc(env(safe-area-inset-bottom) + 7.5rem));
                 max-width: 9rem;
@@ -521,11 +669,32 @@
             <dt>State</dt><dd class="state" id="field-state">QUIET</dd>
         </dl>
 
-        <p class="prompt">Click or touch to sound the field</p>
+        <p class="prompt" id="field-prompt">Click or touch to sound the field</p>
         <p class="sr-only" id="echo-status" aria-live="polite">Echo Field ready. Click, touch, or press Space to send a pulse.</p>
     </main>
 
     <div class="mode-scrim" id="mode-scrim"></div>
+    <div class="settings-scrim" id="settings-scrim"></div>
+    <div class="settings-picker">
+        <button class="settings-toggle" id="settings-toggle" type="button" aria-label="Tune the field" aria-expanded="false">&#8779;</button>
+        <div class="settings-menu" role="dialog" aria-label="Field settings">
+            <div class="settings-title">Field tuning</div>
+            <label class="tuning-row" for="gain-control">
+                <span>Signal gain</span><output id="gain-output" for="gain-control">100</output>
+                <input id="gain-control" type="range" min="35" max="160" step="5" value="100">
+            </label>
+            <label class="tuning-row" for="wake-control">
+                <span>Wake length</span><output id="wake-output" for="wake-control">22</output>
+                <input id="wake-control" type="range" min="4" max="48" step="2" value="22">
+            </label>
+            <button class="setting-action" id="auto-toggle" type="button" aria-pressed="true">
+                <span>Automatic echoes</span><strong>ON</strong>
+            </button>
+            <button class="setting-action" id="reset-field" type="button">
+                <span>Reset field</span><strong>&#8635;</strong>
+            </button>
+        </div>
+    </div>
     <div class="mode-picker">
         <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Change field mode" aria-expanded="false">◌</button>
         <div class="mode-menu" role="menu" aria-label="Field modes">
@@ -533,6 +702,7 @@
             <button class="mode-option" type="button" data-mode="deep" role="menuitemradio" aria-checked="false"><span>02</span><span>Deep</span></button>
             <button class="mode-option" type="button" data-mode="confluence" role="menuitemradio" aria-checked="false"><span>03</span><span>Confluence</span></button>
             <button class="mode-option" type="button" data-mode="drift" role="menuitemradio" aria-checked="false"><span>04</span><span>Drift</span></button>
+            <button class="mode-option" type="button" data-mode="tide" role="menuitemradio" aria-checked="false"><span>05</span><span>Tide</span></button>
         </div>
     </div>
 
@@ -553,9 +723,18 @@
             const echoCount = document.getElementById('echo-count');
             const fieldState = document.getElementById('field-state');
             const echoStatus = document.getElementById('echo-status');
+            const fieldPrompt = document.getElementById('field-prompt');
             const modeToggle = document.getElementById('mode-toggle');
             const modeScrim = document.getElementById('mode-scrim');
             const modeOptions = [...document.querySelectorAll('.mode-option')];
+            const settingsToggle = document.getElementById('settings-toggle');
+            const settingsScrim = document.getElementById('settings-scrim');
+            const gainControl = document.getElementById('gain-control');
+            const gainOutput = document.getElementById('gain-output');
+            const wakeControl = document.getElementById('wake-control');
+            const wakeOutput = document.getElementById('wake-output');
+            const autoToggle = document.getElementById('auto-toggle');
+            const resetFieldButton = document.getElementById('reset-field');
             const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             const COLORS = {
@@ -606,7 +785,31 @@
                     pulseSpeed: 245,
                     autoInterval: 6500,
                     labels: false
+                },
+                tide: {
+                    drift: 0.58,
+                    contactBase: 0.74,
+                    contour: 0.9,
+                    connection: 0.88,
+                    bloom: 1.18,
+                    pulseSpeed: 350,
+                    autoInterval: 0,
+                    labels: false
                 }
+            };
+
+            const MODE_PROMPTS = {
+                echo: 'Click or touch to sound the field',
+                deep: 'Sound the dark to reveal its contacts',
+                confluence: 'Send two echoes and watch them meet',
+                drift: 'Touch softly and let the field wander',
+                tide: 'Drag through the field to pull its contacts'
+            };
+
+            const SETTINGS_DEFAULTS = {
+                gain: 100,
+                wake: 22,
+                automatic: true
             };
 
             let width = 0;
@@ -617,24 +820,55 @@
             let echoes = 0;
             let contacts = [];
             let pulses = [];
-            let pointer = { x: 0, y: 0, visible: false };
+            let dragWake = [];
+            let pointer = { x: 0, y: 0, visible: false, down: false, dragged: false, pointerId: null };
             let stateTimer = null;
             let resizeFrame = null;
             let pulseId = 0;
             let interferenceSeen = new Set();
             let modeName = 'echo';
             let mode = MODES.echo;
+            let settings = { ...SETTINGS_DEFAULTS };
 
             const random = (min, max) => min + Math.random() * (max - min);
+            const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+            function saveSettings() {
+                try {
+                    localStorage.setItem('rg-echo-field-settings', JSON.stringify(settings));
+                } catch {
+                    // Settings still work when storage is unavailable.
+                }
+            }
+
+            function applySettings(nextSettings, { persist = true } = {}) {
+                settings = {
+                    gain: clamp(Number(nextSettings.gain) || SETTINGS_DEFAULTS.gain, 35, 160),
+                    wake: clamp(Number(nextSettings.wake) || SETTINGS_DEFAULTS.wake, 4, 48),
+                    automatic: nextSettings.automatic !== false
+                };
+                gainControl.value = String(settings.gain);
+                gainOutput.value = String(settings.gain);
+                wakeControl.value = String(settings.wake);
+                wakeOutput.value = String(settings.wake);
+                autoToggle.setAttribute('aria-pressed', String(settings.automatic));
+                autoToggle.querySelector('strong').textContent = settings.automatic ? 'ON' : 'OFF';
+                if (persist) saveSettings();
+            }
 
             function setMode(nextName, { persist = true, announce = true } = {}) {
                 if (!MODES[nextName]) nextName = 'echo';
                 modeName = nextName;
                 mode = MODES[nextName];
+                pointer.down = false;
+                pointer.dragged = false;
+                pointer.pointerId = null;
+                document.body.classList.remove('is-dragging');
                 document.documentElement.setAttribute('data-field-mode', nextName);
                 modeOptions.forEach(option => {
                     option.setAttribute('aria-checked', String(option.dataset.mode === nextName));
                 });
+                fieldPrompt.textContent = MODE_PROMPTS[nextName];
                 interferenceSeen = new Set();
                 lastAutoPing = performance.now();
                 if (persist) {
@@ -651,6 +885,7 @@
             }
 
             function openModeMenu() {
+                closeSettingsMenu();
                 document.body.classList.add('mode-open');
                 modeToggle.setAttribute('aria-expanded', 'true');
             }
@@ -658,6 +893,17 @@
             function closeModeMenu() {
                 document.body.classList.remove('mode-open');
                 modeToggle.setAttribute('aria-expanded', 'false');
+            }
+
+            function openSettingsMenu() {
+                closeModeMenu();
+                document.body.classList.add('settings-open');
+                settingsToggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeSettingsMenu() {
+                document.body.classList.remove('settings-open');
+                settingsToggle.setAttribute('aria-expanded', 'false');
             }
 
             function makeContact(index) {
@@ -698,6 +944,20 @@
                 const amount = width < 600 ? 18 : 28;
                 contacts = Array.from({ length: amount }, (_, index) => makeContact(index));
                 contactCount.textContent = String(amount).padStart(2, '0');
+            }
+
+            function resetField() {
+                seedContacts();
+                pulses = [];
+                dragWake = [];
+                echoes = 0;
+                echoCount.textContent = '000';
+                document.body.classList.remove('has-listened', 'is-dragging');
+                pointer.down = false;
+                pointer.dragged = false;
+                pointer.pointerId = null;
+                setState('RESET', 700);
+                echoStatus.textContent = 'The contact field has been reset.';
             }
 
             function resize() {
@@ -804,8 +1064,46 @@
 
                     contact.echo = Math.max(0, contact.echo - dt * 0.17);
                     contact.trail.push({ x: contact.x, y: contact.y, strength: contact.echo });
-                    if (contact.trail.length > 22) contact.trail.shift();
+                    while (contact.trail.length > settings.wake) contact.trail.shift();
                 });
+            }
+
+            function pullField(x, y, dx, dy) {
+                const travel = Math.hypot(dx, dy);
+                if (travel < 0.5) return;
+
+                const radius = Math.min(190, Math.max(130, Math.min(width, height) * 0.38));
+                contacts.forEach(contact => {
+                    const distance = Math.hypot(contact.x - x, contact.y - y);
+                    if (distance >= radius) return;
+                    const influence = (1 - distance / radius) ** 2;
+                    contact.x += dx * influence * 0.9;
+                    contact.y += dy * influence * 0.9;
+                    contact.vx += dx * influence * 0.85;
+                    contact.vy += dy * influence * 0.85;
+                    contact.echo = Math.max(contact.echo, 0.28 + influence * 0.72);
+                });
+
+                dragWake.push({
+                    x1: x - dx,
+                    y1: y - dy,
+                    x2: x,
+                    y2: y,
+                    life: 1,
+                    width: Math.min(2.4, 0.65 + travel * 0.08)
+                });
+                while (dragWake.length > settings.wake * 3) dragWake.shift();
+
+                pointer.dragged = true;
+                document.body.classList.add('has-listened');
+            }
+
+            function updateDragWake(dt) {
+                const decay = reduceMotion ? 2.8 : 1.15;
+                dragWake.forEach(segment => {
+                    segment.life -= dt * decay;
+                });
+                dragWake = dragWake.filter(segment => segment.life > 0);
             }
 
             function updatePulses(dt) {
@@ -858,6 +1156,31 @@
                 ctx.restore();
             }
 
+            function drawDragWake() {
+                if (!dragWake.length) return;
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.lineCap = 'round';
+
+                dragWake.forEach(segment => {
+                    const alpha = segment.life ** 1.7;
+                    ctx.beginPath();
+                    ctx.moveTo(segment.x1, segment.y1);
+                    ctx.quadraticCurveTo(
+                        (segment.x1 + segment.x2) / 2,
+                        (segment.y1 + segment.y2) / 2 - 2 * alpha,
+                        segment.x2,
+                        segment.y2
+                    );
+                    ctx.strokeStyle = `rgba(124, 232, 216, ${alpha * 0.38})`;
+                    ctx.lineWidth = segment.width * (0.4 + alpha);
+                    ctx.shadowColor = COLORS.brine;
+                    ctx.shadowBlur = 12 * alpha;
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+
             function drawConnections() {
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
@@ -906,7 +1229,7 @@
                     }
 
                     const flicker = 0.68 + Math.sin(elapsed * 0.0014 + contact.phase) * 0.22;
-                    const alpha = Math.min(1, contact.signal * flicker * mode.contactBase + contact.echo * 0.68);
+                    const alpha = Math.min(1, (contact.signal * flicker * mode.contactBase + contact.echo * 0.68) * settings.gain / 100);
                     const radius = contact.radius + contact.echo * 2.3;
 
                     ctx.beginPath();
@@ -1046,14 +1369,16 @@
                 ctx.clearRect(0, 0, width, height);
                 updateContacts(dt, now);
                 updatePulses(dt);
+                updateDragWake(dt);
                 drawContours(now);
+                drawDragWake();
                 drawConnections();
                 drawContacts(now);
                 drawPulses();
                 drawInterference();
                 drawPointer();
 
-                if (!reduceMotion && mode.autoInterval > 0 && now - lastAutoPing > mode.autoInterval && pulses.length === 0) {
+                if (settings.automatic && !reduceMotion && mode.autoInterval > 0 && now - lastAutoPing > mode.autoInterval && pulses.length === 0) {
                     soundField(random(width * 0.2, width * 0.8), random(height * 0.25, height * 0.75), true);
                     lastAutoPing = now;
                 }
@@ -1062,13 +1387,19 @@
             }
 
             canvas.addEventListener('pointermove', event => {
+                const previousX = pointer.x;
+                const previousY = pointer.y;
                 pointer.x = event.clientX;
                 pointer.y = event.clientY;
                 pointer.visible = true;
-            }, { passive: true });
+                if (modeName === 'tide' && pointer.down && event.pointerId === pointer.pointerId) {
+                    event.preventDefault();
+                    pullField(pointer.x, pointer.y, pointer.x - previousX, pointer.y - previousY);
+                }
+            });
 
             canvas.addEventListener('pointerleave', () => {
-                pointer.visible = false;
+                if (!pointer.down) pointer.visible = false;
             });
 
             canvas.addEventListener('pointerdown', event => {
@@ -1076,14 +1407,70 @@
                 pointer.x = event.clientX;
                 pointer.y = event.clientY;
                 pointer.visible = true;
-                soundField(event.clientX, event.clientY);
+                if (modeName === 'tide') {
+                    pointer.down = true;
+                    pointer.dragged = false;
+                    pointer.pointerId = event.pointerId;
+                    document.body.classList.add('is-dragging');
+                    if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+                    spawnBloom(pointer.x, pointer.y, 0.55, '#75e6c8');
+                    setState('TOWING', 1800);
+                    echoStatus.textContent = 'The field is following your drag.';
+                    return;
+                }
+                soundField(pointer.x, pointer.y);
             });
+
+            function finishTideDrag(event, cancelled = false) {
+                if (modeName !== 'tide' || !pointer.down || event.pointerId !== pointer.pointerId) return;
+                pointer.x = event.clientX;
+                pointer.y = event.clientY;
+                pointer.down = false;
+                pointer.pointerId = null;
+                document.body.classList.remove('is-dragging');
+                if (canvas.hasPointerCapture?.(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+                if (!cancelled) {
+                    soundField(pointer.x, pointer.y);
+                    if (pointer.dragged) {
+                        setState('RELEASE', 850);
+                        echoStatus.textContent = 'The towed field was released into an echo.';
+                    }
+                }
+                pointer.dragged = false;
+            }
+
+            canvas.addEventListener('pointerup', event => finishTideDrag(event));
+            canvas.addEventListener('pointercancel', event => finishTideDrag(event, true));
 
             modeToggle.addEventListener('click', () => {
                 document.body.classList.contains('mode-open') ? closeModeMenu() : openModeMenu();
             });
 
             modeScrim.addEventListener('click', closeModeMenu);
+
+            settingsToggle.addEventListener('click', () => {
+                document.body.classList.contains('settings-open') ? closeSettingsMenu() : openSettingsMenu();
+            });
+
+            settingsScrim.addEventListener('click', closeSettingsMenu);
+
+            gainControl.addEventListener('input', () => {
+                applySettings({ ...settings, gain: Number(gainControl.value) });
+            });
+
+            wakeControl.addEventListener('input', () => {
+                applySettings({ ...settings, wake: Number(wakeControl.value) });
+            });
+
+            autoToggle.addEventListener('click', () => {
+                applySettings({ ...settings, automatic: !settings.automatic });
+                setState(settings.automatic ? 'AUTO ON' : 'AUTO OFF', 700);
+            });
+
+            resetFieldButton.addEventListener('click', () => {
+                resetField();
+                closeSettingsMenu();
+            });
 
             modeOptions.forEach(option => {
                 option.addEventListener('click', () => {
@@ -1095,6 +1482,7 @@
             document.addEventListener('keydown', event => {
                 if (event.key === 'Escape') {
                     closeModeMenu();
+                    closeSettingsMenu();
                     return;
                 }
                 if (event.target.closest('a, button, input, select, textarea')) return;
@@ -1103,10 +1491,7 @@
                     soundField(pointer.visible ? pointer.x : width / 2, pointer.visible ? pointer.y : height / 2);
                 }
                 if (event.key.toLowerCase() === 'r') {
-                    seedContacts();
-                    pulses = [];
-                    setState('RESET', 700);
-                    echoStatus.textContent = 'The contact field has been reset.';
+                    resetField();
                 }
             });
 
@@ -1118,11 +1503,16 @@
 
             const requestedMode = new URLSearchParams(window.location.search).get('mode');
             let savedMode = null;
+            let savedSettings = null;
             try {
                 savedMode = localStorage.getItem('rg-echo-field-mode');
+                savedSettings = JSON.parse(localStorage.getItem('rg-echo-field-settings'));
             } catch {
                 // Storage is optional.
             }
+            applySettings(savedSettings && typeof savedSettings === 'object' ? savedSettings : SETTINGS_DEFAULTS, {
+                persist: false
+            });
             setMode(MODES[requestedMode] ? requestedMode : (MODES[savedMode] ? savedMode : 'echo'), {
                 persist: false,
                 announce: false
@@ -1130,7 +1520,9 @@
 
             resize();
             setTimeout(() => {
-                if (!reduceMotion && mode.autoInterval > 0) soundField(width * 0.67, height * 0.58, true);
+                if (settings.automatic && !reduceMotion && mode.autoInterval > 0) {
+                    soundField(width * 0.67, height * 0.58, true);
+                }
             }, 900);
             requestAnimationFrame(animate);
         })();
