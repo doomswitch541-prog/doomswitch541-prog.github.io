@@ -401,6 +401,7 @@
             color: rgba(233, 245, 238, 0.48);
             font: 400 0.58rem/1 'Azeret Mono', monospace;
             letter-spacing: 0.1em;
+            text-decoration: none;
             text-transform: uppercase;
             cursor: pointer;
         }
@@ -690,9 +691,15 @@
             <button class="setting-action" id="auto-toggle" type="button" aria-pressed="true">
                 <span>Automatic echoes</span><strong>ON</strong>
             </button>
+            <button class="setting-action" id="particle-toggle" type="button" aria-label="Touch activity: balanced">
+                <span>Touch activity</span><strong>BALANCED</strong>
+            </button>
             <button class="setting-action" id="reset-field" type="button">
                 <span>Reset field</span><strong>&#8635;</strong>
             </button>
+            <a class="setting-action" href="/echofield/help">
+                <span>Field guide</span><strong>&#8599;</strong>
+            </a>
         </div>
     </div>
     <div class="mode-picker">
@@ -714,7 +721,9 @@
         <a class="navlink" href="/directory">DIRECTORY</a>
     </nav>
 
-    <script>
+    <script type="module">
+        import { animate as animeAnimate, engine as animeEngine } from './vendor/animejs/anime.esm.min.js';
+
         (() => {
             const canvas = document.getElementById('echo-canvas');
             const ctx = canvas.getContext('2d');
@@ -734,8 +743,10 @@
             const wakeControl = document.getElementById('wake-control');
             const wakeOutput = document.getElementById('wake-output');
             const autoToggle = document.getElementById('auto-toggle');
+            const particleToggle = document.getElementById('particle-toggle');
             const resetFieldButton = document.getElementById('reset-field');
             const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            animeEngine.useDefaultMainLoop = false;
 
             const COLORS = {
                 brine: '#75e6c8',
@@ -754,7 +765,12 @@
                     bloom: 1,
                     pulseSpeed: 430,
                     autoInterval: 11000,
-                    labels: true
+                    labels: true,
+                    particleBase: 5,
+                    particleRamp: 2,
+                    particleMax: 13,
+                    particleLife: 1.25,
+                    particleSpeed: 44
                 },
                 deep: {
                     drift: 0.35,
@@ -764,7 +780,12 @@
                     bloom: 1.15,
                     pulseSpeed: 300,
                     autoInterval: 0,
-                    labels: true
+                    labels: true,
+                    particleBase: 2,
+                    particleRamp: 7,
+                    particleMax: 30,
+                    particleLife: 1.85,
+                    particleSpeed: 34
                 },
                 confluence: {
                     drift: 0.82,
@@ -774,7 +795,12 @@
                     bloom: 1.08,
                     pulseSpeed: 390,
                     autoInterval: 8500,
-                    labels: true
+                    labels: true,
+                    particleBase: 8,
+                    particleRamp: 8,
+                    particleMax: 42,
+                    particleLife: 1.15,
+                    particleSpeed: 58
                 },
                 drift: {
                     drift: 0.28,
@@ -784,7 +810,12 @@
                     bloom: 1.45,
                     pulseSpeed: 245,
                     autoInterval: 6500,
-                    labels: false
+                    labels: false,
+                    particleBase: 4,
+                    particleRamp: 0,
+                    particleMax: 7,
+                    particleLife: 2.6,
+                    particleSpeed: 20
                 },
                 tide: {
                     drift: 0.58,
@@ -794,7 +825,12 @@
                     bloom: 1.18,
                     pulseSpeed: 350,
                     autoInterval: 0,
-                    labels: false
+                    labels: false,
+                    particleBase: 3,
+                    particleRamp: 1,
+                    particleMax: 12,
+                    particleLife: 1.55,
+                    particleSpeed: 38
                 }
             };
 
@@ -809,7 +845,23 @@
             const SETTINGS_DEFAULTS = {
                 gain: 100,
                 wake: 22,
-                automatic: true
+                automatic: true,
+                activity: 'balanced'
+            };
+
+            const ACTIVITY_LEVELS = ['quiet', 'balanced', 'alive'];
+            const ACTIVITY_MULTIPLIERS = {
+                quiet: 0.62,
+                balanced: 1,
+                alive: 1.38
+            };
+
+            const PARTICLE_PALETTES = {
+                echo: ['117, 230, 200', '233, 245, 238'],
+                deep: ['105, 136, 255', '117, 230, 200'],
+                confluence: ['255, 128, 102', '105, 136, 255', '140, 235, 211'],
+                drift: ['110, 127, 196', '145, 221, 201'],
+                tide: ['124, 232, 216', '85, 127, 214']
             };
 
             let width = 0;
@@ -821,7 +873,19 @@
             let contacts = [];
             let pulses = [];
             let dragWake = [];
-            let pointer = { x: 0, y: 0, visible: false, down: false, dragged: false, pointerId: null };
+            let particles = [];
+            let particlePool = [];
+            let particleBursts = [];
+            let pointer = {
+                x: 0,
+                y: 0,
+                visible: false,
+                down: false,
+                dragged: false,
+                pointerId: null,
+                particleX: 0,
+                particleY: 0
+            };
             let stateTimer = null;
             let resizeFrame = null;
             let pulseId = 0;
@@ -829,6 +893,8 @@
             let modeName = 'echo';
             let mode = MODES.echo;
             let settings = { ...SETTINGS_DEFAULTS };
+            let lastTouchTime = 0;
+            let touchChain = 0;
 
             const random = (min, max) => min + Math.random() * (max - min);
             const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -842,10 +908,14 @@
             }
 
             function applySettings(nextSettings, { persist = true } = {}) {
+                const activity = ACTIVITY_LEVELS.includes(nextSettings.activity)
+                    ? nextSettings.activity
+                    : SETTINGS_DEFAULTS.activity;
                 settings = {
                     gain: clamp(Number(nextSettings.gain) || SETTINGS_DEFAULTS.gain, 35, 160),
                     wake: clamp(Number(nextSettings.wake) || SETTINGS_DEFAULTS.wake, 4, 48),
-                    automatic: nextSettings.automatic !== false
+                    automatic: nextSettings.automatic !== false,
+                    activity
                 };
                 gainControl.value = String(settings.gain);
                 gainOutput.value = String(settings.gain);
@@ -853,6 +923,8 @@
                 wakeOutput.value = String(settings.wake);
                 autoToggle.setAttribute('aria-pressed', String(settings.automatic));
                 autoToggle.querySelector('strong').textContent = settings.automatic ? 'ON' : 'OFF';
+                particleToggle.setAttribute('aria-label', `Touch activity: ${settings.activity}`);
+                particleToggle.querySelector('strong').textContent = settings.activity.toUpperCase();
                 if (persist) saveSettings();
             }
 
@@ -863,6 +935,8 @@
                 pointer.down = false;
                 pointer.dragged = false;
                 pointer.pointerId = null;
+                touchChain = 0;
+                lastTouchTime = 0;
                 document.body.classList.remove('is-dragging');
                 document.documentElement.setAttribute('data-field-mode', nextName);
                 modeOptions.forEach(option => {
@@ -950,12 +1024,18 @@
                 seedContacts();
                 pulses = [];
                 dragWake = [];
+                particleBursts.forEach(burst => burst.animation?.cancel());
+                particleBursts = [];
+                particles.forEach(particle => particlePool.push(particle));
+                particles = [];
                 echoes = 0;
                 echoCount.textContent = '000';
                 document.body.classList.remove('has-listened', 'is-dragging');
                 pointer.down = false;
                 pointer.dragged = false;
                 pointer.pointerId = null;
+                touchChain = 0;
+                lastTouchTime = 0;
                 setState('RESET', 700);
                 echoStatus.textContent = 'The contact field has been reset.';
             }
@@ -965,7 +1045,7 @@
                 const previousHeight = height || window.innerHeight;
                 width = window.innerWidth;
                 height = window.innerHeight;
-                dpr = Math.min(window.devicePixelRatio || 1, 2);
+                dpr = Math.min(window.devicePixelRatio || 1, width < 700 ? 1.75 : 2);
                 canvas.width = Math.round(width * dpr);
                 canvas.height = Math.round(height * dpr);
                 canvas.style.width = `${width}px`;
@@ -1006,7 +1086,105 @@
                 }, duration);
             }
 
+            function registerTouch() {
+                const now = performance.now();
+                touchChain = now - lastTouchTime < 720 ? Math.min(4, touchChain + 1) : 1;
+                lastTouchTime = now;
+                return touchChain;
+            }
+
+            function particleBudget() {
+                const base = width < 700 ? 96 : 180;
+                const adjusted = Math.round(base * ACTIVITY_MULTIPLIERS[settings.activity]);
+                return reduceMotion ? Math.min(34, adjusted) : adjusted;
+            }
+
+            function emitParticleBurst(x, y, {
+                automatic = false,
+                chain = null,
+                amountScale = 1
+            } = {}) {
+                const chainLevel = automatic ? 1 : (chain || registerTouch());
+                const activity = ACTIVITY_MULTIPLIERS[settings.activity];
+                const modeAmount = mode.particleBase + mode.particleRamp * Math.max(0, chainLevel - 1);
+                const desired = Math.round(modeAmount * activity * amountScale * (reduceMotion ? 0.35 : 1));
+                const available = particleBudget() - particles.length;
+                const amount = Math.max(0, Math.min(
+                    desired,
+                    Math.round(mode.particleMax * activity),
+                    available
+                ));
+                if (!amount) return chainLevel;
+
+                const burstLimit = width < 700 ? 10 : 16;
+                while (particleBursts.length >= burstLimit) {
+                    const oldest = particleBursts.shift();
+                    oldest.animation?.cancel();
+                    oldest.envelope.energy = 0;
+                }
+
+                const envelope = { energy: 1, spread: 0 };
+                const burst = { envelope, done: false, animation: null };
+                burst.animation = animeAnimate(envelope, {
+                    energy: 0,
+                    spread: 1,
+                    duration: Math.round(mode.particleLife * 1000),
+                    ease: modeName === 'deep' ? 'out(2)' : 'outExpo',
+                    onComplete: () => {
+                        burst.done = true;
+                    }
+                });
+                particleBursts.push(burst);
+
+                const palette = PARTICLE_PALETTES[modeName];
+                const arcBias = modeName === 'drift' ? -Math.PI * 0.5 : random(0, Math.PI * 2);
+                for (let index = 0; index < amount; index++) {
+                    const particle = particlePool.pop() || {};
+                    const angle = modeName === 'drift'
+                        ? arcBias + random(-1.15, 1.15)
+                        : random(0, Math.PI * 2);
+                    const speed = mode.particleSpeed * random(0.42, 1.18) * (automatic ? 0.72 : 1);
+                    particle.x = x + random(-2.5, 2.5);
+                    particle.y = y + random(-2.5, 2.5);
+                    particle.vx = Math.cos(angle) * speed;
+                    particle.vy = Math.sin(angle) * speed;
+                    particle.life = mode.particleLife * random(0.72, 1.12);
+                    particle.maxLife = particle.life;
+                    particle.size = random(0.55, modeName === 'confluence' ? 1.9 : 1.45);
+                    particle.color = palette[Math.floor(Math.random() * palette.length)];
+                    particle.envelope = envelope;
+                    particles.push(particle);
+                }
+
+                return chainLevel;
+            }
+
+            function updateParticles(dt) {
+                const damping = Math.pow(0.982, dt * 60);
+                for (let index = particles.length - 1; index >= 0; index--) {
+                    const particle = particles[index];
+                    particle.life -= dt;
+                    if (particle.life <= 0 || particle.x < -30 || particle.x > width + 30 || particle.y < -30 || particle.y > height + 30) {
+                        particlePool.push(particle);
+                        particles.splice(index, 1);
+                        continue;
+                    }
+
+                    const spread = 0.55 + particle.envelope.spread * 0.72;
+                    particle.x += particle.vx * dt * spread;
+                    particle.y += particle.vy * dt * spread;
+                    particle.vx *= damping;
+                    particle.vy *= damping;
+                    if (modeName === 'drift') particle.vy -= dt * 2.4;
+                }
+                particleBursts = particleBursts.filter(burst => !burst.done);
+            }
+
             function spawnBloom(x, y, intensity = 1, color = null) {
+                const bloomBudget = width < 700 ? 6 : 12;
+                while (inkLayer.childElementCount >= bloomBudget) {
+                    inkLayer.firstElementChild?.remove();
+                }
                 const bloom = document.createElement('span');
                 bloom.className = 'ink-bloom';
                 const palette = color || (Math.random() > 0.62 ? '#5278e8' : '#5e3e78');
@@ -1023,6 +1201,13 @@
             }
 
             function soundField(x, y, isAutomatic = false) {
+                const chain = isAutomatic ? 1 : registerTouch();
+                emitParticleBurst(x, y, {
+                    automatic: isAutomatic,
+                    chain,
+                    amountScale: isAutomatic ? 0.45 : 1
+                });
+
                 const maxRadius = Math.hypot(
                     Math.max(x, width - x),
                     Math.max(y, height - y)
@@ -1037,8 +1222,14 @@
                     maxRadius,
                     speed: reduceMotion ? Math.min(mode.pulseSpeed, 260) : mode.pulseSpeed,
                     automatic: isAutomatic,
-                    hits: new Set()
+                    hits: new Set(),
+                    bloomHits: 0
                 });
+
+                const pulseLimit = width < 700
+                    ? (modeName === 'confluence' ? 5 : 3)
+                    : (modeName === 'confluence' ? 8 : 5);
+                if (pulses.length > pulseLimit) pulses.splice(0, pulses.length - pulseLimit);
 
                 spawnBloom(x, y, 1.35, isAutomatic ? '#5278e8' : '#75e6c8');
                 if (!isAutomatic) {
@@ -1094,6 +1285,16 @@
                 });
                 while (dragWake.length > settings.wake * 3) dragWake.shift();
 
+                const particleDistance = Math.hypot(x - pointer.particleX, y - pointer.particleY);
+                if (particleDistance >= (settings.activity === 'alive' ? 12 : 17)) {
+                    emitParticleBurst(x, y, {
+                        chain: 1,
+                        amountScale: settings.activity === 'quiet' ? 0.28 : 0.42
+                    });
+                    pointer.particleX = x;
+                    pointer.particleY = y;
+                }
+
                 pointer.dragged = true;
                 document.body.classList.add('has-listened');
             }
@@ -1119,7 +1320,11 @@
                             contact.echo = 1;
                             echoes++;
                             echoCount.textContent = String(echoes).padStart(3, '0').slice(-3);
-                            spawnBloom(contact.x, contact.y, 0.7 + contact.signal, Math.random() > 0.8 ? '#ff8066' : null);
+                            const hitBloomLimit = width < 700 ? 2 : 4;
+                            if (pulse.bloomHits < hitBloomLimit) {
+                                spawnBloom(contact.x, contact.y, 0.7 + contact.signal, Math.random() > 0.8 ? '#ff8066' : null);
+                                pulse.bloomHits++;
+                            }
                         }
                     });
                 });
@@ -1153,6 +1358,34 @@
                     ctx.strokeStyle = `rgba(117, 230, 200, ${(0.018 + row * 0.002) * mode.contour})`;
                     ctx.stroke();
                 }
+                ctx.restore();
+            }
+
+            function drawParticles() {
+                if (!particles.length) return;
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+
+                particles.forEach((particle, index) => {
+                    const life = Math.max(0, particle.life / particle.maxLife);
+                    const alpha = life ** 1.35
+                        * (0.22 + particle.envelope.energy * 0.78)
+                        * settings.gain / 100;
+                    if (alpha < 0.015) return;
+                    const radius = particle.size * (0.72 + particle.envelope.spread * 0.46);
+
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${particle.color}, ${Math.min(0.92, alpha)})`;
+                    ctx.fill();
+
+                    if (index % 7 === 0 && alpha > 0.38) {
+                        ctx.beginPath();
+                        ctx.arc(particle.x, particle.y, radius * 3.2, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${particle.color}, ${alpha * 0.075})`;
+                        ctx.fill();
+                    }
+                });
                 ctx.restore();
             }
 
@@ -1310,6 +1543,8 @@
                 if (modeName !== 'confluence' || pulses.length < 2) return;
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
+                let newBloomCount = 0;
+                const newBloomLimit = width < 700 ? 4 : 8;
 
                 for (let i = 0; i < pulses.length; i++) {
                     for (let j = i + 1; j < pulses.length; j++) {
@@ -1321,9 +1556,12 @@
                         const key = `${Math.min(first.id, second.id)}-${Math.max(first.id, second.id)}`;
                         if (!interferenceSeen.has(key)) {
                             interferenceSeen.add(key);
-                            points.forEach((point, index) => {
-                                spawnBloom(point.x, point.y, 0.55, index ? '#5278e8' : '#ff8066');
-                            });
+                            if (newBloomCount < newBloomLimit) {
+                                points.forEach((point, index) => {
+                                    spawnBloom(point.x, point.y, 0.55, index ? '#5278e8' : '#ff8066');
+                                });
+                                newBloomCount += points.length;
+                            }
                             setState('CONFLUENCE', 1200);
                         }
 
@@ -1365,12 +1603,15 @@
             function animate(now) {
                 const dt = Math.min(0.05, (now - lastTime) / 1000);
                 lastTime = now;
+                animeEngine.update();
 
                 ctx.clearRect(0, 0, width, height);
                 updateContacts(dt, now);
                 updatePulses(dt);
                 updateDragWake(dt);
+                updateParticles(dt);
                 drawContours(now);
+                drawParticles();
                 drawDragWake();
                 drawConnections();
                 drawContacts(now);
@@ -1387,6 +1628,7 @@
             }
 
             canvas.addEventListener('pointermove', event => {
+                if (modeName === 'tide' && pointer.down && event.pointerId !== pointer.pointerId) return;
                 const previousX = pointer.x;
                 const previousY = pointer.y;
                 pointer.x = event.clientX;
@@ -1408,9 +1650,15 @@
                 pointer.y = event.clientY;
                 pointer.visible = true;
                 if (modeName === 'tide') {
+                    if (pointer.down) {
+                        soundField(pointer.x, pointer.y);
+                        return;
+                    }
                     pointer.down = true;
                     pointer.dragged = false;
                     pointer.pointerId = event.pointerId;
+                    pointer.particleX = pointer.x;
+                    pointer.particleY = pointer.y;
                     document.body.classList.add('is-dragging');
                     if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
                     spawnBloom(pointer.x, pointer.y, 0.55, '#75e6c8');
@@ -1465,6 +1713,17 @@
             autoToggle.addEventListener('click', () => {
                 applySettings({ ...settings, automatic: !settings.automatic });
                 setState(settings.automatic ? 'AUTO ON' : 'AUTO OFF', 700);
+            });
+
+            particleToggle.addEventListener('click', () => {
+                const currentIndex = ACTIVITY_LEVELS.indexOf(settings.activity);
+                const activity = ACTIVITY_LEVELS[(currentIndex + 1) % ACTIVITY_LEVELS.length];
+                applySettings({ ...settings, activity });
+                setState(activity.toUpperCase(), 700);
+                emitParticleBurst(width * 0.72, height * 0.38, {
+                    chain: activity === 'alive' ? 3 : 1,
+                    amountScale: 0.72
+                });
             });
 
             resetFieldButton.addEventListener('click', () => {

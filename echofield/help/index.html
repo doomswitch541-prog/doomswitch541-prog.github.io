@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Field Guide — Echo Field</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --abyss: #041219;
+            --deep: #02090d;
+            --brine: #75e6c8;
+            --foam: #e9f5ee;
+            --iodine: #5278e8;
+            --quiet: rgba(233, 245, 238, 0.48);
+            --line: rgba(117, 230, 200, 0.16);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            min-height: -webkit-fill-available;
+            background: var(--deep);
+        }
+
+        body {
+            min-height: 100dvh;
+            overflow-x: hidden;
+            color: var(--foam);
+            background:
+                radial-gradient(circle at 78% 12%, rgba(82, 120, 232, 0.11), transparent 28rem),
+                radial-gradient(circle at 18% 72%, rgba(94, 62, 120, 0.12), transparent 32rem),
+                var(--abyss);
+            font-family: 'Azeret Mono', monospace;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+            mix-blend-mode: soft-light;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .shell {
+            width: min(62rem, 100%);
+            margin: 0 auto;
+            padding:
+                max(1.25rem, env(safe-area-inset-top))
+                clamp(1.15rem, 5vw, 3.5rem)
+                max(6.5rem, calc(env(safe-area-inset-bottom) + 5.5rem));
+        }
+
+        .topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            min-height: 44px;
+        }
+
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--brine);
+            font-size: 0.58rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 1.8rem;
+            height: 1px;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 0.9rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--brine);
+            font-size: 0.54rem;
+            letter-spacing: 0.12em;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .back:hover,
+        .back:focus-visible {
+            border-color: rgba(117, 230, 200, 0.48);
+            background: rgba(117, 230, 200, 0.06);
+            outline: none;
+        }
+
+        header {
+            padding: clamp(3.2rem, 10vw, 6.5rem) 0 clamp(3.8rem, 9vw, 6rem);
+        }
+
+        h1 {
+            max-width: 9ch;
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(4.2rem, 13vw, 8.5rem);
+            font-weight: 400;
+            line-height: 0.82;
+            letter-spacing: -0.055em;
+        }
+
+        h1 em {
+            color: rgba(233, 245, 238, 0.56);
+            font-weight: 400;
+        }
+
+        .lede {
+            max-width: 40rem;
+            margin-top: 2.2rem;
+            color: rgba(233, 245, 238, 0.58);
+            font-size: clamp(0.7rem, 1.6vw, 0.82rem);
+            font-weight: 300;
+            line-height: 1.85;
+            letter-spacing: 0.035em;
+        }
+
+        .guide-section {
+            display: grid;
+            grid-template-columns: minmax(7rem, 0.36fr) minmax(0, 1fr);
+            gap: clamp(1.4rem, 5vw, 4rem);
+            padding: clamp(2.4rem, 7vw, 4.5rem) 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .section-label {
+            color: var(--brine);
+            font-size: 0.56rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .section-label span {
+            display: block;
+            margin-top: 0.45rem;
+            color: rgba(233, 245, 238, 0.22);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .entries {
+            display: grid;
+        }
+
+        .entry {
+            display: grid;
+            grid-template-columns: minmax(7rem, 0.34fr) minmax(0, 1fr);
+            gap: 1.3rem;
+            padding: 0 0 1.8rem;
+        }
+
+        .entry + .entry {
+            padding-top: 1.8rem;
+            border-top: 1px solid rgba(117, 230, 200, 0.08);
+        }
+
+        .entry:last-child {
+            padding-bottom: 0;
+        }
+
+        h2 {
+            color: var(--foam);
+            font-size: 0.66rem;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            line-height: 1.55;
+            text-transform: uppercase;
+        }
+
+        .entry p {
+            color: rgba(233, 245, 238, 0.5);
+            font-size: 0.68rem;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+
+        .activity {
+            color: var(--brine);
+        }
+
+        .note {
+            margin-top: 2rem;
+            padding-left: 1.2rem;
+            border-left: 1px solid rgba(82, 120, 232, 0.52);
+            color: rgba(233, 245, 238, 0.42);
+            font-size: 0.62rem;
+            line-height: 1.8;
+        }
+
+        .sitenav {
+            position: fixed;
+            z-index: 10;
+            left: 50%;
+            bottom: max(1rem, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            max-width: calc(100vw - 1.25rem);
+            padding: 0.35rem;
+            overflow-x: auto;
+            border: 1px solid rgba(117, 230, 200, 0.13);
+            border-radius: 999px;
+            background: rgba(3, 15, 21, 0.72);
+            -webkit-backdrop-filter: blur(18px) saturate(125%);
+            backdrop-filter: blur(18px) saturate(125%);
+            scrollbar-width: none;
+        }
+
+        .sitenav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .navlink {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0.58rem 0.78rem;
+            border-radius: 999px;
+            color: rgba(233, 245, 238, 0.42);
+            font-size: 0.5rem;
+            letter-spacing: 0.11em;
+            text-decoration: none;
+        }
+
+        .navlink:hover,
+        .navlink:focus-visible,
+        .navlink[aria-current="page"] {
+            color: var(--brine);
+            outline: none;
+        }
+
+        @media (max-width: 650px) {
+            .guide-section,
+            .entry {
+                grid-template-columns: 1fr;
+            }
+
+            .guide-section {
+                gap: 2rem;
+            }
+
+            .entry {
+                gap: 0.65rem;
+            }
+
+            .section-label span {
+                display: inline;
+                margin: 0 0 0 0.55rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <div class="topline">
+            <div class="eyebrow">Active listening field</div>
+            <a class="back" href="/echofield/">Return to field</a>
+        </div>
+
+        <header>
+            <h1>Field <em>Guide</em></h1>
+            <p class="lede">Echo Field is an instrument for disturbing a quiet system and watching what answers. Every mode listens differently. Touches sound the field; repeated touches build energy; Tide lets you take hold of it.</p>
+        </header>
+
+        <section class="guide-section" aria-labelledby="gestures">
+            <div class="section-label" id="gestures">Gestures <span>01</span></div>
+            <div class="entries">
+                <article class="entry">
+                    <h2>Touch</h2>
+                    <p>Send a pulse from that point. Contacts answer as the ring reaches them, and a brief cloud of field particles marks the disturbance.</p>
+                </article>
+                <article class="entry">
+                    <h2>Touch again</h2>
+                    <p>Rapid consecutive touches accumulate energy. Deep and Confluence respond most strongly; Echo rises gently while Drift remains sparse.</p>
+                </article>
+                <article class="entry">
+                    <h2>Drag in Tide</h2>
+                    <p>Pull nearby contacts through the field. The wake emits by distance traveled, keeping the response even across different phones. Release to sound the gathered field.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="guide-section" aria-labelledby="modes">
+            <div class="section-label" id="modes">Modes <span>02</span></div>
+            <div class="entries">
+                <article class="entry">
+                    <h2>Echo</h2>
+                    <p>The original listening field: balanced contacts, clean rings, and a modest rise in particles across repeated touches.</p>
+                </article>
+                <article class="entry">
+                    <h2>Deep</h2>
+                    <p>Most contacts remain submerged until sounded. Consecutive touches produce the steepest particle bloom and expose more of the dark.</p>
+                </article>
+                <article class="entry">
+                    <h2>Confluence</h2>
+                    <p>The most active mode. Repeated touches create dense opposing colors, while overlapping pulses reveal their intersection points.</p>
+                </article>
+                <article class="entry">
+                    <h2>Drift</h2>
+                    <p>Slow, ink-like movement with fewer, longer-lived particles. Repetition does not make it frantic.</p>
+                </article>
+                <article class="entry">
+                    <h2>Tide</h2>
+                    <p>A tactile field. Drag to tow contacts and shed a luminous wake; release to let their gathered energy travel outward.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="guide-section" aria-labelledby="tuning">
+            <div class="section-label" id="tuning">Field tuning <span>03</span></div>
+            <div class="entries">
+                <article class="entry">
+                    <h2>Signal gain</h2>
+                    <p>Changes how clearly contacts and particles appear without changing their underlying movement.</p>
+                </article>
+                <article class="entry">
+                    <h2>Wake length</h2>
+                    <p>Controls how much movement history remains visible behind contacts and Tide gestures.</p>
+                </article>
+                <article class="entry">
+                    <h2>Touch activity</h2>
+                    <p><span class="activity">Quiet</span> uses the lightest particle budget. <span class="activity">Balanced</span> is recommended for iPhone. <span class="activity">Alive</span> gives the richest response while remaining capped for mobile.</p>
+                </article>
+                <article class="entry">
+                    <h2>Automatic echoes</h2>
+                    <p>Allows compatible modes to sound themselves occasionally. Turn it off for a completely user-driven field.</p>
+                </article>
+                <p class="note">On desktop, Space or Enter sounds the field, R resets it, and Escape closes an open control panel. Reduced-motion preferences automatically lower particle activity.</p>
+            </div>
+        </section>
+    </main>
+
+    <nav class="sitenav" aria-label="Site">
+        <a class="navlink" href="/">HOME</a>
+        <a class="navlink" href="/visuals">VISUALS</a>
+        <a class="navlink" href="/echofield/" aria-current="page">ECHO FIELD</a>
+    </nav>
+</body>
+</html>
