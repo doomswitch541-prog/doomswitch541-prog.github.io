@@ -26,15 +26,15 @@
 
         body {
             font-family: 'Cormorant Garamond', serif;
-            overflow-x: hidden;
-            overflow-y: auto;
+            /* The page itself never scrolls — the header stays put and only the
+               centred HUD box scrolls (its own content). */
+            overflow: hidden;
             background: #000;
             color: var(--accent);
             position: relative;
-            /* 100vw includes the vertical scrollbar's width, so on a desktop
-               browser it is wider than the viewport and shifts the layout. */
             width: 100%;
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             touch-action: pan-y;
@@ -175,7 +175,7 @@
             top: 6vh;
             right: 6vw;
             font-family: 'Space Mono', monospace;
-            font-size: clamp(0.65rem, 1.5vw, 1rem);
+            font-size: clamp(0.78rem, 1.7vw, 1.15rem);
             letter-spacing: 0.3em;
             color: var(--soft-gold);
             opacity: 0.6;
@@ -186,9 +186,10 @@
         /* Minimal HUD widget - enhanced for mobile with scrolling */
         .hud-widget {
             position: fixed;
-            /* Sits just below the "Weather" header group at the top. */
-            top: 13vh;
-            left: 4vw;
+            /* Centred box — the only thing that scrolls (its own content). */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(30px) saturate(130%);
             border: 1px solid rgba(255, 255, 255, 0.18);
@@ -197,7 +198,7 @@
             z-index: 50;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             width: min(450px, 92vw);
-            max-height: 85vh;
+            max-height: 80vh;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             overflow: hidden;
             display: flex;
@@ -328,10 +329,9 @@
                 right: 2vw;
                 width: auto;
                 max-width: none;
-                /* Now that the sections wrap to more than one row below 1400px,
-                   the panel can grow past the viewport. Cap it and scroll rather
-                   than letting the last row fall off the bottom of the screen. */
-                max-height: 84vh;
+                /* Vertically centred; horizontal handled by left/right. */
+                transform: translateY(-50%);
+                max-height: 80vh;
                 overflow-y: auto;
                 overflow-x: hidden;
             }
@@ -1231,12 +1231,13 @@
 
             .hud-widget {
                 position: fixed;
-                top: 13vh;
+                top: 50%;
                 left: 3vw;
                 right: 3vw;
                 width: auto;
                 max-width: none;
-                max-height: 70vh;
+                transform: translateY(-50%);
+                max-height: 72vh;
                 overflow-y: auto;
                 z-index: 100;
             }
@@ -1350,7 +1351,7 @@
             }
 
             .day-number {
-                font-size: 0.6rem;
+                font-size: 0.72rem;
             }
 
             .hud-widget {
@@ -2255,8 +2256,8 @@
     <!-- Vertical accent -->
     <div class="accent-bar"></div>
 
-    <!-- Day counter — minimal top-left touch -->
-    <div class="day-number">006 / 365</div>
+    <!-- Day counter — real day of the year, set in JS -->
+    <div class="day-number" id="dayNumber">--- / 365</div>
 
     <!-- Header group — moved to the top, pared to a single word -->
     <header class="content">
@@ -2315,6 +2316,17 @@
 
         updateClock();
         setInterval(updateClock, 1000);
+
+        // Day counter — real day of the year (e.g. 211 / 365)
+        (function () {
+            const el = document.getElementById('dayNumber');
+            if (!el) return;
+            const now = new Date();
+            const y = now.getFullYear();
+            const dayOfYear = Math.floor((now - new Date(y, 0, 0)) / 86400000);
+            const total = ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 366 : 365;
+            el.textContent = String(dayOfYear).padStart(3, '0') + ' / ' + total;
+        })();
 
         // Location data
         const locations = {
