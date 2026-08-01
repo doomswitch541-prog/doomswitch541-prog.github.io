@@ -27,7 +27,7 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "geolocation=(self), camera=(), microphone=(), payment=()"
+    Permissions-Policy = "geolocation=(), camera=(), microphone=(), payment=()"
     # CSP note: script-src keeps 'unsafe-inline' because the globe/slamviz/weather
     # pages carry large inline <script> blocks. Hardening step later: externalise
     # those scripts, then drop 'unsafe-inline' (nonce or hash). Everything else is

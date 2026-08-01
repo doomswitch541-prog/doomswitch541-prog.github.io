@@ -321,44 +321,14 @@ const ClockManager = {
     }
 };
 
-// === Weather (was GET /api/weather → now Open-Meteo direct, no key) ===
-const weatherCodes = {
-    0: 'Clear', 1: 'Clear', 2: 'Partly cloudy', 3: 'Overcast',
-    45: 'Foggy', 48: 'Foggy',
-    51: 'Drizzle', 53: 'Drizzle', 55: 'Drizzle',
-    61: 'Rain', 63: 'Rain', 65: 'Rain',
-    71: 'Snow', 73: 'Snow', 75: 'Snow',
-    95: 'Storm',
-};
-
-const WEATHER_REFRESH_MS = 15 * 60 * 1000;
-
-function fetchWeather() {
+// The home weather pill previously requested precise device location only to
+// populate a decorative readout. Keep the dormant markup out of view without
+// prompting for a permission the site does not otherwise need.
+function disableLocationWeather() {
     const pill = document.getElementById('weather');
     if (!pill) return;
-    if (!navigator.geolocation) { pill.style.display = 'none'; return; }
-
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-            const { latitude, longitude } = pos.coords;
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}` +
-                        `&longitude=${longitude}&current=temperature_2m,weather_code` +
-                        `&temperature_unit=fahrenheit`;
-            const res = await fetch(url);
-            const data = await res.json();
-            const cur = data.current || {};
-            const temp = Math.round(cur.temperature_2m);
-            const desc = weatherCodes[cur.weather_code] || 'Unknown';
-            const elTemp = document.getElementById('weather-temp');
-            const elDesc = document.getElementById('weather-desc');
-            if (elTemp) elTemp.textContent = `${temp}°`;
-            if (elDesc) elDesc.textContent = desc;
-            pill.style.display = '';
-        } catch (err) {
-            console.warn('weather fetch failed', err);
-            pill.style.display = 'none';
-        }
-    }, () => { pill.style.display = 'none'; }, { timeout: 8000, maximumAge: 10 * 60 * 1000 });
+    pill.hidden = true;
+    pill.setAttribute('aria-hidden', 'true');
 }
 
 // === Idle Mode (screensaver-only) ===
@@ -395,8 +365,5 @@ document.addEventListener('DOMContentLoaded', () => {
     ThemeManager.init();
     if (document.getElementById('hours')) ClockManager.init();
     IdleManager.init();
-    if (document.getElementById('weather')) {
-        fetchWeather();
-        setInterval(fetchWeather, WEATHER_REFRESH_MS);
-    }
+    disableLocationWeather();
 });

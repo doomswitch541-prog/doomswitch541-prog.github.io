@@ -17,6 +17,9 @@
             --faint: #303038;
             --accent: #5c86f5;
             --accent-glow: rgba(92, 134, 245, 0.6);
+            --geometry-a: rgba(92, 134, 245, 0.1);
+            --geometry-b: rgba(185, 199, 240, 0.045);
+            --geometry-line: rgba(126, 155, 235, 0.1);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; }
@@ -148,14 +151,83 @@
         /* fx layers — parked at opacity 0 until a mode switches them on */
         .fx { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
 
+        /* ---------- SHARED: slow geometry + direct pointer response ---------- */
+        .fx-geometry {
+            z-index: 0;
+            overflow: hidden;
+            opacity: 0.72;
+            contain: strict;
+        }
+        .geometry-shape,
+        .geometry-touch {
+            position: absolute;
+            display: block;
+            aspect-ratio: 1;
+            border: 1px solid var(--geometry-line);
+            background:
+                radial-gradient(circle at 38% 34%, var(--geometry-a), transparent 58%),
+                linear-gradient(138deg, var(--geometry-b), transparent 68%);
+            pointer-events: none;
+        }
+        .geometry-shape {
+            will-change: transform;
+        }
+        .geometry-shape:nth-child(1) {
+            top: -24vmax;
+            left: -19vmax;
+            width: clamp(24rem, 54vmax, 58rem);
+            border-radius: 50%;
+            animation: geometry-breathe-a 24s ease-in-out infinite;
+        }
+        .geometry-shape:nth-child(2) {
+            right: -18vmax;
+            bottom: -23vmax;
+            width: clamp(22rem, 50vmax, 54rem);
+            border-radius: 42% 58% 52% 48%;
+            animation: geometry-breathe-b 29s ease-in-out infinite;
+        }
+        .geometry-shape:nth-child(3) {
+            top: 50%;
+            left: 50%;
+            width: clamp(8rem, 19vmin, 13rem);
+            border-radius: 18%;
+            opacity: 0.48;
+            animation: geometry-breathe-c 21s ease-in-out infinite;
+        }
+        .geometry-touch {
+            z-index: 2;
+            width: clamp(8rem, 30vmin, 16rem);
+            border-radius: 46% 54% 48% 52%;
+            opacity: 0;
+            transform: translate3d(-50%, -50%, 0) scale(0.18) rotate(-8deg);
+            will-change: transform, opacity;
+        }
+        html[data-mode="pulse"] {
+            --geometry-a: rgba(88, 245, 183, 0.085);
+            --geometry-b: rgba(77, 230, 255, 0.04);
+            --geometry-line: rgba(128, 255, 213, 0.085);
+        }
+        html[data-mode="pulse"] .fx-geometry { opacity: 0.48; }
+
+        @keyframes geometry-breathe-a {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(0.88) rotate(-7deg); }
+            50% { transform: translate3d(4vw, 3vh, 0) scale(1.12) rotate(2deg); }
+        }
+        @keyframes geometry-breathe-b {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1.08) rotate(5deg); }
+            50% { transform: translate3d(-4vw, -2vh, 0) scale(0.86) rotate(-4deg); }
+        }
+        @keyframes geometry-breathe-c {
+            0%, 100% { transform: translate3d(-50%, -50%, 0) scale(0.78) rotate(39deg); }
+            50% { transform: translate3d(-50%, -50%, 0) scale(1.18) rotate(51deg); }
+        }
+
         /* ---------- LIFESTREAM: the Planet's returning current ---------- */
         .fx-lifestream { z-index: 0; width: 100%; height: 100%; }
         .fx-mako-bloom {
             z-index: 0;
-            background:
-                radial-gradient(ellipse at 50% 54%, rgba(92, 255, 188, 0.13), transparent 30%),
-                radial-gradient(ellipse at 50% 115%, rgba(41, 232, 174, 0.2), transparent 52%);
-            filter: blur(8px);
+            background: radial-gradient(ellipse at 50% 70%, rgba(58, 235, 173, 0.11), transparent 48%);
+            filter: blur(12px);
         }
         html[data-mode="pulse"] {
             --accent: #58f5b7;
@@ -163,32 +235,25 @@
         }
         html[data-mode="pulse"] body { background: #020908; }
         html[data-mode="pulse"] body::before {
-            opacity: 0.48;
+            opacity: 0.26;
             background-image:
-                linear-gradient(rgba(88,245,183,0.028) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(88,245,183,0.028) 1px, transparent 1px);
+                linear-gradient(rgba(88,245,183,0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(88,245,183,0.018) 1px, transparent 1px);
         }
         html[data-mode="pulse"] .fx-lifestream { opacity: 1; }
         html[data-mode="pulse"] .fx-mako-bloom {
-            opacity: 1;
-            animation: lifestream-tide 7s ease-in-out infinite;
+            opacity: 0.62;
         }
         html[data-mode="pulse"] .time {
             color: #f1fff9;
-            text-shadow: 0 0 18px rgba(88, 245, 183, 0.14);
+            text-shadow: 0 0 14px rgba(88, 245, 183, 0.09);
         }
         html[data-mode="pulse"] .time .sep { color: rgba(128, 255, 213, 0.4); }
         html[data-mode="pulse"] .date { color: rgba(164, 244, 216, 0.54); }
         html[data-mode="pulse"] .progress .fill {
-            box-shadow: 0 0 10px var(--accent), 0 0 24px var(--accent-glow);
+            box-shadow: 0 0 10px rgba(88, 245, 183, 0.55);
         }
         html[data-mode="pulse"] .bars span.on { background: rgba(220, 255, 242, 0.9); }
-        html[data-mode="pulse"] .dot { animation-duration: 1.6s; }
-
-        @keyframes lifestream-tide {
-            0%, 100% { opacity: 0.62; transform: scale(0.98); }
-            50% { opacity: 1; transform: scale(1.035); }
-        }
 
         /* ---------- NEON: broken sign + CRT ---------- */
         .fx-scan {
@@ -205,8 +270,15 @@
             filter: blur(22px);
             animation: bloom-breathe 3.6s ease-in-out infinite;
         }
-        html[data-mode="neon"] { --accent: #38e8ff; --accent-glow: rgba(56,232,255,0.7); }
+        html[data-mode="neon"] {
+            --accent: #38e8ff;
+            --accent-glow: rgba(56,232,255,0.7);
+            --geometry-a: rgba(56, 232, 255, 0.09);
+            --geometry-b: rgba(255, 45, 107, 0.05);
+            --geometry-line: rgba(82, 224, 255, 0.1);
+        }
         html[data-mode="neon"] body { background: #03050a; }
+        html[data-mode="neon"] .fx-geometry { opacity: 0.42; }
         html[data-mode="neon"] .fx-scan,
         html[data-mode="neon"] .fx-bloom { opacity: 1; }
         html[data-mode="neon"] .clock { animation: neon-hue 16s ease-in-out infinite; }
@@ -342,7 +414,7 @@
 
         @media (prefers-reduced-motion: reduce) {
             .bars span.tip, .dot,
-            .fx-scan, .fx-bloom::before, .fx-mako-bloom,
+            .fx-scan, .fx-bloom::before, .fx-mako-bloom, .geometry-shape,
             html[data-mode="neon"] .clock,
             html[data-mode="neon"] .time,
             html[data-mode="neon"] .date { animation: none; }
@@ -350,7 +422,12 @@
     </style>
 </head>
 <body>
-    <!-- experimental mode fx — inert until pulse/neon -->
+    <!-- experimental mode fx — decorative and ignored by assistive technology -->
+    <div class="fx fx-geometry" id="geometry" aria-hidden="true">
+        <i class="geometry-shape"></i>
+        <i class="geometry-shape"></i>
+        <i class="geometry-shape"></i>
+    </div>
     <div class="fx fx-bloom"></div>
     <div class="fx fx-mako-bloom"></div>
     <canvas class="fx fx-lifestream" id="lifestream" aria-hidden="true"></canvas>
@@ -400,23 +477,58 @@
 
         // ===== experimental fx: the Lifestream's returning current =====
         const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const clockEl = document.querySelector('.clock');
+        const geometry = document.getElementById('geometry');
         const lifeCanvas = document.getElementById('lifestream');
         const lifeCtx = lifeCanvas.getContext('2d');
-        let lastSec = -1;
         let lifeWidth = 0, lifeHeight = 0, lifeDpr = 1, lifeFrame = 0;
-        let lifeMotes = [], lifeSurges = [], lifeEnergy = 0;
+        let lifeMotes = [];
 
-        const newMote = (initial = false, nearCore = false) => ({
-            x: nearCore ? lifeWidth * (0.4 + Math.random() * 0.2) : Math.random() * lifeWidth,
-            y: nearCore ? lifeHeight * (0.55 + Math.random() * 0.3) :
-               (initial ? Math.random() * lifeHeight : lifeHeight + Math.random() * 80),
-            size: 0.55 + Math.random() * 1.65,
-            speed: 0.16 + Math.random() * 0.42,
-            drift: 0.25 + Math.random() * 0.7,
+        function touchGeometry(event) {
+            if (REDUCE || event.target.closest('a, button')) return;
+
+            const activeTouches = geometry.querySelectorAll('.geometry-touch');
+            if (activeTouches.length >= 5) activeTouches[0].remove();
+
+            const touch = document.createElement('i');
+            touch.className = 'geometry-touch';
+            touch.setAttribute('aria-hidden', 'true');
+            touch.style.left = `${event.clientX}px`;
+            touch.style.top = `${event.clientY}px`;
+            geometry.append(touch);
+
+            const duration = event.pointerType === 'touch' ? 1900 : 2300;
+            const motion = touch.animate([
+                {
+                    opacity: 0,
+                    transform: 'translate3d(-50%, -50%, 0) scale(0.18) rotate(-8deg)',
+                },
+                {
+                    opacity: 0.52,
+                    transform: 'translate3d(-50%, -50%, 0) scale(0.58) rotate(-2deg)',
+                    offset: 0.24,
+                },
+                {
+                    opacity: 0,
+                    transform: 'translate3d(-50%, -50%, 0) scale(1.28) rotate(8deg)',
+                },
+            ], {
+                duration,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            });
+            motion.onfinish = () => touch.remove();
+        }
+
+        window.addEventListener('pointerdown', touchGeometry, { passive: true });
+
+        const newMote = (initial = false) => ({
+            x: Math.random() * lifeWidth,
+            y: initial ? Math.random() * lifeHeight : lifeHeight + Math.random() * 80,
+            size: 0.45 + Math.random() * 1.2,
+            speed: 0.1 + Math.random() * 0.28,
+            drift: 0.18 + Math.random() * 0.5,
             phase: Math.random() * Math.PI * 2,
-            alpha: 0.24 + Math.random() * 0.58,
-            memory: Math.random() > 0.72,
+            alpha: 0.18 + Math.random() * 0.4,
+            memory: Math.random() > 0.84,
         });
 
         function resizeLifestream() {
@@ -428,36 +540,36 @@
             lifeCanvas.style.width = lifeWidth + 'px';
             lifeCanvas.style.height = lifeHeight + 'px';
             lifeCtx.setTransform(lifeDpr, 0, 0, lifeDpr, 0, 0);
-            const count = Math.min(120, Math.max(58, Math.floor(lifeWidth * lifeHeight / 9000)));
+            const count = Math.min(72, Math.max(32, Math.floor(lifeWidth * lifeHeight / 18000)));
             lifeMotes = Array.from({ length: count }, () => newMote(true));
             if (REDUCE && document.documentElement.getAttribute('data-mode') === 'pulse') {
                 drawLifestream(0, true);
             }
         }
 
-        function drawCurrent(time, index, energy, still) {
-            const bands = 7;
-            const baseY = lifeHeight * (0.22 + (index / (bands - 1)) * 0.68);
-            const amplitude = 16 + index * 5 + energy * 15;
-            const phase = index * 1.37 + (still ? 0 : time * (0.00009 + index * 0.000008));
+        function drawCurrent(time, index, still) {
+            const bands = 4;
+            const baseY = lifeHeight * (0.28 + (index / (bands - 1)) * 0.48);
+            const amplitude = 14 + index * 4;
+            const phase = index * 1.37 + (still ? 0 : time * (0.000055 + index * 0.000006));
             const gradient = lifeCtx.createLinearGradient(0, baseY, lifeWidth, baseY);
             gradient.addColorStop(0, 'rgba(35, 210, 151, 0)');
-            gradient.addColorStop(0.22, `rgba(66, 238, 176, ${0.08 + energy * 0.09})`);
-            gradient.addColorStop(0.52, `rgba(177, 255, 229, ${0.16 + energy * 0.2})`);
-            gradient.addColorStop(0.8, `rgba(77, 230, 255, ${0.08 + energy * 0.08})`);
+            gradient.addColorStop(0.22, 'rgba(66, 238, 176, 0.05)');
+            gradient.addColorStop(0.52, 'rgba(177, 255, 229, 0.13)');
+            gradient.addColorStop(0.8, 'rgba(77, 230, 255, 0.06)');
             gradient.addColorStop(1, 'rgba(77, 230, 255, 0)');
 
             lifeCtx.beginPath();
             for (let x = -30; x <= lifeWidth + 30; x += 14) {
                 const current = Math.sin(x * 0.006 + phase) * amplitude;
-                const memory = Math.sin(x * 0.013 - phase * 1.6) * (5 + energy * 7);
+                const memory = Math.sin(x * 0.013 - phase * 1.6) * 4;
                 const y = baseY + current + memory;
                 if (x === -30) lifeCtx.moveTo(x, y);
                 else lifeCtx.lineTo(x, y);
             }
-            lifeCtx.lineWidth = 0.55 + (index % 3) * 0.35 + energy * 0.6;
+            lifeCtx.lineWidth = 0.5 + (index % 2) * 0.2;
             lifeCtx.strokeStyle = gradient;
-            lifeCtx.shadowBlur = 8 + energy * 13;
+            lifeCtx.shadowBlur = 5;
             lifeCtx.shadowColor = index % 2 ? '#54f4bc' : '#85efff';
             lifeCtx.stroke();
         }
@@ -470,42 +582,25 @@
                 return;
             }
 
-            lifeEnergy *= still ? 0 : 0.955;
-            const energy = Math.max(0.08, lifeEnergy);
             lifeCtx.save();
             lifeCtx.globalCompositeOperation = 'lighter';
 
-            for (let i = 0; i < 7; i++) drawCurrent(time, i, energy, still);
+            for (let i = 0; i < 4; i++) drawCurrent(time, i, still);
 
             for (const mote of lifeMotes) {
                 if (!still) {
-                    mote.y -= mote.speed * (0.75 + energy * 2.4);
+                    mote.y -= mote.speed;
                     mote.x += Math.sin(time * 0.00065 + mote.phase + mote.y * 0.008) * mote.drift;
                     if (mote.y < -22 || mote.x < -30 || mote.x > lifeWidth + 30) Object.assign(mote, newMote());
                 }
                 const breathe = still ? 0.75 : 0.55 + Math.sin(time * 0.002 + mote.phase) * 0.35;
-                const alpha = mote.alpha * Math.max(0.18, breathe) * (0.62 + energy * 0.65);
+                const alpha = mote.alpha * Math.max(0.18, breathe) * 0.68;
                 lifeCtx.beginPath();
                 lifeCtx.arc(mote.x, mote.y, mote.size * (mote.memory ? 1.3 : 1), 0, Math.PI * 2);
                 lifeCtx.fillStyle = mote.memory ? `rgba(213,255,243,${alpha})` : `rgba(91,244,187,${alpha})`;
-                lifeCtx.shadowBlur = mote.memory ? 15 : 8;
+                lifeCtx.shadowBlur = mote.memory ? 9 : 4;
                 lifeCtx.shadowColor = mote.memory ? '#d8fff5' : '#58f5b7';
                 lifeCtx.fill();
-            }
-
-            const now = performance.now();
-            lifeSurges = lifeSurges.filter(surge => now - surge.born < 1450);
-            for (const surge of lifeSurges) {
-                const age = (now - surge.born) / 1450;
-                const radius = age * Math.max(lifeWidth, lifeHeight) * 0.72;
-                const alpha = Math.sin(age * Math.PI) * 0.3;
-                lifeCtx.beginPath();
-                lifeCtx.ellipse(lifeWidth / 2, lifeHeight * 0.53, radius, radius * 0.48, 0, 0, Math.PI * 2);
-                lifeCtx.lineWidth = 1.1 - age * 0.7;
-                lifeCtx.strokeStyle = `rgba(184,255,230,${alpha})`;
-                lifeCtx.shadowBlur = 18;
-                lifeCtx.shadowColor = '#58f5b7';
-                lifeCtx.stroke();
             }
 
             lifeCtx.restore();
@@ -521,20 +616,6 @@
             if (lifeFrame) cancelAnimationFrame(lifeFrame);
             lifeFrame = 0;
             lifeCtx.clearRect(0, 0, lifeWidth, lifeHeight);
-            lifeSurges = [];
-            lifeEnergy = 0;
-        }
-
-        // One second returns another memory to the current and sends a surge through it.
-        function lifestreamBeat() {
-            lifeEnergy = 1;
-            lifeSurges.push({ born: performance.now() });
-            for (let i = 0; i < 8; i++) lifeMotes.push(newMote(false, true));
-            if (lifeMotes.length > 140) lifeMotes.splice(0, lifeMotes.length - 140);
-            clockEl.animate(
-                [{ filter: 'brightness(1)' }, { filter: 'brightness(1.16)' }, { filter: 'brightness(1)' }],
-                { duration: 620, easing: 'ease-out' }
-            );
         }
 
         window.addEventListener('resize', resizeLifestream, { passive: true });
@@ -558,13 +639,6 @@
                 b.classList.toggle('on', i <= active);
                 b.classList.toggle('tip', i === active);
             });
-
-            // the current surges on each new second (lifestream mode only)
-            const sec = d.getSeconds();
-            if (sec !== lastSec) {
-                lastSec = sec;
-                if (!REDUCE && document.documentElement.getAttribute('data-mode') === 'pulse') lifestreamBeat();
-            }
         }
         tick();
         setInterval(tick, 100);
@@ -576,10 +650,8 @@
             root.setAttribute('data-mode', m);
             localStorage.setItem('rg-clock-mode', m);
             opts.forEach(o => o.classList.toggle('active', o.dataset.mode === m));
-            if (m === 'pulse') {
-                startLifestream();
-                if (!REDUCE) lifestreamBeat();   // don't wait a second for the first surge
-            } else stopLifestream();
+            if (m === 'pulse') startLifestream();
+            else stopLifestream();
         }
         // ?mode=neon|pulse|minimal wins (shareable), else last choice, else minimal
         const wanted = new URLSearchParams(location.search).get('mode');
