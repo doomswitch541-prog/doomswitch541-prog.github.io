@@ -22,6 +22,7 @@ const SiteNavigation = {
         ['/clock', 'Clock'],
         ['/screensaver', 'Screensaver'],
         ['/visuals', 'Visuals'],
+        ['/fun', 'Fun'],
         ['/weather', 'Weather'],
         ['/directory', 'Directory'],
     ],

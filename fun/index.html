@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Fun — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .fun-page {
+            width: min(70rem, 100%);
+            min-height: 100dvh;
+            margin: 0 auto;
+            padding: clamp(8rem, 17vh, 11rem) clamp(1.2rem, 5vw, 4rem) 6rem;
+        }
+
+        .fun-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: end;
+            gap: 2rem;
+            margin-bottom: clamp(3rem, 7vw, 5.5rem);
+        }
+
+        .fun-kicker {
+            margin-bottom: 0.8rem;
+            color: var(--accent);
+            font: 500 0.64rem/1 'IBM Plex Mono', monospace;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .fun-header h1 {
+            color: var(--text-primary);
+            font: 300 clamp(5rem, 16vw, 10rem)/0.72 'Barlow Condensed', sans-serif;
+            letter-spacing: -0.055em;
+            text-transform: uppercase;
+            text-shadow: 0 0 45px var(--accent-soft);
+        }
+
+        .fun-header p {
+            width: min(25rem, 100%);
+            padding-bottom: 0.4rem;
+            color: var(--text-secondary);
+            font: 300 clamp(0.72rem, 1.5vw, 0.86rem)/1.8 'IBM Plex Mono', monospace;
+        }
+
+        .fun-count {
+            color: var(--text-tertiary);
+            font: 300 0.66rem/1 'IBM Plex Mono', monospace;
+            letter-spacing: 0.12em;
+            white-space: nowrap;
+        }
+
+        .fun-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: clamp(1rem, 2.5vw, 1.8rem);
+        }
+
+        .fun-card {
+            grid-column: 1 / 9;
+            position: relative;
+            min-height: clamp(24rem, 55vw, 36rem);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            background:
+                radial-gradient(circle at 74% 38%, rgba(212, 142, 50, 0.22), transparent 28%),
+                linear-gradient(145deg, rgba(11, 30, 33, 0.78), rgba(9, 16, 19, 0.9));
+            box-shadow: 0 35px 90px rgba(0, 0, 0, 0.34);
+            isolation: isolate;
+            transition: transform 500ms cubic-bezier(.2, .8, .2, 1), border-color 300ms ease;
+        }
+
+        .fun-card:hover {
+            transform: translateY(-6px) rotate(-0.25deg);
+            border-color: rgba(229, 172, 83, 0.5);
+        }
+
+        .fun-card a {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: clamp(1.4rem, 4vw, 2.7rem);
+            color: #f2e7cd;
+            text-decoration: none;
+        }
+
+        .card-dept {
+            margin-bottom: auto;
+            color: rgba(242, 231, 205, 0.55);
+            font: 500 0.58rem/1.4 'IBM Plex Mono', monospace;
+            letter-spacing: 0.17em;
+            text-transform: uppercase;
+        }
+
+        .fun-card h2 {
+            max-width: 8ch;
+            font: 400 clamp(3.4rem, 9vw, 7rem)/0.82 'Barlow Condensed', sans-serif;
+            letter-spacing: -0.035em;
+            text-transform: uppercase;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 1.4rem;
+            color: #d9a851;
+            font: 400 0.62rem/1 'IBM Plex Mono', monospace;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .card-meta::after {
+            content: '→';
+            transition: transform 250ms ease;
+        }
+
+        .fun-card:hover .card-meta::after { transform: translateX(0.35rem); }
+
+        .bottle {
+            position: absolute;
+            z-index: 1;
+            top: 10%;
+            right: 8%;
+            width: clamp(7rem, 18vw, 12rem);
+            height: 72%;
+            transform: rotate(8deg);
+            border: 1px solid rgba(232, 190, 102, 0.28);
+            border-radius: 22% 22% 14% 14% / 10% 10% 7% 7%;
+            background:
+                linear-gradient(90deg, rgba(255,255,255,.03), transparent 20% 70%, rgba(255,255,255,.07)),
+                linear-gradient(to top, rgba(185, 103, 22, .9) 0 55%, rgba(66, 91, 48, .55) 55%);
+            box-shadow: inset 0 0 38px rgba(255, 189, 72, 0.12), 0 25px 60px rgba(0,0,0,.42);
+        }
+
+        .bottle::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 31%;
+            width: 38%;
+            height: 24%;
+            border: 1px solid rgba(232, 190, 102, 0.24);
+            border-bottom: 0;
+            border-radius: 8% 8% 0 0;
+            background: rgba(48, 73, 40, 0.72);
+        }
+
+        .bottle::after {
+            content: 'J. LAHEY';
+            position: absolute;
+            top: 34%;
+            left: 10%;
+            width: 80%;
+            padding: 1rem 0;
+            border: 1px solid rgba(61, 43, 22, 0.55);
+            color: #47351e;
+            background: rgba(233, 216, 170, 0.74);
+            font: 500 clamp(0.5rem, 1.2vw, 0.72rem)/1 'IBM Plex Mono', monospace;
+            letter-spacing: 0.12em;
+            text-align: center;
+        }
+
+        .wind-lines {
+            position: absolute;
+            inset: 0;
+            opacity: 0.2;
+            background: repeating-linear-gradient(165deg, transparent 0 3.2rem, rgba(242, 231, 205, .2) 3.25rem, transparent 3.35rem 5rem);
+            transform: translateX(-12%);
+            animation: drift 8s linear infinite;
+        }
+
+        .fun-card--zeppelin {
+            grid-column: 5 / -1;
+            background:
+                radial-gradient(circle at 24% 38%, rgba(133, 116, 226, 0.3), transparent 31%),
+                linear-gradient(152deg, rgba(34, 29, 58, 0.92), rgba(14, 16, 27, 0.95));
+        }
+
+        .fun-card--zeppelin h2 { max-width: 7ch; }
+
+        .time-rift {
+            position: absolute;
+            z-index: 1;
+            top: 8%;
+            right: 4%;
+            width: min(48%, 18rem);
+            aspect-ratio: 0.72;
+            transform: rotate(7deg);
+        }
+
+        .time-rift::before,
+        .time-rift::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(211, 202, 255, 0.32);
+            transform: translate(-1.3rem, 1.1rem);
+            box-shadow:
+                -1.3rem 1.1rem 0 -1px rgba(126, 104, 235, 0.23),
+                -2.6rem 2.2rem 0 -1px rgba(126, 104, 235, 0.16),
+                -3.9rem 3.3rem 0 -1px rgba(126, 104, 235, 0.1);
+        }
+
+        .time-rift::after {
+            inset: 12% 9%;
+            transform: none;
+            border-color: rgba(244, 175, 88, 0.46);
+            box-shadow: 0 0 4rem rgba(133, 116, 226, 0.23);
+        }
+
+        .rift-year {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: rgba(242, 231, 205, 0.82);
+            font: 300 clamp(2.4rem, 7vw, 5rem)/1 'Barlow Condensed', sans-serif;
+            letter-spacing: -0.04em;
+        }
+
+        @keyframes drift { to { transform: translateX(12%); } }
+
+        @media (max-width: 760px) {
+            .fun-header { grid-template-columns: 1fr; }
+            .fun-count { display: none; }
+            .fun-card, .fun-card--zeppelin { grid-column: 1 / -1; min-height: 30rem; }
+            .bottle { right: 9%; width: 8rem; height: 60%; top: 15%; opacity: 0.88; }
+            .time-rift { width: 11rem; right: 2%; top: 12%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .fun-card, .card-meta::after { transition: none; }
+            .wind-lines { animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer night" id="bg-night"></div>
+    <div class="bg-layer evening" id="bg-evening"></div>
+    <div class="bg-layer afternoon" id="bg-afternoon"></div>
+    <div class="bg-layer day" id="bg-day"></div>
+
+    <nav class="navbar">
+        <div class="nav-left"><a href="/" class="btn">RG</a></div>
+        <div class="nav-center"></div>
+        <div class="nav-right"><button id="theme-switch" class="btn">Auto</button></div>
+    </nav>
+
+    <main class="fun-page">
+        <header class="fun-header">
+            <div>
+                <div class="fun-kicker">Unsupervised experiments</div>
+                <h1>Fun</h1>
+            </div>
+            <p>Things made for no responsible reason. They may still contain functioning JavaScript.</p>
+            <span class="fun-count">002 PIECES</span>
+        </header>
+
+        <div class="fun-grid">
+            <article class="fun-card">
+                <div class="wind-lines" aria-hidden="true"></div>
+                <div class="bottle" aria-hidden="true"></div>
+                <a href="/fun/lahey">
+                    <span class="card-dept">Sunnyvale Atmospheric Services</span>
+                    <h2>The Liquor Weather Report</h2>
+                    <span class="card-meta">Consult Mr. Lahey</span>
+                </a>
+            </article>
+
+            <article class="fun-card fun-card--zeppelin">
+                <div class="time-rift" aria-hidden="true"><span class="rift-year">1971<br>2026</span></div>
+                <a href="/fun/zeppelin">
+                    <span class="card-dept">Unlicensed era translation bureau</span>
+                    <h2>Fifty-Five Years Loud</h2>
+                    <span class="card-meta">Enter the time tunnel</span>
+                </a>
+            </article>
+        </div>
+    </main>
+
+    <script src="/js/site.js"></script>
+</body>
+</html>

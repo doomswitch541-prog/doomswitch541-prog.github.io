@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#17251d">
+    <title>The Liquor Weather Report — Mr. Lahey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=League+Gothic&family=Libre+Caslon+Text:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --trailer-green: #17251d;
+            --deep-green: #0b120e;
+            --paper: #e5d9b8;
+            --paper-dim: rgba(229, 217, 184, 0.58);
+            --amber: #d09134;
+            --amber-hot: #f0b650;
+            --brown: #603d1f;
+            --pressure: 42;
+            --gust: 0.42;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html {
+            min-height: -webkit-fill-available;
+            background: var(--deep-green);
+        }
+
+        body {
+            min-height: 100dvh;
+            margin: 0;
+            overflow-x: hidden;
+            color: var(--paper);
+            background:
+                linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px) 0 0 / 4rem 100%,
+                radial-gradient(circle at 72% 38%, rgba(208, 145, 52, calc(var(--gust) * .25)), transparent 30rem),
+                linear-gradient(120deg, #1b2c22, var(--deep-green) 66%);
+            font-family: 'IBM Plex Mono', monospace;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            z-index: 20;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.09;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+            mix-blend-mode: soft-light;
+        }
+
+        button, input { font: inherit; }
+        button { -webkit-tap-highlight-color: transparent; }
+
+        #wind-field {
+            position: fixed;
+            z-index: 0;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: calc(.22 + var(--gust) * .64);
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+            width: min(92rem, 100%);
+            min-height: 100dvh;
+            margin: 0 auto;
+            padding: max(1rem, env(safe-area-inset-top)) clamp(1rem, 4vw, 3.5rem) max(7.5rem, calc(env(safe-area-inset-bottom) + 6.5rem));
+        }
+
+        .bureau-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.7rem 0 0.85rem;
+            border-top: 1px solid rgba(229, 217, 184, 0.42);
+            border-bottom: 1px solid rgba(229, 217, 184, 0.18);
+            color: var(--paper-dim);
+            font-size: clamp(0.48rem, 1vw, 0.62rem);
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .bureau-line strong { color: var(--amber-hot); font-weight: 500; }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.72fr);
+            min-height: min(70rem, calc(100dvh - 7rem));
+            border-bottom: 1px solid rgba(229, 217, 184, 0.18);
+        }
+
+        .report-copy {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            padding: clamp(4rem, 9vw, 8rem) clamp(1rem, 5vw, 5rem) clamp(3.5rem, 7vw, 6rem) 0;
+            border-right: 1px solid rgba(229, 217, 184, 0.18);
+        }
+
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.4rem;
+            color: var(--amber-hot);
+            font-size: 0.58rem;
+            font-weight: 500;
+            letter-spacing: 0.17em;
+            text-transform: uppercase;
+        }
+
+        .alert::before {
+            content: '';
+            width: 2.8rem;
+            height: 2px;
+            background: currentColor;
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        h1 {
+            max-width: 9ch;
+            margin: 0;
+            color: var(--paper);
+            font: 400 clamp(6rem, 17vw, 14rem)/0.67 'League Gothic', sans-serif;
+            letter-spacing: -0.035em;
+            text-transform: uppercase;
+        }
+
+        h1 span {
+            display: block;
+            color: var(--amber-hot);
+            text-shadow: 0 0 calc(16px + var(--pressure) * .35px) rgba(240, 182, 80, calc(.08 + var(--gust) * .32));
+            transform: translateX(calc(var(--gust) * .45rem));
+            transition: transform 500ms cubic-bezier(.2,.8,.2,1);
+        }
+
+        .byline {
+            display: grid;
+            grid-template-columns: auto minmax(0, 27rem);
+            gap: clamp(1.4rem, 4vw, 3rem);
+            align-items: start;
+            margin-top: clamp(2rem, 5vw, 3.5rem);
+        }
+
+        .seal {
+            display: grid;
+            place-items: center;
+            width: 4.2rem;
+            aspect-ratio: 1;
+            border: 1px solid rgba(229, 217, 184, 0.35);
+            border-radius: 50%;
+            color: var(--amber-hot);
+            font: 400 1.55rem/1 'Libre Caslon Text', serif;
+            transform: rotate(-8deg);
+        }
+
+        .byline blockquote {
+            margin: 0;
+            color: rgba(229, 217, 184, 0.76);
+            font: italic clamp(1rem, 2vw, 1.3rem)/1.55 'Libre Caslon Text', serif;
+        }
+
+        .byline cite {
+            display: block;
+            margin-top: 1rem;
+            color: var(--paper-dim);
+            font: 400 0.53rem/1.4 'IBM Plex Mono', monospace;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .station {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            padding: clamp(3rem, 7vw, 6rem) 0 clamp(3rem, 7vw, 6rem) clamp(1.5rem, 5vw, 4.5rem);
+        }
+
+        .station-label {
+            position: absolute;
+            top: 1.4rem;
+            right: 0;
+            color: var(--paper-dim);
+            font-size: 0.5rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+        }
+
+        .gauge {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: min(100%, 31rem);
+            aspect-ratio: 1;
+            margin: 0 auto;
+            border: 1px solid rgba(229, 217, 184, 0.24);
+            border-radius: 50%;
+            background:
+                repeating-conic-gradient(from -80deg, rgba(229,217,184,.35) 0 .6deg, transparent .6deg 9deg),
+                radial-gradient(circle, rgba(13, 24, 17, .96) 0 58%, transparent 58.5%),
+                radial-gradient(circle, rgba(208,145,52,.12), rgba(7,13,9,.8) 68%);
+            box-shadow: inset 0 0 5rem rgba(0,0,0,.68), 0 2rem 5rem rgba(0,0,0,.26);
+        }
+
+        .gauge::before,
+        .gauge::after {
+            position: absolute;
+            top: 49%;
+            color: var(--paper-dim);
+            font-size: clamp(0.42rem, 1vw, 0.58rem);
+            letter-spacing: 0.11em;
+        }
+
+        .gauge::before { content: 'DECENT'; left: 7%; transform: rotate(-88deg); }
+        .gauge::after { content: 'LIQUOR'; right: 8%; transform: rotate(88deg); color: var(--amber-hot); }
+
+        .needle-wrap {
+            position: absolute;
+            inset: 12%;
+            transform: rotate(calc(-112deg + var(--pressure) * 2.24deg));
+            transition: transform 900ms cubic-bezier(.18,.8,.22,1);
+        }
+
+        .needle {
+            position: absolute;
+            top: 49.5%;
+            left: 50%;
+            width: 43%;
+            height: 2px;
+            transform-origin: left center;
+            background: linear-gradient(90deg, var(--amber-hot), rgba(240,182,80,.2));
+            box-shadow: 0 0 12px rgba(240,182,80,.48);
+        }
+
+        .gauge-center {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            place-items: center;
+            width: 22%;
+            aspect-ratio: 1;
+            border: 1px solid rgba(229,217,184,.25);
+            border-radius: 50%;
+            color: var(--amber-hot);
+            background: #142019;
+            font: 400 clamp(1.6rem, 5vw, 3.4rem)/1 'League Gothic', sans-serif;
+            box-shadow: 0 0 2rem rgba(0,0,0,.8);
+        }
+
+        .gauge-unit {
+            position: absolute;
+            bottom: 22%;
+            color: var(--paper-dim);
+            font-size: 0.47rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .forecast-box {
+            width: min(100%, 34rem);
+            margin: clamp(2.4rem, 5vw, 4rem) auto 0;
+            border-top: 1px solid rgba(229,217,184,.2);
+            padding-top: 1.2rem;
+        }
+
+        .forecast-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--paper-dim);
+            font-size: 0.48rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        #forecast-title {
+            margin: 0;
+            color: var(--amber-hot);
+            font: 400 clamp(2.4rem, 6vw, 4rem)/0.9 'League Gothic', sans-serif;
+            letter-spacing: 0.015em;
+            text-transform: uppercase;
+        }
+
+        #forecast-copy {
+            min-height: 3.7em;
+            margin: 0.8rem 0 0;
+            color: rgba(229,217,184,.66);
+            font: 300 0.65rem/1.75 'IBM Plex Mono', monospace;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 1.6rem 2.2rem;
+            align-items: end;
+            padding: clamp(2rem, 5vw, 3.5rem) 0 0;
+        }
+
+        .pressure-control label {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.9rem;
+            color: var(--paper-dim);
+            font-size: 0.52rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        input[type='range'] {
+            width: 100%;
+            height: 2.5rem;
+            margin: 0;
+            appearance: none;
+            background: transparent;
+            cursor: ew-resize;
+        }
+
+        input[type='range']::-webkit-slider-runnable-track {
+            height: 2px;
+            background: linear-gradient(90deg, var(--amber-hot) 0 calc(var(--pressure) * 1%), rgba(229,217,184,.18) calc(var(--pressure) * 1%));
+        }
+
+        input[type='range']::-webkit-slider-thumb {
+            width: 1.4rem;
+            height: 1.4rem;
+            margin-top: -0.66rem;
+            appearance: none;
+            border: 1px solid var(--amber-hot);
+            border-radius: 50%;
+            background: var(--trailer-green);
+            box-shadow: 0 0 0 .3rem rgba(208,145,52,.11);
+        }
+
+        input[type='range']::-moz-range-track { height: 2px; background: rgba(229,217,184,.18); }
+        input[type='range']::-moz-range-progress { height: 2px; background: var(--amber-hot); }
+        input[type='range']::-moz-range-thumb {
+            width: 1.3rem; height: 1.3rem; border: 1px solid var(--amber-hot); border-radius: 50%; background: var(--trailer-green);
+        }
+
+        .actions { display: flex; gap: 0.65rem; }
+
+        .action {
+            min-height: 3rem;
+            padding: 0 1.1rem;
+            border: 1px solid rgba(229,217,184,.28);
+            color: var(--paper);
+            background: rgba(8, 14, 10, .32);
+            font-size: 0.54rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+        }
+
+        .action.primary { border-color: var(--amber); color: #1a140c; background: var(--amber-hot); }
+        .action:hover, .action:focus-visible { border-color: var(--amber-hot); color: var(--amber-hot); outline: none; }
+        .action.primary:hover, .action.primary:focus-visible { color: #0b120e; background: #f4c671; }
+
+        .sitenav {
+            position: fixed;
+            z-index: 30;
+            left: 50%;
+            bottom: max(1rem, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            max-width: calc(100vw - 1.25rem);
+            padding: 0.35rem;
+            overflow-x: auto;
+            border: 1px solid rgba(229,217,184,.18);
+            border-radius: 999px;
+            background: rgba(10, 18, 13, .8);
+            backdrop-filter: blur(16px) saturate(120%);
+            scrollbar-width: none;
+        }
+
+        .sitenav::-webkit-scrollbar { display: none; }
+
+        .navlink {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            min-height: 44px;
+            padding: .58rem .85rem;
+            border-radius: 999px;
+            color: rgba(229,217,184,.48);
+            font-size: .49rem;
+            letter-spacing: .11em;
+            text-decoration: none;
+        }
+
+        .navlink:hover, .navlink:focus-visible, .navlink[aria-current='page'] { color: var(--amber-hot); outline: none; }
+
+        .forecast-flash .gauge { animation: gauge-hit 600ms ease-out; }
+        @keyframes gauge-hit { 35% { box-shadow: inset 0 0 5rem rgba(0,0,0,.68), 0 0 4rem rgba(240,182,80,.25); } }
+
+        @media (max-width: 850px) {
+            .hero { grid-template-columns: 1fr; }
+            .report-copy { min-height: 78dvh; border-right: 0; border-bottom: 1px solid rgba(229,217,184,.18); padding-right: 0; }
+            .station { padding-left: 0; min-height: 46rem; }
+            .station-label { display: none; }
+            .controls { grid-template-columns: 1fr; }
+            .actions { width: 100%; }
+            .action { flex: 1; }
+        }
+
+        @media (max-width: 520px) {
+            .bureau-line span:nth-child(2) { display: none; }
+            .byline { grid-template-columns: 1fr; }
+            .seal { width: 3.4rem; }
+            .station { min-height: 40rem; }
+            .actions { flex-direction: column; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+            #wind-field { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="wind-field" aria-hidden="true"></canvas>
+
+    <main class="shell">
+        <div class="bureau-line">
+            <span><strong>Special bulletin</strong> · Sunnyvale</span>
+            <span>Park Supervisor's Office</span>
+            <span id="report-time">Filed --:--</span>
+        </div>
+
+        <section class="hero">
+            <div class="report-copy">
+                <div class="alert">Liquor advisory in effect</div>
+                <h1>The Liquor <span>Weather Report</span></h1>
+                <div class="byline">
+                    <div class="seal" aria-hidden="true">JL</div>
+                    <blockquote>
+                        “I am the liquor.”
+                        <cite>Jim Lahey · Sunnyvale Trailer Park Supervisor</cite>
+                    </blockquote>
+                </div>
+            </div>
+
+            <div class="station">
+                <span class="station-label">Department of shitwind detection</span>
+                <div class="gauge" aria-label="Liquor pressure gauge">
+                    <div class="needle-wrap" aria-hidden="true"><span class="needle"></span></div>
+                    <output class="gauge-center" id="pressure-output" for="pressure">42</output>
+                    <span class="gauge-unit">Liquor pressure</span>
+                </div>
+
+                <div class="forecast-box" aria-live="polite">
+                    <div class="forecast-meta"><span>Current conditions</span><span id="forecast-code">SW-03</span></div>
+                    <h2 id="forecast-title">Shit Gust</h2>
+                    <p id="forecast-copy">Loose lawn furniture. Randy remains within shouting distance. Trouble is developing over the park.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="controls" aria-label="Liquor weather controls">
+            <div class="pressure-control">
+                <label for="pressure"><span>Adjust liquor pressure</span><span>DECENT → LIQUOR</span></label>
+                <input id="pressure" type="range" min="0" max="100" value="42">
+            </div>
+            <div class="actions">
+                <button class="action primary" id="read-winds" type="button">Read the winds</button>
+                <button class="action" id="share-report" type="button">Share report</button>
+            </div>
+        </section>
+    </main>
+
+    <nav class="sitenav" aria-label="Site">
+        <a class="navlink" href="/">HOME</a>
+        <a class="navlink" href="/fun">FUN</a>
+        <a class="navlink" href="/fun/lahey" aria-current="page">LAHEY</a>
+    </nav>
+
+    <script>
+        (() => {
+            const root = document.documentElement;
+            const body = document.body;
+            const slider = document.getElementById('pressure');
+            const output = document.getElementById('pressure-output');
+            const title = document.getElementById('forecast-title');
+            const copy = document.getElementById('forecast-copy');
+            const code = document.getElementById('forecast-code');
+            const readButton = document.getElementById('read-winds');
+            const shareButton = document.getElementById('share-report');
+            const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const forecasts = [
+                { max: 17, title: 'Suspicious Calm', code: 'SC-01', lines: [
+                    'The park is quiet. Too quiet. Keep one eye on the bottle and the other on Randy.',
+                    'No active shitfronts detected. This is usually when somebody gets confident.',
+                ]},
+                { max: 36, title: 'Shit Breeze', code: 'SB-02', lines: [
+                    'A minor disturbance near the cheeseburger corridor. Conditions remain manageable.',
+                    'Paperwork is lifting off the hood of the supervisor car. Trouble may be local.',
+                ]},
+                { max: 59, title: 'Shit Gust', code: 'SG-03', lines: [
+                    'Loose lawn furniture. Randy remains within shouting distance. Trouble is developing over the park.',
+                    'The shit winds are gathering behind lot forty-two. Maintain visual contact with the liquor cabinet.',
+                ]},
+                { max: 81, title: 'Shit Squall', code: 'SS-04', lines: [
+                    'Barometric decency is dropping fast. Shirts may be removed without warning.',
+                    'A rotating disturbance has formed over Sunnyvale. The liquor has assumed operational command.',
+                ]},
+                { max: 100, title: 'Full Shiticane', code: 'SH-05', lines: [
+                    'All shit systems are now organized. Secure the trailer and let the liquor conduct the investigation.',
+                    'Catastrophic park conditions. The forecast is liquor with a ninety-nine percent chance of consequences.',
+                ]},
+            ];
+
+            let lineIndex = 0;
+
+            function forecastFor(value) {
+                return forecasts.find(item => value <= item.max) || forecasts[forecasts.length - 1];
+            }
+
+            function applyPressure(value, freshLine = false) {
+                const pressure = Math.max(0, Math.min(100, Number(value)));
+                const current = forecastFor(pressure);
+                if (freshLine) lineIndex = (lineIndex + 1) % current.lines.length;
+                else lineIndex = Math.min(lineIndex, current.lines.length - 1);
+
+                root.style.setProperty('--pressure', pressure);
+                root.style.setProperty('--gust', (pressure / 100).toFixed(2));
+                slider.value = pressure;
+                output.value = pressure;
+                output.textContent = String(pressure).padStart(2, '0');
+                title.textContent = current.title;
+                copy.textContent = current.lines[lineIndex];
+                code.textContent = current.code;
+                try { localStorage.setItem('rg-lahey-pressure', pressure); } catch (_) {}
+            }
+
+            slider.addEventListener('input', () => applyPressure(slider.value));
+
+            readButton.addEventListener('click', () => {
+                const present = Number(slider.value);
+                const nudge = Math.floor(Math.random() * 35) - 8;
+                const next = Math.max(4, Math.min(100, present + nudge));
+                applyPressure(next, true);
+                body.classList.remove('forecast-flash');
+                void body.offsetWidth;
+                body.classList.add('forecast-flash');
+            });
+
+            shareButton.addEventListener('click', async () => {
+                const report = `Sunnyvale Liquor Weather: ${title.textContent} — ${copy.textContent}`;
+                try {
+                    if (navigator.share) {
+                        await navigator.share({ title: 'The Liquor Weather Report', text: report, url: location.href });
+                        return;
+                    }
+                    await navigator.clipboard.writeText(`${report} ${location.href}`);
+                    shareButton.textContent = 'Copied';
+                    setTimeout(() => { shareButton.textContent = 'Share report'; }, 1600);
+                } catch (_) {}
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.code === 'Space' && event.target !== slider) {
+                    event.preventDefault();
+                    readButton.click();
+                }
+            });
+
+            const now = new Date();
+            document.getElementById('report-time').textContent = `Filed ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+            let saved = 42;
+            try { saved = Number(localStorage.getItem('rg-lahey-pressure')) || 42; } catch (_) {}
+            applyPressure(saved);
+
+            if (reduceMotion) return;
+
+            const canvas = document.getElementById('wind-field');
+            const ctx = canvas.getContext('2d');
+            let width = 0;
+            let height = 0;
+            let dpr = 1;
+            let pointerX = 0;
+            let pointerY = 0;
+            let wind = [];
+
+            function resize() {
+                width = innerWidth;
+                height = innerHeight;
+                dpr = Math.min(devicePixelRatio || 1, 2);
+                canvas.width = Math.round(width * dpr);
+                canvas.height = Math.round(height * dpr);
+                canvas.style.width = `${width}px`;
+                canvas.style.height = `${height}px`;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const count = Math.min(120, Math.max(45, Math.floor(width * height / 14000)));
+                wind = Array.from({ length: count }, () => ({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    length: 18 + Math.random() * 70,
+                    speed: 0.25 + Math.random() * 0.75,
+                    phase: Math.random() * Math.PI * 2,
+                }));
+            }
+
+            addEventListener('pointermove', event => {
+                pointerX = (event.clientX / width - 0.5) * 1.4;
+                pointerY = (event.clientY / height - 0.5) * 1.2;
+            }, { passive: true });
+
+            function animate(time) {
+                const pressure = Number(slider.value) / 100;
+                ctx.clearRect(0, 0, width, height);
+                ctx.lineWidth = 0.7;
+                ctx.strokeStyle = `rgba(229, 217, 184, ${0.11 + pressure * 0.2})`;
+
+                for (const line of wind) {
+                    const speed = line.speed * (0.8 + pressure * 5.5);
+                    line.x += speed + pointerX;
+                    line.y += Math.sin(time * 0.0016 + line.phase) * (0.06 + pressure * 0.28) + pointerY * 0.12;
+                    if (line.x - line.length > width) { line.x = -line.length; line.y = Math.random() * height; }
+                    if (line.y < -20) line.y = height + 20;
+                    if (line.y > height + 20) line.y = -20;
+
+                    ctx.beginPath();
+                    ctx.moveTo(line.x, line.y);
+                    ctx.bezierCurveTo(
+                        line.x - line.length * 0.35,
+                        line.y + Math.sin(line.phase + time * .001) * 5,
+                        line.x - line.length * 0.72,
+                        line.y - pressure * 8,
+                        line.x - line.length,
+                        line.y - pressure * 3
+                    );
+                    ctx.stroke();
+                }
+                requestAnimationFrame(animate);
+            }
+
+            addEventListener('resize', resize, { passive: true });
+            resize();
+            requestAnimationFrame(animate);
+        })();
+    </script>
+</body>
+</html>

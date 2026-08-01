@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#171526">
+    <title>Fifty-Five Years Loud — Led Zeppelin Through 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@300;400;500&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --night: #171526;
+            --black: #09090d;
+            --lavender: #9a89e8;
+            --lavender-pale: #d9d1ff;
+            --tungsten: #efa45d;
+            --paper: #eee8db;
+            --quiet: rgba(238, 232, 219, 0.52);
+            --line: rgba(217, 209, 255, 0.17);
+            --era: 0.33;
+            --shift-x: 0px;
+            --shift-y: 0px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html {
+            min-height: -webkit-fill-available;
+            background: var(--black);
+        }
+
+        body {
+            min-height: 100dvh;
+            margin: 0;
+            overflow-x: hidden;
+            color: var(--paper);
+            background:
+                radial-gradient(circle at calc(72% + var(--shift-x)) calc(18% + var(--shift-y)), rgba(154,137,232,calc(.13 + var(--era) * .18)), transparent 25rem),
+                radial-gradient(circle at 12% 78%, rgba(239,164,93,.12), transparent 28rem),
+                linear-gradient(155deg, #24203d 0%, var(--night) 42%, var(--black) 100%);
+            font-family: 'DM Mono', monospace;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            z-index: 20;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.11;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+            mix-blend-mode: screen;
+        }
+
+        button, input { font: inherit; }
+        a { color: inherit; }
+
+        .shell {
+            position: relative;
+            z-index: 2;
+            width: min(92rem, 100%);
+            margin: 0 auto;
+            padding:
+                max(1rem, env(safe-area-inset-top))
+                clamp(1rem, 5vw, 4rem)
+                max(7.5rem, calc(env(safe-area-inset-bottom) + 6.5rem));
+        }
+
+        .mast {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: .65rem 0 .8rem;
+            border-top: 1px solid rgba(238,232,219,.42);
+            border-bottom: 1px solid var(--line);
+            color: var(--quiet);
+            font-size: .5rem;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+
+        .mast strong { color: var(--tungsten); font-weight: 500; }
+        .mast span:nth-child(2) { display: none; }
+
+        .hero {
+            position: relative;
+            min-height: 72dvh;
+            padding: clamp(4rem, 14vw, 7rem) 0 3rem;
+            border-bottom: 1px solid var(--line);
+            isolation: isolate;
+        }
+
+        .eyebrow {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            margin-bottom: 1.4rem;
+            color: var(--tungsten);
+            font-size: .57rem;
+            font-weight: 500;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before { content: ''; width: 2.5rem; height: 2px; background: currentColor; }
+
+        h1 {
+            position: relative;
+            z-index: 3;
+            max-width: 8ch;
+            margin: 0;
+            color: var(--paper);
+            font: 400 clamp(4.4rem, 18vw, 8.2rem)/.79 'Archivo Black', sans-serif;
+            letter-spacing: -.065em;
+            text-transform: uppercase;
+        }
+
+        h1 span { display: block; color: var(--lavender-pale); }
+
+        .hero-copy {
+            position: relative;
+            z-index: 3;
+            max-width: 35rem;
+            margin: 2.2rem 0 0;
+            color: rgba(238,232,219,.7);
+            font: 300 clamp(.72rem, 2vw, .88rem)/1.85 'DM Mono', monospace;
+        }
+
+        .hero-copy strong { color: var(--paper); font-weight: 400; }
+
+        .tunnel {
+            position: absolute;
+            z-index: 1;
+            top: clamp(2.8rem, 9vw, 5rem);
+            right: -4rem;
+            width: min(62vw, 30rem);
+            aspect-ratio: .72;
+            opacity: .72;
+            transform: translate(var(--shift-x), var(--shift-y)) rotate(5deg);
+            transition: transform 160ms ease-out;
+        }
+
+        .frame {
+            position: absolute;
+            inset: calc(var(--i) * 6%);
+            border: 1px solid rgba(217,209,255,calc(.42 - var(--i) * .055));
+            box-shadow: 0 0 calc(1rem + var(--i) * .5rem) rgba(154,137,232,.07);
+            transform: translate(calc(var(--i) * -1rem), calc(var(--i) * 1.05rem));
+        }
+
+        .frame:nth-child(even) { border-color: rgba(239,164,93,.26); }
+
+        .tunnel-core {
+            position: absolute;
+            inset: 34% 26%;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(238,232,219,.38);
+            color: var(--paper);
+            background: rgba(9,9,13,.78);
+            font: 400 clamp(1rem, 5vw, 2.7rem)/.9 'Archivo Black', sans-serif;
+            letter-spacing: -.05em;
+            text-align: center;
+            box-shadow: 0 0 4rem rgba(154,137,232,.2);
+        }
+
+        .translator {
+            display: grid;
+            gap: 2.2rem;
+            padding: 2.6rem 0 3rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .translator-label,
+        .ramble-label {
+            color: var(--quiet);
+            font-size: .51rem;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+        }
+
+        .year-readout {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: .9rem;
+            margin-top: .9rem;
+        }
+
+        #year-output {
+            color: var(--lavender-pale);
+            font: 400 clamp(3.3rem, 16vw, 6rem)/1 'Archivo Black', sans-serif;
+            letter-spacing: -.06em;
+        }
+
+        .year-line { height: 1px; background: linear-gradient(90deg, var(--lavender), var(--tungsten)); }
+
+        #era-title {
+            color: var(--tungsten);
+            font-size: .58rem;
+            line-height: 1.4;
+            letter-spacing: .11em;
+            text-align: right;
+            text-transform: uppercase;
+        }
+
+        input[type='range'] {
+            width: 100%;
+            height: 2.8rem;
+            margin: 1rem 0 0;
+            appearance: none;
+            background: transparent;
+            cursor: ew-resize;
+        }
+
+        input[type='range']::-webkit-slider-runnable-track {
+            height: 2px;
+            background: linear-gradient(90deg, var(--lavender) 0 calc(var(--era) * 100%), rgba(238,232,219,.17) calc(var(--era) * 100%));
+        }
+
+        input[type='range']::-webkit-slider-thumb {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-top: -.58rem;
+            appearance: none;
+            border: 1px solid var(--lavender-pale);
+            border-radius: 0;
+            background: var(--night);
+            transform: rotate(45deg);
+            box-shadow: 0 0 0 .35rem rgba(154,137,232,.12);
+        }
+
+        input[type='range']::-moz-range-track { height: 2px; background: rgba(238,232,219,.17); }
+        input[type='range']::-moz-range-progress { height: 2px; background: var(--lavender); }
+        input[type='range']::-moz-range-thumb { width: 1.2rem; height: 1.2rem; border: 1px solid var(--lavender-pale); border-radius: 0; background: var(--night); transform: rotate(45deg); }
+
+        .album-row {
+            display: flex;
+            justify-content: space-between;
+            gap: .6rem;
+            color: rgba(238,232,219,.31);
+            font-size: .43rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+
+        .ramble {
+            padding: clamp(3rem, 10vw, 6.5rem) 0;
+        }
+
+        .ramble-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.7rem;
+        }
+
+        #take-number { color: var(--tungsten); }
+
+        #take-title {
+            max-width: 13ch;
+            margin: 0 0 1.2rem;
+            color: var(--paper);
+            font: 400 clamp(2.7rem, 11vw, 5.8rem)/.87 'Newsreader', serif;
+            letter-spacing: -.055em;
+        }
+
+        #take-copy {
+            max-width: 46rem;
+            min-height: 12em;
+            margin: 0;
+            color: rgba(238,232,219,.72);
+            font: 300 clamp(1rem, 4.2vw, 1.35rem)/1.6 'Newsreader', serif;
+        }
+
+        #take-copy em { color: var(--lavender-pale); font-style: normal; }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: .7rem;
+            margin-top: 2rem;
+        }
+
+        .action {
+            min-height: 3.2rem;
+            padding: 0 1.2rem;
+            border: 1px solid var(--line);
+            color: var(--paper);
+            background: rgba(9,9,13,.28);
+            font-size: .53rem;
+            font-weight: 500;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .action.primary { border-color: var(--lavender); color: var(--black); background: var(--lavender-pale); }
+        .action:hover, .action:focus-visible { border-color: var(--tungsten); color: var(--tungsten); outline: none; }
+        .action.primary:hover, .action.primary:focus-visible { color: var(--black); background: var(--tungsten); }
+
+        .liner-note {
+            padding: 1.3rem 0 0;
+            border-top: 1px solid var(--line);
+            color: rgba(238,232,219,.35);
+            font-size: .5rem;
+            line-height: 1.7;
+            letter-spacing: .06em;
+        }
+
+        .liner-note a { color: var(--quiet); text-underline-offset: .2rem; }
+
+        .sitenav {
+            position: fixed;
+            z-index: 30;
+            left: 50%;
+            bottom: max(1rem, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            max-width: calc(100vw - 1.25rem);
+            padding: .35rem;
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(14,12,24,.82);
+            backdrop-filter: blur(17px) saturate(125%);
+            scrollbar-width: none;
+        }
+
+        .sitenav::-webkit-scrollbar { display: none; }
+
+        .navlink {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            min-height: 44px;
+            padding: .58rem .82rem;
+            border-radius: 999px;
+            color: rgba(238,232,219,.45);
+            font-size: .48rem;
+            letter-spacing: .11em;
+            text-decoration: none;
+        }
+
+        .navlink:hover, .navlink:focus-visible, .navlink[aria-current='page'] { color: var(--tungsten); outline: none; }
+
+        .take-change #take-title,
+        .take-change #take-copy { animation: tape-drop 480ms cubic-bezier(.2,.7,.2,1); }
+
+        @keyframes tape-drop {
+            0% { opacity: 0; transform: translateY(.8rem); filter: blur(5px); }
+            100% { opacity: 1; transform: none; filter: none; }
+        }
+
+        @media (min-width: 720px) {
+            .mast span:nth-child(2) { display: inline; }
+            .hero { min-height: 82dvh; padding-top: clamp(5rem, 11vw, 9rem); }
+            h1 { font-size: clamp(7rem, 15vw, 13rem); }
+            .hero-copy { margin-left: 38%; }
+            .tunnel { right: 1%; width: min(43vw, 36rem); }
+            .translator { grid-template-columns: minmax(0, 1fr) minmax(15rem, .45fr); align-items: end; }
+            .album-row { grid-column: 1 / -1; }
+            .ramble { display: grid; grid-template-columns: minmax(10rem, .28fr) minmax(0, 1fr); gap: clamp(2rem, 7vw, 7rem); }
+            .ramble-head { display: block; }
+            #take-number { display: block; margin-top: .8rem; }
+            #take-copy { min-height: 8em; }
+            .actions { flex-direction: row; }
+        }
+
+        @media (min-width: 1080px) {
+            h1 { max-width: 9ch; }
+            .hero-copy { max-width: 40rem; }
+            .tunnel { right: 5%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+            .tunnel { transform: rotate(5deg); }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <div class="mast">
+            <span><strong>Era translator</strong> · 1969—2026</span>
+            <span>For people whose ancient history is 480p</span>
+            <span>Take <b id="mast-take">01</b></span>
+        </div>
+
+        <section class="hero">
+            <div class="eyebrow">Led Zeppelin through a 2026 brain</div>
+            <h1>Fifty-Five <span>Years Loud</span></h1>
+            <p class="hero-copy">Watching a wrecked 2011 emo-festival upload in 2026 feels old but reachable. The honest Zeppelin-IV equivalent is somebody finding that same clip in <strong>2066</strong> and deciding it contains a lost civilization.</p>
+
+            <div class="tunnel" aria-hidden="true">
+                <i class="frame" style="--i:0"></i>
+                <i class="frame" style="--i:1"></i>
+                <i class="frame" style="--i:2"></i>
+                <i class="frame" style="--i:3"></i>
+                <i class="frame" style="--i:4"></i>
+                <i class="frame" style="--i:5"></i>
+                <span class="tunnel-core"><b id="tunnel-year">1971</b><br>2026</span>
+            </div>
+        </section>
+
+        <section class="translator" aria-label="Album era translator">
+            <div>
+                <div class="translator-label">Drag through the original run</div>
+                <div class="year-readout">
+                    <output id="year-output" for="era">1971</output>
+                    <span class="year-line"></span>
+                    <strong id="era-title">Untitled / IV</strong>
+                </div>
+                <input id="era" type="range" min="0" max="6" step="1" value="2" aria-label="Choose a Led Zeppelin album year">
+            </div>
+            <p class="hero-copy" id="era-copy">The record that became so culturally permanent it can feel less like an album than a piece of public infrastructure.</p>
+            <div class="album-row" aria-hidden="true"><span>1969</span><span>1969</span><span>1970</span><span>1971</span><span>1973</span><span>1975</span><span>1979</span></div>
+        </section>
+
+        <section class="ramble">
+            <div class="ramble-head">
+                <span class="ramble-label">Current ramble</span>
+                <span class="ramble-label" id="take-number">01 / 07</span>
+            </div>
+            <div class="ramble-body" aria-live="polite">
+                <h2 id="take-title">They arrive as infrastructure</h2>
+                <p id="take-copy">Listening now is strange because they do not arrive as merely an old band. They arrive as <em>infrastructure</em>. You recognize the guitar shape before you consciously remember hearing it. Fifty years of other bands have borrowed the thunder, the pauses, the silhouette, and the idea that a riff can be architecture. Discovering the source after all those descendants is like meeting somebody whose face you already know from an entire bloodline.</p>
+                <div class="actions">
+                    <button class="action primary" id="next-take" type="button">Roll another take</button>
+                    <button class="action" id="share-take" type="button">Share this take</button>
+                </div>
+            </div>
+        </section>
+
+        <p class="liner-note">Dates follow the original album chronology on the <a href="https://www.ledzeppelin.com/" target="_blank" rel="noreferrer">official Led Zeppelin archive</a>. Everything else is an affectionate and completely unlicensed time-translation experiment.</p>
+    </main>
+
+    <nav class="sitenav" aria-label="Site">
+        <a class="navlink" href="/">HOME</a>
+        <a class="navlink" href="/fun">FUN</a>
+        <a class="navlink" href="/fun/zeppelin" aria-current="page">55 YEARS</a>
+    </nav>
+
+    <script>
+        (() => {
+            const eras = [
+                { year: 1969, title: 'Led Zeppelin', copy: 'The opening impact: blues vocabulary pushed until the walls start behaving differently.' },
+                { year: 1969, title: 'Led Zeppelin II', copy: 'The same year, somehow larger. The riff stops decorating the song and becomes the building.' },
+                { year: 1970, title: 'Led Zeppelin III', copy: 'The loud machine walks outside, finds acoustic wood and weather, and refuses to become one-dimensional.' },
+                { year: 1971, title: 'Untitled / IV', copy: 'The record that became so culturally permanent it can feel less like an album than a piece of public infrastructure.' },
+                { year: 1973, title: 'Houses of the Holy', copy: 'Color gets stranger. The monolith discovers movement, odd angles, and the pleasure of not explaining itself.' },
+                { year: 1975, title: 'Physical Graffiti', copy: 'A double-album building with lit rooms, sealed rooms, stairwells, machinery, and weather happening on the roof.' },
+                { year: 1979, title: 'In Through the Out Door', copy: 'The late chapter: synthesizers in the room, the decade changing outside, and the old silhouette refusing to stand still.' },
+            ];
+
+            const takes = [
+                {
+                    title: 'They arrive as infrastructure',
+                    copy: 'Listening now is strange because they do not arrive as merely an old band. They arrive as <em>infrastructure</em>. You recognize the guitar shape before you consciously remember hearing it. Fifty years of other bands have borrowed the thunder, the pauses, the silhouette, and the idea that a riff can be architecture. Discovering the source after all those descendants is like meeting somebody whose face you already know from an entire bloodline.'
+                },
+                {
+                    title: 'The 2066 Warped Tour problem',
+                    copy: 'A 2011 emo-festival clip is fifteen years old in 2026. You can still reach it; the clothes, cameras, and social physics belong to living memory. Add the full Zeppelin-IV distance and you land in <em>2066</em>. Some kid who has never touched an aux cable finds the crushed upload, hears those guitars through historical compression, and decides our century briefly knew how to hurt in public. That is closer to the actual time gap.'
+                },
+                {
+                    title: 'Bonham is not keeping time',
+                    copy: 'John Bonham often sounds less like a drummer keeping time than weather arriving with legal authority. The important part is not simply that the hits are huge. It is the air around them: the fraction before impact, the room recoiling afterward, the sense that the beat could drag the whole song off the road and somehow chooses not to. Modern heavy drums can be cleaner and larger. They rarely feel this physically <em>inevitable</em>.'
+                },
+                {
+                    title: 'Jones is the adult in the electrical fire',
+                    copy: 'John Paul Jones is what appears when you stop staring at the lightning. Bass, keyboards, arrangement—the quiet structural intelligence making all the grand gestures load-bearing. It is the same delayed realization as revisiting a chaotic band from your own adolescence and suddenly hearing the member who kept every beautiful disaster from collapsing. The least mythologized person is often holding the map.'
+                },
+                {
+                    title: 'Myth used to need negative space',
+                    copy: 'There was machinery around them—labels, press, radio, money—but there was still room for absence. You did not receive twelve vertical clips from soundcheck and a caption explaining the trousers. Distance helped four musicians inflate into symbols. In 2026 every artist must continuously prove they remain alive. Zeppelin could disappear between transmissions, which meant the audience had enough darkness to build a religion in.'
+                },
+                {
+                    title: 'Emo makes the emotional translation easier',
+                    copy: 'The chronology is wrong, but the emotional translation works. Finding an old emo performance after the scene has dispersed means encountering total commitment inside clothes and gestures time has already made vulnerable. You may laugh for ten seconds, and then the singer commits so completely that the joke stops working. Zeppelin carries that same test at a mythic scale: can something this mannered, excessive, and historically exposed still overpower your defensive irony? Frequently, yes.'
+                },
+                {
+                    title: 'Physical Graffiti is a place, not a playlist',
+                    copy: 'Physical Graffiti makes the streaming interface feel slightly stupid. It does not behave like fifteen equally available rectangles. It behaves like entering a building and discovering that the hall, basement, ballroom, furnace, and roof all belong to the same address. Skipping around still gives you songs. Staying long enough gives you <em>architecture</em>, and architecture is the part recommendation systems have trouble recommending.'
+                },
+            ];
+
+            const root = document.documentElement;
+            const body = document.body;
+            const eraInput = document.getElementById('era');
+            const yearOutput = document.getElementById('year-output');
+            const tunnelYear = document.getElementById('tunnel-year');
+            const eraTitle = document.getElementById('era-title');
+            const eraCopy = document.getElementById('era-copy');
+            const takeTitle = document.getElementById('take-title');
+            const takeCopy = document.getElementById('take-copy');
+            const takeNumber = document.getElementById('take-number');
+            const mastTake = document.getElementById('mast-take');
+            const nextButton = document.getElementById('next-take');
+            const shareButton = document.getElementById('share-take');
+            const params = new URLSearchParams(location.search);
+            let currentTake = Math.max(0, Math.min(takes.length - 1, Number(params.get('take')) || 0));
+
+            function remember() {
+                try {
+                    localStorage.setItem('rg-zeppelin-take', currentTake);
+                    localStorage.setItem('rg-zeppelin-era', eraInput.value);
+                } catch (_) {}
+                const query = new URLSearchParams({ take: currentTake, era: eraInput.value });
+                history.replaceState(null, '', `${location.pathname}?${query}`);
+            }
+
+            function showEra(index) {
+                const safe = Math.max(0, Math.min(eras.length - 1, Number(index)));
+                const era = eras[safe];
+                eraInput.value = safe;
+                yearOutput.value = era.year;
+                yearOutput.textContent = era.year;
+                tunnelYear.textContent = era.year;
+                eraTitle.textContent = era.title;
+                eraCopy.textContent = era.copy;
+                root.style.setProperty('--era', (safe / (eras.length - 1)).toFixed(3));
+                remember();
+            }
+
+            function showTake(index, animate = true) {
+                currentTake = (index + takes.length) % takes.length;
+                const take = takes[currentTake];
+                takeTitle.textContent = take.title;
+                takeCopy.innerHTML = take.copy;
+                const count = `${String(currentTake + 1).padStart(2, '0')} / ${String(takes.length).padStart(2, '0')}`;
+                takeNumber.textContent = count;
+                mastTake.textContent = String(currentTake + 1).padStart(2, '0');
+                if (animate) {
+                    body.classList.remove('take-change');
+                    void body.offsetWidth;
+                    body.classList.add('take-change');
+                }
+                remember();
+            }
+
+            function nextRandomTake() {
+                let next = currentTake;
+                if (crypto?.getRandomValues) {
+                    const value = new Uint32Array(1);
+                    while (next === currentTake) {
+                        crypto.getRandomValues(value);
+                        next = value[0] % takes.length;
+                    }
+                } else {
+                    while (next === currentTake) next = Math.floor(Math.random() * takes.length);
+                }
+                showTake(next);
+            }
+
+            eraInput.addEventListener('input', () => showEra(eraInput.value));
+            nextButton.addEventListener('click', nextRandomTake);
+
+            shareButton.addEventListener('click', async () => {
+                const text = `Fifty-Five Years Loud — ${takeTitle.textContent}`;
+                try {
+                    if (navigator.share) {
+                        await navigator.share({ title: 'Fifty-Five Years Loud', text, url: location.href });
+                        return;
+                    }
+                    await navigator.clipboard.writeText(`${text} ${location.href}`);
+                    shareButton.textContent = 'Copied';
+                    setTimeout(() => { shareButton.textContent = 'Share this take'; }, 1600);
+                } catch (_) {}
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.code === 'Space' && event.target !== eraInput) {
+                    event.preventDefault();
+                    nextRandomTake();
+                }
+            });
+
+            if (!params.has('take')) {
+                try { currentTake = Number(localStorage.getItem('rg-zeppelin-take')) || 0; } catch (_) {}
+            }
+
+            let startingEra = 3;
+            if (params.has('era')) {
+                startingEra = Number(params.get('era'));
+            } else {
+                try {
+                    const savedEra = localStorage.getItem('rg-zeppelin-era');
+                    if (savedEra !== null) startingEra = Number(savedEra);
+                } catch (_) {}
+            }
+            if (!Number.isFinite(startingEra)) startingEra = 3;
+            showEra(startingEra);
+            showTake(currentTake, false);
+
+            if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                addEventListener('pointermove', event => {
+                    const x = (event.clientX / innerWidth - .5) * 11;
+                    const y = (event.clientY / innerHeight - .5) * 8;
+                    root.style.setProperty('--shift-x', `${x}px`);
+                    root.style.setProperty('--shift-y', `${y}px`);
+                }, { passive: true });
+            }
+        })();
+    </script>
+</body>
+</html>
