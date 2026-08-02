@@ -287,6 +287,18 @@
             border-left: 1px solid var(--cyan);
         }
 
+        .technical-note {
+            margin-top: 1.5rem;
+            padding: 1rem 1.15rem;
+            overflow-x: auto;
+            border: 1px solid rgba(0, 255, 249, 0.18);
+            border-radius: 10px;
+            color: var(--cyan);
+            background: rgba(0, 255, 249, 0.025);
+            font: clamp(0.62rem, 1.8vw, 0.75rem)/1.7 "Courier New", monospace;
+            white-space: nowrap;
+        }
+
         @media (max-width: 480px) {
             main {
                 margin-top: 3.5rem;
@@ -336,7 +348,7 @@
     <main>
         <p class="eyebrow">Day 15 · January 16, 2026</p>
         <h1>Knowledgebase</h1>
-        <p class="purpose">A learning project about how information can be represented, retrieved, and classified.</p>
+        <p class="purpose">Research into representation geometry, retrieval systems, decision boundaries, and the evaluation problems hidden beneath apparently simple search.</p>
         <div class="topics" aria-label="Areas of study">
             <div class="topic">Embeddings</div>
             <div class="topic">Retrieval</div>
@@ -345,21 +357,21 @@
 
         <section class="study">
             <p class="section-label">Represent / find / decide</p>
-            <h2>How meaning becomes something a system can work with.</h2>
-            <p class="study-lede">The study moved past storing documents as pages of text and into the structures underneath search: turning language into comparable representations, finding useful passages by meaning, and making bounded decisions from patterns.</p>
+            <h2>Representation is an engineered approximation, not meaning itself.</h2>
+            <p class="study-lede">The work moved from basic document search into the geometry and statistics underneath it: which distinctions survive projection into an embedding space, how candidate retrieval trades recall against precision, and how a classifier’s threshold converts uncertain scores into consequential decisions.</p>
 
             <div class="concepts">
                 <article class="concept">
                     <h3><span>01 / Represent</span>Embeddings</h3>
-                    <p>An embedding maps text into a vector: a long coordinate made of numbers whose position reflects learned relationships in language. Similar ideas can sit near one another even when they do not share the same words. That makes semantic comparison possible, but the representation is not knowledge by itself; its usefulness depends on the model, the text being embedded, and the distance measure used to compare vectors.</p>
+                    <p>Embeddings are learned projections whose neighborhood structure depends on training data, pooling strategy, dimensionality, and normalization. Cosine similarity suppresses magnitude and compares direction; inner product preserves magnitude information; Euclidean distance imposes another geometry entirely. Anisotropy can collapse vectors into narrow cones, hubness can make a few items appear spuriously universal, and domain shift can destroy neighborhoods that looked coherent on benchmark data.</p>
                 </article>
                 <article class="concept">
                     <h3><span>02 / Find</span>Retrieval</h3>
-                    <p>Retrieval begins before a question is asked. Source material has to be cleaned, divided into useful chunks, embedded, indexed, and kept with enough metadata to return to its origin. A query follows the same representational path, then similarity search produces candidates that can be filtered, reranked, and assembled as context. Chunk size, overlap, ranking, and provenance determine whether the answer receives the right evidence or merely nearby language.</p>
+                    <p>A retrieval system is a cascade rather than one similarity query. Lexical retrieval preserves rare exact terms; dense retrieval captures paraphrase; metadata filters enforce scope; approximate-nearest-neighbor indexes trade exactness for latency; cross-encoder rerankers spend more compute on a smaller candidate set. Chunk boundaries, query expansion, deduplication, and provenance determine whether high recall becomes usable evidence or an expensive pile of semantic neighbors.</p>
                 </article>
                 <article class="concept">
                     <h3><span>03 / Decide</span>Classifiers</h3>
-                    <p>A classifier turns an input into one or more defined labels. Some learn from examples; others use rules, similarity, or a language model prompted with a label set. The important work is not only choosing a label—it is defining the categories, handling overlap, setting confidence thresholds, measuring false positives and false negatives, and leaving room for “unknown” when the evidence is weak.</p>
+                    <p>A classifier exposes a decision surface over a representation. The output score is not automatically a calibrated probability, and the argmax label is not automatically the correct action. Multi-label structure, class imbalance, asymmetric error costs, threshold selection, abstention, and distribution shift all matter. Accuracy alone can hide failure; precision-recall curves, calibration error, confusion structure, and out-of-distribution tests reveal what the boundary actually does.</p>
                 </article>
             </div>
         </section>
@@ -376,6 +388,26 @@
                 <article class="path-step" data-step="6"><strong>Ground</strong><p>Carry the selected evidence into the response.</p></article>
             </div>
             <p class="closing-note">The project was a foundation: learning where retrieval can fail, what a representation can and cannot preserve, and how classification turns fuzzy language into an explicit boundary that can be tested.</p>
+        </section>
+
+        <section class="study">
+            <p class="section-label">Geometry / ranking / evidence</p>
+            <h2>The difficult questions begin after the vector exists.</h2>
+            <div class="concepts">
+                <article class="concept">
+                    <h3><span>Space</span>Neighborhood quality</h3>
+                    <p>Nearest neighbors are only meaningful relative to the embedding model and corpus. A useful audit asks whether neighborhoods remain stable under paraphrase, whether irrelevant hubs dominate many queries, whether normalization changes ranking, and whether the representation preserves the distinctions the application actually cares about.</p>
+                </article>
+                <article class="concept">
+                    <h3><span>Rank</span>Hybrid retrieval</h3>
+                    <p>BM25 and dense similarity fail differently, which makes fusion useful. Reciprocal-rank fusion can merge result lists without pretending their raw scores share a scale; a reranker can then evaluate query-document interaction directly. The retrieval budget becomes an allocation problem across candidate count, reranking depth, latency, and context-window cost.</p>
+                </article>
+                <article class="concept">
+                    <h3><span>Judge</span>Evaluation</h3>
+                    <p>Recall@k asks whether relevant evidence entered the candidate set. Mean reciprocal rank rewards placing the first useful result early. nDCG handles graded relevance across a ranking. End-to-end answer quality adds another layer: citation entailment, faithfulness to retrieved text, unsupported synthesis, and the possibility that retrieval succeeded while generation still failed.</p>
+                </article>
+            </div>
+            <div class="technical-note">cosine(x, y) = (x · y) / (||x|| ||y||) &nbsp;&nbsp; | &nbsp;&nbsp; RRF(d) = Σ 1 / (k + rankᵢ(d)) &nbsp;&nbsp; | &nbsp;&nbsp; threshold τ chosen against error cost, not convenience</div>
         </section>
     </main>
     <nav data-archive-day="15" aria-label="365 Days navigation"></nav>

@@ -428,6 +428,39 @@
             font-size: 3.35rem;
         }
 
+        .day-card.study-card:not(.milestone) {
+            padding-top: 2.55rem;
+            border-top-color: rgba(251, 146, 60, 0.72) !important;
+        }
+
+        .day-card.study-card:not(.milestone)::after {
+            content: 'STUDY';
+            position: absolute;
+            top: 0.82rem;
+            right: 0.9rem;
+            color: #fb923c;
+            font-size: 0.52rem;
+            font-weight: 700;
+            letter-spacing: 0.17em;
+        }
+
+        .day-card.sad-note {
+            background: linear-gradient(145deg, rgba(25, 28, 39, 0.94), rgba(10, 12, 19, 0.96)) !important;
+            border-color: rgba(148, 163, 184, 0.34) !important;
+        }
+
+        .day-card.sad-note .day-name {
+            letter-spacing: 0.28em;
+            color: #aeb5c5;
+        }
+
+        .day-card.sad-note .day-status {
+            max-width: 14rem;
+            text-transform: none;
+            letter-spacing: 0.035em;
+            line-height: 1.45;
+        }
+
         .day-description {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.7);
@@ -673,9 +706,19 @@
                         <p class="timeline-copy">The first shape of the local conversation system: a browser room, a local bridge, a selected Ollama model, and a live response stream.</p>
                     </article>
                     <article class="timeline-slide">
+                        <div class="timeline-kicker">Jan 18 · Day 17</div>
+                        <h2 class="timeline-title">MotionViz</h2>
+                        <p class="timeline-copy">A December-built MediaPipe gesture canvas joins the January archive: hand movement translated into a touch-ready particle field.</p>
+                    </article>
+                    <article class="timeline-slide">
                         <div class="timeline-kicker">Jan 17–31 · Days 16–30</div>
                         <h2 class="timeline-title">RGInfV1</h2>
                         <p class="timeline-copy">The local chat interface becomes its own system: model selection, streaming responses, saved conversations, and a clearer view of inference.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Feb 10 · Day 40</div>
+                        <h2 class="timeline-title">Studies: agents from first principles</h2>
+                        <p class="timeline-copy">Small Python systems make the path legible: model fundamentals, MicroGPT, bounded tool loops, and the later AutoResearch experiment harness.</p>
                     </article>
                     <article class="timeline-slide">
                         <div class="timeline-kicker">Mid-February · Day 45</div>
@@ -686,6 +729,11 @@
                         <div class="timeline-kicker">Feb 25 · Day 55</div>
                         <h2 class="timeline-title">Americans</h2>
                         <p class="timeline-copy">A cinematic act of patriotism from the original Clock project, created as the Anthropic–Pentagon confrontation became public.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Mar 19 · Day 77</div>
+                        <h2 class="timeline-title">The Four</h2>
+                        <p class="timeline-copy">A research archive about model character, alignment, institutions, and the human stakes of how intelligence is shaped.</p>
                     </article>
                     <article class="timeline-slide">
                         <div class="timeline-kicker">Held for placement</div>
@@ -703,6 +751,7 @@
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="live">Pages</button>
                 <button class="filter-btn" data-filter="complete">Completed</button>
+                <button class="filter-btn" data-filter="studies">Studies</button>
                 <button class="filter-btn" data-filter="pending">Pending</button>
             </div>
         </div>
@@ -927,6 +976,7 @@
                 name: 'Knowledgebase',
                 file: 'knowledgebase-about.html',
                 status: 'live',
+                category: 'studies',
                 milestone: true,
                 statusLabel: '◆ Milestone',
                 description: 'A learning project exploring embeddings, retrieval, classifiers, and the ideas surrounding them.',
@@ -964,14 +1014,34 @@
                     border: 'rgba(74, 158, 255, 0.5)'
                 }
             },
-            ...Array.from({ length: 3 }, (_, index) => ({
-                day: 17 + index,
+            {
+                day: 17,
+                name: 'MotionViz',
+                file: 'motionviz-about.html',
+                status: 'live',
+                statusLabel: '● Project Note',
+                description: 'A MediaPipe gesture canvas translating hand movement into an interactive particle system, built in December and placed here as January project filler.',
+                timeline: {
+                    label: 'archive placement',
+                    entry: 'Jan 18, 2026',
+                    confidence: 'user-placement'
+                },
+                theme: {
+                    primary: '#54f0b2',
+                    secondary: '#22d3ee',
+                    background: 'linear-gradient(135deg, rgba(84, 240, 178, 0.17), rgba(34, 211, 238, 0.1))',
+                    glow: 'rgba(84, 240, 178, 0.34)',
+                    border: 'rgba(84, 240, 178, 0.48)'
+                }
+            },
+            ...Array.from({ length: 2 }, (_, index) => ({
+                day: 18 + index,
                 name: 'RGInfV1 — Chat Interface',
                 status: 'complete',
                 description: 'Design and development of the local-model chat interface: model selection, streaming responses, saved conversations, and inference visibility.',
                 timeline: {
                     label: 'project work',
-                    entry: `Jan ${18 + index}, 2026`,
+                    entry: `Jan ${19 + index}, 2026`,
                     confidence: 'user-sequence'
                 },
                 theme: {
@@ -1026,6 +1096,7 @@
                 name: 'RGInfV1 — Memory System',
                 file: 'rginfv1-memory.html',
                 status: 'live',
+                category: 'studies',
                 statusLabel: '● System Note',
                 description: 'A study of model memory as a deliberate loop: working context, saved history, retrieved records, durable knowledge, ranking, provenance, and controlled revision.',
                 timeline: {
@@ -1064,6 +1135,7 @@
                 name: 'Long Context Research',
                 file: 'long-context-research.html',
                 status: 'live',
+                category: 'studies',
                 statusLabel: '● Research',
                 description: 'Beginner, intermediate, and advanced long-context research, extending into attention math, retrieval, cache costs, evaluation, GPT-4o, other models, and local ML fundamentals.',
                 timeline: {
@@ -1079,7 +1151,7 @@
                     border: 'rgba(246, 196, 83, 0.45)'
                 }
             },
-            ...Array.from({ length: 14 }, (_, index) => ({
+            ...Array.from({ length: 9 }, (_, index) => ({
                 day: 31 + index,
                 name: 'Completed Day',
                 status: 'complete',
@@ -1096,6 +1168,81 @@
                     border: 'rgba(139, 147, 167, 0.24)'
                 }
             })),
+            {
+                day: 40,
+                name: 'Agent Studies',
+                file: 'karpathy-agent-studies.html',
+                status: 'live',
+                category: 'studies',
+                statusLabel: '● Study',
+                description: 'Karpathy-related study from model fundamentals and MicroGPT into agent loops, software boundaries, RGClaw, and the later AutoResearch pattern.',
+                timeline: {
+                    label: 'studies',
+                    entry: 'Feb 10, 2026',
+                    confidence: 'user-placement'
+                },
+                theme: {
+                    primary: '#fb923c',
+                    secondary: '#fed7aa',
+                    background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.17), rgba(74, 158, 255, 0.08))',
+                    glow: 'rgba(251, 146, 60, 0.34)',
+                    border: 'rgba(251, 146, 60, 0.48)'
+                }
+            },
+            ...Array.from({ length: 2 }, (_, index) => ({
+                day: 41 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: {
+                    label: 'archive date',
+                    entry: `Feb ${11 + index}, 2026`,
+                    confidence: 'calendar'
+                },
+                theme: {
+                    primary: '#8b93a7',
+                    secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)',
+                    border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 43,
+                name: '☹︎  ☹︎  ☹︎',
+                status: 'complete',
+                tone: 'sad',
+                statusLabel: 'openai knows what they did here',
+                description: 'openai knows what they did here',
+                timeline: {
+                    label: 'archive note',
+                    entry: 'Feb 13, 2026',
+                    confidence: 'user-note'
+                },
+                theme: {
+                    primary: '#94a3b8',
+                    secondary: '#cbd5e1',
+                    background: 'linear-gradient(145deg, rgba(25, 28, 39, 0.94), rgba(10, 12, 19, 0.96))',
+                    glow: 'rgba(100, 116, 139, 0.22)',
+                    border: 'rgba(148, 163, 184, 0.34)'
+                }
+            },
+            {
+                day: 44,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: {
+                    label: 'archive date',
+                    entry: 'Feb 14, 2026',
+                    confidence: 'calendar'
+                },
+                theme: {
+                    primary: '#8b93a7',
+                    secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)',
+                    border: 'rgba(139, 147, 167, 0.24)'
+                }
+            },
             {
                 day: 45,
                 name: 'RGClaw',
@@ -1153,6 +1300,48 @@
                     glow: 'rgba(255, 42, 109, 0.38)',
                     border: 'rgba(230, 237, 248, 0.42)'
                 }
+            },
+            ...Array.from({ length: 21 }, (_, index) => {
+                const day = 56 + index;
+                const calendarDay = day <= 58 ? `Feb ${day - 30}, 2026` : `Mar ${day - 58}, 2026`;
+                return {
+                    day,
+                    name: 'Completed Day',
+                    status: 'complete',
+                    timeline: {
+                        label: 'archive date',
+                        entry: calendarDay,
+                        confidence: 'calendar'
+                    },
+                    theme: {
+                        primary: '#8b93a7',
+                        secondary: '#aeb5c5',
+                        background: 'rgba(255, 255, 255, 0.035)',
+                        glow: 'rgba(139, 147, 167, 0.18)',
+                        border: 'rgba(139, 147, 167, 0.24)'
+                    }
+                };
+            }),
+            {
+                day: 77,
+                name: 'The Four',
+                file: 'the-four-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Research Archive',
+                description: 'A curated research collection about model character, alignment, institutions, and the human consequences of how AI is built and governed.',
+                timeline: {
+                    label: 'research milestone',
+                    entry: 'Mar 19, 2026',
+                    confidence: 'artifact-date'
+                },
+                theme: {
+                    primary: '#ff5b8d',
+                    secondary: '#8ba4ff',
+                    background: 'linear-gradient(135deg, rgba(255, 91, 141, 0.16), rgba(139, 164, 255, 0.1))',
+                    glow: 'rgba(255, 91, 141, 0.34)',
+                    border: 'rgba(255, 91, 141, 0.48)'
+                }
             }
             // Future days will be added here
         ];
@@ -1186,8 +1375,15 @@
                 }
                 card.className = 'day-card';
                 card.dataset.state = dayData.status === 'live' ? 'live' : 'complete';
+                card.dataset.category = dayData.category || '';
                 if (dayData.status === 'complete') {
                     card.classList.add('work-log');
+                }
+                if (dayData.category === 'studies') {
+                    card.classList.add('study-card');
+                }
+                if (dayData.tone === 'sad') {
+                    card.classList.add('sad-note');
                 }
                 if (dayData.milestone) {
                     card.classList.add('milestone');
@@ -1244,6 +1440,7 @@
                 card.className = 'day-card coming-soon';
                 card.onclick = (e) => e.preventDefault();
                 card.dataset.state = 'pending';
+                card.dataset.category = '';
                 card.innerHTML = `
                     <div class="day-number">Day ${i}</div>
                     <div class="day-name">Coming Soon</div>
@@ -1271,7 +1468,8 @@
             const cards = Array.from(grid.children);
             cards.forEach((card) => {
                 const state = card.dataset.state || 'pending';
-                card.style.display = (filter === 'all' || state === filter) ? '' : 'none';
+                const category = card.dataset.category || '';
+                card.style.display = (filter === 'all' || state === filter || category === filter) ? '' : 'none';
             });
         }
 

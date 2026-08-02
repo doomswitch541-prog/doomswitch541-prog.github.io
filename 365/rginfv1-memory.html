@@ -20,46 +20,59 @@
             <div>
                 <p class="research-kicker">RGInfV1 research note</p>
                 <h1>Memory system</h1>
-                <p class="research-lede"><strong>A saved transcript is history. Memory is the process that decides what returns.</strong> RGInfV1’s memory work separated the current conversation from durable records, then asked how the right pieces could be selected and placed back into context when they mattered.</p>
+                <p class="research-lede"><strong>RGInfV1 made memory explicit, inspectable, and local.</strong> A JSON fact store sat beside saved conversation history. Configurable trigger phrases and model-assisted extraction produced candidate facts; enabled state, keyword overlap, duplicate suppression, and a top-three limit determined what entered the next system prompt.</p>
             </div>
 
-            <div class="research-figure" aria-label="Four layers of model memory">
+            <div class="research-figure" aria-label="RGInfV1 memory injection pipeline">
                 <div class="memory-stack">
-                    <div class="memory-layer"><code>NOW</code><div><strong>Working context</strong><span>current messages / instructions / active task</span></div></div>
-                    <div class="memory-layer"><code>THREAD</code><div><strong>Conversation history</strong><span>saved turns / summaries / recent continuity</span></div></div>
-                    <div class="memory-layer"><code>RECALL</code><div><strong>Retrieved records</strong><span>relevant facts / prior decisions / source links</span></div></div>
-                    <div class="memory-layer"><code>KEEP</code><div><strong>Durable memory</strong><span>stable preferences / project knowledge / provenance</span></div></div>
+                    <div class="memory-layer"><code>CAPTURE</code><div><strong>Fact extraction</strong><span>trigger phrase / loaded Ollama model / manual add</span></div></div>
+                    <div class="memory-layer"><code>STORE</code><div><strong>memory.json</strong><span>content / keywords / confidence / source / enabled</span></div></div>
+                    <div class="memory-layer"><code>RANK</code><div><strong>Keyword overlap</strong><span>enabled facts / relevance score / top three</span></div></div>
+                    <div class="memory-layer"><code>INJECT</code><div><strong>System context</strong><span>system prompt + selected facts + current thread</span></div></div>
                 </div>
             </div>
         </section>
 
         <section class="research-section">
-            <p class="section-kicker">What the system has to do</p>
-            <h2>Remember selectively, not endlessly.</h2>
-            <p class="section-lede">Language models do not carry a private recollection from one request to the next. Each request receives a constructed context. A memory system makes that construction deliberate: it stores candidate records, decides what is relevant now, and gives the model a compact packet with enough origin information to understand why it is there.</p>
+            <p class="section-kicker">The implemented system</p>
+            <h2>A small memory architecture with visible boundaries.</h2>
+            <p class="section-lede">The module used ordinary files and explicit routes instead of pretending the model retained state internally. Facts persisted in <code>memory.json</code>; conversation threads persisted separately. Every fact carried an ID, content, keywords, confidence, source, enabled flag, and creation time. The distinction mattered: transcript persistence could restore an episode, while fact memory could cross episodes without replaying every turn.</p>
 
             <div class="research-grid">
-                <article class="research-card"><code>01 / CAPTURE</code><h3>Turn experience into records</h3><p>Messages, decisions, preferences, project facts, and summaries need different shapes. A useful record includes the information itself, when it was learned, where it came from, and what scope it belongs to.</p></article>
-                <article class="research-card"><code>02 / SELECT</code><h3>Retrieve for the present task</h3><p>Recall can combine semantic similarity with recency, importance, project identity, tags, and explicit pins. Similar wording alone is not enough; a nearby memory can still be wrong for the current situation.</p></article>
-                <article class="research-card"><code>03 / PACK</code><h3>Fit memory into context</h3><p>Retrieved records compete with conversation history, system instructions, source material, and room for the answer. Deduplication, ranking, summaries, and token budgets keep the packet useful instead of merely large.</p></article>
-                <article class="research-card"><code>04 / REVISE</code><h3>Let memory change cleanly</h3><p>New evidence can supersede an older record. Corrections should preserve provenance, avoid silent rewriting, and distinguish a stable preference from a temporary statement made inside one conversation.</p></article>
+                <article class="research-card"><code>01 / CAPTURE</code><h3>Two extraction paths</h3><p>Configurable phrases such as “I prefer,” “I use,” and “remember that” marked likely memory-bearing messages. A second path asked the currently loaded Ollama model to extract facts deliberately. Both produced explicit records rather than hidden conversational state.</p></article>
+                <article class="research-card"><code>02 / SCHEMA</code><h3>Facts carried operational metadata</h3><p>The stored object included content, keywords, confidence, source, enabled state, creation time, and a generated ID. That schema supported review and control even when not every field yet participated in ranking.</p></article>
+                <article class="research-card"><code>03 / DEDUPE</code><h3>Containment blocked obvious repeats</h3><p>Before insertion, normalized content was checked for exact equality and, for longer facts, substring containment in either direction. It was intentionally lightweight: useful against repeated extraction, but not a semantic contradiction detector.</p></article>
+                <article class="research-card"><code>04 / CONTROL</code><h3>Memory could be disabled or removed</h3><p>Fact routes supported add, delete, toggle, clear, and full inspection. Keyword routes supported add, remove, and replacement. The user could see and alter the mechanism instead of relying on an inaccessible model-side profile.</p></article>
             </div>
         </section>
 
         <section class="research-section">
-            <p class="section-kicker">The memory loop</p>
-            <h2>Write, retrieve, compose, answer, update.</h2>
+            <p class="section-kicker">Retrieval and injection</p>
+            <h2>Relevance was simple enough to inspect.</h2>
+            <p class="section-lede">Only enabled facts were candidates. The current message was compared against stored keywords, overlap produced a relevance score, and the three strongest matches were appended to the system context. This was not an embedding database or latent autobiographical memory. It was a bounded lexical retrieval system whose behavior could be traced from input phrase to injected fact.</p>
             <div class="research-grid">
-                <article class="research-card"><code>WORKING</code><h3>The prompt in front of the model</h3><p>The active window holds the immediate exchange. It is fast and precise, but finite. Once material falls outside that window, it only returns if another system carries it forward.</p></article>
-                <article class="research-card"><code>EPISODIC</code><h3>What happened in a specific exchange</h3><p>Conversation turns and summaries preserve sequence: what was tried, what failed, what was decided, and what remains unfinished. Time and project boundaries matter as much as semantic similarity.</p></article>
-                <article class="research-card"><code>SEMANTIC</code><h3>Knowledge abstracted from episodes</h3><p>Stable facts and learned preferences can be stored separately from the transcript that produced them. That makes them easier to retrieve, while provenance keeps the abstraction accountable to its source.</p></article>
-                <article class="research-card"><code>CONTROL</code><h3>Memory should remain inspectable</h3><p>A local system can show what it kept, what it recalled, and why. Explicit edits, deletions, pins, and scope controls prevent an invisible memory layer from quietly defining the conversation.</p></article>
+                <article class="research-card"><code>FILTER</code><h3>Enabled state formed the first boundary</h3><p>A stored fact could remain in the archive without participating in inference. That separated deletion from temporary suppression and made context assembly reversible.</p></article>
+                <article class="research-card"><code>SCORE</code><h3>Keyword overlap ranked candidates</h3><p>The score was interpretable: matched terms raised a fact; absent terms did not. The method lacked paraphrase recall, but it also avoided opaque similarity behavior and made relevance failures easy to diagnose.</p></article>
+                <article class="research-card"><code>LIMIT</code><h3>Top three protected the context budget</h3><p>Selection stopped after three facts. The hard limit prevented the memory store from expanding the system prompt without bound and forced the system to choose rather than dump.</p></article>
+                <article class="research-card"><code>INSPECT</code><h3>Full context stayed visible</h3><p>The interface could show the combined system prompt and injected memory facts. That made the actual model input auditable—a stronger guarantee than merely displaying what existed in storage.</p></article>
+            </div>
+        </section>
+
+        <section class="research-section">
+            <p class="section-kicker">What the implementation exposed</p>
+            <h2>The next problems were ranking, conflict, and consolidation.</h2>
+            <p class="section-lede">Once the pipeline existed, its research questions became concrete. Confidence and source were stored but lexical overlap dominated retrieval. Substring deduplication could catch repetition but not contradiction. A flat fact list could preserve preferences yet could not represent temporal validity, project scope, supersession, or relationships among records.</p>
+            <div class="research-grid">
+                <article class="research-card"><code>RECALL</code><h3>Paraphrases can miss</h3><p>A message may express the right concept without repeating a stored keyword. Dense retrieval or learned reranking could improve recall, but would need evaluation against false semantic neighbors.</p></article>
+                <article class="research-card"><code>CONFLICT</code><h3>New facts can oppose old ones</h3><p>A mature memory layer needs temporal ordering and supersession rather than keeping two enabled claims as if both remain true. Provenance makes that resolution reviewable.</p></article>
+                <article class="research-card"><code>SCOPE</code><h3>Relevance is contextual</h3><p>A preference can be global, project-specific, person-specific, or temporary. Scope should constrain retrieval before ranking so a strong lexical match from the wrong domain does not win.</p></article>
+                <article class="research-card"><code>CALIBRATE</code><h3>Confidence needs semantics</h3><p>A numeric confidence field only becomes meaningful when its source, scale, and update rule are defined. Extraction certainty, truth confidence, and retrieval relevance are different quantities.</p></article>
             </div>
         </section>
 
         <section class="research-section closing-note">
             <blockquote>Continuity comes from <span>selection</span>, not accumulation.</blockquote>
-            <p>The useful memory is not the largest archive. It is the smallest set of trustworthy records that restores the right context, preserves the thread, and leaves enough room for the model to think about what is happening now.</p>
+            <p>RGInfV1’s system was valuable because its mechanism remained visible: a fact could be traced from capture, through storage and overlap ranking, into the exact system context the local model received. The limitations were not hidden; they became the next research agenda.</p>
         </section>
     </main>
 

@@ -52,6 +52,11 @@ body[data-research="context"] {
     --accent-soft: rgba(246, 196, 83, 0.11);
 }
 
+body[data-research="agents"] {
+    --accent: #fb923c;
+    --accent-soft: rgba(251, 146, 60, 0.12);
+}
+
 body::before {
     content: "";
     position: fixed;
@@ -68,6 +73,19 @@ body::before {
 
 a {
     color: inherit;
+}
+
+.source-note {
+    margin-top: 1.5rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    line-height: 1.7;
+}
+
+.source-note a {
+    color: var(--accent);
+    text-underline-offset: 0.2em;
 }
 
 .research-masthead,
