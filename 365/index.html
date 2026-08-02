@@ -608,21 +608,21 @@
 
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-number" id="completedDays">31</div>
+                <div class="stat-number" id="completedDays">55</div>
                 <div class="stat-label">Days Created</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="remainingDays">334</div>
+                <div class="stat-number" id="remainingDays">310</div>
                 <div class="stat-label">Days Remaining</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="progressPercent">8.5%</div>
+                <div class="stat-number" id="progressPercent">15.1%</div>
                 <div class="stat-label">Complete</div>
             </div>
         </div>
 
         <div class="timeline-row">
-            <section class="timeline-carousel" aria-label="January archive notes">
+            <section class="timeline-carousel" aria-label="365 archive notes">
                 <button class="timeline-arrow prev" type="button" aria-label="Previous archive note">←</button>
                 <div class="timeline-track" id="timelineTrack">
                     <article class="timeline-slide">
@@ -649,6 +649,11 @@
                         <div class="timeline-kicker">Mid-February · Day 45</div>
                         <h2 class="timeline-title">RGClaw</h2>
                         <p class="timeline-copy">The next milestone gives local models tools, bounded execution, and a visible step-by-step task loop.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Feb 25 · Day 55</div>
+                        <h2 class="timeline-title">Americans</h2>
+                        <p class="timeline-copy">A cinematic act of patriotism from the original Clock project, created as the Anthropic–Pentagon confrontation became public.</p>
                     </article>
                     <article class="timeline-slide">
                         <div class="timeline-kicker">Held for placement</div>
@@ -957,6 +962,23 @@
                     border: 'rgba(233, 69, 96, 0.46)'
                 }
             })),
+            ...Array.from({ length: 14 }, (_, index) => ({
+                day: 31 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: {
+                    label: 'archive date',
+                    entry: `Feb ${1 + index}, 2026`,
+                    confidence: 'calendar'
+                },
+                theme: {
+                    primary: '#8b93a7',
+                    secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)',
+                    border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
             {
                 day: 45,
                 name: 'RGClaw',
@@ -966,7 +988,7 @@
                 description: 'A local agent runner for defining agents with tools, executing bounded tasks, and watching each reasoning and tool step in real time.',
                 timeline: {
                     label: 'project born',
-                    entry: 'Mid-February 2026',
+                    entry: 'Feb 15, 2026 · approx.',
                     confidence: 'user-range'
                 },
                 theme: {
@@ -975,6 +997,43 @@
                     background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.18), rgba(254, 215, 170, 0.08))',
                     glow: 'rgba(251, 146, 60, 0.38)',
                     border: 'rgba(251, 146, 60, 0.5)'
+                }
+            },
+            ...Array.from({ length: 9 }, (_, index) => ({
+                day: 46 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: {
+                    label: 'archive date',
+                    entry: `Feb ${16 + index}, 2026`,
+                    confidence: 'calendar'
+                },
+                theme: {
+                    primary: '#8b93a7',
+                    secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)',
+                    border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 55,
+                name: 'Americans',
+                file: 'americans.html',
+                status: 'live',
+                statusLabel: '● Live',
+                description: 'Cinematic patriotic scrollytelling from the original Clock project, created during the public Anthropic–Pentagon confrontation.',
+                timeline: {
+                    label: 'artifact date',
+                    entry: 'Feb 25, 2026',
+                    confidence: 'filesystem'
+                },
+                theme: {
+                    primary: '#ff2a6d',
+                    secondary: '#e6edf8',
+                    background: 'linear-gradient(135deg, rgba(191, 10, 48, 0.2), rgba(0, 40, 104, 0.2))',
+                    glow: 'rgba(255, 42, 109, 0.38)',
+                    border: 'rgba(230, 237, 248, 0.42)'
                 }
             }
             // Future days will be added here
