@@ -244,8 +244,6 @@ body.idle .time-meta {
   transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-.nav-menu-btn:hover { background: var(--glass-highlight); border-color: var(--glass-border-hover); }
-
 .nav-menu-btn .bars { display: flex; flex-direction: column; gap: 4px; width: 17px; }
 
 .nav-menu-btn .bars span {
@@ -256,8 +254,6 @@ body.idle .time-meta {
   transform-origin: center;
   transition: transform var(--transition-base), opacity var(--transition-fast), background var(--transition-fast);
 }
-
-.nav-menu-btn:hover .bars span { background: var(--text-primary); }
 
 /* Bars fold to an X while open. Centre spacing = 1.5px bar + 4px gap = 5.5px. */
 body.nav-open .nav-menu-btn .bars span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
@@ -298,9 +294,8 @@ body.nav-open { overflow: hidden; }
   box-shadow: 30px 0 80px rgba(0, 0, 0, 0.5);
   transform: translateX(-100%);
   transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 body.nav-open .nav-drawer { transform: translateX(0); }
@@ -320,8 +315,8 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 }
 
 .nav-drawer-close {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -335,9 +330,22 @@ body.nav-open .nav-drawer { transform: translateX(0); }
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
-.nav-drawer-close:hover { color: var(--text-primary); background: var(--glass-highlight); }
+.nav-drawer-links {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--space-lg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border-hover) transparent;
+  padding: 0 4px max(var(--space-md), env(safe-area-inset-bottom)) 0;
+}
 
-.nav-drawer-links { display: flex; flex-direction: column; gap: var(--space-lg); }
+.nav-drawer-links::-webkit-scrollbar { width: 4px; }
+.nav-drawer-links::-webkit-scrollbar-thumb { background: var(--glass-border-hover); border-radius: 999px; }
 
 .nav-drawer-group { min-width: 0; }
 
@@ -375,10 +383,17 @@ body.nav-open .nav-drawer { transform: translateX(0); }
   font-size: 1.05rem;
   font-weight: 300;
   letter-spacing: -0.01em;
-  transition: color var(--transition-fast), background var(--transition-fast), padding var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 
-.nav-drawer-links a:hover { color: var(--text-primary); background: var(--glass-bg); padding-left: 24px; }
+.nav-drawer-label { transition: transform var(--transition-fast); }
+
+.nav-drawer-links a:focus-visible,
+.nav-drawer-close:focus-visible,
+.nav-menu-btn:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
+}
 
 .nav-drawer-links a[aria-current="page"] { color: var(--accent); }
 
@@ -398,12 +413,19 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 .nav-drawer-arrow {
   color: var(--text-tertiary);
   font-size: 1.2rem;
-  opacity: 0;
-  transform: translateX(-4px);
+  opacity: 0.28;
+  transform: none;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
 
-.nav-drawer-links a:hover .nav-drawer-arrow { opacity: 1; transform: translateX(0); }
+@media (hover: hover) and (pointer: fine) {
+  .nav-menu-btn:hover { background: var(--glass-highlight); border-color: var(--glass-border-hover); }
+  .nav-menu-btn:hover .bars span { background: var(--text-primary); }
+  .nav-drawer-close:hover { color: var(--text-primary); background: var(--glass-highlight); }
+  .nav-drawer-links a:hover { color: var(--text-primary); background: var(--glass-bg); }
+  .nav-drawer-links a:hover .nav-drawer-label { transform: translateX(4px); }
+  .nav-drawer-links a:hover .nav-drawer-arrow { opacity: 1; transform: translateX(2px); }
+}
 
 /* Links slide in just after the panel, staggered by their index. */
 body.nav-open .nav-drawer-links a {
@@ -940,6 +962,8 @@ body.nav-open .nav-drawer-links a {
   border-color: var(--glass-border-hover);
   background: var(--glass-highlight);
 }
+
+.weather-pill.weather-unavailable { opacity: 0.62; }
 
 .weather-divider {
   width: 1px;

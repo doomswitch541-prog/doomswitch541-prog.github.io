@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>365 Days of Pages</title>
     <style>
         * {
@@ -89,11 +89,126 @@
             flex-wrap: wrap;
         }
 
-        .legend-row {
+        .timeline-row {
+            max-width: 760px;
+            margin: -1.5rem auto 2.2rem;
+        }
+
+        .timeline-carousel {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 249, 0.22);
+            border-radius: 18px;
+            background: rgba(5, 9, 28, 0.58);
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+            backdrop-filter: blur(14px);
+        }
+
+        .timeline-track {
             display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            touch-action: pan-x pan-y;
+        }
+
+        .timeline-track::-webkit-scrollbar {
+            display: none;
+        }
+
+        .timeline-slide {
+            min-width: 100%;
+            min-height: 148px;
+            padding: 1.5rem 4.5rem 1.4rem;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
-            margin-top: -1.5rem;
-            margin-bottom: 2.2rem;
+            text-align: center;
+        }
+
+        .timeline-kicker {
+            color: #00fff9;
+            font-size: 0.64rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 0.55rem;
+        }
+
+        .timeline-title {
+            color: rgba(255, 255, 255, 0.96);
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.45rem;
+        }
+
+        .timeline-copy {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.76rem;
+            line-height: 1.65;
+        }
+
+        .timeline-arrow {
+            position: absolute;
+            top: 50%;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 50%;
+            background: rgba(10, 14, 39, 0.78);
+            color: rgba(255, 255, 255, 0.78);
+            cursor: pointer;
+            transform: translateY(-50%);
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .timeline-arrow:hover,
+        .timeline-arrow:focus-visible {
+            border-color: rgba(0, 255, 249, 0.7);
+            color: #00fff9;
+            outline: none;
+        }
+
+        .timeline-arrow.prev { left: 0.85rem; }
+        .timeline-arrow.next { right: 0.85rem; }
+
+        .timeline-dots {
+            position: absolute;
+            left: 50%;
+            bottom: 0.65rem;
+            z-index: 2;
+            display: flex;
+            gap: 0.42rem;
+            transform: translateX(-50%);
+        }
+
+        .timeline-dot {
+            position: relative;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .timeline-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            transform: translate(-50%, -50%);
+        }
+
+        .timeline-dot.active::after {
+            background: #ff2a6d;
+            box-shadow: 0 0 8px rgba(255, 42, 109, 0.75);
         }
 
         .filter-row {
@@ -134,44 +249,6 @@
             background: rgba(255, 42, 109, 0.13);
             color: #ffd7e6;
             box-shadow: 0 0 14px rgba(255, 42, 109, 0.28);
-        }
-
-        .legend-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.55rem 0.95rem;
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(16, 185, 129, 0.45);
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.22);
-            color: rgba(240, 255, 250, 0.92);
-            font-size: 0.72rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            text-align: center;
-        }
-
-        .legend-swatch {
-            position: relative;
-            width: 30px;
-            height: 14px;
-            border-radius: 4px;
-            border: 1px solid rgba(16, 185, 129, 0.5);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(245, 158, 11, 0.2));
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .legend-swatch::after {
-            content: '';
-            position: absolute;
-            left: -20%;
-            right: -20%;
-            top: 50%;
-            height: 2px;
-            transform: rotate(-10deg) translateY(-50%);
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0), rgba(16, 185, 129, 0.95), rgba(245, 158, 11, 0.95), rgba(245, 158, 11, 0));
         }
 
         .stat-card {
@@ -306,56 +383,22 @@
             text-shadow: none;
         }
 
-        .day-card.local-ai-focus {
-            opacity: 0.9;
+        .day-card.work-log {
+            opacity: 0.92;
             cursor: default;
             border-color: rgba(16, 185, 129, 0.45);
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(245, 158, 11, 0.14));
             box-shadow: 0 0 30px rgba(16, 185, 129, 0.2) inset;
         }
 
-        .day-card.local-ai-focus::before {
+        .day-card.work-log::before {
             background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.25), transparent);
         }
 
-        .day-card.local-ai-focus::after {
-            content: '';
-            position: absolute;
-            left: -15%;
-            right: -15%;
-            top: 52%;
-            height: 2px;
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0), rgba(16, 185, 129, 0.95), rgba(245, 158, 11, 0.95), rgba(245, 158, 11, 0));
-            transform: rotate(-8deg);
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-            pointer-events: none;
-        }
-
-        .day-card.local-ai-focus:hover {
+        .day-card.work-log:hover {
             transform: translateY(-6px) scale(1.01);
             border-color: rgba(16, 185, 129, 0.65);
             box-shadow: 0 15px 36px rgba(16, 185, 129, 0.2), inset 0 0 30px rgba(16, 185, 129, 0.25);
-        }
-
-        .day-card.local-ai-focus .day-number,
-        .day-card.local-ai-focus .day-name {
-            text-decoration: line-through;
-            text-decoration-thickness: 2px;
-            text-decoration-color: rgba(245, 158, 11, 0.85);
-        }
-
-        .local-ai-label {
-            margin-top: 0.8rem;
-            display: inline-block;
-            font-size: 0.68rem;
-            letter-spacing: 0.07em;
-            text-transform: uppercase;
-            color: #9ef6d6;
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(16, 185, 129, 0.45);
-            border-radius: 999px;
-            padding: 0.3rem 0.6rem;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
         }
 
         .day-description {
@@ -452,6 +495,10 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: max(1.15rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.15rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+            }
+
             .header h1 {
                 font-size: 2.5rem;
             }
@@ -460,10 +507,23 @@
                 gap: 1.5rem;
             }
 
-            .legend-row {
+            .timeline-row {
                 margin-top: -0.8rem;
                 margin-bottom: 1.6rem;
             }
+
+            .timeline-slide {
+                min-height: 176px;
+                padding: 1.35rem 3.25rem 1.75rem;
+            }
+
+            .timeline-arrow {
+                width: 40px;
+                height: 40px;
+            }
+
+            .timeline-arrow.prev { left: 0.55rem; }
+            .timeline-arrow.next { right: 0.55rem; }
 
             .filter-row {
                 margin-bottom: 1.25rem;
@@ -472,12 +532,6 @@
             .filter-btn {
                 font-size: 0.62rem;
                 padding: 0.36rem 0.62rem;
-            }
-
-            .legend-pill {
-                font-size: 0.64rem;
-                padding: 0.5rem 0.7rem;
-                gap: 0.5rem;
             }
 
             .stat-card {
@@ -513,6 +567,23 @@
                 left: 1rem;
             }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            .header h1,
+            .star {
+                animation: none;
+            }
+
+            .timeline-track {
+                scroll-behavior: auto;
+            }
+
+            .day-card,
+            .day-card::before,
+            .timeline-arrow {
+                transition: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -537,35 +608,64 @@
 
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-number" id="completedDays">8</div>
+                <div class="stat-number" id="completedDays">31</div>
                 <div class="stat-label">Days Created</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="remainingDays">357</div>
+                <div class="stat-number" id="remainingDays">334</div>
                 <div class="stat-label">Days Remaining</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="progressPercent">2.2%</div>
+                <div class="stat-number" id="progressPercent">8.5%</div>
                 <div class="stat-label">Complete</div>
             </div>
         </div>
 
-        <div class="legend-row">
-            <div class="legend-pill">
-                <span class="legend-swatch" aria-hidden="true"></span>
-                SolarFlare: about page marks the first workday · usable by mid-February · continued here as RGInfV1
-            </div>
-            <div class="legend-pill">
-                <span class="legend-swatch" aria-hidden="true"></span>
-                January: Paradise Motel entered Jan 2 · static-page run closed Jan 10 · SolarFlare planning + work filled the rest of the month
-            </div>
+        <div class="timeline-row">
+            <section class="timeline-carousel" aria-label="January archive notes">
+                <button class="timeline-arrow prev" type="button" aria-label="Previous archive note">←</button>
+                <div class="timeline-track" id="timelineTrack">
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Jan 02–08 · Days 1–7</div>
+                        <h2 class="timeline-title">The opening static run</h2>
+                        <p class="timeline-copy">Paradise Motel begins the calendar. The sequence runs forward one day at a time and closes with Raccoons of Chongqing.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Jan 09–15 · Days 8–14</div>
+                        <h2 class="timeline-title">SolarFlare planning + work</h2>
+                        <p class="timeline-copy">The about page marks the beginning, not completion. These days hold the early planning and build work that eventually became RGInfV1.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Jan 16 · Day 15</div>
+                        <h2 class="timeline-title">Knowledgebase</h2>
+                        <p class="timeline-copy">A learning project for embeddings, retrieval, classifiers, and the ideas surrounding them.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Jan 17–31 · Days 16–30</div>
+                        <h2 class="timeline-title">RGInfV1</h2>
+                        <p class="timeline-copy">The local chat interface becomes its own system: model selection, streaming responses, saved conversations, and a clearer view of inference.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Mid-February · Day 45</div>
+                        <h2 class="timeline-title">RGClaw</h2>
+                        <p class="timeline-copy">The next milestone gives local models tools, bounded execution, and a visible step-by-step task loop.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Held for placement</div>
+                        <h2 class="timeline-title">NERV Terminal + System Monitor</h2>
+                        <p class="timeline-copy">Both designs remain preserved. Their calendar dates stay open until they can be placed on their actual days.</p>
+                    </article>
+                </div>
+                <button class="timeline-arrow next" type="button" aria-label="Next archive note">→</button>
+                <div class="timeline-dots" aria-label="Choose archive note"></div>
+            </section>
         </div>
 
         <div class="filter-row">
             <div class="filter-bar" id="filterBar">
                 <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="live">Live</button>
-                <button class="filter-btn" data-filter="inprogress">In Progress</button>
+                <button class="filter-btn" data-filter="live">Pages</button>
+                <button class="filter-btn" data-filter="complete">Completed</button>
                 <button class="filter-btn" data-filter="pending">Pending</button>
             </div>
         </div>
@@ -602,6 +702,11 @@
                 file: 'luxurytierhomeless.html',
                 status: 'live',
                 description: 'Futuristic luxury meets cosmic irony with purple gradients, glass-morphism effects, and a sophisticated dark aesthetic that explores modern contradictions',
+                timeline: {
+                    label: '365 entry',
+                    entry: 'Jan 3, 2026',
+                    confidence: 'sequence'
+                },
                 theme: {
                     primary: '#667eea',
                     secondary: '#f093fb',
@@ -616,6 +721,11 @@
                 file: 'resonance.html',
                 status: 'live',
                 description: 'Experimental collage layout with floating images, parallax mouse tracking, scattered text elements, glitch effects, diagonal lines, and dynamic particles - breaking away from traditional card designs',
+                timeline: {
+                    label: '365 entry',
+                    entry: 'Jan 4, 2026',
+                    confidence: 'sequence'
+                },
                 theme: {
                     primary: '#10b9ba',
                     secondary: '#10b9ba',
@@ -630,6 +740,11 @@
                 file: 'raccoongang.html',
                 status: 'live',
                 description: 'Cosmic purple/teal drinking-tracker interface preserved as a client-only Lahey demo with funny local data, dummy slash commands, an editable in-memory log, and zero backend requests',
+                timeline: {
+                    label: '365 entry',
+                    entry: 'Jan 5, 2026',
+                    confidence: 'sequence'
+                },
                 theme: {
                     primary: '#7dd3c0',
                     secondary: '#8a2be2',
@@ -644,6 +759,11 @@
                 file: 'day5.html',
                 status: 'live',
                 description: 'Industrial dystopian corporate document aesthetic inspired by retro-futuristic "Homeland Machines Inc" branding with barcodes, technical specifications, monochromatic beige palette, and official government-style design',
+                timeline: {
+                    label: '365 entry',
+                    entry: 'Jan 6, 2026',
+                    confidence: 'sequence'
+                },
                 theme: {
                     primary: '#1a1a1a',
                     secondary: '#00ff00',
@@ -658,6 +778,11 @@
                 file: 'day6.html',
                 status: 'live',
                 description: 'Elegant minimalist design with high-quality sky photography, live weather HUD with wind speedometer, location selector, sophisticated serif/monospace typography pairing, and warm golden accents against deep space aesthetic',
+                timeline: {
+                    label: '365 entry',
+                    entry: 'Jan 7, 2026',
+                    confidence: 'sequence'
+                },
                 theme: {
                     primary: '#ffeaa7',
                     secondary: '#ffffff',
@@ -674,8 +799,8 @@
                 description: 'Cyberpunk Chongqing river city with neon-soaked atmosphere, bilingual Chinese/English content, vertical neon signage, floating particles, fog animations, and raccoon gang lore in a futuristic megacity setting',
                 timeline: {
                     label: 'static phase ends',
-                    entry: 'Jan 10, 2026',
-                    confidence: 'user-date'
+                    entry: 'Jan 8, 2026',
+                    confidence: 'sequence'
                 },
                 theme: {
                     primary: '#00f5ff',
@@ -690,10 +815,10 @@
                 name: 'SolarFlare',
                 file: 'solarflare-about.html',
                 status: 'live',
-                description: 'Milestone about page marking the first day of serious SolarFlare planning and work; its struck-through ideas preserve the path toward a usable local AI system by mid-February and what became RGInfV1 on this machine',
+                description: 'Milestone about page marking the first day of serious SolarFlare planning and work, beginning the path toward the local chat interface that became RGInfV1 on this machine',
                 timeline: {
                     label: 'work begins',
-                    entry: 'After Jan 10, 2026',
+                    entry: 'Jan 9, 2026',
                     confidence: 'sequence'
                 },
                 theme: {
@@ -706,40 +831,150 @@
             },
             {
                 day: 9,
-                name: 'NERV Terminal',
-                file: 'day9.html',
-                status: 'live',
-                description: 'Interactive MAGI archive terminal that performs a local simulated scan and reveals the 365 page field without accessing networks or device data',
+                name: 'SolarFlare — Planning + Work',
+                status: 'complete',
+                description: 'Early planning and active development for SolarFlare.',
                 timeline: {
-                    label: 'provenance',
-                    entry: 'RGPages machine 2',
-                    confidence: 'user-source'
+                    label: 'work log',
+                    entry: 'Jan 10, 2026',
+                    confidence: 'sequence'
                 },
                 theme: {
-                    primary: '#22c55e',
-                    secondary: '#a855f7',
-                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(168, 85, 247, 0.15))',
-                    glow: 'rgba(34, 197, 94, 0.4)',
-                    border: 'rgba(168, 85, 247, 0.5)'
+                    primary: '#10b981',
+                    secondary: '#f59e0b',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(245, 158, 11, 0.14))',
+                    glow: 'rgba(16, 185, 129, 0.35)',
+                    border: 'rgba(16, 185, 129, 0.45)'
                 }
             },
             {
                 day: 10,
-                name: 'NERV System Monitor',
-                file: 'day10.html',
-                status: 'live',
-                description: 'MAGI three-column interface with locally simulated telemetry, hexagonal grids, seismic waveforms, dual chronograph, and phosphor CRT aesthetic',
+                name: 'SolarFlare — Planning + Work',
+                status: 'complete',
+                description: 'Early planning and active development for SolarFlare.',
                 timeline: {
-                    label: 'provenance',
-                    entry: 'RGPages machine 2',
-                    confidence: 'user-source'
+                    label: 'work log',
+                    entry: 'Jan 11, 2026',
+                    confidence: 'sequence'
                 },
                 theme: {
-                    primary: '#00ff41',
-                    secondary: '#ff6b00',
-                    background: 'linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(255, 107, 0, 0.1))',
-                    glow: 'rgba(0, 255, 65, 0.4)',
-                    border: 'rgba(255, 107, 0, 0.5)'
+                    primary: '#10b981',
+                    secondary: '#f59e0b',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(245, 158, 11, 0.14))',
+                    glow: 'rgba(16, 185, 129, 0.35)',
+                    border: 'rgba(16, 185, 129, 0.45)'
+                }
+            },
+            ...[12, 13, 14, 15].map((date, index) => ({
+                day: 11 + index,
+                name: 'SolarFlare — Planning + Work',
+                status: 'complete',
+                description: 'Early planning and active development for SolarFlare.',
+                timeline: {
+                    label: 'work log',
+                    entry: `Jan ${date}, 2026`,
+                    confidence: 'sequence'
+                },
+                theme: {
+                    primary: '#10b981',
+                    secondary: '#f59e0b',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(245, 158, 11, 0.14))',
+                    glow: 'rgba(16, 185, 129, 0.35)',
+                    border: 'rgba(16, 185, 129, 0.45)'
+                }
+            })),
+            {
+                day: 15,
+                name: 'Knowledgebase',
+                file: 'knowledgebase-about.html',
+                status: 'live',
+                description: 'A learning project exploring embeddings, retrieval, classifiers, and the ideas surrounding them.',
+                timeline: {
+                    label: 'project study',
+                    entry: 'Jan 16, 2026',
+                    confidence: 'user-context'
+                },
+                theme: {
+                    primary: '#a78bfa',
+                    secondary: '#00fff9',
+                    background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(0, 255, 249, 0.1))',
+                    glow: 'rgba(167, 139, 250, 0.35)',
+                    border: 'rgba(167, 139, 250, 0.5)'
+                }
+            },
+            ...Array.from({ length: 4 }, (_, index) => ({
+                day: 16 + index,
+                name: 'RGInfV1 — Chat Interface',
+                status: 'complete',
+                description: 'Design and development of the local-model chat interface: model selection, streaming responses, saved conversations, and inference visibility.',
+                timeline: {
+                    label: 'project work',
+                    entry: `Jan ${17 + index}, 2026`,
+                    confidence: 'user-sequence'
+                },
+                theme: {
+                    primary: '#e94560',
+                    secondary: '#4a9eff',
+                    background: 'linear-gradient(135deg, rgba(233, 69, 96, 0.17), rgba(74, 158, 255, 0.12))',
+                    glow: 'rgba(233, 69, 96, 0.32)',
+                    border: 'rgba(233, 69, 96, 0.46)'
+                }
+            })),
+            {
+                day: 20,
+                name: 'RGInfV1',
+                file: 'rginfv1-about.html',
+                status: 'live',
+                description: 'A local-first chat interface for choosing Ollama models, streaming responses, keeping conversations, and understanding inference on your own machine.',
+                timeline: {
+                    label: 'milestone',
+                    entry: 'Jan 21, 2026',
+                    confidence: 'user-date'
+                },
+                theme: {
+                    primary: '#e94560',
+                    secondary: '#4a9eff',
+                    background: 'linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(74, 158, 255, 0.14))',
+                    glow: 'rgba(233, 69, 96, 0.4)',
+                    border: 'rgba(233, 69, 96, 0.55)'
+                }
+            },
+            ...Array.from({ length: 10 }, (_, index) => ({
+                day: 21 + index,
+                name: 'RGInfV1 — Chat Interface',
+                status: 'complete',
+                description: 'Continued work on the local-model chat interface and its streaming, persistence, model controls, and system visibility.',
+                timeline: {
+                    label: 'project work',
+                    entry: `Jan ${22 + index}, 2026`,
+                    confidence: 'user-sequence'
+                },
+                theme: {
+                    primary: '#e94560',
+                    secondary: '#4a9eff',
+                    background: 'linear-gradient(135deg, rgba(233, 69, 96, 0.17), rgba(74, 158, 255, 0.12))',
+                    glow: 'rgba(233, 69, 96, 0.32)',
+                    border: 'rgba(233, 69, 96, 0.46)'
+                }
+            })),
+            {
+                day: 45,
+                name: 'RGClaw',
+                file: 'rgclaw-about.html',
+                status: 'live',
+                statusLabel: '● Milestone',
+                description: 'A local agent runner for defining agents with tools, executing bounded tasks, and watching each reasoning and tool step in real time.',
+                timeline: {
+                    label: 'project born',
+                    entry: 'Mid-February 2026',
+                    confidence: 'user-range'
+                },
+                theme: {
+                    primary: '#fb923c',
+                    secondary: '#fed7aa',
+                    background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.18), rgba(254, 215, 170, 0.08))',
+                    glow: 'rgba(251, 146, 60, 0.38)',
+                    border: 'rgba(251, 146, 60, 0.5)'
                 }
             }
             // Future days will be added here
@@ -766,12 +1001,17 @@
         // Create cards for all 365 days
         for (let i = 1; i <= 365; i++) {
             const dayData = daysData.find(d => d.day === i);
-            const card = document.createElement('a');
+            const card = document.createElement(dayData?.status === 'live' ? 'a' : 'article');
 
-            if (dayData && dayData.status === 'live') {
-                card.href = `/365/${dayData.file}`;
+            if (dayData && (dayData.status === 'live' || dayData.status === 'complete')) {
+                if (dayData.status === 'live') {
+                    card.href = `/365/${dayData.file}`;
+                }
                 card.className = 'day-card';
-                card.dataset.state = 'live';
+                card.dataset.state = dayData.status === 'live' ? 'live' : 'complete';
+                if (dayData.status === 'complete') {
+                    card.classList.add('work-log');
+                }
 
                 // Apply custom theme styling
                 if (dayData.theme) {
@@ -816,36 +1056,25 @@
                 card.innerHTML = `
                     <div class="day-number" style="color: ${dayData.theme?.primary || '#ff2a6d'}; text-shadow: 0 0 20px ${dayData.theme?.glow || 'rgba(255, 42, 109, 0.5)'}">Day ${i}</div>
                     <div class="day-name">${dayData.name}</div>
-                    <div class="day-status" style="color: ${dayData.theme?.secondary || 'rgba(255, 255, 255, 0.7)'}">● Live</div>
+                    <div class="day-status" style="color: ${dayData.theme?.secondary || 'rgba(255, 255, 255, 0.7)'}">${dayData.statusLabel || (dayData.timeline?.entry?.includes('Jan') ? '● Complete' : dayData.status === 'live' ? '● Live' : '● Complete')}</div>
                     ${dayData.timeline ? `<div class="day-date"><span>${dayData.timeline.label || '365 entry'}</span>${dayData.timeline.entry}</div>` : ''}
                 `;
             } else {
                 card.className = 'day-card coming-soon';
                 card.onclick = (e) => e.preventDefault();
-                if (i >= 11 && i <= 30) {
-                    card.classList.add('local-ai-focus');
-                    card.dataset.state = 'inprogress';
-                    card.innerHTML = `
-                        <div class="day-number">Day ${i}</div>
-                        <div class="day-name">In Progress</div>
-                        <div class="day-status">◌ Building</div>
-                        <div class="local-ai-label">Working on local AI (SolarFlare, Agent Library)</div>
-                    `;
-                } else {
-                    card.dataset.state = 'pending';
-                    card.innerHTML = `
-                        <div class="day-number">Day ${i}</div>
-                        <div class="day-name">Coming Soon</div>
-                        <div class="day-status">○ Pending</div>
-                    `;
-                }
+                card.dataset.state = 'pending';
+                card.innerHTML = `
+                    <div class="day-number">Day ${i}</div>
+                    <div class="day-name">Coming Soon</div>
+                    <div class="day-status">○ Pending</div>
+                `;
             }
 
             grid.appendChild(card);
         }
 
         // Update stats
-        const completedDays = daysData.filter(d => d.status === 'live').length;
+        const completedDays = daysData.length;
         const remainingDays = 365 - completedDays;
         const progressPercent = ((completedDays / 365) * 100).toFixed(1);
 
@@ -873,6 +1102,58 @@
             btn.classList.add('active');
             applyFilter(btn.dataset.filter);
         });
+
+        // January archive carousel
+        const timelineTrack = document.getElementById('timelineTrack');
+        const timelineSlides = Array.from(timelineTrack.children);
+        const timelineDots = document.querySelector('.timeline-dots');
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let activeTimelineSlide = 0;
+
+        function showTimelineSlide(index) {
+            activeTimelineSlide = (index + timelineSlides.length) % timelineSlides.length;
+            timelineTrack.scrollTo({
+                left: timelineSlides[activeTimelineSlide].offsetLeft,
+                behavior: prefersReducedMotion ? 'auto' : 'smooth'
+            });
+            Array.from(timelineDots.children).forEach((dot, dotIndex) => {
+                dot.classList.toggle('active', dotIndex === activeTimelineSlide);
+                dot.setAttribute('aria-current', dotIndex === activeTimelineSlide ? 'true' : 'false');
+            });
+        }
+
+        timelineSlides.forEach((slide, index) => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'timeline-dot';
+            dot.setAttribute('aria-label', `Show archive note ${index + 1}`);
+            dot.addEventListener('click', () => showTimelineSlide(index));
+            timelineDots.appendChild(dot);
+        });
+
+        document.querySelector('.timeline-arrow.prev').addEventListener('click', () => showTimelineSlide(activeTimelineSlide - 1));
+        document.querySelector('.timeline-arrow.next').addEventListener('click', () => showTimelineSlide(activeTimelineSlide + 1));
+
+        let timelineScrollFrame;
+        timelineTrack.addEventListener('scroll', () => {
+            cancelAnimationFrame(timelineScrollFrame);
+            timelineScrollFrame = requestAnimationFrame(() => {
+                const nearestIndex = timelineSlides.reduce((nearest, slide, index) => {
+                    const currentDistance = Math.abs(slide.offsetLeft - timelineTrack.scrollLeft);
+                    const nearestDistance = Math.abs(timelineSlides[nearest].offsetLeft - timelineTrack.scrollLeft);
+                    return currentDistance < nearestDistance ? index : nearest;
+                }, 0);
+                if (nearestIndex !== activeTimelineSlide) {
+                    activeTimelineSlide = nearestIndex;
+                    Array.from(timelineDots.children).forEach((dot, dotIndex) => {
+                        dot.classList.toggle('active', dotIndex === activeTimelineSlide);
+                        dot.setAttribute('aria-current', dotIndex === activeTimelineSlide ? 'true' : 'false');
+                    });
+                }
+            });
+        }, { passive: true });
+
+        showTimelineSlide(0);
     </script>
 </body>
 </html>

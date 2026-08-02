@@ -335,15 +335,78 @@ const ClockManager = {
     }
 };
 
-// The home weather pill previously requested precise device location only to
-// populate a decorative readout. Keep the dormant markup out of view without
-// prompting for a permission the site does not otherwise need.
-function disableLocationWeather() {
-    const pill = document.getElementById('weather');
-    if (!pill) return;
-    pill.hidden = true;
-    pill.setAttribute('aria-hidden', 'true');
-}
+// === Home Weather ===
+// Fixed HQ coordinates keep the readout useful without requesting device
+// location. Open-Meteo provides the current modelled conditions directly.
+const HomeWeather = {
+    latitude: 30.1025,
+    longitude: -92.1247,
+    refreshMs: 15 * 60 * 1000,
+    conditions: {
+        0: 'Clear', 1: 'Mostly clear', 2: 'Partly cloudy', 3: 'Overcast',
+        45: 'Fog', 48: 'Rime fog',
+        51: 'Light drizzle', 53: 'Drizzle', 55: 'Heavy drizzle',
+        56: 'Freezing drizzle', 57: 'Heavy freezing drizzle',
+        61: 'Light rain', 63: 'Rain', 65: 'Heavy rain',
+        66: 'Freezing rain', 67: 'Heavy freezing rain',
+        71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
+        80: 'Light showers', 81: 'Showers', 82: 'Heavy showers',
+        85: 'Snow showers', 86: 'Heavy snow showers',
+        95: 'Thunderstorm', 96: 'Storm + hail', 99: 'Heavy storm + hail',
+    },
+
+    init() {
+        this.pill = document.getElementById('weather');
+        this.temp = document.getElementById('weather-temp');
+        this.description = document.getElementById('weather-desc');
+        if (!this.pill || !this.temp || !this.description) return;
+
+        this.pill.hidden = false;
+        this.pill.removeAttribute('aria-hidden');
+        this.pill.setAttribute('aria-live', 'polite');
+        this.pill.title = 'HQ weather via Open-Meteo';
+        this.refresh();
+        setInterval(() => this.refresh(), this.refreshMs);
+    },
+
+    async refresh() {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        const params = new URLSearchParams({
+            latitude: this.latitude,
+            longitude: this.longitude,
+            current: 'temperature_2m,weather_code',
+            temperature_unit: 'fahrenheit',
+            timezone: 'auto',
+            forecast_days: '1',
+        });
+
+        try {
+            const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
+                signal: controller.signal,
+                cache: 'no-store',
+            });
+            if (!response.ok) throw new Error(`Weather request failed: ${response.status}`);
+            const data = await response.json();
+            const temperature = Number(data.current?.temperature_2m);
+            const code = Number(data.current?.weather_code);
+            if (!Number.isFinite(temperature) || !Number.isFinite(code)) {
+                throw new Error('Weather response was incomplete');
+            }
+
+            this.temp.textContent = `${Math.round(temperature)}°`;
+            this.description.textContent = this.conditions[code] || 'Current weather';
+            this.pill.classList.remove('weather-unavailable');
+        } catch (error) {
+            this.temp.textContent = '--°';
+            this.description.textContent = 'Weather unavailable';
+            this.pill.classList.add('weather-unavailable');
+            console.warn('[weather] Open-Meteo unavailable', error);
+        } finally {
+            clearTimeout(timeout);
+        }
+    },
+};
 
 // === Idle Mode (screensaver-only) ===
 // Fades chrome after IDLE_MS of no input. Any input wakes. Only runs where a
@@ -379,5 +442,5 @@ document.addEventListener('DOMContentLoaded', () => {
     ThemeManager.init();
     if (document.getElementById('hours')) ClockManager.init();
     IdleManager.init();
-    disableLocationWeather();
+    HomeWeather.init();
 });
