@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NERV System Monitor — Local Simulation</title>
     <link rel="stylesheet" href="day10.css?v=10">
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
 </head>
 <body>
     <!-- CRT Effects -->
@@ -13,14 +15,6 @@
     <div class="scanlines"></div>
     <div class="api-status-badge ok" id="apiStatusBadge">LOCAL SIMULATION</div>
 
-    <!-- Pagination Navigation -->
-    <div class="pagination">
-        <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')">◀</button>
-        <span class="page-indicator" id="pageIndicator">Day 10/365</span>
-        <button class="pagination-btn" id="nextBtn" onclick="navigate('next')">▶</button>
-        <a href="/365/" class="pagination-home" title="View All Days">⊞</a>
-    </div>
-    
     <!-- Warning Stripes Header (shows on high load) -->
     <div class="warning-stripes" id="warningStripes">
         <span>⚠ MAGI SYSTEM ALERT - HIGH LOAD DETECTED ⚠</span>
@@ -336,56 +330,7 @@
         </footer>
     </div>
 
+    <nav data-archive-day="96" aria-label="365 Days navigation"></nav>
     <script src="day10.js?v=10"></script>
-    <script>
-        const daysOfPages = [
-            { day: 1, name: 'Paradise Motel', file: 'motel.html' },
-            { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
-            { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
-            { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
-            { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
-            { day: 6, name: 'Celestial Drift', file: 'day6.html' },
-            { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
-            { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
-            { day: 9, name: 'NERV Terminal', file: 'day9.html' },
-            { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
-        ];
-
-        const currentPageFile = window.location.pathname.split('/').pop();
-        const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
-
-        if (currentIndex !== -1) {
-            document.getElementById('pageIndicator').textContent =
-                `Day ${daysOfPages[currentIndex].day}/365`;
-        }
-
-        function navigate(direction) {
-            if (currentIndex === -1) return;
-            const newIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
-            if (newIndex >= 0 && newIndex < daysOfPages.length) {
-                window.location.href = `/365/${daysOfPages[newIndex].file}`;
-            }
-        }
-
-        if (currentIndex !== -1) {
-            if (currentIndex === 0) {
-                document.getElementById('prevBtn').disabled = true;
-            }
-            if (currentIndex === daysOfPages.length - 1) {
-                document.getElementById('nextBtn').disabled = true;
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                navigate('prev');
-            } else if (e.key === 'ArrowRight') {
-                navigate('next');
-            } else if (e.key === 'Escape' || e.key === 'h') {
-                window.location.href = '/365/';
-            }
-        });
-
-    </script>
 </body>
 </html>

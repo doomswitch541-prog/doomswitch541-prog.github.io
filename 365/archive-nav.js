@@ -20,7 +20,10 @@
         { day: 40, file: 'karpathy-agent-studies.html', accent: '#fb923c' },
         { day: 45, file: 'rgclaw-about.html', accent: '#fb923c' },
         { day: 55, file: 'americans.html', accent: '#ff2a6d' },
-        { day: 77, file: 'the-four-about.html', accent: '#ff5b8d' }
+        { day: 77, file: 'the-four-about.html', accent: '#ff5b8d' },
+        { day: 95, file: 'day9.html', accent: '#00ff41' },
+        { day: 96, file: 'day10.html', accent: '#ff6b00' },
+        { day: 176, file: 'discord-pipeline-about.html', accent: '#8b9cff' }
     ];
 
     const nav = document.querySelector('[data-archive-day]');

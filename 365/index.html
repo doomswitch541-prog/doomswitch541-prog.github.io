@@ -741,9 +741,14 @@
                         <p class="timeline-copy">A research archive about model character, alignment, institutions, and the human stakes of how intelligence is shaped.</p>
                     </article>
                     <article class="timeline-slide">
-                        <div class="timeline-kicker">Held for placement</div>
+                        <div class="timeline-kicker">Apr 06–07 · Days 95–96</div>
                         <h2 class="timeline-title">NERV Terminal + System Monitor</h2>
-                        <p class="timeline-copy">Both designs remain preserved. Their calendar dates stay open until they can be placed on their actual days.</p>
+                        <p class="timeline-copy">The preserved terminal and monitor interfaces take their artifact-backed places as local-only archive simulations from the second machine.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Jun 26 · Day 176</div>
+                        <h2 class="timeline-title">Discord Pipeline</h2>
+                        <p class="timeline-copy">A hand-coded 2018 bot lineage passes through a Linux rebuild and self-authored specification into the Windows pipeline used today.</p>
                     </article>
                 </div>
                 <button class="timeline-arrow next" type="button" aria-label="Next archive note">→</button>
@@ -827,7 +832,7 @@
             },
             {
                 day: 4,
-                name: 'Raccoon Gang',
+                name: 'Drinks Tracker',
                 file: 'raccoongang.html',
                 status: 'live',
                 description: 'Cosmic purple/teal drinking-tracker interface preserved as a client-only Lahey demo with funny local data, dummy slash commands, an editable in-memory log, and zero backend requests',
@@ -1405,6 +1410,104 @@
                     background: 'linear-gradient(135deg, rgba(255, 91, 141, 0.16), rgba(139, 164, 255, 0.1))',
                     glow: 'rgba(255, 91, 141, 0.34)',
                     border: 'rgba(255, 91, 141, 0.48)'
+                }
+            },
+            ...Array.from({ length: 12 }, (_, index) => ({
+                day: 78 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Mar ${20 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            ...Array.from({ length: 5 }, (_, index) => ({
+                day: 90 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Apr ${1 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 95,
+                name: 'NERV Terminal',
+                file: 'day9.html',
+                status: 'live',
+                statusLabel: '● Local Archive',
+                description: 'A preserved MAGI terminal interface that performs a theatrical local scan and reveals the fixed 365 page manifest without network or device inspection.',
+                timeline: { label: 'artifact placement', entry: 'Apr 6, 2026', confidence: 'cross-machine-artifact' },
+                theme: {
+                    primary: '#00ff41', secondary: '#b7ffd0',
+                    background: 'linear-gradient(135deg, rgba(0, 255, 65, 0.13), rgba(7, 18, 10, 0.28))',
+                    glow: 'rgba(0, 255, 65, 0.3)', border: 'rgba(0, 255, 65, 0.42)'
+                }
+            },
+            {
+                day: 96,
+                name: 'NERV System Monitor',
+                file: 'day10.html',
+                status: 'live',
+                statusLabel: '● Local Simulation',
+                description: 'A preserved NERV system-monitor interface driven by deterministic local simulation, with no host telemetry, permissions, storage, or external requests.',
+                timeline: { label: 'artifact placement', entry: 'Apr 7, 2026', confidence: 'cross-machine-artifact' },
+                theme: {
+                    primary: '#ff6b00', secondary: '#00ff41',
+                    background: 'linear-gradient(135deg, rgba(255, 107, 0, 0.14), rgba(15, 5, 5, 0.3))',
+                    glow: 'rgba(255, 107, 0, 0.3)', border: 'rgba(255, 107, 0, 0.44)'
+                }
+            },
+            ...Array.from({ length: 23 }, (_, index) => ({
+                day: 97 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Apr ${8 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            ...Array.from({ length: 31 }, (_, index) => ({
+                day: 120 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `May ${1 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            ...Array.from({ length: 25 }, (_, index) => ({
+                day: 151 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Jun ${1 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 176,
+                name: 'Discord Pipeline',
+                file: 'discord-pipeline-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Pipeline Milestone',
+                description: 'The current Discord pipeline, descended from a hand-coded 2018 assistant through a Linux Claude/Codex rebuild and a specification produced to carry the system forward.',
+                timeline: { label: 'pipeline milestone', entry: 'Jun 26, 2026', confidence: 'user-offset' },
+                theme: {
+                    primary: '#8b9cff', secondary: '#68e7c7',
+                    background: 'linear-gradient(135deg, rgba(139, 156, 255, 0.17), rgba(104, 231, 199, 0.07))',
+                    glow: 'rgba(139, 156, 255, 0.34)', border: 'rgba(139, 156, 255, 0.48)'
                 }
             }
             // Future days will be added here

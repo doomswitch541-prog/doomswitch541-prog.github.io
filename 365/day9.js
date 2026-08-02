@@ -6,13 +6,13 @@ const PAGE_FIELD = [
     { day: 1, title: 'Paradise Motel', file: 'motel.html', date: 'JAN 02 2026', phase: 'STATIC / ORIGIN 2024' },
     { day: 2, title: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html', date: 'JAN 02–10', phase: 'STATIC' },
     { day: 3, title: 'Urban Resonance', file: 'resonance.html', date: 'JAN 02–10', phase: 'STATIC' },
-    { day: 4, title: 'Raccoon Gang', file: 'raccoongang.html', date: 'JAN 02–10', phase: 'STATIC' },
+    { day: 4, title: 'Drinks Tracker', file: 'raccoongang.html', date: 'JAN 02–10', phase: 'STATIC' },
     { day: 5, title: 'RE-IND Homeland', file: 'day5.html', date: 'JAN 02–10', phase: 'STATIC' },
     { day: 6, title: 'Celestial Drift', file: 'day6.html', date: 'JAN 02–10', phase: 'STATIC' },
     { day: 7, title: 'Raccoons of Chongqing', file: 'day7.html', date: 'JAN 10 2026', phase: 'STATIC / FINAL' },
     { day: 8, title: 'SolarFlare', file: 'solarflare-about.html', date: 'AFTER JAN 10', phase: 'PLANNING + WORK' },
-    { day: 9, title: 'NERV Terminal', file: 'day9.html', date: 'DATE UNRESOLVED', phase: 'SECOND MACHINE' },
-    { day: 10, title: 'NERV System Monitor', file: 'day10.html', date: 'DATE UNRESOLVED', phase: 'SECOND MACHINE' },
+    { day: 95, title: 'NERV Terminal', file: 'day9.html', date: 'APR 06 2026', phase: 'SECOND MACHINE' },
+    { day: 96, title: 'NERV System Monitor', file: 'day10.html', date: 'APR 07 2026', phase: 'SECOND MACHINE' },
 ].map((page) => ({ ...page, route: `/365/${page.file}` }));
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

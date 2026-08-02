@@ -5,13 +5,13 @@ const ARCHIVE_PAGES = [
     ['01', 'Paradise Motel', 'motel.html'],
     ['02', 'Luxury Tier Homelessness', 'luxurytierhomeless.html'],
     ['03', 'Urban Resonance', 'resonance.html'],
-    ['04', 'Raccoon Gang', 'raccoongang.html'],
+    ['04', 'Drinks Tracker', 'raccoongang.html'],
     ['05', 'RE-IND Homeland', 'day5.html'],
     ['06', 'Celestial Drift', 'day6.html'],
     ['07', 'Raccoons of Chongqing', 'day7.html'],
     ['08', 'SolarFlare', 'solarflare-about.html'],
-    ['09', 'NERV Terminal', 'day9.html'],
-    ['10', 'NERV System Monitor', 'day10.html'],
+    ['95', 'NERV Terminal', 'day9.html'],
+    ['96', 'NERV System Monitor', 'day10.html'],
 ].map(([day, title, file]) => ({ day, title, route: `/365/${file}` }));
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
