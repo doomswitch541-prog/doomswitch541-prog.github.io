@@ -1,0 +1,181 @@
+body[data-project="raccoongang-started"] {
+    --night: #101923;
+    --panel: #172532;
+    --ink: #f3f0d0;
+    --muted: #aab5a5;
+    --quiet: #6e8078;
+    --accent: #9ddb74;
+    --accent-2: #f1c76e;
+    --accent-soft: rgba(157, 219, 116, 0.11);
+    background:
+        radial-gradient(circle at 78% 16%, rgba(241, 199, 110, 0.09), transparent 25rem),
+        radial-gradient(circle at 12% 76%, rgba(102, 179, 165, 0.11), transparent 34rem),
+        var(--night);
+}
+
+body[data-project="raccoongang-started"] h1 {
+    max-width: 7ch;
+    font-family: "Avenir Next", "Trebuchet MS", var(--sans);
+    font-weight: 660;
+    line-height: 0.78;
+    letter-spacing: -0.09em;
+}
+
+body[data-project="raccoongang-started"] h1 span {
+    color: var(--accent);
+    font-weight: 480;
+}
+
+.trail-figure {
+    min-height: 510px;
+    background:
+        linear-gradient(rgba(157, 219, 116, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 219, 116, 0.025) 1px, transparent 1px),
+        rgba(12, 24, 33, 0.94);
+    background-size: 18px 18px;
+}
+
+.trail-screen {
+    width: min(84%, 450px);
+    overflow: hidden;
+    border: 1px solid rgba(157, 219, 116, 0.34);
+    border-radius: 1.35rem;
+    background: #172b30;
+    box-shadow: inset 0 0 0 0.5rem rgba(8, 16, 23, 0.26), 0 2rem 5rem rgba(0, 0, 0, 0.34);
+}
+
+.tile-field {
+    position: relative;
+    aspect-ratio: 1.32;
+    overflow: hidden;
+    background:
+        linear-gradient(rgba(243, 240, 208, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(243, 240, 208, 0.055) 1px, transparent 1px),
+        linear-gradient(135deg, #426f55, #315e51);
+    background-size: 10% 12.5%, 10% 12.5%, auto;
+}
+
+.path,
+.water {
+    position: absolute;
+    display: block;
+}
+
+.path { background: #b9a874; box-shadow: inset 0 0 0 1px rgba(73, 62, 40, 0.22); }
+.path-a { left: 0; top: 37.5%; width: 72%; height: 25%; }
+.path-b { left: 55%; top: 37.5%; width: 20%; height: 62.5%; }
+.water { background: #4f97a0; box-shadow: inset 0 0 0 1px rgba(215, 247, 238, 0.1); }
+.water-a { right: 0; top: 0; width: 25%; height: 62.5%; }
+.water-b { right: 0; bottom: 0; width: 45%; height: 25%; }
+
+.tree {
+    position: absolute;
+    color: #173e32;
+    font: 1.6rem/1 var(--mono);
+    filter: drop-shadow(0 0.35rem 0 rgba(10, 31, 25, 0.2));
+}
+
+.tree-a { left: 14%; top: 13%; }
+.tree-b { left: 42%; top: 16%; }
+.tree-c { left: 22%; bottom: 12%; }
+
+.traveler-token,
+.creature-token {
+    position: absolute;
+    z-index: 2;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(243, 240, 208, 0.64);
+    border-radius: 0.35rem;
+    color: var(--ink);
+    font: 0.52rem/1 var(--mono);
+    box-shadow: 0 0.55rem 1.2rem rgba(0, 0, 0, 0.28);
+}
+
+.traveler-token {
+    left: 25%;
+    top: 45%;
+    background: #2b4550;
+    animation: tile-step 4.8s steps(3, end) infinite;
+}
+
+.creature-token { right: 34%; top: 46%; color: #182329; background: var(--accent-2); }
+
+@keyframes tile-step {
+    0%, 20% { transform: translate(0, 0); }
+    40%, 60% { transform: translate(100%, 0); }
+    80%, 100% { transform: translate(200%, 0); }
+}
+
+.encounter-card {
+    padding: 1rem 1.15rem 1.1rem;
+    color: var(--ink);
+    background: #101c26;
+    font-family: var(--mono);
+}
+
+.encounter-card > span {
+    color: var(--accent-2);
+    font-size: 0.52rem;
+    letter-spacing: 0.17em;
+}
+
+.encounter-line {
+    margin-top: 0.7rem;
+    display: grid;
+    grid-template-columns: auto minmax(1rem, 1fr) auto;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.encounter-line b,
+.encounter-line small { font-size: 0.58rem; font-weight: 500; letter-spacing: 0.08em; }
+.encounter-line small { color: var(--accent); }
+.encounter-line i { height: 1px; background: rgba(243, 240, 208, 0.12); }
+
+.encounter-actions {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.encounter-actions em {
+    padding: 0.5rem 0.25rem;
+    border: 1px solid rgba(157, 219, 116, 0.18);
+    color: var(--muted);
+    font-size: 0.48rem;
+    font-style: normal;
+    letter-spacing: 0.09em;
+    text-align: center;
+}
+
+body[data-project="raccoongang-started"] .about-card { background: rgba(23, 37, 50, 0.96); }
+
+.seed-section {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.38fr) minmax(0, 1fr);
+    gap: clamp(2rem, 8vw, 7rem);
+}
+
+.seed-section h2 { margin-top: 0; }
+.start-closing blockquote span { color: var(--accent-2); }
+
+@media (max-width: 760px) {
+    .start-hero { padding-top: 4.5rem; }
+    .trail-figure { min-height: 460px; }
+    .seed-section { grid-template-columns: 1fr; gap: 2rem; }
+    .seed-section h2 { margin-top: 1rem; }
+}
+
+@media (max-width: 520px) {
+    .trail-figure { min-height: 390px; }
+    .trail-screen { width: min(90%, 360px); }
+    .tree { font-size: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .traveler-token { animation: none; }
+}

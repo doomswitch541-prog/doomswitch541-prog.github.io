@@ -19,6 +19,7 @@
         { day: 33, file: 'corpus-about.html', accent: '#69a9ff' },
         { day: 40, file: 'karpathy-agent-studies.html', accent: '#fb923c' },
         { day: 45, file: 'rgclaw-about.html', accent: '#fb923c' },
+        { day: 46, file: 'raccoongang-started.html', accent: '#9ddb74' },
         { day: 55, file: 'americans.html', accent: '#ff2a6d' },
         { day: 77, file: 'the-four-about.html', accent: '#ff5b8d' },
         { day: 95, file: 'day9.html', accent: '#00ff41' },
@@ -26,6 +27,7 @@
         { day: 104, file: 'hermes-agent-about.html', accent: '#e7b95f' },
         { day: 121, file: 'rgmodelserve-about.html', accent: '#78e7d1' },
         { day: 176, file: 'discord-pipeline-about.html', accent: '#8b9cff' },
+        { day: 182, file: 'raccoongang-game-about.html', accent: '#7ee8d2' },
         { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' }
     ];
 

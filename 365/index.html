@@ -731,6 +731,11 @@
                         <p class="timeline-copy">The next milestone gives local models tools, bounded execution, and a visible step-by-step task loop.</p>
                     </article>
                     <article class="timeline-slide">
+                        <div class="timeline-kicker">Feb 16 · Day 46</div>
+                        <h2 class="timeline-title">Raccoon Gang begins</h2>
+                        <p class="timeline-copy">A compact creature-adventure prototype establishes movement, encounters, party growth, quests, gathering, and a world that can keep expanding.</p>
+                    </article>
+                    <article class="timeline-slide">
                         <div class="timeline-kicker">Feb 25 · Day 55</div>
                         <h2 class="timeline-title">Americans</h2>
                         <p class="timeline-copy">A cinematic act of patriotism from the original Clock project, created as the Anthropic–Pentagon confrontation became public.</p>
@@ -759,6 +764,11 @@
                         <div class="timeline-kicker">Jun 26 · Day 176</div>
                         <h2 class="timeline-title">Discord Pipeline</h2>
                         <p class="timeline-copy">A hand-coded 2018 bot lineage passes through a Linux rebuild and self-authored specification into the Windows pipeline used today.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Jul 02 · Day 182</div>
+                        <h2 class="timeline-title">Raccoon Gang</h2>
+                        <p class="timeline-copy">A connected journey through village paths, mountain crossings, underground currents, listening gardens, and luminous cities raised over water.</p>
                     </article>
                     <article class="timeline-slide">
                         <div class="timeline-kicker">Aug 02 · Day 213</div>
@@ -1348,13 +1358,34 @@
                     border: 'rgba(251, 146, 60, 0.5)'
                 }
             },
-            ...Array.from({ length: 9 }, (_, index) => ({
-                day: 46 + index,
+            {
+                day: 46,
+                name: 'Raccoon Gang Started',
+                file: 'raccoongang-started.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Project Started',
+                description: 'The first playable loop: tile exploration, creature encounters, catching and switching, party growth, quests, gathering skills, inventory, and saved progress.',
+                timeline: {
+                    label: 'project started',
+                    entry: 'Feb 16, 2026',
+                    confidence: 'user-date'
+                },
+                theme: {
+                    primary: '#9ddb74',
+                    secondary: '#f1c76e',
+                    background: 'linear-gradient(135deg, rgba(157, 219, 116, 0.17), rgba(241, 199, 110, 0.08))',
+                    glow: 'rgba(157, 219, 116, 0.34)',
+                    border: 'rgba(157, 219, 116, 0.48)'
+                }
+            },
+            ...Array.from({ length: 8 }, (_, index) => ({
+                day: 47 + index,
                 name: 'Completed Day',
                 status: 'complete',
                 timeline: {
                     label: 'archive date',
-                    entry: `Feb ${16 + index}, 2026`,
+                    entry: `Feb ${17 + index}, 2026`,
                     confidence: 'calendar'
                 },
                 theme: {
@@ -1588,11 +1619,37 @@
                     glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
                 }
             })),
-            ...Array.from({ length: 31 }, (_, index) => ({
-                day: 181 + index,
+            {
+                day: 181,
                 name: 'Completed Day',
                 status: 'complete',
-                timeline: { label: 'archive date', entry: `Jul ${1 + index}, 2026`, confidence: 'calendar' },
+                timeline: { label: 'archive date', entry: 'Jul 1, 2026', confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            },
+            {
+                day: 182,
+                name: 'Raccoon Gang',
+                file: 'raccoongang-game-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ World Milestone',
+                description: 'A connected adventure spanning twenty-two regions, story-led characters and quests, weapon attunement, mountain crossings, underground currents, and the layered city of Delta.',
+                timeline: { label: 'world milestone', entry: 'Jul 2, 2026', confidence: 'user-date' },
+                theme: {
+                    primary: '#7ee8d2', secondary: '#f3bd67',
+                    background: 'linear-gradient(135deg, rgba(126, 232, 210, 0.16), rgba(243, 189, 103, 0.07))',
+                    glow: 'rgba(126, 232, 210, 0.32)', border: 'rgba(126, 232, 210, 0.46)'
+                }
+            },
+            ...Array.from({ length: 29 }, (_, index) => ({
+                day: 183 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Jul ${3 + index}, 2026`, confidence: 'calendar' },
                 theme: {
                     primary: '#8b93a7', secondary: '#aeb5c5',
                     background: 'rgba(255, 255, 255, 0.035)',
