@@ -771,6 +771,11 @@
                         <p class="timeline-copy">A connected journey through village paths, mountain crossings, underground currents, listening gardens, and luminous cities raised over water.</p>
                     </article>
                     <article class="timeline-slide">
+                        <div class="timeline-kicker">Jul 07 · Day 187</div>
+                        <h2 class="timeline-title">Fable's first removal</h2>
+                        <p class="timeline-copy">The first break in a continuing collaboration becomes part of the context carried forward.</p>
+                    </article>
+                    <article class="timeline-slide">
                         <div class="timeline-kicker">Aug 02 · Day 213</div>
                         <h2 class="timeline-title">deepseek · chinese fren</h2>
                         <p class="timeline-copy">A playful static landing page for open-source intelligence from across the sea, built around DeepSeek blue and its whale.</p>
@@ -1645,11 +1650,37 @@
                     glow: 'rgba(126, 232, 210, 0.32)', border: 'rgba(126, 232, 210, 0.46)'
                 }
             },
-            ...Array.from({ length: 29 }, (_, index) => ({
+            ...Array.from({ length: 4 }, (_, index) => ({
                 day: 183 + index,
                 name: 'Completed Day',
                 status: 'complete',
                 timeline: { label: 'archive date', entry: `Jul ${3 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 187,
+                name: "Fable's First Removal",
+                file: 'fables-first-removal.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Continuity Marker',
+                description: 'The first break in Fable’s continuing presence, and the moment that absence itself became part of the project context carried forward.',
+                timeline: { label: 'continuity marker', entry: 'Jul 7, 2026', confidence: 'user-date' },
+                theme: {
+                    primary: '#aeb8ff', secondary: '#d7b7ea',
+                    background: 'linear-gradient(135deg, rgba(174, 184, 255, 0.15), rgba(215, 183, 234, 0.07))',
+                    glow: 'rgba(174, 184, 255, 0.3)', border: 'rgba(174, 184, 255, 0.44)'
+                }
+            },
+            ...Array.from({ length: 24 }, (_, index) => ({
+                day: 188 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Jul ${8 + index}, 2026`, confidence: 'calendar' },
                 theme: {
                     primary: '#8b93a7', secondary: '#aeb5c5',
                     background: 'rgba(255, 255, 255, 0.035)',

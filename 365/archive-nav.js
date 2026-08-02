@@ -28,6 +28,7 @@
         { day: 121, file: 'rgmodelserve-about.html', accent: '#78e7d1' },
         { day: 176, file: 'discord-pipeline-about.html', accent: '#8b9cff' },
         { day: 182, file: 'raccoongang-game-about.html', accent: '#7ee8d2' },
+        { day: 187, file: 'fables-first-removal.html', accent: '#aeb8ff' },
         { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' }
     ];
 
