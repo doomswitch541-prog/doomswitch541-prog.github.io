@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#090b12">
+    <title>RGInfV1 — Memory System</title>
+    <link rel="stylesheet" href="/365/rginfv1-research.css">
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+</head>
+<body data-research="memory">
+    <header class="research-masthead">
+        <a class="research-mark" href="/365/"><span>RG</span> / INF / MEMORY</a>
+        <time class="research-date" datetime="2026-01-24">Day 23 · January 24, 2026</time>
+    </header>
+
+    <main class="research-main">
+        <section class="research-hero">
+            <div>
+                <p class="research-kicker">RGInfV1 research note</p>
+                <h1>Memory system</h1>
+                <p class="research-lede"><strong>A saved transcript is history. Memory is the process that decides what returns.</strong> RGInfV1’s memory work separated the current conversation from durable records, then asked how the right pieces could be selected and placed back into context when they mattered.</p>
+            </div>
+
+            <div class="research-figure" aria-label="Four layers of model memory">
+                <div class="memory-stack">
+                    <div class="memory-layer"><code>NOW</code><div><strong>Working context</strong><span>current messages / instructions / active task</span></div></div>
+                    <div class="memory-layer"><code>THREAD</code><div><strong>Conversation history</strong><span>saved turns / summaries / recent continuity</span></div></div>
+                    <div class="memory-layer"><code>RECALL</code><div><strong>Retrieved records</strong><span>relevant facts / prior decisions / source links</span></div></div>
+                    <div class="memory-layer"><code>KEEP</code><div><strong>Durable memory</strong><span>stable preferences / project knowledge / provenance</span></div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="research-section">
+            <p class="section-kicker">What the system has to do</p>
+            <h2>Remember selectively, not endlessly.</h2>
+            <p class="section-lede">Language models do not carry a private recollection from one request to the next. Each request receives a constructed context. A memory system makes that construction deliberate: it stores candidate records, decides what is relevant now, and gives the model a compact packet with enough origin information to understand why it is there.</p>
+
+            <div class="research-grid">
+                <article class="research-card"><code>01 / CAPTURE</code><h3>Turn experience into records</h3><p>Messages, decisions, preferences, project facts, and summaries need different shapes. A useful record includes the information itself, when it was learned, where it came from, and what scope it belongs to.</p></article>
+                <article class="research-card"><code>02 / SELECT</code><h3>Retrieve for the present task</h3><p>Recall can combine semantic similarity with recency, importance, project identity, tags, and explicit pins. Similar wording alone is not enough; a nearby memory can still be wrong for the current situation.</p></article>
+                <article class="research-card"><code>03 / PACK</code><h3>Fit memory into context</h3><p>Retrieved records compete with conversation history, system instructions, source material, and room for the answer. Deduplication, ranking, summaries, and token budgets keep the packet useful instead of merely large.</p></article>
+                <article class="research-card"><code>04 / REVISE</code><h3>Let memory change cleanly</h3><p>New evidence can supersede an older record. Corrections should preserve provenance, avoid silent rewriting, and distinguish a stable preference from a temporary statement made inside one conversation.</p></article>
+            </div>
+        </section>
+
+        <section class="research-section">
+            <p class="section-kicker">The memory loop</p>
+            <h2>Write, retrieve, compose, answer, update.</h2>
+            <div class="research-grid">
+                <article class="research-card"><code>WORKING</code><h3>The prompt in front of the model</h3><p>The active window holds the immediate exchange. It is fast and precise, but finite. Once material falls outside that window, it only returns if another system carries it forward.</p></article>
+                <article class="research-card"><code>EPISODIC</code><h3>What happened in a specific exchange</h3><p>Conversation turns and summaries preserve sequence: what was tried, what failed, what was decided, and what remains unfinished. Time and project boundaries matter as much as semantic similarity.</p></article>
+                <article class="research-card"><code>SEMANTIC</code><h3>Knowledge abstracted from episodes</h3><p>Stable facts and learned preferences can be stored separately from the transcript that produced them. That makes them easier to retrieve, while provenance keeps the abstraction accountable to its source.</p></article>
+                <article class="research-card"><code>CONTROL</code><h3>Memory should remain inspectable</h3><p>A local system can show what it kept, what it recalled, and why. Explicit edits, deletions, pins, and scope controls prevent an invisible memory layer from quietly defining the conversation.</p></article>
+            </div>
+        </section>
+
+        <section class="research-section closing-note">
+            <blockquote>Continuity comes from <span>selection</span>, not accumulation.</blockquote>
+            <p>The useful memory is not the largest archive. It is the smallest set of trustworthy records that restores the right context, preserves the thread, and leaves enough room for the model to think about what is happening now.</p>
+        </section>
+    </main>
+
+    <nav data-archive-day="23" aria-label="365 Days navigation"></nav>
+</body>
+</html>

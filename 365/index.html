@@ -1003,7 +1003,7 @@
                     border: 'rgba(233, 69, 96, 0.55)'
                 }
             },
-            ...Array.from({ length: 10 }, (_, index) => ({
+            ...Array.from({ length: 2 }, (_, index) => ({
                 day: 21 + index,
                 name: 'RGInfV1 — Chat Interface',
                 status: 'complete',
@@ -1021,6 +1021,64 @@
                     border: 'rgba(233, 69, 96, 0.46)'
                 }
             })),
+            {
+                day: 23,
+                name: 'RGInfV1 — Memory System',
+                file: 'rginfv1-memory.html',
+                status: 'live',
+                statusLabel: '● System Note',
+                description: 'A study of model memory as a deliberate loop: working context, saved history, retrieved records, durable knowledge, ranking, provenance, and controlled revision.',
+                timeline: {
+                    label: 'memory research',
+                    entry: 'Jan 24, 2026',
+                    confidence: 'user-date'
+                },
+                theme: {
+                    primary: '#a78bfa',
+                    secondary: '#22d3ee',
+                    background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(34, 211, 238, 0.09))',
+                    glow: 'rgba(167, 139, 250, 0.34)',
+                    border: 'rgba(167, 139, 250, 0.48)'
+                }
+            },
+            ...Array.from({ length: 6 }, (_, index) => ({
+                day: 24 + index,
+                name: 'RGInfV1 — Chat Interface',
+                status: 'complete',
+                description: 'Continued work on the local-model chat interface and its streaming, persistence, model controls, and system visibility.',
+                timeline: {
+                    label: 'project work',
+                    entry: `Jan ${25 + index}, 2026`,
+                    confidence: 'user-sequence'
+                },
+                theme: {
+                    primary: '#e94560',
+                    secondary: '#4a9eff',
+                    background: 'linear-gradient(135deg, rgba(233, 69, 96, 0.17), rgba(74, 158, 255, 0.12))',
+                    glow: 'rgba(233, 69, 96, 0.32)',
+                    border: 'rgba(233, 69, 96, 0.46)'
+                }
+            })),
+            {
+                day: 30,
+                name: 'Long Context Research',
+                file: 'long-context-research.html',
+                status: 'live',
+                statusLabel: '● Research',
+                description: 'Beginner, intermediate, and advanced long-context research, extending into attention math, retrieval, cache costs, evaluation, GPT-4o, other models, and local ML fundamentals.',
+                timeline: {
+                    label: 'research note',
+                    entry: 'Jan 31, 2026',
+                    confidence: 'user-date'
+                },
+                theme: {
+                    primary: '#f6c453',
+                    secondary: '#4a9eff',
+                    background: 'linear-gradient(135deg, rgba(246, 196, 83, 0.16), rgba(74, 158, 255, 0.1))',
+                    glow: 'rgba(246, 196, 83, 0.3)',
+                    border: 'rgba(246, 196, 83, 0.45)'
+                }
+            },
             ...Array.from({ length: 14 }, (_, index) => ({
                 day: 31 + index,
                 name: 'Completed Day',

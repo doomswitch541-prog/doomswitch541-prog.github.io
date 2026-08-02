@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#090b12">
+    <title>Long Context Research — Three Depths</title>
+    <link rel="stylesheet" href="/365/rginfv1-research.css">
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+</head>
+<body data-research="context">
+    <header class="research-masthead">
+        <a class="research-mark" href="/365/"><span>RG</span> / CONTEXT / RESEARCH</a>
+        <time class="research-date" datetime="2026-01-31">Day 30 · January 31, 2026</time>
+    </header>
+
+    <main class="research-main">
+        <section class="research-hero">
+            <div>
+                <p class="research-kicker">Model research · Three depths</p>
+                <h1>Long context</h1>
+                <p class="research-lede"><strong>A larger window changes what a model can see, but not automatically what it can understand.</strong> The research moved from tokens and prompt limits into retrieval, attention behavior, cache cost, model comparison, and the mathematics underneath the interface.</p>
+            </div>
+
+            <div class="research-figure" aria-label="Beginner, intermediate, and advanced long-context research">
+                <div class="depth-ladder">
+                    <div class="depth-rung"><code>LEVEL 01</code><div><strong>Beginner</strong><span>tokens / windows / prompts / memory</span></div></div>
+                    <div class="depth-rung"><code>LEVEL 02</code><div><strong>Intermediate</strong><span>chunking / retrieval / summaries / evaluation</span></div></div>
+                    <div class="depth-rung"><code>LEVEL 03</code><div><strong>Advanced</strong><span>attention / position / KV cache / compression</span></div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="level">
+            <p class="level-tag">Beginner</p>
+            <div class="level-copy">
+                <h2>What fits in the window?</h2>
+                <p>Text is broken into tokens, and the model receives a limited number of them at once. Instructions, conversation history, retrieved documents, tool output, and the generated answer all compete for that space. A context window is the material visible during one request; it is not durable memory and it does not guarantee the model will use every visible detail equally well.</p>
+                <div class="level-points">
+                    <p class="level-point"><strong>Tokens are pieces, not words.</strong> Common fragments may use one token while unusual names, code, or punctuation may use several.</p>
+                    <p class="level-point"><strong>Longer is a budget.</strong> More history can preserve continuity, but irrelevant material can dilute instructions and consume room needed for sources or output.</p>
+                    <p class="level-point"><strong>Memory lives outside the request.</strong> Saved chats, summaries, and retrieved records have to be selected and inserted into a future context.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="level">
+            <p class="level-tag">Intermediate</p>
+            <div class="level-copy">
+                <h2>How should the window be assembled?</h2>
+                <p>Once the limit is understood, the problem becomes context engineering. Documents can be chunked, embedded, searched, filtered, and reranked. Older conversation can be summarized. Important instructions can be pinned. The system has to preserve provenance and ordering while avoiding duplicate or contradictory material.</p>
+                <div class="level-points">
+                    <p class="level-point"><strong>Chunking controls retrieval resolution.</strong> Tiny chunks lose surrounding meaning; huge chunks return too much unrelated text.</p>
+                    <p class="level-point"><strong>Position affects recall.</strong> Models can miss relevant material buried inside long inputs, so evaluation should test beginnings, middles, ends, distractors, and conflicting evidence.</p>
+                    <p class="level-point"><strong>Compression has a cost.</strong> A summary saves tokens but may erase exact wording, chronology, uncertainty, or the small detail the next task needs.</p>
+                    <p class="level-point"><strong>Benchmarks need real tasks.</strong> Needle retrieval is useful, but long-context quality also means following dependencies, tracing evidence, comparing distant passages, and refusing unsupported conclusions.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="level">
+            <p class="level-tag">Advanced</p>
+            <div class="level-copy">
+                <h2>What makes long context expensive and difficult?</h2>
+                <p>Transformer attention compares token representations through queries, keys, and values. In full attention, the interaction map grows with the square of sequence length, while the key-value cache grows with the number of layers, tokens, and attention dimensions. Long-context systems therefore trade among memory use, latency, precision, architectural changes, and compression.</p>
+                <div class="formula" aria-label="Scaled dot-product attention formula">Attention(Q, K, V) = softmax(QKᵀ / √dₖ) V</div>
+                <div class="level-points">
+                    <p class="level-point"><strong>Position must generalize.</strong> Rotary position methods encode relative structure into attention, but extending beyond training lengths can require scaling or interpolation and still needs empirical evaluation.</p>
+                    <p class="level-point"><strong>The KV cache is a systems problem.</strong> Quantization, grouped-query attention, cache eviction, paging, and prefix reuse can reduce memory or repeated computation, each with quality and complexity tradeoffs.</p>
+                    <p class="level-point"><strong>Not every token needs every other token.</strong> Sparse attention, sliding windows, recurrent memory, state-space components, and hybrid architectures explore different ways to carry information across long sequences.</p>
+                    <p class="level-point"><strong>Effective context is behavioral.</strong> The advertised length is capacity; usable length depends on retrieval accuracy, instruction stability, reasoning across distance, latency, and the task being measured.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="research-section">
+            <p class="section-kicker">4o, other models, and the math underneath</p>
+            <h2>Context length was only one axis.</h2>
+            <p class="section-lede">Model research also meant comparing how different systems behaved inside the same kind of work. GPT-4o mattered as a benchmark for conversational attunement, warmth, multimodal fluency, and creative language. Other models could be compared for instruction fidelity, coding strength, latency, local deployment, cost, and how reliably they held onto details across a long exchange.</p>
+
+            <div class="research-grid">
+                <article class="research-card"><code>VECTORS / MATRICES</code><h3>The working language of the model</h3><p>Tokens become vectors. Learned matrix multiplications project those vectors into new spaces, combine features, and transform one layer’s representation into the next.</p></article>
+                <article class="research-card"><code>DOT / COSINE</code><h3>Similarity becomes measurable</h3><p>Dot products score alignment. Cosine similarity divides by vector magnitude to compare direction, which makes it useful for embedding search and retrieval experiments.</p></article>
+                <article class="research-card"><code>SOFTMAX / PROBABILITY</code><h3>Scores become weighted choices</h3><p>Softmax turns a set of scores into positive weights that sum to one. Attention uses it to mix information; language generation uses probabilities to choose a next token.</p></article>
+                <article class="research-card"><code>LOSS / LEARNING</code><h3>Error shapes the parameters</h3><p>Cross-entropy measures how much probability the model assigned to the expected token. Gradient-based optimization adjusts parameters so future predictions place more weight on patterns supported by training data.</p></article>
+                <article class="research-card"><code>QUANT / LOCAL</code><h3>Precision can be traded for reach</h3><p>Quantization stores weights with fewer bits, reducing memory and often making larger models practical on local hardware. The trade is approximation error, and different layers or tasks tolerate it differently.</p></article>
+                <article class="research-card"><code>EVAL / HUMAN</code><h3>Some qualities need lived comparison</h3><p>Benchmarks measure pieces of performance. Long conversations reveal other signals: whether a model notices tone, preserves exact constraints, stays coherent, recovers from correction, and remains useful after the easy part is over.</p></article>
+            </div>
+        </section>
+
+        <section class="research-section closing-note">
+            <blockquote>More context is useful when the model can still find the <span>signal.</span></blockquote>
+            <p>The practical lesson was to treat long context as a full-stack problem: model architecture, inference memory, retrieval, prompt assembly, evaluation, and human judgment all meet inside the same window.</p>
+        </section>
+    </main>
+
+    <nav data-archive-day="30" aria-label="365 Days navigation"></nav>
+</body>
+</html>
