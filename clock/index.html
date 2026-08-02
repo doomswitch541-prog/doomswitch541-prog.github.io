@@ -321,6 +321,7 @@
             pointer-events: none;   /* let the clock breathe; children re-enable */
         }
         .dock > *, .dock .fab-wrap * { pointer-events: auto; }
+        .dock-links { display: flex; align-items: center; gap: 1rem; }
         .dock-home {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 0.7rem;
@@ -452,7 +453,10 @@
 
     <!-- Dock: home link on the left, mode FAB on the right -->
     <nav class="dock" aria-label="Clock controls">
-        <a class="dock-home" href="/" aria-label="Back to HQ">HQ</a>
+        <div class="dock-links">
+            <a class="dock-home" href="/" aria-label="Back to HQ">HQ</a>
+            <a class="dock-home" href="/365">365</a>
+        </div>
         <div class="fab-wrap">
             <div class="fab-menu" role="menu">
                 <button class="fab-opt" data-mode="neon" role="menuitemradio">Neon</button>

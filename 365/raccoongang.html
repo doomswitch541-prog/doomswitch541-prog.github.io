@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raccoon Gang - Drinking Chronicles</title>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><text y="15" font-size="16">🍺</text></svg>'), auto;
+  }
+
+  body {
+    background: #000;
+    position: relative;
+  }
+
+  /* Cosmic background */
+  #cosmicBg {
+    position: fixed;
+    inset: 0;
+    background: url('../assets/fafo-drinking.jpeg') center/cover no-repeat;
+    filter: brightness(0.7) saturate(1.2);
+    animation: slowZoom 30s ease-in-out infinite alternate;
+  }
+
+  @keyframes slowZoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+  }
+
+  /* Overlay effects */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                transparent 0%,
+                rgba(106, 27, 154, 0.25) 50%,
+                rgba(138, 43, 226, 0.3) 100%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    animation: pulseOverlay 4s ease-in-out infinite;
+  }
+
+  @keyframes pulseOverlay {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.6; }
+  }
+
+  /* Scanlines */
+  #scanlines {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    animation: scanMove 8s linear infinite;
+  }
+
+  @keyframes scanMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(100px); }
+  }
+
+  /* Content container */
+  #content {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+  }
+
+  /* Main title */
+  h1 {
+    font-size: clamp(2rem, 8vw, 6rem);
+    font-weight: 900;
+    text-shadow:
+      -2px -2px 0 #000,
+      2px -2px 0 #000,
+      -2px 2px 0 #000,
+      2px 2px 0 #000,
+      0 0 20px #8a2be2,
+      0 0 40px #8a2be2,
+      0 0 60px rgba(138, 43, 226, 0.5),
+      0 5px 15px rgba(0,0,0,0.9);
+    margin-bottom: 20px;
+    animation: glitch 3s infinite;
+    letter-spacing: 8px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  @keyframes glitch {
+    0%, 90%, 100% { transform: translate(0); }
+    91% { transform: translate(-2px, 2px); }
+    92% { transform: translate(2px, -2px); }
+    93% { transform: translate(-2px, -2px); }
+  }
+
+  /* Main header */
+  .main-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .header-title {
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-weight: 900;
+    letter-spacing: 12px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #7dd3c0 0%, #8a2be2 50%, #7dd3c0 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(125, 211, 192, 0.6))
+            drop-shadow(0 0 60px rgba(138, 43, 226, 0.4))
+            drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9));
+    animation: gradientShift 4s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .header-subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.8rem);
+    color: rgba(125, 211, 192, 0.9);
+    font-weight: 600;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    text-shadow:
+      0 0 10px rgba(125, 211, 192, 0.8),
+      0 2px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Drink counter */
+  #drinkCounter {
+    font-size: clamp(2rem, 5vw, 4rem);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px 40px;
+    border: 3px solid #8a2be2;
+    border-radius: 15px;
+    box-shadow:
+      0 0 15px rgba(138, 43, 226, 0.6),
+      inset 0 0 15px rgba(138, 43, 226, 0.15);
+    margin: 30px 0;
+    animation: borderPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { border-color: #8a2be2; box-shadow: 0 0 15px rgba(138, 43, 226, 0.6), inset 0 0 15px rgba(138, 43, 226, 0.15); }
+    50% { border-color: #5dbcd2; box-shadow: 0 0 20px rgba(93, 188, 210, 0.5), inset 0 0 20px rgba(93, 188, 210, 0.2); }
+  }
+
+  /* Drink button */
+  #drinkBtn {
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    padding: 20px 60px;
+    background: linear-gradient(135deg, #6a1b9a, #8a2be2);
+    border: none;
+    border-radius: 50px;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow:
+      0 5px 15px rgba(106, 27, 154, 0.5),
+      0 0 25px rgba(138, 43, 226, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #drinkBtn:hover {
+    transform: scale(1.05);
+    box-shadow:
+      0 8px 25px rgba(106, 27, 154, 0.7),
+      0 0 40px rgba(138, 43, 226, 0.6);
+  }
+
+  #drinkBtn:active {
+    transform: scale(0.95);
+  }
+
+  #drinkBtn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: translateX(-100%);
+  }
+
+  #drinkBtn:hover::before {
+    animation: shine 0.6s ease;
+  }
+
+  @keyframes shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Status text */
+  #statusText {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    margin-top: 30px;
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffd700, 2px 2px 4px rgba(0,0,0,0.8);
+    min-height: 2em;
+    font-style: italic;
+  }
+
+  /* Floating emojis */
+  .floatingEmoji {
+    position: fixed;
+    font-size: 40px;
+    animation: float-up 4s ease-in forwards;
+    pointer-events: none;
+    z-index: 100;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+  }
+
+  @keyframes float-up {
+    0% {
+      opacity: 1;
+      transform: translateY(0) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-200px) rotate(360deg);
+    }
+  }
+
+  /* Vibe meter */
+  #vibeMeter {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #8a2be2;
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+    z-index: 100;
+  }
+
+  #vibeMeter .label {
+    font-size: 0.9rem;
+    color: #7dd3c0;
+    margin-bottom: 5px;
+    text-shadow: 0 0 5px rgba(93, 188, 210, 0.5);
+  }
+
+  #vibeBar {
+    width: 200px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #vibeFill {
+    height: 100%;
+    background: linear-gradient(90deg, #6a1b9a, #8a2be2, #5dbcd2);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
+  }
+
+  /* Info panel */
+  #infoPanel {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #8a2be2;
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+    font-size: 0.9rem;
+    color: #b794f4;
+    text-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+    max-width: 250px;
+  }
+
+  #infoPanel div {
+    margin: 5px 0;
+  }
+
+  /* Particle system */
+  #particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+
+  /* Pagination */
+  .pagination {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(10, 14, 39, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 0.8rem 1.2rem;
+    border-radius: 50px;
+    border: 1px solid rgba(93, 188, 210, 0.3);
+    box-shadow: 0 4px 20px rgba(93, 188, 210, 0.15);
+    z-index: 100;
+  }
+
+  .pagination-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #7dd3c0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .pagination-btn:hover {
+    background: rgba(93, 188, 210, 0.2);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(93, 188, 210, 0.4);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .page-indicator {
+    color: #7dd3c0;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 8px rgba(93, 188, 210, 0.4);
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .pagination-home {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid rgba(138, 43, 226, 0.5);
+    color: #b794f4;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+
+  .pagination-home:hover {
+    background: rgba(138, 43, 226, 0.2);
+    border-color: #8a2be2;
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+    transform: scale(1.1);
+  }
+
+  .api-status-badge {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    z-index: 101;
+    padding: 0.42rem 0.7rem;
+    border-radius: 10px;
+    border: 1px solid rgba(93, 188, 210, 0.45);
+    background: rgba(10, 14, 39, 0.85);
+    color: #7dd3c0;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 0 12px rgba(93, 188, 210, 0.18);
+  }
+
+  .api-status-badge.ok {
+    border-color: rgba(125, 211, 192, 0.7);
+    color: #7dd3c0;
+  }
+
+  .api-status-badge.degraded {
+    border-color: rgba(255, 215, 0, 0.75);
+    color: #ffd700;
+  }
+
+  .api-status-badge.offline {
+    border-color: rgba(255, 90, 90, 0.85);
+    color: #ff9f9f;
+  }
+
+  /* Terminal window */
+  #terminal {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 700px;
+    height: 280px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #8a2be2;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(138, 43, 226, 0.5);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #7dd3c0;
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #terminalHeader {
+    background: linear-gradient(135deg, #6a1b9a, #8a2be2);
+    padding: 8px 12px;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #8a2be2;
+  }
+
+  #terminalTitle {
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
+
+  #terminalClose {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 4px;
+    transition: all 0.2s ease;
+  }
+
+  #terminalClose:hover {
+    color: #ff6b6b;
+    transform: scale(1.2);
+  }
+
+  #terminalOutput {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    line-height: 1.5;
+    font-size: 0.8rem;
+  }
+
+  #terminalInputLine {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(138, 43, 226, 0.3);
+  }
+
+  #terminalInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #7dd3c0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    outline: none;
+    margin-left: 8px;
+  }
+
+  #terminalInput::placeholder {
+    color: rgba(125, 211, 192, 0.4);
+  }
+
+  #terminalOutput::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #terminalOutput::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  #terminalOutput::-webkit-scrollbar-thumb {
+    background: #8a2be2;
+    border-radius: 3px;
+  }
+
+  .terminal-line {
+    margin: 3px 0;
+    word-wrap: break-word;
+  }
+
+  .terminal-prompt {
+    color: #b794f4;
+    font-weight: bold;
+  }
+
+  .terminal-success {
+    color: #7dd3c0;
+  }
+
+  .terminal-warning {
+    color: #ffd700;
+  }
+
+  .terminal-error {
+    color: #ff6b6b;
+  }
+
+  .terminal-info {
+    color: #5dbcd2;
+  }
+
+  #terminal.minimized {
+    height: 40px;
+  }
+
+  #terminal.minimized #terminalOutput,
+  #terminal.minimized #terminalInputLine {
+    display: none;
+  }
+
+  /* Drinks Log Panel */
+  #drinksLog {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    width: 350px;
+    max-height: 500px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #8a2be2;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(138, 43, 226, 0.5);
+    font-family: 'Courier New', monospace;
+    color: #7dd3c0;
+    z-index: 140;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #drinksLog.hidden {
+    display: none;
+  }
+
+  #drinksLogHeader {
+    background: linear-gradient(135deg, #6a1b9a, #8a2be2);
+    padding: 8px 12px;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #8a2be2;
+  }
+
+  #drinksLogTitle {
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
+
+  #drinksLogClose {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 4px;
+    transition: all 0.2s ease;
+  }
+
+  #drinksLogClose:hover {
+    color: #ff6b6b;
+    transform: scale(1.2);
+  }
+
+  #drinksLogContent {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #drinksLogContent::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #drinksLogContent::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  #drinksLogContent::-webkit-scrollbar-thumb {
+    background: #8a2be2;
+    border-radius: 3px;
+  }
+
+  .drink-entry {
+    background: rgba(138, 43, 226, 0.1);
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transition: all 0.2s ease;
+  }
+
+  .drink-entry:hover {
+    background: rgba(138, 43, 226, 0.2);
+    border-color: rgba(138, 43, 226, 0.5);
+  }
+
+  .drink-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .drink-entry-time {
+    color: #5dbcd2;
+    font-size: 0.8rem;
+  }
+
+  .drink-entry-count {
+    color: #7dd3c0;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+
+  .drink-entry-note {
+    color: #b794f4;
+    font-size: 0.75rem;
+    font-style: italic;
+    margin-top: 3px;
+  }
+
+  .drink-entry-actions {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+  }
+
+  .drink-entry-btn {
+    padding: 4px 10px;
+    background: rgba(93, 188, 210, 0.2);
+    border: 1px solid rgba(93, 188, 210, 0.4);
+    border-radius: 3px;
+    color: #7dd3c0;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Courier New', monospace;
+  }
+
+  .drink-entry-btn:hover {
+    background: rgba(93, 188, 210, 0.3);
+    border-color: #7dd3c0;
+  }
+
+  .drink-entry-btn.delete {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.4);
+    color: #ff6b6b;
+  }
+
+  .drink-entry-btn.delete:hover {
+    background: rgba(255, 107, 107, 0.3);
+    border-color: #ff6b6b;
+  }
+
+  .drinks-log-toggle {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #6a1b9a, #8a2be2);
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    z-index: 139;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
+  }
+
+  .drinks-log-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(138, 43, 226, 0.6);
+  }
+
+  .drinks-log-toggle.active {
+    display: none;
+  }
+
+  .no-drinks {
+    text-align: center;
+    color: #5dbcd2;
+    padding: 20px;
+    font-style: italic;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    #vibeMeter, #infoPanel {
+      display: none;
+    }
+
+    #terminal {
+      width: 95%;
+      max-width: none;
+      height: 220px;
+      bottom: 10px;
+    }
+
+    #drinksLog {
+      width: 95%;
+      right: 2.5%;
+      max-height: 400px;
+    }
+
+    .drinks-log-toggle {
+      right: 2.5%;
+    }
+
+    .pagination {
+      top: 1rem;
+      right: 1rem;
+      padding: 0.6rem 1rem;
+      gap: 0.8rem;
+    }
+
+    .pagination-btn {
+      width: 28px;
+      height: 28px;
+      font-size: 1rem;
+    }
+
+    .page-indicator {
+      font-size: 0.75rem;
+      min-width: 50px;
+    }
+
+    .pagination-home {
+      width: 28px;
+      height: 28px;
+      font-size: 0.9rem;
+    }
+
+    .api-status-badge {
+      top: 1rem;
+      left: 1rem;
+      font-size: 0.56rem;
+      padding: 0.3rem 0.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="api-status-badge degraded" id="apiStatusBadge">API CHECK...</div>
+
+<!-- Pagination Navigation -->
+<div class="pagination">
+  <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')">◀</button>
+  <span class="page-indicator" id="pageIndicator">Day 4/365</span>
+  <button class="pagination-btn" id="nextBtn" onclick="navigate('next')">▶</button>
+  <a href="/365/" class="pagination-home" title="View All Days">⊞</a>
+</div>
+
+<!-- Drinks Log Toggle Button -->
+<button class="drinks-log-toggle" id="drinksLogToggle" onclick="toggleDrinksLog()">📋 Drinks Log</button>
+
+<!-- Drinks Log Panel -->
+<div id="drinksLog" class="hidden">
+  <div id="drinksLogHeader">
+    <div id="drinksLogTitle">📋 TODAY'S DRINKS</div>
+    <button id="drinksLogClose" onclick="toggleDrinksLog()">✕</button>
+  </div>
+  <div id="drinksLogContent">
+    <div class="no-drinks">Loading drinks...</div>
+  </div>
+</div>
+
+<div id="cosmicBg"></div>
+<div id="overlay"></div>
+<div id="scanlines"></div>
+
+<div id="particles"></div>
+
+<div id="content">
+  <div class="main-header">
+    <div class="header-title">RACCOON GANG</div>
+    <div class="header-subtitle">Drinking Chronicles</div>
+  </div>
+
+  <div id="drinkCounter">
+    <span id="count">0</span> 🍺
+  </div>
+
+  <button id="drinkBtn">DRINK</button>
+
+  <div id="statusText">Click to start the session...</div>
+</div>
+
+<div id="vibeMeter">
+  <div class="label">VIBE LEVEL</div>
+  <div id="vibeBar">
+    <div id="vibeFill"></div>
+  </div>
+</div>
+
+<div id="infoPanel">
+  <div>🦝 raccoonOS: active</div>
+  <div>🌙 mode: nocturnal</div>
+  <div>💜 aesthetic: cosmic</div>
+  <div>🎵 vibes: immaculate</div>
+</div>
+
+<!-- Terminal Window -->
+<div id="terminal">
+  <div id="terminalHeader">
+    <div id="terminalTitle">🍺 DRINKING TRACKER v1.0</div>
+    <button id="terminalClose" title="Minimize">_</button>
+  </div>
+  <div id="terminalOutput">
+    <div class="terminal-line"><span class="terminal-prompt">raccoongang@drinks:~$</span> <span class="terminal-info">Initializing tracker...</span></div>
+  </div>
+  <div id="terminalInputLine">
+    <span class="terminal-prompt">$</span>
+    <input type="text" id="terminalInput" placeholder="Type 'help' for commands..." autocomplete="off">
+  </div>
+</div>
+
+<script>
+// ============================================================
+//   RACCOONGANG DRINKING TRACKER SYSTEM
+// ============================================================
+
+let drinkCount = 0;
+const drinkBtn = document.getElementById('drinkBtn');
+const countDisplay = document.getElementById('count');
+const statusText = document.getElementById('statusText');
+const vibeFill = document.getElementById('vibeFill');
+
+// ============================================================
+// TERMINAL TRACKER SYSTEM
+// ============================================================
+const terminal = document.getElementById('terminal');
+const terminalOutput = document.getElementById('terminalOutput');
+const terminalClose = document.getElementById('terminalClose');
+const terminalInput = document.getElementById('terminalInput');
+
+let terminalMinimized = false;
+let persistentDrinkCount = 0;
+
+// Terminal logging function
+function terminalLog(message, type = 'info') {
+  const line = document.createElement('div');
+  line.className = `terminal-line terminal-${type}`;
+  line.innerHTML = `<span class="terminal-prompt">$</span> ${message}`;
+  terminalOutput.appendChild(line);
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+}
+
+// Command handlers
+const commands = {
+  help: () => {
+    terminalLog('Available commands:', 'info');
+    terminalLog('  add [count] [note: text] - Record drinks (e.g., "add 3" or "add 1 note: beer with friends")', 'info');
+    terminalLog('  checkin [note: text] - Mark current time (for tracking days without drinking)', 'info');
+    terminalLog('  history - View all drinking sessions grouped by date', 'info');
+    terminalLog('  stats - Show current statistics', 'info');
+    terminalLog('  clear - Clear terminal output', 'info');
+    terminalLog('  help - Show this help message', 'info');
+  },
+
+  clear: () => {
+    terminalOutput.innerHTML = '';
+  },
+
+  stats: async () => {
+    try {
+      const response = await fetch('/api/drinks/stats');
+      const stats = await response.json();
+      terminalLog(`📊 STATISTICS`, 'success');
+      terminalLog(`  Today: ${stats.todayCount} drinks`, 'info');
+      terminalLog(`  All-time total: ${stats.totalDrinks} drinks`, 'info');
+      terminalLog(`  Days tracked: ${stats.totalSessions}`, 'info');
+      if (stats.lastDrink) {
+        const lastTime = new Date(stats.lastDrink);
+        terminalLog(`  Last drink: ${lastTime.toLocaleString()}`, 'info');
+      }
+    } catch (err) {
+      terminalLog('Failed to fetch stats', 'error');
+    }
+  },
+
+  history: async () => {
+    try {
+      const response = await fetch('/api/drinks');
+      const data = await response.json();
+
+      if (!data.sessions || data.sessions.length === 0) {
+        terminalLog('No drinking history found', 'warning');
+        return;
+      }
+
+      terminalLog('📜 DRINKING HISTORY', 'success');
+      data.sessions.forEach(session => {
+        const date = new Date(session.date);
+        const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        terminalLog(`\n${dateStr} - ${session.count} drinks total:`, 'info');
+
+        session.drinks.forEach(drink => {
+          const time = new Date(drink.timestamp).toLocaleTimeString();
+          const noteText = drink.note ? ` - "${drink.note}"` : '';
+          terminalLog(`  [${time}] ${drink.count} drink(s)${noteText}`, 'info');
+        });
+      });
+    } catch (err) {
+      terminalLog('Failed to fetch history', 'error');
+    }
+  },
+
+  add: async (args) => {
+    const parts = args.join(' ').split('note:');
+    const countStr = parts[0].trim();
+    const note = parts[1]?.trim() || null;
+    const count = parseInt(countStr) || 1;
+
+    if (count < 1 || count > 100) {
+      terminalLog('Invalid count. Please use 1-100', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/drinks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count, note })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        persistentDrinkCount = result.todayCount;
+        const now = new Date().toLocaleTimeString();
+        const noteText = note ? ` (${note})` : '';
+        terminalLog(`[${now}] ✅ Added ${count} drink(s)${noteText}`, 'success');
+        terminalLog(`Session total: ${result.todayCount} | All-time: ${result.totalDrinks}`, 'info');
+
+        // Update on-screen counter
+        drinkCount = result.todayCount;
+        countDisplay.textContent = drinkCount;
+
+        // Refresh drinks log if it's open
+        const drinksLog = document.getElementById('drinksLog');
+        if (!drinksLog.classList.contains('hidden')) {
+          refreshDrinksLog();
+        }
+      } else {
+        terminalLog('Failed to record drink', 'error');
+      }
+    } catch (err) {
+      terminalLog('Network error - drink not saved', 'error');
+    }
+  },
+
+  checkin: async (args) => {
+    const parts = args.join(' ').split('note:');
+    const note = parts[1]?.trim() || 'Daily check-in';
+
+    try {
+      const response = await fetch('/api/drinks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 0, note })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const now = new Date().toLocaleTimeString();
+        const dateStr = new Date().toLocaleDateString();
+        terminalLog(`[${now}] ⏰ Check-in recorded for ${dateStr}`, 'success');
+        terminalLog(`Note: "${note}"`, 'info');
+        terminalLog('This timestamp will appear in your history to track non-drinking days.', 'info');
+      } else {
+        terminalLog('Failed to record check-in', 'error');
+      }
+    } catch (err) {
+      terminalLog('Network error - check-in not saved', 'error');
+    }
+  }
+};
+
+// Handle terminal input
+terminalInput.addEventListener('keydown', async (e) => {
+  if (e.key === 'Enter') {
+    const input = terminalInput.value.trim();
+    if (!input) return;
+
+    // Echo command
+    terminalLog(`<span class="terminal-success">${input}</span>`, 'prompt');
+    terminalInput.value = '';
+
+    // Parse command
+    const parts = input.split(' ');
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    if (commands[cmd]) {
+      await commands[cmd](args);
+    } else {
+      terminalLog(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
+    }
+  }
+});
+
+// Toggle terminal minimize
+terminalClose.addEventListener('click', () => {
+  terminalMinimized = !terminalMinimized;
+  terminal.classList.toggle('minimized', terminalMinimized);
+  terminalClose.textContent = terminalMinimized ? '▲' : '_';
+});
+
+// Fetch drinking stats from server
+async function fetchDrinkStats() {
+  try {
+    const response = await fetch('/api/drinks/stats');
+    const stats = await response.json();
+    persistentDrinkCount = stats.todayCount || 0;
+
+    // Sync on-screen counter with server
+    drinkCount = stats.todayCount || 0;
+    countDisplay.textContent = drinkCount;
+
+    terminalLog('Connection established', 'success');
+    terminalLog(`Today: ${stats.todayCount} drinks | Total: ${stats.totalDrinks} drinks`, 'info');
+    terminalLog(`Sessions tracked: ${stats.totalSessions} days`, 'info');
+
+    if (stats.lastDrink) {
+      const lastTime = new Date(stats.lastDrink);
+      terminalLog(`Last drink: ${lastTime.toLocaleTimeString()}`, 'info');
+    }
+
+    terminalLog('Ready to track! Type "help" for commands.', 'success');
+  } catch (err) {
+    terminalLog('Server connection failed. Local mode only.', 'warning');
+    console.error('Failed to fetch stats:', err);
+  }
+}
+
+// Record drink to server (called by button)
+async function recordDrink(count = 1) {
+  try {
+    const response = await fetch('/api/drinks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ count })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      persistentDrinkCount = result.todayCount;
+
+      // Update on-screen counter to match server
+      drinkCount = result.todayCount;
+      countDisplay.textContent = drinkCount;
+
+      const now = new Date().toLocaleTimeString();
+      terminalLog(`[${now}] Drink #${result.todayCount} recorded! 🍺`, 'success');
+      terminalLog(`Session total: ${result.todayCount} | All-time: ${result.totalDrinks}`, 'info');
+
+      // Refresh drinks log if it's open
+      const drinksLog = document.getElementById('drinksLog');
+      if (!drinksLog.classList.contains('hidden')) {
+        refreshDrinksLog();
+      }
+    } else {
+      terminalLog('Failed to record drink', 'error');
+    }
+  } catch (err) {
+    terminalLog('Network error - drink not saved', 'error');
+    console.error('Failed to record drink:', err);
+  }
+}
+
+// Initialize terminal on load
+setTimeout(() => {
+  fetchDrinkStats();
+}, 500);
+
+// Status messages based on drink count
+const statusMessages = [
+  "Just getting started...",
+  "Feeling good! 🦝",
+  "Vibes are immaculate ✨",
+  "Cosmic energy activated 🌌",
+  "FAFO mode: ENGAGED 💜",
+  "We're transcending reality 🌠",
+  "Raccoon Gang forever! ⚡",
+  "This is the way 🙌",
+  "Reality is optional now ⭐",
+  "Absolutely legendary ⚡",
+  "MAXIMUM VIBE ACHIEVED 💎",
+  "We've reached enlightenment 🌟",
+  "Cosmic raccoon deity status 👑",
+  "The universe speaks through us 🌙",
+  "WE ARE THE NIGHT 🦝✨"
+];
+
+// Drink emojis for floating effect
+const drinkEmojis = ['🍺', '🍻', '🥃', '🍾', '🦝', '💜', '✨', '🌟', '⭐', '💎', '🌌', '🔮', '⚡', '🌠'];
+
+// Update vibe meter
+function updateVibeMeter() {
+  const percentage = Math.min((drinkCount / 15) * 100, 100);
+  vibeFill.style.width = percentage + '%';
+}
+
+// Create floating emoji
+function createFloatingEmoji(x, y) {
+  const emoji = document.createElement('div');
+  emoji.className = 'floatingEmoji';
+  emoji.textContent = drinkEmojis[Math.floor(Math.random() * drinkEmojis.length)];
+  emoji.style.left = x + 'px';
+  emoji.style.top = y + 'px';
+  document.body.appendChild(emoji);
+
+  setTimeout(() => emoji.remove(), 4000);
+}
+
+// Drink button click handler
+drinkBtn.addEventListener('click', async (e) => {
+  // Record to server first
+  await recordDrink(1);
+
+  // Update status (drinkCount is now synced from server)
+  const statusIndex = Math.min(drinkCount - 1, statusMessages.length - 1);
+  statusText.textContent = statusMessages[statusIndex];
+
+  // Update vibe meter
+  updateVibeMeter();
+
+  // Create floating emojis
+  const rect = drinkBtn.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top;
+
+  for(let i = 0; i < 3; i++) {
+    setTimeout(() => {
+      createFloatingEmoji(
+        x + (Math.random() - 0.5) * 100,
+        y + (Math.random() - 0.5) * 50
+      );
+    }, i * 100);
+  }
+
+  // Add screen shake effect
+  if(drinkCount % 5 === 0) {
+    document.body.style.animation = 'none';
+    setTimeout(() => {
+      document.body.style.animation = 'shake 0.5s ease';
+    }, 10);
+  }
+});
+
+// Mouse tracking for overlay effect
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth) * 100;
+  const y = (e.clientY / window.innerHeight) * 100;
+  document.getElementById('overlay').style.setProperty('--mouse-x', x + '%');
+  document.getElementById('overlay').style.setProperty('--mouse-y', y + '%');
+});
+
+// Shake animation
+const shakeKeyframes = `
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10% { transform: translate(-5px, -5px) rotate(-1deg); }
+    20% { transform: translate(5px, 5px) rotate(1deg); }
+    30% { transform: translate(-5px, 5px) rotate(-1deg); }
+    40% { transform: translate(5px, -5px) rotate(1deg); }
+    50% { transform: translate(-5px, -5px) rotate(-1deg); }
+    60% { transform: translate(5px, 5px) rotate(1deg); }
+    70% { transform: translate(-5px, 5px) rotate(-1deg); }
+    80% { transform: translate(5px, -5px) rotate(1deg); }
+    90% { transform: translate(-5px, -5px) rotate(-1deg); }
+  }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = shakeKeyframes;
+document.head.appendChild(styleSheet);
+
+// Create particle background
+function createParticles() {
+  const particlesContainer = document.getElementById('particles');
+  const particleCount = 50;
+
+  for(let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 2 + 's';
+    particlesContainer.appendChild(particle);
+  }
+}
+
+// Initialize
+createParticles();
+
+// Keyboard shortcut (spacebar to drink)
+document.addEventListener('keydown', (e) => {
+  // Don't trigger if user is typing in terminal
+  if(e.code === 'Space' && document.activeElement !== terminalInput) {
+    e.preventDefault();
+    drinkBtn.click();
+  }
+});
+
+// Easter egg: Konami code
+let konamiCode = [];
+const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+
+document.addEventListener('keydown', (e) => {
+  konamiCode.push(e.code);
+  konamiCode = konamiCode.slice(-10);
+
+  if(konamiCode.join(',') === konamiSequence.join(',')) {
+    statusText.textContent = '🦝 ULTRA RACCOON MODE ACTIVATED 🦝';
+    drinkCount += 10;
+    countDisplay.textContent = drinkCount;
+    updateVibeMeter();
+
+    // Spam emojis
+    for(let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        createFloatingEmoji(
+          Math.random() * window.innerWidth,
+          Math.random() * window.innerHeight
+        );
+      }, i * 50);
+    }
+  }
+});
+
+// 365 Days of Pages collection
+const daysOfPages = [
+  { day: 1, name: 'Paradise Motel', file: 'motel.html' },
+  { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
+  { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
+  { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
+  { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
+  { day: 6, name: 'Celestial Drift', file: 'day6.html' },
+  { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
+  { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
+  { day: 9, name: 'NERV Terminal', file: 'day9.html' },
+  { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
+];
+
+const currentPageFile = window.location.pathname.split('/').pop();
+const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
+
+if (currentIndex !== -1) {
+  document.getElementById('pageIndicator').textContent =
+    `Day ${daysOfPages[currentIndex].day}/365`;
+}
+
+function navigate(direction) {
+  if (currentIndex === -1) return;
+
+  let newIndex;
+  if (direction === 'prev') {
+    newIndex = currentIndex - 1;
+  } else {
+    newIndex = currentIndex + 1;
+  }
+
+  if (newIndex >= 0 && newIndex < daysOfPages.length) {
+    window.location.href = daysOfPages[newIndex].file;
+  }
+}
+
+// Update button states
+if (currentIndex !== -1) {
+  if (currentIndex === 0) {
+    document.getElementById('prevBtn').disabled = true;
+  }
+  if (currentIndex === daysOfPages.length - 1) {
+    document.getElementById('nextBtn').disabled = true;
+  }
+}
+
+// ============================================================
+// DRINKS LOG PANEL
+// ============================================================
+
+function toggleDrinksLog() {
+  const log = document.getElementById('drinksLog');
+  const toggle = document.getElementById('drinksLogToggle');
+
+  if (log.classList.contains('hidden')) {
+    log.classList.remove('hidden');
+    toggle.classList.add('active');
+    refreshDrinksLog();
+  } else {
+    log.classList.add('hidden');
+    toggle.classList.remove('active');
+  }
+}
+
+async function refreshDrinksLog() {
+  const content = document.getElementById('drinksLogContent');
+
+  try {
+    const response = await fetch('/api/drinks');
+    const data = await response.json();
+
+    if (!data.sessions || data.sessions.length === 0) {
+      content.innerHTML = '<div class="no-drinks">No drinks logged yet.</div>';
+      return;
+    }
+
+    // Get today's date
+    const today = new Date().toISOString().split('T')[0];
+    const todaySession = data.sessions.find(s => s.date === today);
+
+    if (!todaySession || todaySession.drinks.length === 0) {
+      content.innerHTML = '<div class="no-drinks">No drinks logged today.</div>';
+      return;
+    }
+
+    // Render drinks in reverse order (newest first)
+    const drinks = [...todaySession.drinks].reverse();
+    content.innerHTML = drinks.map((drink, index) => {
+      const actualIndex = todaySession.drinks.length - 1 - index;
+      const time = new Date(drink.timestamp).toLocaleTimeString();
+      const noteHtml = drink.note ? `<div class="drink-entry-note">"${drink.note}"</div>` : '';
+
+      return `
+        <div class="drink-entry">
+          <div class="drink-entry-header">
+            <span class="drink-entry-time">${time}</span>
+            <span class="drink-entry-count">${drink.count} drink(s)</span>
+          </div>
+          ${noteHtml}
+          <div class="drink-entry-actions">
+            <button class="drink-entry-btn" onclick="editDrink(${actualIndex})">Edit</button>
+            <button class="drink-entry-btn delete" onclick="deleteDrink(${actualIndex})">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    content.innerHTML = '<div class="no-drinks">Failed to load drinks.</div>';
+    console.error('Failed to load drinks:', err);
+  }
+}
+
+async function editDrink(index) {
+  try {
+    const response = await fetch('/api/drinks');
+    const data = await response.json();
+
+    const today = new Date().toISOString().split('T')[0];
+    const todaySession = data.sessions.find(s => s.date === today);
+
+    if (!todaySession) return;
+
+    const drink = todaySession.drinks[index];
+
+    // Prompt for new count
+    const newCountStr = prompt(`Edit drink count (current: ${drink.count}):`, drink.count);
+    if (newCountStr === null) return;
+
+    const newCount = parseInt(newCountStr);
+    if (isNaN(newCount) || newCount < 0 || newCount > 100) {
+      alert('Invalid count. Please use 0-100.');
+      return;
+    }
+
+    // Prompt for new note
+    const newNote = prompt(`Edit note (current: "${drink.note || 'none'}"):`, drink.note || '');
+
+    // Update the drink
+    drink.count = newCount;
+    drink.note = newNote || null;
+
+    // Save back to server
+    const saveResponse = await fetch('/api/drinks/update', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessions: data.sessions })
+    });
+
+    if (saveResponse.ok) {
+      terminalLog('✅ Drink entry updated', 'success');
+      refreshDrinksLog();
+      fetchDrinkStats(); // Refresh main display
+    } else {
+      terminalLog('Failed to update drink entry', 'error');
+    }
+
+  } catch (err) {
+    terminalLog('Network error - update failed', 'error');
+    console.error('Failed to edit drink:', err);
+  }
+}
+
+async function deleteDrink(index) {
+  if (!confirm('Delete this drink entry?')) return;
+
+  try {
+    const response = await fetch('/api/drinks');
+    const data = await response.json();
+
+    const today = new Date().toISOString().split('T')[0];
+    const todaySession = data.sessions.find(s => s.date === today);
+
+    if (!todaySession) return;
+
+    // Remove the drink at index
+    todaySession.drinks.splice(index, 1);
+
+    // If no drinks left today, remove the session
+    if (todaySession.drinks.length === 0) {
+      const sessionIndex = data.sessions.findIndex(s => s.date === today);
+      data.sessions.splice(sessionIndex, 1);
+    }
+
+    // Save back to server
+    const saveResponse = await fetch('/api/drinks/update', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessions: data.sessions })
+    });
+
+    if (saveResponse.ok) {
+      terminalLog('🗑️ Drink entry deleted', 'warning');
+      refreshDrinksLog();
+      fetchDrinkStats(); // Refresh main display
+    } else {
+      terminalLog('Failed to delete drink entry', 'error');
+    }
+
+  } catch (err) {
+    terminalLog('Network error - delete failed', 'error');
+    console.error('Failed to delete drink:', err);
+  }
+}
+
+async function updateApiStatusBadge() {
+  const badge = document.getElementById('apiStatusBadge');
+  if (!badge) return;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const response = await fetch('/api/drinks/stats', { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      badge.className = 'api-status-badge degraded';
+      badge.textContent = `API DEGRADED (${response.status})`;
+      return;
+    }
+
+    badge.className = 'api-status-badge ok';
+    badge.textContent = 'API OK';
+  } catch (err) {
+    badge.className = 'api-status-badge offline';
+    badge.textContent = 'API OFFLINE';
+  }
+}
+
+updateApiStatusBadge();
+setInterval(updateApiStatusBadge, 45000);
+
+// Console message
+console.log('%c🦝 RACCOON GANG - DRINKING TRACKER 🦝', 'color: #8a2be2; font-size: 20px; font-weight: bold; text-shadow: 0 0 10px #8a2be2;');
+console.log('%cDay 4 of 365 Days of Pages', 'color: #7dd3c0; font-size: 14px;');
+console.log('%cPress SPACEBAR to drink faster!', 'color: #ffd700; font-size: 12px;');
+console.log('%cTry the Konami code... 👀', 'color: #8a2be2; font-size: 12px;');
+
+</script>
+
+</body>
+</html>

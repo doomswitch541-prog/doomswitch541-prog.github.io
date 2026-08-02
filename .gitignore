@@ -1,2 +1,8 @@
 # Local Netlify folder
 .netlify
+
+# Private local asset intake; never publish
+/local-assets/
+
+# Private working chronology; never publish
+/365-CALENDAR.local.md

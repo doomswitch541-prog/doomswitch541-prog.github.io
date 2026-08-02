@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>365 Days of Pages</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            overflow: visible;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff2a6d, #00fff9, #ff2a6d);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-row {
+            display: flex;
+            justify-content: center;
+            margin-top: -1.5rem;
+            margin-bottom: 2.2rem;
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: center;
+            margin-top: -0.2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .filter-btn {
+            border: 1px solid rgba(0, 255, 249, 0.35);
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-radius: 999px;
+            padding: 0.42rem 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: rgba(0, 255, 249, 0.7);
+            color: #00fff9;
+            box-shadow: 0 0 12px rgba(0, 255, 249, 0.2);
+        }
+
+        .filter-btn.active {
+            border-color: rgba(255, 42, 109, 0.75);
+            background: rgba(255, 42, 109, 0.13);
+            color: #ffd7e6;
+            box-shadow: 0 0 14px rgba(255, 42, 109, 0.28);
+        }
+
+        .legend-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.55rem 0.95rem;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.22);
+            color: rgba(240, 255, 250, 0.92);
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .legend-swatch {
+            position: relative;
+            width: 30px;
+            height: 14px;
+            border-radius: 4px;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(245, 158, 11, 0.2));
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .legend-swatch::after {
+            content: '';
+            position: absolute;
+            left: -20%;
+            right: -20%;
+            top: 50%;
+            height: 2px;
+            transform: rotate(-10deg) translateY(-50%);
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0), rgba(16, 185, 129, 0.95), rgba(245, 158, 11, 0.95), rgba(245, 158, 11, 0));
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 249, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 255, 249, 0.2);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #00fff9;
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-top: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        .day-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .day-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 42, 109, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .day-card:hover::before {
+            left: 100%;
+        }
+
+        .day-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: rgba(255, 42, 109, 0.5);
+            box-shadow: 0 15px 40px rgba(255, 42, 109, 0.3);
+        }
+
+        .day-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ff2a6d;
+            text-shadow: 0 0 20px rgba(255, 42, 109, 0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .day-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .day-status {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .day-card.coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .day-card.coming-soon:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .day-card.coming-soon .day-number {
+            color: rgba(255, 255, 255, 0.3);
+            text-shadow: none;
+        }
+
+        .day-card.local-ai-focus {
+            opacity: 0.9;
+            cursor: default;
+            border-color: rgba(16, 185, 129, 0.45);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(245, 158, 11, 0.14));
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2) inset;
+        }
+
+        .day-card.local-ai-focus::before {
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.25), transparent);
+        }
+
+        .day-card.local-ai-focus::after {
+            content: '';
+            position: absolute;
+            left: -15%;
+            right: -15%;
+            top: 52%;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0), rgba(16, 185, 129, 0.95), rgba(245, 158, 11, 0.95), rgba(245, 158, 11, 0));
+            transform: rotate(-8deg);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+            pointer-events: none;
+        }
+
+        .day-card.local-ai-focus:hover {
+            transform: translateY(-6px) scale(1.01);
+            border-color: rgba(16, 185, 129, 0.65);
+            box-shadow: 0 15px 36px rgba(16, 185, 129, 0.2), inset 0 0 30px rgba(16, 185, 129, 0.25);
+        }
+
+        .day-card.local-ai-focus .day-number,
+        .day-card.local-ai-focus .day-name {
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            text-decoration-color: rgba(245, 158, 11, 0.85);
+        }
+
+        .local-ai-label {
+            margin-top: 0.8rem;
+            display: inline-block;
+            font-size: 0.68rem;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: #9ef6d6;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            border-radius: 999px;
+            padding: 0.3rem 0.6rem;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+        }
+
+        .day-description {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .day-card:hover .day-description {
+            display: block;
+        }
+
+        /* Tooltip Popup Window */
+        .tooltip-popup {
+            position: fixed;
+            background: rgba(15, 15, 35, 0.98);
+            backdrop-filter: blur(20px);
+            border: 2px solid;
+            border-radius: 16px;
+            padding: 1.5rem;
+            max-width: 320px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            z-index: 10000;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.9),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 0 40px var(--tooltip-glow, rgba(255, 42, 109, 0.5));
+            transform: translateY(10px);
+        }
+
+        .tooltip-popup.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .tooltip-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            color: var(--tooltip-primary, #ff2a6d);
+            text-shadow: 0 0 15px var(--tooltip-glow, rgba(255, 42, 109, 0.5));
+            letter-spacing: 0.05em;
+        }
+
+        .tooltip-description {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tooltip-arrow {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: rgba(15, 15, 35, 0.98);
+            border: 2px solid;
+            transform: rotate(45deg);
+            bottom: -9px;
+            left: 50%;
+            margin-left: -8px;
+            box-shadow: 0 0 20px var(--tooltip-glow, rgba(255, 42, 109, 0.5));
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00fff9;
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .back-button:hover {
+            transform: scale(1.1);
+            border-color: #00fff9;
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats {
+                gap: 1.5rem;
+            }
+
+            .legend-row {
+                margin-top: -0.8rem;
+                margin-bottom: 1.6rem;
+            }
+
+            .filter-row {
+                margin-bottom: 1.25rem;
+            }
+
+            .filter-btn {
+                font-size: 0.62rem;
+                padding: 0.36rem 0.62rem;
+            }
+
+            .legend-pill {
+                font-size: 0.64rem;
+                padding: 0.5rem 0.7rem;
+                gap: 0.5rem;
+            }
+
+            .stat-card {
+                padding: 1rem 1.5rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .day-card {
+                padding: 1.5rem;
+            }
+
+            .day-number {
+                font-size: 2rem;
+            }
+
+            .day-name {
+                font-size: 1rem;
+            }
+
+            .back-button {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                top: 1rem;
+                left: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Starfield background -->
+    <div class="stars" id="stars"></div>
+
+    <!-- Back button -->
+    <a href="/" class="back-button" title="Back to Home">←</a>
+
+    <!-- Tooltip Popup -->
+    <div class="tooltip-popup" id="tooltip">
+        <div class="tooltip-arrow"></div>
+        <div class="tooltip-header" id="tooltipHeader"></div>
+        <div class="tooltip-description" id="tooltipDescription"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>365 Days of Pages</h1>
+            <p>A Year of Creative Web Experiments</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="completedDays">8</div>
+                <div class="stat-label">Days Created</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="remainingDays">357</div>
+                <div class="stat-label">Days Remaining</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="progressPercent">2.2%</div>
+                <div class="stat-label">Complete</div>
+            </div>
+        </div>
+
+        <div class="legend-row">
+            <div class="legend-pill">
+                <span class="legend-swatch" aria-hidden="true"></span>
+                Days 11-30: Reserved sprint for Local AI (SolarFlare, Agent Library)
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-bar" id="filterBar">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="live">Live</button>
+                <button class="filter-btn" data-filter="inprogress">In Progress</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
+            </div>
+        </div>
+
+        <div class="grid" id="daysGrid"></div>
+    </div>
+
+    <script>
+        // 365 Days collection data
+        const daysData = [
+            {
+                day: 1,
+                name: 'Paradise Motel',
+                file: 'motel.html',
+                status: 'live',
+                description: 'A neon-soaked cyberpunk journey into a retro motel aesthetic with hot pink and cyan glows, parallax backgrounds, and flickering neon text',
+                theme: {
+                    primary: '#ff2a6d',
+                    secondary: '#00fff9',
+                    background: 'linear-gradient(135deg, rgba(255, 42, 109, 0.2), rgba(0, 255, 249, 0.2))',
+                    glow: 'rgba(255, 42, 109, 0.4)',
+                    border: 'rgba(255, 42, 109, 0.5)'
+                }
+            },
+            {
+                day: 2,
+                name: 'Luxury Tier Homelessness',
+                file: 'luxurytierhomeless.html',
+                status: 'live',
+                description: 'Futuristic luxury meets cosmic irony with purple gradients, glass-morphism effects, and a sophisticated dark aesthetic that explores modern contradictions',
+                theme: {
+                    primary: '#667eea',
+                    secondary: '#f093fb',
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2), rgba(240, 147, 251, 0.2))',
+                    glow: 'rgba(102, 126, 234, 0.4)',
+                    border: 'rgba(102, 126, 234, 0.5)'
+                }
+            },
+            {
+                day: 3,
+                name: 'Urban Resonance',
+                file: 'resonance.html',
+                status: 'live',
+                description: 'Experimental collage layout with floating images, parallax mouse tracking, scattered text elements, glitch effects, diagonal lines, and dynamic particles - breaking away from traditional card designs',
+                theme: {
+                    primary: '#10b9ba',
+                    secondary: '#10b9ba',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 186, 0.15), rgba(13, 30, 40, 0.3))',
+                    glow: 'rgba(16, 185, 186, 0.4)',
+                    border: 'rgba(16, 185, 186, 0.5)'
+                }
+            },
+            {
+                day: 4,
+                name: 'Raccoon Gang',
+                file: 'raccoongang.html',
+                status: 'live',
+                description: 'Professional drinking tracker with persistent database, terminal interface, command system for logging drinks with notes, session history grouped by date, cosmic purple/teal aesthetic',
+                theme: {
+                    primary: '#7dd3c0',
+                    secondary: '#8a2be2',
+                    background: 'linear-gradient(135deg, rgba(125, 211, 192, 0.2), rgba(138, 43, 226, 0.2))',
+                    glow: 'rgba(125, 211, 192, 0.4)',
+                    border: 'rgba(125, 211, 192, 0.5)'
+                }
+            },
+            {
+                day: 5,
+                name: 'RE-IND Homeland',
+                file: 'day5.html',
+                status: 'live',
+                description: 'Industrial dystopian corporate document aesthetic inspired by retro-futuristic "Homeland Machines Inc" branding with barcodes, technical specifications, monochromatic beige palette, and official government-style design',
+                theme: {
+                    primary: '#1a1a1a',
+                    secondary: '#00ff00',
+                    background: 'linear-gradient(135deg, rgba(212, 208, 200, 0.2), rgba(184, 180, 172, 0.2))',
+                    glow: 'rgba(26, 26, 26, 0.4)',
+                    border: 'rgba(26, 26, 26, 0.5)'
+                }
+            },
+            {
+                day: 6,
+                name: 'Celestial Drift',
+                file: 'day6.html',
+                status: 'live',
+                description: 'Elegant minimalist design with high-quality sky photography, live weather HUD with wind speedometer, location selector, sophisticated serif/monospace typography pairing, and warm golden accents against deep space aesthetic',
+                theme: {
+                    primary: '#ffeaa7',
+                    secondary: '#ffffff',
+                    background: 'linear-gradient(135deg, rgba(255, 234, 167, 0.15), rgba(255, 255, 255, 0.05))',
+                    glow: 'rgba(255, 234, 167, 0.4)',
+                    border: 'rgba(255, 234, 167, 0.5)'
+                }
+            },
+            {
+                day: 7,
+                name: 'Raccoons of Chongqing',
+                file: 'day7.html',
+                status: 'live',
+                description: 'Cyberpunk Chongqing river city with neon-soaked atmosphere, bilingual Chinese/English content, vertical neon signage, floating particles, fog animations, and raccoon gang lore in a futuristic megacity setting',
+                theme: {
+                    primary: '#00f5ff',
+                    secondary: '#ff006e',
+                    background: 'linear-gradient(135deg, rgba(0, 245, 255, 0.15), rgba(255, 0, 110, 0.15), rgba(255, 158, 0, 0.15))',
+                    glow: 'rgba(0, 245, 255, 0.4)',
+                    border: 'rgba(0, 245, 255, 0.5)'
+                }
+            },
+            {
+                day: 8,
+                name: 'SolarFlare',
+                file: 'solarflare-about.html',
+                status: 'live',
+                description: 'Local-first AI interface landing page with emerald/teal/amber palette, glass-morphic architecture diagrams, persistent memory showcase, and elegant dark minimal design powered by Ollama',
+                theme: {
+                    primary: '#10b981',
+                    secondary: '#f59e0b',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.15))',
+                    glow: 'rgba(16, 185, 129, 0.4)',
+                    border: 'rgba(16, 185, 129, 0.5)'
+                }
+            },
+            {
+                day: 9,
+                name: 'NERV Terminal',
+                file: 'day9.html',
+                status: 'live',
+                description: 'Interactive MAGI supercomputer interface with AT Field monitors, Eva unit status, sync ratio displays, and functional command terminal - purple/green cyberpunk aesthetic inspired by NGE',
+                theme: {
+                    primary: '#22c55e',
+                    secondary: '#a855f7',
+                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(168, 85, 247, 0.15))',
+                    glow: 'rgba(34, 197, 94, 0.4)',
+                    border: 'rgba(168, 85, 247, 0.5)'
+                }
+            },
+            {
+                day: 10,
+                name: 'NERV System Monitor',
+                file: 'day10.html',
+                status: 'live',
+                description: 'Real-time Linux system monitor with MAGI three-column interface - hexagonal CPU grids, seismic waveforms for network/disk, 7-segment displays, dual chronograph (HQ/Local time), phosphor CRT aesthetic',
+                theme: {
+                    primary: '#00ff41',
+                    secondary: '#ff6b00',
+                    background: 'linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(255, 107, 0, 0.1))',
+                    glow: 'rgba(0, 255, 65, 0.4)',
+                    border: 'rgba(255, 107, 0, 0.5)'
+                }
+            }
+            // Future days will be added here
+        ];
+
+        // Generate stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Populate grid
+        const grid = document.getElementById('daysGrid');
+        const tooltip = document.getElementById('tooltip');
+        const tooltipHeader = document.getElementById('tooltipHeader');
+        const tooltipDescription = document.getElementById('tooltipDescription');
+        const tooltipArrow = tooltip.querySelector('.tooltip-arrow');
+
+        // Create cards for all 365 days
+        for (let i = 1; i <= 365; i++) {
+            const dayData = daysData.find(d => d.day === i);
+            const card = document.createElement('a');
+
+            if (dayData && dayData.status === 'live') {
+                card.href = dayData.file;
+                card.className = 'day-card';
+                card.dataset.state = 'live';
+
+                // Apply custom theme styling
+                if (dayData.theme) {
+                    card.style.background = dayData.theme.background;
+                    card.style.borderColor = dayData.theme.border;
+                    card.style.setProperty('--hover-border', dayData.theme.border);
+                    card.style.setProperty('--hover-glow', dayData.theme.glow);
+
+                    // Add hover effect with theme colors
+                    card.addEventListener('mouseenter', function(e) {
+                        this.style.borderColor = dayData.theme.border;
+                        this.style.boxShadow = `0 15px 40px ${dayData.theme.glow}`;
+
+                        // Show tooltip
+                        if (dayData.description) {
+                            tooltipHeader.textContent = dayData.name;
+                            tooltipDescription.textContent = dayData.description;
+
+                            // Apply theme colors to tooltip
+                            tooltip.style.borderColor = dayData.theme.border;
+                            tooltip.style.setProperty('--tooltip-primary', dayData.theme.primary);
+                            tooltip.style.setProperty('--tooltip-glow', dayData.theme.glow);
+                            tooltipArrow.style.borderColor = dayData.theme.border;
+
+                            // Position tooltip above card
+                            const rect = this.getBoundingClientRect();
+                            const tooltipRect = tooltip.getBoundingClientRect();
+                            tooltip.style.left = (rect.left + rect.width / 2 - 160) + 'px';
+                            tooltip.style.top = (rect.top - tooltipRect.height - 20 + window.scrollY) + 'px';
+
+                            tooltip.classList.add('visible');
+                        }
+                    });
+
+                    card.addEventListener('mouseleave', function() {
+                        this.style.borderColor = dayData.theme.border;
+                        this.style.boxShadow = '';
+                        tooltip.classList.remove('visible');
+                    });
+                }
+
+                card.innerHTML = `
+                    <div class="day-number" style="color: ${dayData.theme?.primary || '#ff2a6d'}; text-shadow: 0 0 20px ${dayData.theme?.glow || 'rgba(255, 42, 109, 0.5)'}">Day ${i}</div>
+                    <div class="day-name">${dayData.name}</div>
+                    <div class="day-status" style="color: ${dayData.theme?.secondary || 'rgba(255, 255, 255, 0.7)'}">● Live</div>
+                `;
+            } else {
+                card.className = 'day-card coming-soon';
+                card.onclick = (e) => e.preventDefault();
+                if (i >= 11 && i <= 30) {
+                    card.classList.add('local-ai-focus');
+                    card.dataset.state = 'inprogress';
+                    card.innerHTML = `
+                        <div class="day-number">Day ${i}</div>
+                        <div class="day-name">In Progress</div>
+                        <div class="day-status">◌ Building</div>
+                        <div class="local-ai-label">Working on local AI (SolarFlare, Agent Library)</div>
+                    `;
+                } else {
+                    card.dataset.state = 'pending';
+                    card.innerHTML = `
+                        <div class="day-number">Day ${i}</div>
+                        <div class="day-name">Coming Soon</div>
+                        <div class="day-status">○ Pending</div>
+                    `;
+                }
+            }
+
+            grid.appendChild(card);
+        }
+
+        // Update stats
+        const completedDays = daysData.filter(d => d.status === 'live').length;
+        const remainingDays = 365 - completedDays;
+        const progressPercent = ((completedDays / 365) * 100).toFixed(1);
+
+        document.getElementById('completedDays').textContent = completedDays;
+        document.getElementById('remainingDays').textContent = remainingDays;
+        document.getElementById('progressPercent').textContent = progressPercent + '%';
+
+        // Filter controls
+        const filterBar = document.getElementById('filterBar');
+        const filterButtons = Array.from(filterBar.querySelectorAll('.filter-btn'));
+
+        function applyFilter(filter) {
+            const cards = Array.from(grid.children);
+            cards.forEach((card) => {
+                const state = card.dataset.state || 'pending';
+                card.style.display = (filter === 'all' || state === filter) ? '' : 'none';
+            });
+        }
+
+        filterBar.addEventListener('click', (e) => {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
+
+            filterButtons.forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyFilter(btn.dataset.filter);
+        });
+    </script>
+</body>
+</html>

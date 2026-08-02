@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RE-IND | Homeland Machines Inc.</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(180deg, #d4d0c8 0%, #b8b4ac 100%);
+            color: #1a1a1a;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.03) 0px,
+                rgba(0, 0, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 60px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 3px solid #1a1a1a;
+        }
+
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            background: #fff;
+            border: 3px solid #1a1a1a;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 900;
+            background: #fff;
+        }
+
+        .logo-text {
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .header-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .barcode {
+            display: flex;
+            gap: 3px;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .barcode-bar {
+            width: 4px;
+            height: 40px;
+            background: #1a1a1a;
+        }
+
+        .barcode-bar:nth-child(2n) {
+            width: 8px;
+        }
+
+        .barcode-bar:nth-child(3n) {
+            width: 6px;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            line-height: 1.3;
+        }
+
+        .badge {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            align-self: flex-end;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .spec-panel {
+            background: rgba(255, 255, 255, 0.6);
+            border: 3px solid #1a1a1a;
+            padding: 30px;
+        }
+
+        .spec-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .barcode-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .barcode-h {
+            height: 4px;
+            background: #1a1a1a;
+        }
+
+        .barcode-h:nth-child(2n) {
+            height: 8px;
+        }
+
+        .barcode-h:nth-child(3n) {
+            height: 6px;
+        }
+
+        .spec-list {
+            list-style: none;
+        }
+
+        .spec-item {
+            padding: 12px 0;
+            border-bottom: 2px solid rgba(26, 26, 26, 0.2);
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        .spec-label {
+            font-weight: 700;
+        }
+
+        .seal {
+            width: 300px;
+            height: 300px;
+            border: 5px solid #1a1a1a;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.8);
+            position: relative;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .seal::before,
+        .seal::after {
+            content: '•';
+            position: absolute;
+            font-size: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .seal::before {
+            left: 30px;
+        }
+
+        .seal::after {
+            right: 30px;
+        }
+
+        .seal-text-top {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .seal-icon {
+            font-size: 64px;
+            margin: 15px 0;
+        }
+
+        .seal-text-bottom {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .star {
+            position: absolute;
+            top: 40px;
+            font-size: 20px;
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.4);
+            color: #1a1a1a;
+            padding: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-align: center;
+            margin: 40px 0;
+            border: 3px solid #1a1a1a;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 3px solid #1a1a1a;
+        }
+
+        .serial {
+            font-size: 12px;
+            letter-spacing: 3px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .classification {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #666;
+        }
+
+        /* Day counter */
+        .day-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 15px 25px;
+            border: 3px solid #000;
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .day-number {
+            font-size: 36px;
+            font-weight: 900;
+            display: block;
+            line-height: 1;
+        }
+
+        .day-label {
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        /* Navigation */
+        .pagination {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 1.2rem;
+            border-radius: 50px;
+            border: 3px solid #1a1a1a;
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #1a1a1a;
+            background: transparent;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .pagination-btn:hover {
+            background: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-indicator {
+            color: #fff;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            min-width: 60px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .pagination-home {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #1a1a1a;
+            color: #1a1a1a;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .pagination-home:hover {
+            background: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .header-right {
+                align-items: flex-start;
+            }
+
+            .badge {
+                align-self: flex-start;
+            }
+        }
+
+        /* Glitch effect on hover */
+        .logo-text {
+            position: relative;
+        }
+
+        .logo-text:hover {
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(-2px, -2px);
+            }
+            60% {
+                transform: translate(2px, 2px);
+            }
+            80% {
+                transform: translate(2px, -2px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="day-badge">
+        <span class="day-number">05</span>
+        <div class="day-label">DAY / 365</div>
+    </div>
+
+    <!-- Pagination Navigation -->
+    <div class="pagination">
+        <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')">◀</button>
+        <span class="page-indicator" id="pageIndicator">Day 5/365</span>
+        <button class="pagination-btn" id="nextBtn" onclick="navigate('next')">▶</button>
+        <a href="/365/" class="pagination-home" title="View All Days">⊞</a>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">
+                    <div class="logo-icon">⚙</div>
+                    <div>
+                        <div class="logo-text">RE-IND</div>
+                    </div>
+                </div>
+                <div class="tagline">
+                    MACHINES FOR A STRONGER AMERICA<br>
+                    NEW ORLEANS, LA — U.S.A.
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="barcode">
+                    <div class="barcode-bar"></div>
+                    <div class="barcode-bar"></div>
+                    <div class="barcode-bar"></div>
+                    <div class="barcode-bar"></div>
+                    <div class="barcode-bar"></div>
+                    <div class="barcode-bar"></div>
+                    <div class="barcode-bar"></div>
+                    <div class="barcode-bar"></div>
+                </div>
+                <div class="company-name">
+                    RE-IND<br>
+                    HOMELAND MACHINES INC.<br>
+                    INDUSTRIAL SYSTEMS DIVISION
+                </div>
+                <div class="badge">HM-MFG-01</div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="spec-panel">
+                <div class="spec-header">
+                    <div class="barcode-vertical">
+                        <div class="barcode-h" style="width: 80px;"></div>
+                        <div class="barcode-h" style="width: 120px;"></div>
+                        <div class="barcode-h" style="width: 90px;"></div>
+                        <div class="barcode-h" style="width: 140px;"></div>
+                        <div class="barcode-h" style="width: 100px;"></div>
+                        <div class="barcode-h" style="width: 130px;"></div>
+                        <div class="barcode-h" style="width: 85px;"></div>
+                        <div class="barcode-h" style="width: 110px;"></div>
+                    </div>
+                </div>
+                <ul class="spec-list">
+                    <li class="spec-item">
+                        <span class="spec-label">UNIT ID:</span> HM-FU-01
+                    </li>
+                    <li class="spec-item">
+                        <span class="spec-label">DIVISION:</span> CORE PRODUCTION
+                    </li>
+                    <li class="spec-item">
+                        <span class="spec-label">STATUS:</span> ACTIVE
+                    </li>
+                    <li class="spec-item">
+                        <span class="spec-label">CLEARANCE:</span> LEVEL 3
+                    </li>
+                    <li class="spec-item">
+                        <span class="spec-label">ROLE:</span> PRIMARY OUTPUT
+                    </li>
+                    <li class="spec-item">
+                        <span class="spec-label">LOCATION:</span> DOMESTIC
+                    </li>
+                    <li class="spec-item">
+                        <span class="spec-label">SECTOR:</span> MANUFACTURING
+                    </li>
+                    <li class="spec-item">
+                        <span class="spec-label">AUTHORIZATION:</span> GRANTED
+                    </li>
+                </ul>
+            </div>
+
+            <div class="spec-panel">
+                <div class="seal">
+                    <div class="star"></div>
+                    <div class="seal-text-top">HOMELAND MACHINES</div>
+                    <div class="seal-icon">✧</div>
+                    <div class="seal-text-bottom">RE-INDUSTRIALIZE</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            ► SYSTEM OPERATIONAL // ALL UNITS FUNCTIONING AT OPTIMAL CAPACITY ◄
+        </div>
+
+        <footer class="footer">
+            <div class="serial">SN: HM-2026-01-FU-CORE-00001</div>
+            <div class="classification">CLASSIFICATION: UNRESTRICTED // FOR OFFICIAL USE ONLY</div>
+            <div class="classification" style="margin-top: 10px;">
+                © 2026 HOMELAND MACHINES INC. // ALL RIGHTS RESERVED
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 365 Days of Pages collection
+        const daysOfPages = [
+            { day: 1, name: 'Paradise Motel', file: 'motel.html' },
+            { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
+            { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
+            { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
+            { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
+            { day: 6, name: 'Celestial Drift', file: 'day6.html' },
+            { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
+            { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
+            { day: 9, name: 'NERV Terminal', file: 'day9.html' },
+            { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
+            // More pages will be added here as the collection grows
+        ];
+
+        // Find current page index
+        const currentPageFile = window.location.pathname.split('/').pop();
+        const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
+
+        // Update page indicator
+        if (currentIndex !== -1) {
+            document.getElementById('pageIndicator').textContent =
+                `Day ${daysOfPages[currentIndex].day}/365`;
+        }
+
+        // Navigation function
+        function navigate(direction) {
+            if (currentIndex === -1) return;
+
+            let newIndex;
+            if (direction === 'prev') {
+                newIndex = currentIndex - 1;
+            } else {
+                newIndex = currentIndex + 1;
+            }
+
+            if (newIndex >= 0 && newIndex < daysOfPages.length) {
+                window.location.href = daysOfPages[newIndex].file;
+            }
+        }
+
+        // Update button states
+        if (currentIndex !== -1) {
+            if (currentIndex === 0) {
+                document.getElementById('prevBtn').disabled = true;
+            }
+            if (currentIndex === daysOfPages.length - 1) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
+        // Randomize barcode on load
+        function randomizeBarcode() {
+            const barcodes = document.querySelectorAll('.barcode-bar');
+            barcodes.forEach(bar => {
+                const widths = [4, 6, 8, 10];
+                bar.style.width = widths[Math.floor(Math.random() * widths.length)] + 'px';
+            });
+
+            const barsH = document.querySelectorAll('.barcode-h');
+            barsH.forEach(bar => {
+                const heights = [4, 6, 8, 10];
+                bar.style.height = heights[Math.floor(Math.random() * heights.length)] + 'px';
+            });
+        }
+
+        // Random serial number generation
+        function generateSerial() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let serial = 'HM-2026-01-FU-CORE-';
+            for (let i = 0; i < 5; i++) {
+                serial += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.querySelector('.serial').textContent = `SN: ${serial}`;
+        }
+
+        // Initialize
+        randomizeBarcode();
+        generateSerial();
+
+        // Occasional barcode refresh for "activity"
+        setInterval(randomizeBarcode, 5000);
+    </script>
+</body>
+</html>

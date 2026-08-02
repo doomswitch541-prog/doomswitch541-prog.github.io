@@ -253,8 +253,12 @@
     bottom: calc(6px + env(safe-area-inset-bottom));
     display: flex;
     gap: 6px;
+    max-width: calc(100vw - 12px);
+    overflow-x: auto;
+    scrollbar-width: none;
     z-index: 200;
   }
+  .sitenav::-webkit-scrollbar { display: none; }
   .sitenav .navlink {
     text-decoration: none;
     padding: 8px 13px;
@@ -408,6 +412,7 @@
   <a class="navlink" href="/">HOME</a>
   <a class="navlink" href="/screensaver">SCREENSAVER</a>
   <a class="navlink" href="/visuals">VISUALS</a>
+  <a class="navlink" href="/365">365</a>
   <a class="navlink" href="/weather">WEATHER</a>
   <a class="navlink" href="/directory">DIRECTORY</a>
 </nav>

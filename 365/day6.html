@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Celestial Drift</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,15 +25,13 @@
 
         body {
             font-family: 'Cormorant Garamond', serif;
-            /* The page itself never scrolls — the header stays put and only the
-               centred HUD box scrolls (its own content). */
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             background: #000;
             color: var(--accent);
             position: relative;
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
+            width: 100vw;
+            min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             touch-action: pan-y;
@@ -94,12 +91,12 @@
             position: relative;
             z-index: 10;
             width: 100%;
-            /* Header group sits at the TOP now. It used to be justify-content:
-               flex-end with 45vh top padding, which parked it at the bottom. */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
+            justify-content: flex-end;
             align-items: flex-start;
-            padding: 1.75rem 8vw 0 8vw;
+            padding: 45vh 8vw 8vh 8vw;
         }
 
         /* Single vertical accent bar */
@@ -123,13 +120,11 @@
         /* Elegant serif title */
         .main-title {
             font-family: 'Cormorant Garamond', serif;
-            /* Masthead scale — same face/weight/shadow, sized for the top of
-               the page instead of a full-bleed hero. */
-            font-size: clamp(2.4rem, 8vw, 5rem);
+            font-size: clamp(3rem, 14vw, 12rem);
             font-weight: 300;
-            letter-spacing: -0.01em;
-            line-height: 0.9;
-            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+            line-height: 0.85;
+            margin-bottom: 1.5rem;
             color: var(--accent);
             text-shadow:
                 0 0 40px rgba(255, 255, 255, 0.3),
@@ -175,7 +170,7 @@
             top: 6vh;
             right: 6vw;
             font-family: 'Space Mono', monospace;
-            font-size: clamp(0.78rem, 1.7vw, 1.15rem);
+            font-size: clamp(0.65rem, 1.5vw, 1rem);
             letter-spacing: 0.3em;
             color: var(--soft-gold);
             opacity: 0.6;
@@ -186,10 +181,8 @@
         /* Minimal HUD widget - enhanced for mobile with scrolling */
         .hud-widget {
             position: fixed;
-            /* Centred box — the only thing that scrolls (its own content). */
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 4vh;
+            left: 4vw;
             background: rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(30px) saturate(130%);
             border: 1px solid rgba(255, 255, 255, 0.18);
@@ -198,7 +191,7 @@
             z-index: 50;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             width: min(450px, 92vw);
-            max-height: 80vh;
+            max-height: 85vh;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             overflow: hidden;
             display: flex;
@@ -247,75 +240,14 @@
         }
 
         /* Desktop horizontal layout - full width spread */
-        /* ── Site nav ─────────────────────────────────────────────────────
-           In this page's own gold rather than the console cyan, so it belongs
-           to the design. On a phone the HUD owns the top of the screen, so the
-           nav is a bottom bar and the pagination lifts above it; from 769px it
-           floats in the empty top-right of the HUD. */
-        /* On a phone this is a full-width bar, not floating pills. A fixed bar
-           always sits over whatever is at that scroll position, and with bare
-           pills the page's serif title showed through the gaps between them. */
-        .sitenav {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            justify-content: flex-start;
-            gap: 0.4rem;
-            overflow-x: auto;
-            scrollbar-width: none;
-            padding: 0.55rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom));
-            background: rgba(4, 9, 18, 0.92);
-            backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-            z-index: 110;
-        }
-        .sitenav::-webkit-scrollbar { display: none; }
-        .sitenav .navlink {
-            text-decoration: none;
-            padding: 0.5rem 0.85rem;
-            border-radius: 999px;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.55rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--soft-gold);
-            background: rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .sitenav .navlink:hover,
-        .sitenav .navlink:focus-visible {
-            color: #fff;
-            border-color: var(--soft-gold);
-            background: rgba(0, 0, 0, 0.55);
-            outline: none;
-        }
-        .sitenav .navlink[aria-current="page"] {
-            color: #1a1a1a;
-            background: var(--soft-gold);
-            border-color: var(--soft-gold);
-        }
-
-
         @media (min-width: 769px) {
-            .sitenav {
-                left: auto;
-                right: 4vw;
-                top: 5vh;
-                bottom: auto;
-                justify-content: center;
-                padding: 0;
-                background: none;
-                backdrop-filter: none;
-                border-top: none;
-            }
-            .sitenav .navlink { font-size: 0.6rem; padding: 0.55rem 1rem; }
-
             .content {
-                padding-top: 1.75rem;
+                padding-top: 52vh;
+                transition: padding-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .content.hud-collapsed {
+                padding-top: 30vh;
             }
 
             .accent-bar {
@@ -333,46 +265,33 @@
                 right: 2vw;
                 width: auto;
                 max-width: none;
-                /* Vertically centred; horizontal handled by left/right. */
-                transform: translateY(-50%);
-                max-height: 80vh;
-                overflow-y: auto;
-                overflow-x: hidden;
+                max-height: none;
+                overflow: visible;
             }
 
-            /* The seven fixed minimums here total 1180px, plus 144px of gaps —
-               about 1324px of floor inside a container that is only 96vw wide.
-               minmax() minimums don't compress, so between 769px and ~1400px
-               the grid overflowed its own panel and clipped the right-hand
-               sections. Every track now has a 0 floor and its old minimum
-               becomes the *preferred* width, so the columns squeeze instead of
-               spilling. Identical at wide widths, no longer broken below. */
-            /* The original seven-column template had fixed minimums totalling
-               1180px plus 144px of gaps — about 1324px of floor inside a
-               container only 96vw wide. minmax() minimums don't compress, so
-               every width from 769px to ~1400px overflowed the panel and
-               clipped the right-hand sections. Squeezing seven columns into
-               900px isn't the answer either — the text just clips inside each
-               column instead. So the seven-across layout now starts at 1400px
-               where it genuinely fits (see the block further down), and this
-               band wraps into as many columns as will hold their content. */
             .hud-content {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-                grid-auto-rows: auto;
-                gap: 1.2rem 1.5rem;
+                grid-template-columns: minmax(140px, auto) minmax(160px, 1fr) minmax(180px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(180px, 1fr) minmax(200px, 1fr);
+                grid-template-rows: auto auto;
+                gap: 0.8rem 1.5rem;
                 align-items: start;
             }
 
-            /* Grid and flex children default to min-width:auto, which refuses to
-               shrink below their content — that's what pushed "DEW POINT",
-               "WIND GUST" and "VISIBILITY" past the panel edge even at 1200px. */
-            .hud-content > * { min-width: 0; }
+            .hud-location {
+                grid-column: 1 / 2;
+                grid-row: 1 / 2;
+                margin-bottom: 0;
+            }
 
-            .hud-location { margin-bottom: 0; }
-            .hud-clock { margin-bottom: 0; }
+            .hud-clock {
+                grid-column: 1 / 2;
+                grid-row: 2 / 3;
+                margin-bottom: 0;
+            }
 
             #weatherSection {
+                grid-column: 2 / 3;
+                grid-row: 1 / 3;
                 border: none;
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
                 padding: 0 0 0 1.5rem;
@@ -380,6 +299,8 @@
             }
 
             #astronomySection {
+                grid-column: 3 / 4;
+                grid-row: 1 / 3;
                 border: none;
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
                 padding: 0 0 0 1.5rem;
@@ -387,6 +308,8 @@
             }
 
             #windSection {
+                grid-column: 4 / 5;
+                grid-row: 1 / 3;
                 border: none;
                 padding: 0 0 0 1.5rem;
                 margin: 0;
@@ -394,6 +317,8 @@
             }
 
             #extendedSection {
+                grid-column: 5 / 6;
+                grid-row: 1 / 3;
                 padding: 0 0 0 1.5rem;
                 margin: 0;
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -401,6 +326,8 @@
             }
 
             #chartsSection {
+                grid-column: 6 / 7;
+                grid-row: 1 / 3;
                 padding: 0 0 0 1.5rem;
                 margin: 0;
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -408,6 +335,8 @@
             }
 
             #apiStatsSection {
+                grid-column: 7 / 8;
+                grid-row: 1 / 3;
                 padding: 0 0 0 1.5rem;
                 margin: 0;
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -437,11 +366,9 @@
                 text-align: center;
             }
 
-            /* Extended section compact. auto-fit rather than a hard 2 columns,
-               so it drops to a single column when the section itself is narrow
-               instead of clipping against the section's overflow:hidden. */
+            /* Extended section compact */
             .weather-extended {
-                grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+                grid-template-columns: repeat(2, 1fr);
                 gap: 0.5rem;
             }
 
@@ -472,25 +399,9 @@
 
         /* Large desktop - even more spread */
         @media (min-width: 1400px) {
-            /* The original seven-across layout, restored at the width where its
-               ~1324px of column floor actually fits. Location above clock in
-               column one, every section spanning both rows beside it. */
             .hud-content {
-                grid-template-columns:
-                    minmax(140px, auto) minmax(160px, 1fr) minmax(180px, 1fr)
-                    minmax(160px, 1fr) minmax(160px, 1fr) minmax(180px, 1fr) minmax(200px, 1fr);
-                grid-template-rows: auto auto;
                 gap: 1rem 2rem;
             }
-
-            .hud-location { grid-column: 1 / 2; grid-row: 1 / 2; }
-            .hud-clock    { grid-column: 1 / 2; grid-row: 2 / 3; }
-            #weatherSection   { grid-column: 2 / 3; grid-row: 1 / 3; }
-            #astronomySection { grid-column: 3 / 4; grid-row: 1 / 3; }
-            #windSection      { grid-column: 4 / 5; grid-row: 1 / 3; }
-            #extendedSection  { grid-column: 5 / 6; grid-row: 1 / 3; }
-            #chartsSection    { grid-column: 6 / 7; grid-row: 1 / 3; }
-            #apiStatsSection  { grid-column: 7 / 8; grid-row: 1 / 3; }
 
             .wind-speedometer {
                 flex-direction: row;
@@ -1047,17 +958,6 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* .collapsible-section sets overflow:hidden, so anything wider than its
-           column is cut rather than wrapped — that's why "DEW POINT" rendered as
-           "DEW POI" and "VISIBILITY" as "VISIBIL". Grid children default to
-           min-width:auto and refuse to shrink, so give them a zero floor and let
-           the longer labels wrap instead of running off the edge. */
-        .weather-extended > *,
-        .api-stats-content > * { min-width: 0; }
-
-        .weather-data-label,
-        .api-stat-label { overflow-wrap: anywhere; }
-
         .weather-data-item {
             font-family: 'Space Mono', monospace;
             font-size: 0.7rem;
@@ -1235,13 +1135,12 @@
 
             .hud-widget {
                 position: fixed;
-                top: 50%;
+                top: 2vh;
                 left: 3vw;
                 right: 3vw;
                 width: auto;
                 max-width: none;
-                transform: translateY(-50%);
-                max-height: 72vh;
+                max-height: 70vh;
                 overflow-y: auto;
                 z-index: 100;
             }
@@ -1251,16 +1150,6 @@
                 flex-direction: column;
                 gap: 0;
             }
-
-            /* Flex children are flex-shrink:1 by default. Inside the widget's
-               max-height:70vh that meant expanding two or three sections crushed
-               them all toward zero height instead of scrolling — the boxes piled
-               into each other and their contents clipped against
-               .collapsible-section's overflow:hidden. It read as "the weather
-               boxes aren't loading"; they were loading and being squashed.
-               flex-shrink:0 keeps each section at its natural height and lets the
-               widget scroll, which is what max-height + overflow-y:auto intended. */
-            .hud-content > * { flex-shrink: 0; }
 
             .collapsible-section {
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -1284,7 +1173,7 @@
 
             .content {
                 position: relative;
-                padding: 1.25rem 6vw 0 6vw;
+                padding: 3rem 6vw 4rem 6vw;
                 min-height: auto;
                 justify-content: flex-start;
                 z-index: 10;
@@ -1327,17 +1216,15 @@
                 z-index: 10;
             }
 
-            /* auto-fit rather than a hard 4 columns — four boxes across a phone
-               is ~72px each, which clips against the section's overflow:hidden. */
             .weather-extended {
-                grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
         /* Responsive - Mobile */
         @media (max-width: 480px) {
             .content {
-                padding: 1rem 5vw 0 5vw;
+                padding: 2rem 5vw 3rem 5vw;
             }
 
             .main-title {
@@ -1355,7 +1242,7 @@
             }
 
             .day-number {
-                font-size: 0.72rem;
+                font-size: 0.6rem;
             }
 
             .hud-widget {
@@ -2243,34 +2130,81 @@
         </div> <!-- end hud-widget-scroll -->
     </div> <!-- end hud-widget -->
 
-    <nav class="sitenav" aria-label="Site">
-        <a class="navlink" href="/">HOME</a>
-        <a class="navlink" href="/screensaver">SCREENSAVER</a>
-        <a class="navlink" href="/visuals">VISUALS</a>
-        <a class="navlink" href="/365">365</a>
-        <a class="navlink" href="/weather">WEATHER</a>
-        <a class="navlink" href="/directory">DIRECTORY</a>
-    </nav>
-
     <!-- Background layer with high-quality image -->
     <div class="background">
-        <img src="/assets/skyresonance-one.jpeg" alt="" loading="eager" decoding="async">
+        <img src="../assets/skyresonance-one.jpeg" alt="" loading="eager" decoding="async">
     </div>
     <div class="overlay"></div>
 
     <!-- Vertical accent -->
     <div class="accent-bar"></div>
 
-    <!-- Day counter — real day of the year, set in JS -->
-    <div class="day-number" id="dayNumber">--- / 365</div>
+    <!-- Day number -->
+    <div class="day-number">006 / 365</div>
 
-    <!-- Header group — moved to the top, pared to a single word -->
-    <header class="content">
-        <h1 class="main-title">Weather</h1>
+    <!-- Main content with generous negative space -->
+    <div class="content">
+        <div class="metadata">Day Six</div>
+        <h1 class="main-title">Celestial<br>Drift</h1>
         <div class="line-decoration"></div>
-    </header>
+        <p class="subtitle">Where sky meets eternity</p>
+    </div>
+
+    <!-- Minimal pagination -->
+    <div class="pagination">
+        <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')" aria-label="Previous page">←</button>
+        <span class="page-indicator" id="pageIndicator">Day 6/365</span>
+        <button class="pagination-btn" id="nextBtn" onclick="navigate('next')" aria-label="Next page">→</button>
+        <a href="/365/" class="pagination-home" title="View All Days" aria-label="View all 365 days">⊞</a>
+    </div>
 
     <script>
+        // 365 Days navigation
+        const daysOfPages = [
+            { day: 1, name: 'Paradise Motel', file: 'motel.html' },
+            { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
+            { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
+            { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
+            { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
+            { day: 6, name: 'Celestial Drift', file: 'day6.html' },
+            { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
+            { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
+            { day: 9, name: 'NERV Terminal', file: 'day9.html' },
+            { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
+        ];
+
+        const currentPageFile = window.location.pathname.split('/').pop();
+        const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
+
+        if (currentIndex !== -1) {
+            document.getElementById('pageIndicator').textContent =
+                `Day ${daysOfPages[currentIndex].day}/365`;
+        }
+
+        function navigate(direction) {
+            let newIndex;
+
+            if (direction === 'prev') {
+                newIndex = currentIndex - 1;
+            } else if (direction === 'next') {
+                newIndex = currentIndex + 1;
+            }
+
+            if (newIndex >= 0 && newIndex < daysOfPages.length) {
+                window.location.href = daysOfPages[newIndex].file;
+            }
+        }
+
+        // Disable navigation buttons at boundaries
+        if (currentIndex !== -1) {
+            if (currentIndex === 0) {
+                document.getElementById('prevBtn').disabled = true;
+            }
+            if (currentIndex === daysOfPages.length - 1) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
         // ============================================================
         // HUD WIDGET - CLOCK & WEATHER
         // ============================================================
@@ -2283,9 +2217,43 @@
         const contentEl = document.querySelector('.content');
         const accentBar = document.querySelector('.accent-bar');
 
-        // The header group now lives at the TOP of the page. The old routine
-        // that measured the HUD and pushed .content down by its full height
-        // (which parked the header at the bottom) has been removed.
+        // Adaptive content positioning based on HUD height
+        function updateContentPosition() {
+            const hudHeight = Math.max(hudWidget.offsetHeight, hudWidget.scrollHeight);
+            const vhOffset = window.innerHeight * 0.04; // 4vh top position
+            const gap = 40; // 40px gap
+            const topMargin = vhOffset + hudHeight + gap;
+            contentEl.style.marginTop = topMargin + 'px';
+        }
+
+        // Update on resize
+        window.addEventListener('resize', updateContentPosition);
+
+        // Use ResizeObserver to watch HUD size changes in real-time
+        const resizeObserver = new ResizeObserver(() => {
+            updateContentPosition();
+        });
+        resizeObserver.observe(hudWidget);
+
+        // Also observe mutations for content changes (like new history entries)
+        const mutationObserver = new MutationObserver(() => {
+            updateContentPosition();
+        });
+        mutationObserver.observe(hudWidget, { childList: true, subtree: true, characterData: true });
+
+        // Update continuously during CSS transitions
+        hudWidget.addEventListener('transitionstart', () => {
+            const updateDuringTransition = () => {
+                updateContentPosition();
+                if (hudWidget.getAnimations().length > 0) {
+                    requestAnimationFrame(updateDuringTransition);
+                }
+            };
+            requestAnimationFrame(updateDuringTransition);
+        });
+
+        // Initial update
+        updateContentPosition();
 
         hudToggle.addEventListener('click', () => {
             hudWidget.classList.toggle('collapsed');
@@ -2321,17 +2289,6 @@
 
         updateClock();
         setInterval(updateClock, 1000);
-
-        // Day counter — real day of the year (e.g. 211 / 365)
-        (function () {
-            const el = document.getElementById('dayNumber');
-            if (!el) return;
-            const now = new Date();
-            const y = now.getFullYear();
-            const dayOfYear = Math.floor((now - new Date(y, 0, 0)) / 86400000);
-            const total = ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 366 : 365;
-            el.textContent = String(dayOfYear).padStart(3, '0') + ' / ' + total;
-        })();
 
         // Location data
         const locations = {
@@ -3262,16 +3219,6 @@
                 }
             }, 250);
         });
-
-        // Mark the nav link for the page we're on. Matches /365, /365/ and
-        // /365.html so it works under Netlify's Pretty URLs either way.
-        (function initSiteNav(){
-            const here = window.location.pathname.replace(/(index)?\.html$/, '').replace(/\/$/, '') || '/';
-            document.querySelectorAll('.sitenav .navlink').forEach(a=>{
-                const to = a.getAttribute('href');
-                if (to === here) a.setAttribute('aria-current','page');
-            });
-        })();
     </script>
 </body>
 </html>

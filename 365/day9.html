@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NERV TERMINAL - MAGI SYSTEM v3.1</title>
+    <link rel="stylesheet" href="day9.css">
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="vignette"></div>
+    <div class="api-status-badge degraded" id="apiStatusBadge">API CHECK...</div>
+
+    <!-- Pagination Navigation -->
+    <div class="pagination">
+        <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')">◀</button>
+        <span class="page-indicator" id="pageIndicator">Day 9/365</span>
+        <button class="pagination-btn" id="nextBtn" onclick="navigate('next')">▶</button>
+        <a href="/365/" class="pagination-home" title="View All Days">⊞</a>
+    </div>
+    
+    <!-- Continuous Mode Indicator -->
+    <div class="continuous-mode-indicator" id="continuousIndicator">
+        AUTO-SCAN ACTIVE
+    </div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="logo">▲ NERV</div>
+            <div class="status">
+                <div class="status-dot"></div>
+                <span>MAGI SYSTEM ONLINE</span>
+                <span class="activity-indicator" id="activityIndicator"></span>
+            </div>
+        </header>
+        
+        <div class="grid">
+            <!-- WiFi Radar Panel -->
+            <div class="panel" id="wifiPanel">
+                <div class="panel-title">WiFi Surveillance</div>
+                <div class="wifi-connected-status" id="wifiConnectedStatus" style="display: none;">
+                    <span class="wifi-connected-dot"></span>
+                    <span class="wifi-connected-text" id="wifiConnectedText">Scanning...</span>
+                </div>
+                <div class="panel-content">
+                    <div class="wifi-radar-container" id="wifiRadarContainer">
+                        <div class="wifi-radar-grid"></div>
+                        <div class="wifi-radar-rings">
+                            <div class="wifi-radar-ring"></div>
+                            <div class="wifi-radar-ring"></div>
+                            <div class="wifi-radar-ring"></div>
+                        </div>
+                        <div class="wifi-radar-sweep"></div>
+                        <div class="wifi-radar-center"></div>
+                    </div>
+                    <div class="wifi-status-text" id="wifiStatusText">READY TO SCAN</div>
+                    <button class="wifi-scan-btn" id="wifiScanBtn" onclick="scanWifiNetworks()">INITIATE SCAN</button>
+                    
+                    <!-- MAGI Status Display -->
+                    <div class="magi-status" id="magiStatus">SYSTEM READY</div>
+                    
+                    <!-- Router Information Panel -->
+                    <div class="router-panel" id="routerPanel">
+                        <div class="router-panel-header">ROUTER INTELLIGENCE</div>
+                        <div class="router-info-row">
+                            <span class="router-info-label">IP Address</span>
+                            <span class="router-info-value" id="routerIp">-</span>
+                        </div>
+                        <div class="router-info-row">
+                            <span class="router-info-label">MAC Address</span>
+                            <span class="router-info-value" id="routerMac">-</span>
+                        </div>
+                        <div class="router-info-row">
+                            <span class="router-info-label">Manufacturer</span>
+                            <span class="router-info-value" id="routerVendor">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Discovered Hosts Panel -->
+                    <div class="hosts-panel" id="hostsPanel">
+                        <div class="hosts-panel-header">
+                            <span>DISCOVERED HOSTS</span>
+                            <span class="hosts-count" id="hostsCount">0</span>
+                        </div>
+                        <div class="hosts-list" id="hostsList"></div>
+                    </div>
+                    
+                    <div class="wifi-details" id="wifiDetails">
+                        <div class="wifi-details-header">
+                            <span id="wifiDetailName">NETWORK</span>
+                            <button onclick="closeWifiDetails()" style="background: none; border: 1px solid var(--nerv-gray-300); color: var(--nerv-gray-300); padding: 0.2rem 0.5rem; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;">✕</button>
+                        </div>
+                        <div class="wifi-details-row">
+                            <span class="wifi-details-label">SSID</span>
+                            <span class="wifi-details-value" id="wifiDetailSSID">-</span>
+                        </div>
+                        <div class="wifi-details-row">
+                            <span class="wifi-details-label">SECURITY</span>
+                            <span class="wifi-details-value" id="wifiDetailSecurity">-</span>
+                        </div>
+                        <div class="wifi-details-row">
+                            <span class="wifi-details-label">SIGNAL</span>
+                            <div class="wifi-signal-bar" id="wifiDetailSignal">
+                                <div class="wifi-signal-segment"></div>
+                                <div class="wifi-signal-segment"></div>
+                                <div class="wifi-signal-segment"></div>
+                                <div class="wifi-signal-segment"></div>
+                            </div>
+                        </div>
+                        <div class="wifi-details-row">
+                            <span class="wifi-details-label">FREQUENCY</span>
+                            <span class="wifi-details-value" id="wifiDetailFreq">-</span>
+                        </div>
+                        <div class="wifi-details-row">
+                            <span class="wifi-details-label">CHANNEL</span>
+                            <span class="wifi-details-value" id="wifiDetailChannel">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="wifi-network-list" id="wifiNetworkList"></div>
+                </div>
+            </div>
+            
+            <!-- Terminal -->
+            <div class="panel">
+                <div class="panel-title">MAGI Terminal</div>
+                <div class="panel-content">
+                    <div class="terminal" onclick="document.getElementById('terminalInput').focus()">
+                        <div class="terminal-header">
+                            <div class="terminal-header-left">
+                                <span class="terminal-session">magi@tokyo-3:~$</span>
+                                <span class="terminal-scrollback" id="terminalScrollback">0 lines</span>
+                            </div>
+                            <div>v3.1.0</div>
+                        </div>
+                        <div class="terminal-body" id="terminalBody">
+                            <!-- Lines added via JS -->
+                        </div>
+                        <div class="scroll-hint" id="scrollHint">▼ MORE</div>
+                        <div class="terminal-input-container">
+                            <span class="terminal-input-prompt">$</span>
+                            <input type="text" class="terminal-input" id="terminalInput" placeholder="enter command..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        </div>
+                        <div class="mobile-commands">
+                            <button class="cmd-btn" onclick="execCommand('help')">help</button>
+                            <button class="cmd-btn" onclick="execCommand('scan')">scan</button>
+                            <button class="cmd-btn" onclick="execCommand('topology')">topology</button>
+                            <button class="cmd-btn" onclick="execCommand('hosts')">hosts</button>
+                            <button class="cmd-btn" onclick="execCommand('continuous')">auto</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="day9.js"></script>
+    <script>
+        const daysOfPages = [
+            { day: 1, name: 'Paradise Motel', file: 'motel.html' },
+            { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
+            { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
+            { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
+            { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
+            { day: 6, name: 'Celestial Drift', file: 'day6.html' },
+            { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
+            { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
+            { day: 9, name: 'NERV Terminal', file: 'day9.html' },
+            { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
+        ];
+
+        const currentPageFile = window.location.pathname.split('/').pop();
+        const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
+
+        if (currentIndex !== -1) {
+            document.getElementById('pageIndicator').textContent =
+                `Day ${daysOfPages[currentIndex].day}/365`;
+        }
+
+        function navigate(direction) {
+            if (currentIndex === -1) return;
+            const newIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
+            if (newIndex >= 0 && newIndex < daysOfPages.length) {
+                window.location.href = daysOfPages[newIndex].file;
+            }
+        }
+
+        if (currentIndex !== -1) {
+            if (currentIndex === 0) {
+                document.getElementById('prevBtn').disabled = true;
+            }
+            if (currentIndex === daysOfPages.length - 1) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                navigate('prev');
+            } else if (e.key === 'ArrowRight') {
+                navigate('next');
+            } else if (e.key === 'Escape' || e.key === 'h') {
+                window.location.href = '/365/';
+            }
+        });
+
+        async function updateApiStatusBadge() {
+            const badge = document.getElementById('apiStatusBadge');
+            if (!badge) return;
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+                const response = await fetch('/api/wifi/status', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    badge.className = 'api-status-badge degraded';
+                    badge.textContent = `API DEGRADED (${response.status})`;
+                    return;
+                }
+
+                badge.className = 'api-status-badge ok';
+                badge.textContent = 'API OK';
+            } catch (error) {
+                badge.className = 'api-status-badge offline';
+                badge.textContent = 'API OFFLINE';
+            }
+        }
+
+        updateApiStatusBadge();
+        setInterval(updateApiStatusBadge, 45000);
+    </script>
+</body>
+</html>

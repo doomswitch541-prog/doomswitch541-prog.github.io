@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NERV TERMINAL MONITOR - MAGI SYSTEM</title>
+    <link rel="stylesheet" href="day10.css?v=9">
+</head>
+<body>
+    <!-- CRT Effects -->
+    <div class="crt-overlay"></div>
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+    <div class="api-status-badge degraded" id="apiStatusBadge">API CHECK...</div>
+
+    <!-- Pagination Navigation -->
+    <div class="pagination">
+        <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')">◀</button>
+        <span class="page-indicator" id="pageIndicator">Day 10/365</span>
+        <button class="pagination-btn" id="nextBtn" onclick="navigate('next')">▶</button>
+        <a href="/365/" class="pagination-home" title="View All Days">⊞</a>
+    </div>
+    
+    <!-- Warning Stripes Header (shows on high load) -->
+    <div class="warning-stripes" id="warningStripes">
+        <span>⚠ MAGI SYSTEM ALERT - HIGH LOAD DETECTED ⚠</span>
+    </div>
+
+    <div class="container">
+        <!-- Header with Dual Chronograph -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">▲ NERV</div>
+                <div class="subtitle">MAGI SYSTEM INTERFACE v3.1</div>
+            </div>
+            
+            <!-- Dual Chronograph -->
+            <div class="chronograph-container">
+                <!-- HQ Time (Pacific) - Circular Hex Display -->
+                <div class="hq-time">
+                    <div class="time-label">HQ TIME (PT)</div>
+                    <div class="hex-ring-container">
+                        <div class="hex-ring" id="hqHexRing"></div>
+                        <div class="hex-center">
+                            <span id="hqTime">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Local Time (Central) - 7-Segment Block -->
+                <div class="local-time">
+                    <div class="time-label">LOCAL (CT)</div>
+                    <div class="seven-segment" id="localTime">
+                        <span class="seg-digits">88:88:88</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sync-indicator">
+                <div class="sync-dot" id="syncDot"></div>
+                <span>SYNC RATIO: <span id="syncRatio">400.0</span>%</span>
+            </div>
+        </header>
+
+        <!-- MAGI Three-Column Layout -->
+        <div class="magi-grid">
+            <!-- MELCHIOR - Hardware/Soul (CPU, Thermal, Memory) -->
+            <div class="magi-column melchior">
+                <div class="column-header">
+                    <span class="magi-icon">◆</span>
+                    <span>MELCHIOR-1</span>
+                    <span class="magi-sub">hardware/soul</span>
+                </div>
+                
+                <!-- LCL Pressure (Memory) -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">LCL PRESSURE</span>
+                        <span class="source">/proc/meminfo</span>
+                    </div>
+                    <div class="seven-segment-large" id="lclPressure">00.0%</div>
+                    <div class="hex-bar-container" id="memoryHexBar"></div>
+                </div>
+                
+                <!-- CPU Hexagonal Grid -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">CPU CORES</span>
+                        <span class="source">/proc/stat</span>
+                    </div>
+                    <div class="hex-cpu-grid" id="cpuHexGrid"></div>
+                    <div class="load-averages">
+                        <div class="load-item">
+                            <span class="load-label">1m</span>
+                            <span class="seven-segment-small" id="load1">0.00</span>
+                        </div>
+                        <div class="load-item">
+                            <span class="load-label">5m</span>
+                            <span class="seven-segment-small" id="load5">0.00</span>
+                        </div>
+                        <div class="load-item">
+                            <span class="load-label">15m</span>
+                            <span class="seven-segment-small" id="load15">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Thermal Zones -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">温度 TEMPERATURE</span>
+                        <span class="source">/sys/class/thermal</span>
+                    </div>
+                    <div class="thermal-grid" id="thermalGrid"></div>
+                </div>
+            </div>
+
+            <!-- BALTHASAR - Network/Soul -->
+            <div class="magi-column balthasar">
+                <div class="column-header">
+                    <span class="magi-icon">◇</span>
+                    <span>BALTHASAR-2</span>
+                    <span class="magi-sub">network/soul</span>
+                </div>
+                
+                <!-- Network Seismic Waveform -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">内部 INTERNAL NETWORK</span>
+                        <span class="source">/proc/net/dev</span>
+                    </div>
+                    <div class="waveform-container">
+                        <canvas id="networkWaveform" width="300" height="100"></canvas>
+                    </div>
+                    <div class="network-stats">
+                        <div class="net-stat">
+                            <span class="net-label">RX</span>
+                            <span class="seven-segment-small" id="netRx">0 B/s</span>
+                        </div>
+                        <div class="net-stat">
+                            <span class="net-label">TX</span>
+                            <span class="seven-segment-small" id="netTx">0 B/s</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interface Status -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">外部 EXTERNAL INTERFACES</span>
+                        <span class="source">carrier status</span>
+                    </div>
+                    <div class="interface-grid" id="interfaceGrid"></div>
+                </div>
+                
+                <!-- Disk Seismic Waveform -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">記憶 MEMORY I/O</span>
+                        <span class="source">/proc/diskstats</span>
+                    </div>
+                    <div class="waveform-container">
+                        <canvas id="diskWaveform" width="300" height="100"></canvas>
+                    </div>
+                    <div class="disk-stats">
+                        <div class="disk-stat">
+                            <span class="disk-label">READ</span>
+                            <span class="seven-segment-small" id="diskRead">0 B/s</span>
+                        </div>
+                        <div class="disk-stat">
+                            <span class="disk-label">WRITE</span>
+                            <span class="seven-segment-small" id="diskWrite">0 B/s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CASPAR - Security/Soul -->
+            <div class="magi-column caspar">
+                <div class="column-header">
+                    <span class="magi-icon">◈</span>
+                    <span>CASPAR-3</span>
+                    <span class="magi-sub">security/soul</span>
+                </div>
+                
+                <!-- WiFi Scanner -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">無線 WiFi SCANNER</span>
+                        <span class="source">/proc/net/wireless</span>
+                    </div>
+                    <div class="wifi-scanner" id="wifiScanner">
+                        <div class="wifi-list" id="wifiList">
+                            <div class="wifi-item scanning">
+                                <span class="wifi-icon">📡</span>
+                                <span class="wifi-status">Scanning...</span>
+                            </div>
+                        </div>
+                        <div class="wifi-chart" id="wifiChart"></div>
+                    </div>
+                </div>
+                
+                <!-- Connection Matrix (Hex Grid) -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">CONNECTION MATRIX</span>
+                        <span class="source">simulated visual</span>
+                    </div>
+                    <div class="connection-matrix" id="connectionMatrix"></div>
+                </div>
+                
+                <!-- Authentication Log -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">認証 AUTH LOG</span>
+                        <span class="source">client-side events</span>
+                    </div>
+                    <div class="auth-log" id="authLog">
+                        <div class="log-entry">
+                            <span class="log-time">--:--:--</span>
+                            <span class="log-msg">MAGI SYSTEM INITIALIZED</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Terminal Output -->
+                <div class="metric-panel terminal-panel">
+                    <div class="panel-header">
+                        <span class="label">TERMINAL OUTPUT</span>
+                        <span class="source" id="syslogSource">/var/log/syslog</span>
+                    </div>
+                    <div class="terminal-widget" id="terminalWidget">
+                        <div class="terminal-line header-line">
+                            <span class="terminal-prompt">magi@nerv:~$</span>
+                            <span class="terminal-cmd">tail -f /var/log/syslog</span>
+                        </div>
+                        <div class="terminal-output" id="terminalOutput">
+                            <div class="terminal-status-line loading">
+                                <span class="status-dot"></span>
+                                <span>Reading system log...</span>
+                            </div>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">magi@nerv:~$</span>
+                            <span class="terminal-cursor">_</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Status Hex -->
+                <div class="metric-panel">
+                    <div class="panel-header">
+                        <span class="label">SYSTEM STATUS</span>
+                    </div>
+                    <div class="status-hexes" id="statusHexes">
+                        <div class="status-hex" data-status="normal">
+                            <span class="hex-shape">⬡</span>
+                            <span class="hex-label">SYNC</span>
+                        </div>
+                        <div class="status-hex" data-status="normal">
+                            <span class="hex-shape">⬡</span>
+                            <span class="hex-label">LCL</span>
+                        </div>
+                        <div class="status-hex" data-status="normal">
+                            <span class="hex-shape">⬡</span>
+                            <span class="hex-label">AT</span>
+                        </div>
+                    </div>
+                    <div class="uptime-display">
+                        <span class="label">UPTIME</span>
+                        <span class="seven-segment-small" id="uptimeDisplay">00:00:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Documentation -->
+        <footer class="documentation">
+            <div class="doc-toggle" onclick="toggleDocumentation()">
+                <span>▼ DOCUMENTATION</span>
+            </div>
+            <div class="doc-content" id="docContent">
+                <h3>NERV TERMINAL MONITOR - CROSS-PLATFORM SYSTEM</h3>
+                
+                <div class="doc-section">
+                    <h4>Data Sources</h4>
+                    <p><strong>Real Kernel Data:</strong> All panel headers show their source path. Real data comes from: /proc/stat (CPU), /proc/meminfo (memory), /proc/net/dev (network), /proc/diskstats (disk), /proc/net/wireless (WiFi), /sys/class/thermal (temperature), /var/log/syslog (logs), /proc/uptime (uptime).</p>
+                    <p><strong>Simulated Visuals:</strong> "Connection Matrix" shows random hex activity for visual effect. "Auth Log" displays client-side events only. Source labels indicate "simulated visual" or "client-side events" for these.</p>
+                    <p><strong>Linux Kernel (/proc):</strong> Real-time CPU statistics (/proc/stat), memory usage (/proc/meminfo), network counters (/proc/net/dev), disk I/O (/proc/diskstats), wireless info (/proc/net/wireless), and system uptime (/proc/uptime).</p>
+                    <p><strong>Linux Thermal (/sys):</strong> Temperature readings from /sys/class/thermal and /sys/class/hwmon for all thermal zones and hardware monitors.</p>
+                    <p><strong>System Logs:</strong> Direct read of /var/log/syslog (or /var/log/messages fallback, or journalctl on systemd systems). Log entries are color-coded by severity in the terminal widget.</p>
+                    <p><strong>WiFi Scanning:</strong> Uses /proc/net/wireless for interface status, iw command for connected network info, and iwlist scan for available networks.</p>
+                    <p><strong>Windows:</strong> WMI interface via wmic command for CPU core count, memory totals. Falls back to Node.js os module.</p>
+                    <p><strong>macOS/Other:</strong> Node.js os module for basic memory and load average data.</p>
+                </div>
+
+                <div class="doc-section">
+                    <h4>Visual Encoding</h4>
+                    <ul>
+                        <li><strong>Hexagonal CPU Grid:</strong> Each hexagon represents one CPU core. Fill level = (user+system)/total jiffies. Color shifts from phosphor-green (idle) to phosphor-orange (load) to red (throttling).</li>
+                        <li><strong>7-Segment Displays:</strong> Constructed from Unicode block characters (█▀▄▌▐) to simulate vacuum fluorescent displays. All numeric readouts use this style.</li>
+                        <li><strong>Seismic Waveforms:</strong> Canvas-rendered jagged line patterns representing real bytes-per-second deltas. Amplitude scales with throughput.</li>
+                        <li><strong>Hex Ring Chronograph:</strong> 60-position hexagonal ring with rotating solid hex (◉) marking seconds for HQ Time.</li>
+                        <li><strong>Terminal Widget:</strong> Live syslog output with color-coded severity (green=normal, orange=warning, red=error). Updates every 5 seconds from /var/log/syslog.</li>
+                    </ul>
+                </div>
+
+                <div class="doc-section">
+                    <h4>Color System (Phosphor CRT)</h4>
+                    <ul>
+                        <li><span class="color-phosphor-green">Phosphor-Green (#00ff41):</span> Normal operations, safe states, active sync</li>
+                        <li><span class="color-phosphor-orange">Phosphor-Orange (#ff6b00):</span> Warnings, moderate load, attention required</li>
+                        <li><span class="color-red">Red (#ff0040):</span> Critical thermal, memory pressure >90%, system alerts</li>
+                        <li><span class="color-sage">Sage (#8fb3a5):</span> Minimal text labels, metric annotations</li>
+                        <li><span class="color-burgundy">Burgundy (#0f0505):</span> Cathode-void background</li>
+                    </ul>
+                </div>
+
+                <div class="doc-section">
+                    <h4>MAGI Column Layout</h4>
+                    <ul>
+                        <li><strong>MELCHIOR-1 (硬件):</strong> Hardware/Soul - CPU hexagons (/proc/stat), thermal zones (/sys/class/thermal), LCL memory pressure (/proc/meminfo)</li>
+                        <li><strong>BALTHASAR-2 (網路):</strong> Network/Soul - Seismic waveforms for network I/O (/proc/net/dev), interface carrier status, disk activity (/proc/diskstats), WiFi scanner (/proc/net/wireless, iw). Network statistics show both SESSION (since page load) and LIFETIME (since boot) totals.</li>
+                        <li><strong>CASPAR-3 (安全):</strong> Security/Soul - WiFi networks, live syslog terminal (/var/log/syslog), connection matrix (simulated visual), auth log (client-side events), system status hexes, uptime display (/proc/uptime)</li>
+                    </ul>
+                </div>
+
+                <div class="doc-section">
+                    <h4>Technical Implementation</h4>
+                    <p>Update interval: 500ms for system metrics, 5 seconds for syslog, 10 seconds for WiFi scanning. Smooth waveform rendering while maintaining low CPU overhead.</p>
+                    <p>History buffer: 60 samples (30 seconds) for seismic waveform amplitude calculation.</p>
+                    <p>API endpoints: /api/system (current state), /api/system/history (waveform data), /api/system/syslog (log entries), /api/system/wifi (networks).</p>
+                    <p>Source labels in panel headers indicate real (/proc/..., /sys/...) vs simulated ("simulated visual", "client-side") data.</p>
+                </div>
+
+                <div class="doc-section">
+                    <h4>Cross-Platform Compatibility</h4>
+                    <p>This interface adapts automatically to the host platform:</p>
+                    <ul>
+                        <li><strong>Linux:</strong> Full functionality with /proc, /sys access, and live syslog tailing</li>
+                        <li><strong>Windows:</strong> CPU count, memory via WMI; limited thermal/network/syslog data</li>
+                        <li><strong>macOS:</strong> Basic memory and load via Node.js os module; syslog via journalctl if available</li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="day10.js?v=9"></script>
+    <script>
+        const daysOfPages = [
+            { day: 1, name: 'Paradise Motel', file: 'motel.html' },
+            { day: 2, name: 'Luxury Tier Homelessness', file: 'luxurytierhomeless.html' },
+            { day: 3, name: 'Urban Resonance', file: 'resonance.html' },
+            { day: 4, name: 'Raccoon Gang', file: 'raccoongang.html' },
+            { day: 5, name: 'RE-IND Homeland', file: 'day5.html' },
+            { day: 6, name: 'Celestial Drift', file: 'day6.html' },
+            { day: 7, name: 'Raccoons of Chongqing', file: 'day7.html' },
+            { day: 8, name: 'SolarFlare', file: 'solarflare-about.html' },
+            { day: 9, name: 'NERV Terminal', file: 'day9.html' },
+            { day: 10, name: 'NERV System Monitor', file: 'day10.html' }
+        ];
+
+        const currentPageFile = window.location.pathname.split('/').pop();
+        const currentIndex = daysOfPages.findIndex(page => page.file === currentPageFile);
+
+        if (currentIndex !== -1) {
+            document.getElementById('pageIndicator').textContent =
+                `Day ${daysOfPages[currentIndex].day}/365`;
+        }
+
+        function navigate(direction) {
+            if (currentIndex === -1) return;
+            const newIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
+            if (newIndex >= 0 && newIndex < daysOfPages.length) {
+                window.location.href = daysOfPages[newIndex].file;
+            }
+        }
+
+        if (currentIndex !== -1) {
+            if (currentIndex === 0) {
+                document.getElementById('prevBtn').disabled = true;
+            }
+            if (currentIndex === daysOfPages.length - 1) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                navigate('prev');
+            } else if (e.key === 'ArrowRight') {
+                navigate('next');
+            } else if (e.key === 'Escape' || e.key === 'h') {
+                window.location.href = '/365/';
+            }
+        });
+
+        async function updateApiStatusBadge() {
+            const badge = document.getElementById('apiStatusBadge');
+            if (!badge) return;
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+                const response = await fetch('/api/system', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    badge.className = 'api-status-badge degraded';
+                    badge.textContent = `API DEGRADED (${response.status})`;
+                    return;
+                }
+
+                badge.className = 'api-status-badge ok';
+                badge.textContent = 'API OK';
+            } catch (error) {
+                badge.className = 'api-status-badge offline';
+                badge.textContent = 'API OFFLINE';
+            }
+        }
+
+        updateApiStatusBadge();
+        setInterval(updateApiStatusBadge, 45000);
+    </script>
+</body>
+</html>

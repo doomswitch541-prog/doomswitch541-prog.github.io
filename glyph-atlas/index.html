@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#08090c">
+    <title>Glyph Atlas — RG HQ</title>
+    <link rel="stylesheet" href="/glyph-atlas/atlas.css">
+</head>
+<body>
+    <main class="atlas-shell">
+        <header class="atlas-header">
+            <a class="back-link" href="/visuals" aria-label="Back to Visuals">← Visuals</a>
+            <a class="back-link" href="/365">365</a>
+            <p class="field-count">six marks / one field</p>
+        </header>
+        <section class="atlas" aria-labelledby="atlas-title">
+            <div class="title-block">
+                <p class="eyebrow">RG / 001</p>
+                <h1 id="atlas-title">Glyph<br>Atlas</h1>
+            </div>
+            <div class="field" id="glyph-field">
+                <div class="orbit orbit-a" aria-hidden="true"></div>
+                <div class="orbit orbit-b" aria-hidden="true"></div>
+                <svg class="connections" id="connections" aria-hidden="true"></svg>
+                <button class="glyph glyph-0" type="button" data-glyph-index="0" aria-label="Select bullseye glyph" aria-pressed="true"><span aria-hidden="true">◉</span></button>
+                <button class="glyph glyph-1" type="button" data-glyph-index="1" aria-label="Select diamond glyph" aria-pressed="false"><span aria-hidden="true">◆</span></button>
+                <button class="glyph glyph-2" type="button" data-glyph-index="2" aria-label="Select nested diamond glyph" aria-pressed="false"><span aria-hidden="true">◈</span></button>
+                <button class="glyph glyph-3" type="button" data-glyph-index="3" aria-label="Select double ring glyph" aria-pressed="false"><span aria-hidden="true">◎</span></button>
+                <button class="glyph glyph-4" type="button" data-glyph-index="4" aria-label="Select open circle glyph" aria-pressed="false"><span aria-hidden="true">○</span></button>
+                <button class="glyph glyph-5" type="button" data-glyph-index="5" aria-label="Select nested square glyph" aria-pressed="false"><span aria-hidden="true">▣</span></button>
+            </div>
+            <p class="instruction">touch a mark / redraw the field</p>
+        </section>
+    </main>
+    <script type="module" src="/glyph-atlas/atlas.js"></script>
+</body>
+</html>
