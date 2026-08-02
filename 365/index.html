@@ -270,6 +270,26 @@
             letter-spacing: 0.1em;
         }
 
+        .day-date {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+            padding-top: 0.65rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+        }
+
+        .day-date span {
+            color: rgba(255, 255, 255, 0.38);
+            font-size: 0.58rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
         .day-card.coming-soon {
             opacity: 0.5;
             cursor: not-allowed;
@@ -535,6 +555,10 @@
                 <span class="legend-swatch" aria-hidden="true"></span>
                 Days 11-30: Reserved sprint for Local AI (SolarFlare, Agent Library)
             </div>
+            <div class="legend-pill">
+                <span class="legend-swatch" aria-hidden="true"></span>
+                January: Paradise Motel entered Jan 2 · static-page run closed Jan 10 · SolarFlare planning followed
+            </div>
         </div>
 
         <div class="filter-row">
@@ -558,6 +582,12 @@
                 file: 'motel.html',
                 status: 'live',
                 description: 'A neon-soaked cyberpunk journey into a retro motel aesthetic with hot pink and cyan glows, parallax backgrounds, and flickering neon text',
+                timeline: {
+                    label: '365 entry',
+                    original: '2024',
+                    entry: 'Jan 2, 2026',
+                    confidence: 'user-date'
+                },
                 theme: {
                     primary: '#ff2a6d',
                     secondary: '#00fff9',
@@ -642,6 +672,11 @@
                 file: 'day7.html',
                 status: 'live',
                 description: 'Cyberpunk Chongqing river city with neon-soaked atmosphere, bilingual Chinese/English content, vertical neon signage, floating particles, fog animations, and raccoon gang lore in a futuristic megacity setting',
+                timeline: {
+                    label: 'static phase ends',
+                    entry: 'Jan 10, 2026',
+                    confidence: 'user-date'
+                },
                 theme: {
                     primary: '#00f5ff',
                     secondary: '#ff006e',
@@ -656,6 +691,11 @@
                 file: 'solarflare-about.html',
                 status: 'live',
                 description: 'Local-first AI interface landing page with emerald/teal/amber palette, glass-morphic architecture diagrams, persistent memory showcase, and elegant dark minimal design powered by Ollama',
+                timeline: {
+                    label: 'planning',
+                    entry: 'Planning after Jan 10',
+                    confidence: 'sequence'
+                },
                 theme: {
                     primary: '#10b981',
                     secondary: '#f59e0b',
@@ -669,7 +709,12 @@
                 name: 'NERV Terminal',
                 file: 'day9.html',
                 status: 'live',
-                description: 'Interactive MAGI supercomputer interface with AT Field monitors, Eva unit status, sync ratio displays, and functional command terminal - purple/green cyberpunk aesthetic inspired by NGE',
+                description: 'Interactive MAGI archive terminal that performs a local simulated scan and reveals the 365 page field without accessing networks or device data',
+                timeline: {
+                    label: 'provenance',
+                    entry: 'RGPages machine 2',
+                    confidence: 'user-source'
+                },
                 theme: {
                     primary: '#22c55e',
                     secondary: '#a855f7',
@@ -683,7 +728,12 @@
                 name: 'NERV System Monitor',
                 file: 'day10.html',
                 status: 'live',
-                description: 'Real-time Linux system monitor with MAGI three-column interface - hexagonal CPU grids, seismic waveforms for network/disk, 7-segment displays, dual chronograph (HQ/Local time), phosphor CRT aesthetic',
+                description: 'MAGI three-column interface with locally simulated telemetry, hexagonal grids, seismic waveforms, dual chronograph, and phosphor CRT aesthetic',
+                timeline: {
+                    label: 'provenance',
+                    entry: 'RGPages machine 2',
+                    confidence: 'user-source'
+                },
                 theme: {
                     primary: '#00ff41',
                     secondary: '#ff6b00',
@@ -719,7 +769,7 @@
             const card = document.createElement('a');
 
             if (dayData && dayData.status === 'live') {
-                card.href = dayData.file;
+                card.href = `/365/${dayData.file}`;
                 card.className = 'day-card';
                 card.dataset.state = 'live';
 
@@ -767,6 +817,7 @@
                     <div class="day-number" style="color: ${dayData.theme?.primary || '#ff2a6d'}; text-shadow: 0 0 20px ${dayData.theme?.glow || 'rgba(255, 42, 109, 0.5)'}">Day ${i}</div>
                     <div class="day-name">${dayData.name}</div>
                     <div class="day-status" style="color: ${dayData.theme?.secondary || 'rgba(255, 255, 255, 0.7)'}">● Live</div>
+                    ${dayData.timeline ? `<div class="day-date"><span>${dayData.timeline.label || '365 entry'}</span>${dayData.timeline.entry}</div>` : ''}
                 `;
             } else {
                 card.className = 'day-card coming-soon';

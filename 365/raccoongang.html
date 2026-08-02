@@ -1338,7 +1338,7 @@ function navigate(direction) {
   }
 
   if (newIndex >= 0 && newIndex < daysOfPages.length) {
-    window.location.href = daysOfPages[newIndex].file;
+                window.location.href = `/365/${daysOfPages[newIndex].file}`;
   }
 }
 

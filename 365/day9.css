@@ -35,6 +35,8 @@
     background: var(--bg);
     color: var(--nerv-amber);
     min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
     font-size: 14px;
     line-height: 1.6;
     overflow-x: hidden;
@@ -1670,8 +1672,8 @@
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .pagination {
-        top: 12px;
-        right: 12px;
+        top: max(12px, env(safe-area-inset-top));
+        right: max(12px, env(safe-area-inset-right));
         padding: 7px 8px;
         gap: 7px;
     }
@@ -1689,8 +1691,8 @@
     }
 
     .api-status-badge {
-        top: 12px;
-        left: 12px;
+        top: max(12px, env(safe-area-inset-top));
+        left: max(12px, env(safe-area-inset-left));
         font-size: 0.56rem;
         padding: 0.3rem 0.5rem;
     }

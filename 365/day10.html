@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NERV TERMINAL MONITOR - MAGI SYSTEM</title>
-    <link rel="stylesheet" href="day10.css?v=9">
+    <title>NERV System Monitor — Local Simulation</title>
+    <link rel="stylesheet" href="day10.css?v=10">
 </head>
 <body>
     <!-- CRT Effects -->
     <div class="crt-overlay"></div>
     <div class="vignette"></div>
     <div class="scanlines"></div>
-    <div class="api-status-badge degraded" id="apiStatusBadge">API CHECK...</div>
+    <div class="api-status-badge ok" id="apiStatusBadge">LOCAL SIMULATION</div>
 
     <!-- Pagination Navigation -->
     <div class="pagination">
@@ -76,7 +76,7 @@
                 <div class="metric-panel">
                     <div class="panel-header">
                         <span class="label">LCL PRESSURE</span>
-                        <span class="source">/proc/meminfo</span>
+                        <span class="source">LOCAL MEMORY MODEL</span>
                     </div>
                     <div class="seven-segment-large" id="lclPressure">00.0%</div>
                     <div class="hex-bar-container" id="memoryHexBar"></div>
@@ -86,7 +86,7 @@
                 <div class="metric-panel">
                     <div class="panel-header">
                         <span class="label">CPU CORES</span>
-                        <span class="source">/proc/stat</span>
+                        <span class="source">LOCAL LOAD MODEL</span>
                     </div>
                     <div class="hex-cpu-grid" id="cpuHexGrid"></div>
                     <div class="load-averages">
@@ -109,7 +109,7 @@
                 <div class="metric-panel">
                     <div class="panel-header">
                         <span class="label">温度 TEMPERATURE</span>
-                        <span class="source">/sys/class/thermal</span>
+                        <span class="source">LOCAL THERMAL MODEL</span>
                     </div>
                     <div class="thermal-grid" id="thermalGrid"></div>
                 </div>
@@ -126,8 +126,8 @@
                 <!-- Network Seismic Waveform -->
                 <div class="metric-panel">
                     <div class="panel-header">
-                        <span class="label">内部 INTERNAL NETWORK</span>
-                        <span class="source">/proc/net/dev</span>
+                        <span class="label">内部 ARCHIVE BUS</span>
+                        <span class="source">LOCAL ARCHIVE BUS</span>
                     </div>
                     <div class="waveform-container">
                         <canvas id="networkWaveform" width="300" height="100"></canvas>
@@ -157,7 +157,7 @@
                 <div class="metric-panel">
                     <div class="panel-header">
                         <span class="label">記憶 MEMORY I/O</span>
-                        <span class="source">/proc/diskstats</span>
+                        <span class="source">LOCAL RENDER QUEUE</span>
                     </div>
                     <div class="waveform-container">
                         <canvas id="diskWaveform" width="300" height="100"></canvas>
@@ -183,17 +183,17 @@
                     <span class="magi-sub">security/soul</span>
                 </div>
                 
-                <!-- WiFi Scanner -->
+                <!-- Static page field -->
                 <div class="metric-panel">
                     <div class="panel-header">
-                        <span class="label">無線 WiFi SCANNER</span>
-                        <span class="source">/proc/net/wireless</span>
+                        <span class="label">頁面 PAGE FIELD</span>
+                        <span class="source">FIXED /365 MANIFEST</span>
                     </div>
                     <div class="wifi-scanner" id="wifiScanner">
                         <div class="wifi-list" id="wifiList">
                             <div class="wifi-item scanning">
-                                <span class="wifi-icon">📡</span>
-                                <span class="wifi-status">Scanning...</span>
+                                <span class="wifi-icon">◈</span>
+                                <span class="wifi-status">Indexing local pages...</span>
                             </div>
                         </div>
                         <div class="wifi-chart" id="wifiChart"></div>
@@ -204,7 +204,7 @@
                 <div class="metric-panel">
                     <div class="panel-header">
                         <span class="label">CONNECTION MATRIX</span>
-                        <span class="source">simulated visual</span>
+                        <span class="source">local visual model</span>
                     </div>
                     <div class="connection-matrix" id="connectionMatrix"></div>
                 </div>
@@ -213,7 +213,7 @@
                 <div class="metric-panel">
                     <div class="panel-header">
                         <span class="label">認証 AUTH LOG</span>
-                        <span class="source">client-side events</span>
+                        <span class="source">local page events</span>
                     </div>
                     <div class="auth-log" id="authLog">
                         <div class="log-entry">
@@ -227,17 +227,17 @@
                 <div class="metric-panel terminal-panel">
                     <div class="panel-header">
                         <span class="label">TERMINAL OUTPUT</span>
-                        <span class="source" id="syslogSource">/var/log/syslog</span>
+                        <span class="source" id="syslogSource">LOCAL EVENT MODEL</span>
                     </div>
                     <div class="terminal-widget" id="terminalWidget">
                         <div class="terminal-line header-line">
                             <span class="terminal-prompt">magi@nerv:~$</span>
-                            <span class="terminal-cmd">tail -f /var/log/syslog</span>
+                            <span class="terminal-cmd">observe --local page-field</span>
                         </div>
                         <div class="terminal-output" id="terminalOutput">
                             <div class="terminal-status-line loading">
                                 <span class="status-dot"></span>
-                                <span>Reading system log...</span>
+                                <span>Initializing local event model...</span>
                             </div>
                         </div>
                         <div class="terminal-line">
@@ -280,28 +280,23 @@
                 <span>▼ DOCUMENTATION</span>
             </div>
             <div class="doc-content" id="docContent">
-                <h3>NERV TERMINAL MONITOR - CROSS-PLATFORM SYSTEM</h3>
+                <h3>NERV TERMINAL MONITOR — LOCAL VISUAL SIMULATION</h3>
                 
                 <div class="doc-section">
-                    <h4>Data Sources</h4>
-                    <p><strong>Real Kernel Data:</strong> All panel headers show their source path. Real data comes from: /proc/stat (CPU), /proc/meminfo (memory), /proc/net/dev (network), /proc/diskstats (disk), /proc/net/wireless (WiFi), /sys/class/thermal (temperature), /var/log/syslog (logs), /proc/uptime (uptime).</p>
-                    <p><strong>Simulated Visuals:</strong> "Connection Matrix" shows random hex activity for visual effect. "Auth Log" displays client-side events only. Source labels indicate "simulated visual" or "client-side events" for these.</p>
-                    <p><strong>Linux Kernel (/proc):</strong> Real-time CPU statistics (/proc/stat), memory usage (/proc/meminfo), network counters (/proc/net/dev), disk I/O (/proc/diskstats), wireless info (/proc/net/wireless), and system uptime (/proc/uptime).</p>
-                    <p><strong>Linux Thermal (/sys):</strong> Temperature readings from /sys/class/thermal and /sys/class/hwmon for all thermal zones and hardware monitors.</p>
-                    <p><strong>System Logs:</strong> Direct read of /var/log/syslog (or /var/log/messages fallback, or journalctl on systemd systems). Log entries are color-coded by severity in the terminal widget.</p>
-                    <p><strong>WiFi Scanning:</strong> Uses /proc/net/wireless for interface status, iw command for connected network info, and iwlist scan for available networks.</p>
-                    <p><strong>Windows:</strong> WMI interface via wmic command for CPU core count, memory totals. Falls back to Node.js os module.</p>
-                    <p><strong>macOS/Other:</strong> Node.js os module for basic memory and load average data.</p>
+                    <h4>Data Boundary</h4>
+                    <p><strong>Local visual model:</strong> Every metric is generated in this document from time, fixed page metadata, and bounded visual variation.</p>
+                    <p><strong>No machine inspection:</strong> The page does not read system files, logs, hardware state, nearby devices, or network information.</p>
+                    <p><strong>No transport:</strong> The interface makes no data requests. Its only links are fixed same-origin routes inside the 365 collection.</p>
                 </div>
 
                 <div class="doc-section">
                     <h4>Visual Encoding</h4>
                     <ul>
-                        <li><strong>Hexagonal CPU Grid:</strong> Each hexagon represents one CPU core. Fill level = (user+system)/total jiffies. Color shifts from phosphor-green (idle) to phosphor-orange (load) to red (throttling).</li>
+                        <li><strong>Hexagonal Load Grid:</strong> Local oscillator values move the cells between calm, active, and alert states.</li>
                         <li><strong>7-Segment Displays:</strong> Constructed from Unicode block characters (█▀▄▌▐) to simulate vacuum fluorescent displays. All numeric readouts use this style.</li>
-                        <li><strong>Seismic Waveforms:</strong> Canvas-rendered jagged line patterns representing real bytes-per-second deltas. Amplitude scales with throughput.</li>
+                        <li><strong>Seismic Waveforms:</strong> Canvas-rendered local curves visualize archive-bus and render-queue activity.</li>
                         <li><strong>Hex Ring Chronograph:</strong> 60-position hexagonal ring with rotating solid hex (◉) marking seconds for HQ Time.</li>
-                        <li><strong>Terminal Widget:</strong> Live syslog output with color-coded severity (green=normal, orange=warning, red=error). Updates every 5 seconds from /var/log/syslog.</li>
+                        <li><strong>Terminal Widget:</strong> A local event model reports page-field and render states without reading system logs.</li>
                     </ul>
                 </div>
 
@@ -319,34 +314,29 @@
                 <div class="doc-section">
                     <h4>MAGI Column Layout</h4>
                     <ul>
-                        <li><strong>MELCHIOR-1 (硬件):</strong> Hardware/Soul - CPU hexagons (/proc/stat), thermal zones (/sys/class/thermal), LCL memory pressure (/proc/meminfo)</li>
-                        <li><strong>BALTHASAR-2 (網路):</strong> Network/Soul - Seismic waveforms for network I/O (/proc/net/dev), interface carrier status, disk activity (/proc/diskstats), WiFi scanner (/proc/net/wireless, iw). Network statistics show both SESSION (since page load) and LIFETIME (since boot) totals.</li>
-                        <li><strong>CASPAR-3 (安全):</strong> Security/Soul - WiFi networks, live syslog terminal (/var/log/syslog), connection matrix (simulated visual), auth log (client-side events), system status hexes, uptime display (/proc/uptime)</li>
+                        <li><strong>MELCHIOR-1 (硬件):</strong> Hardware/Soul — simulated load cells, thermal model, and LCL memory pressure.</li>
+                        <li><strong>BALTHASAR-2 (網路):</strong> Archive/Soul — local page-bus waveform, render queue, and fixed 365 manifest.</li>
+                        <li><strong>CASPAR-3 (安全):</strong> Security/Soul — local event model, connection matrix, status hexes, and page-view uptime.</li>
                     </ul>
                 </div>
 
                 <div class="doc-section">
                     <h4>Technical Implementation</h4>
-                    <p>Update interval: 500ms for system metrics, 5 seconds for syslog, 10 seconds for WiFi scanning. Smooth waveform rendering while maintaining low CPU overhead.</p>
-                    <p>History buffer: 60 samples (30 seconds) for seismic waveform amplitude calculation.</p>
-                    <p>API endpoints: /api/system (current state), /api/system/history (waveform data), /api/system/syslog (log entries), /api/system/wifi (networks).</p>
-                    <p>Source labels in panel headers indicate real (/proc/..., /sys/...) vs simulated ("simulated visual", "client-side") data.</p>
+                    <p>Local visual state updates at a modest interval and stops animating when reduced motion is requested.</p>
+                    <p>The waveform history is held in memory for this page view only.</p>
+                    <p>No API endpoints, device permissions, persistent storage, or caller-selected destinations are used.</p>
+                    <p>Every panel source label identifies its local simulation role.</p>
                 </div>
 
                 <div class="doc-section">
-                    <h4>Cross-Platform Compatibility</h4>
-                    <p>This interface adapts automatically to the host platform:</p>
-                    <ul>
-                        <li><strong>Linux:</strong> Full functionality with /proc, /sys access, and live syslog tailing</li>
-                        <li><strong>Windows:</strong> CPU count, memory via WMI; limited thermal/network/syslog data</li>
-                        <li><strong>macOS:</strong> Basic memory and load via Node.js os module; syslog via journalctl if available</li>
-                    </ul>
+                    <h4>Cross-Platform Boundary</h4>
+                    <p>The same fixed local simulation runs in any modern browser. Host operating-system details are neither needed nor inspected.</p>
                 </div>
             </div>
         </footer>
     </div>
 
-    <script src="day10.js?v=9"></script>
+    <script src="day10.js?v=10"></script>
     <script>
         const daysOfPages = [
             { day: 1, name: 'Paradise Motel', file: 'motel.html' },
@@ -373,7 +363,7 @@
             if (currentIndex === -1) return;
             const newIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
             if (newIndex >= 0 && newIndex < daysOfPages.length) {
-                window.location.href = daysOfPages[newIndex].file;
+                window.location.href = `/365/${daysOfPages[newIndex].file}`;
             }
         }
 
@@ -396,33 +386,6 @@
             }
         });
 
-        async function updateApiStatusBadge() {
-            const badge = document.getElementById('apiStatusBadge');
-            if (!badge) return;
-
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-                const response = await fetch('/api/system', { signal: controller.signal });
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    badge.className = 'api-status-badge degraded';
-                    badge.textContent = `API DEGRADED (${response.status})`;
-                    return;
-                }
-
-                badge.className = 'api-status-badge ok';
-                badge.textContent = 'API OK';
-            } catch (error) {
-                badge.className = 'api-status-badge offline';
-                badge.textContent = 'API OFFLINE';
-            }
-        }
-
-        updateApiStatusBadge();
-        setInterval(updateApiStatusBadge, 45000);
     </script>
 </body>
 </html>
