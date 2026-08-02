@@ -814,7 +814,7 @@
 </head>
 <body>
 
-<div class="api-status-badge degraded" id="apiStatusBadge">API CHECK...</div>
+<div class="api-status-badge ok" id="apiStatusBadge">LOCAL DEMO</div>
 
 <!-- Pagination Navigation -->
 <div class="pagination">
@@ -830,11 +830,11 @@
 <!-- Drinks Log Panel -->
 <div id="drinksLog" class="hidden">
   <div id="drinksLogHeader">
-    <div id="drinksLogTitle">📋 TODAY'S DRINKS</div>
+    <div id="drinksLogTitle">📋 LAHEY DEMO LOG</div>
     <button id="drinksLogClose" onclick="toggleDrinksLog()">✕</button>
   </div>
   <div id="drinksLogContent">
-    <div class="no-drinks">Loading drinks...</div>
+    <div class="no-drinks">Opening the local demo ledger...</div>
   </div>
 </div>
 
@@ -871,6 +871,7 @@
   <div>🌙 mode: nocturnal</div>
   <div>💜 aesthetic: cosmic</div>
   <div>🎵 vibes: immaculate</div>
+  <div>🛠️ build: this was vibecoded</div>
 </div>
 
 <!-- Terminal Window -->
@@ -880,7 +881,7 @@
     <button id="terminalClose" title="Minimize">_</button>
   </div>
   <div id="terminalOutput">
-    <div class="terminal-line"><span class="terminal-prompt">raccoongang@drinks:~$</span> <span class="terminal-info">Initializing tracker...</span></div>
+    <div class="terminal-line"><span class="terminal-prompt">raccoongang@drinks:~$</span> <span class="terminal-info">Loading local Lahey demo...</span></div>
   </div>
   <div id="terminalInputLine">
     <span class="terminal-prompt">$</span>
@@ -908,166 +909,116 @@ const terminalClose = document.getElementById('terminalClose');
 const terminalInput = document.getElementById('terminalInput');
 
 let terminalMinimized = false;
-let persistentDrinkCount = 0;
+const demoEntries = [
+  { time: '7:06 PM', count: 2, note: 'The liquor has reviewed the situation.' },
+  { time: '8:14 PM', count: 1, note: 'Threat level: distant shit hawk.' },
+  { time: '9:42 PM', count: 2, note: 'Randy brought cheeseburgers. Case stabilized.' },
+];
+let persistentDrinkCount = demoEntries.reduce((total, entry) => total + entry.count, 0);
 
 // Terminal logging function
 function terminalLog(message, type = 'info') {
   const line = document.createElement('div');
   line.className = `terminal-line terminal-${type}`;
-  line.innerHTML = `<span class="terminal-prompt">$</span> ${message}`;
+  const prompt = document.createElement('span');
+  prompt.className = 'terminal-prompt';
+  prompt.textContent = '$';
+  const text = document.createElement('span');
+  text.textContent = String(message);
+  line.append(prompt, ' ', text);
   terminalOutput.appendChild(line);
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
+}
+
+function demoStats() {
+  return {
+    todayCount: demoEntries.reduce((total, entry) => total + entry.count, 0),
+    totalDrinks: 47,
+    totalSessions: 9,
+    lastDrink: demoEntries[demoEntries.length - 1]?.time || 'none',
+  };
+}
+
+function printStats() {
+  const stats = demoStats();
+  terminalLog('📊 SUNNYVALE STATISTICS', 'success');
+  terminalLog(`  Demo session: ${stats.todayCount} drinks`, 'info');
+  terminalLog(`  Fictional all-time total: ${stats.totalDrinks} drinks`, 'info');
+  terminalLog(`  Questionable sessions tracked: ${stats.totalSessions}`, 'info');
+  terminalLog(`  Last known reading: ${stats.lastDrink}`, 'info');
+}
+
+function printHistory() {
+  terminalLog('📜 LAHEY DEMO HISTORY', 'success');
+  demoEntries.forEach((entry) => {
+    terminalLog(`  [${entry.time}] ${entry.count} drink(s) — ${entry.note}`, 'info');
+  });
+}
+
+function parseAddArguments(args) {
+  const raw = args.join(' ');
+  const namedCount = raw.match(/count:\s*(\d+)/i);
+  const plainCount = raw.match(/^\s*(\d+)/);
+  const count = Number(namedCount?.[1] || plainCount?.[1] || 1);
+  const noteMatch = raw.match(/note:\s*(.+)$/i);
+  return { count, note: noteMatch?.[1]?.trim() || 'No sworn statement provided.' };
 }
 
 // Command handlers
 const commands = {
   help: () => {
-    terminalLog('Available commands:', 'info');
-    terminalLog('  add [count] [note: text] - Record drinks (e.g., "add 3" or "add 1 note: beer with friends")', 'info');
-    terminalLog('  checkin [note: text] - Mark current time (for tracking days without drinking)', 'info');
-    terminalLog('  history - View all drinking sessions grouped by date', 'info');
-    terminalLog('  stats - Show current statistics', 'info');
-    terminalLog('  clear - Clear terminal output', 'info');
-    terminalLog('  help - Show this help message', 'info');
+    terminalLog('LOCAL DEMO COMMANDS', 'info');
+    terminalLog('  /drink add count:1 note:the liquor knows', 'info');
+    terminalLog('  /drink stats', 'info');
+    terminalLog('  /drink history', 'info');
+    terminalLog('  /drink checkin note:Randy has the keys', 'info');
+    terminalLog('  clear', 'info');
   },
 
   clear: () => {
-    terminalOutput.innerHTML = '';
+    terminalOutput.replaceChildren();
   },
 
-  stats: async () => {
-    try {
-      const response = await fetch('/api/drinks/stats');
-      const stats = await response.json();
-      terminalLog(`📊 STATISTICS`, 'success');
-      terminalLog(`  Today: ${stats.todayCount} drinks`, 'info');
-      terminalLog(`  All-time total: ${stats.totalDrinks} drinks`, 'info');
-      terminalLog(`  Days tracked: ${stats.totalSessions}`, 'info');
-      if (stats.lastDrink) {
-        const lastTime = new Date(stats.lastDrink);
-        terminalLog(`  Last drink: ${lastTime.toLocaleString()}`, 'info');
-      }
-    } catch (err) {
-      terminalLog('Failed to fetch stats', 'error');
-    }
-  },
+  stats: printStats,
 
-  history: async () => {
-    try {
-      const response = await fetch('/api/drinks');
-      const data = await response.json();
+  history: printHistory,
 
-      if (!data.sessions || data.sessions.length === 0) {
-        terminalLog('No drinking history found', 'warning');
-        return;
-      }
-
-      terminalLog('📜 DRINKING HISTORY', 'success');
-      data.sessions.forEach(session => {
-        const date = new Date(session.date);
-        const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-        terminalLog(`\n${dateStr} - ${session.count} drinks total:`, 'info');
-
-        session.drinks.forEach(drink => {
-          const time = new Date(drink.timestamp).toLocaleTimeString();
-          const noteText = drink.note ? ` - "${drink.note}"` : '';
-          terminalLog(`  [${time}] ${drink.count} drink(s)${noteText}`, 'info');
-        });
-      });
-    } catch (err) {
-      terminalLog('Failed to fetch history', 'error');
-    }
-  },
-
-  add: async (args) => {
-    const parts = args.join(' ').split('note:');
-    const countStr = parts[0].trim();
-    const note = parts[1]?.trim() || null;
-    const count = parseInt(countStr) || 1;
+  add: (args) => {
+    const { count, note } = parseAddArguments(args);
 
     if (count < 1 || count > 100) {
       terminalLog('Invalid count. Please use 1-100', 'error');
       return;
     }
-
-    try {
-      const response = await fetch('/api/drinks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count, note })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        persistentDrinkCount = result.todayCount;
-        const now = new Date().toLocaleTimeString();
-        const noteText = note ? ` (${note})` : '';
-        terminalLog(`[${now}] ✅ Added ${count} drink(s)${noteText}`, 'success');
-        terminalLog(`Session total: ${result.todayCount} | All-time: ${result.totalDrinks}`, 'info');
-
-        // Update on-screen counter
-        drinkCount = result.todayCount;
-        countDisplay.textContent = drinkCount;
-
-        // Refresh drinks log if it's open
-        const drinksLog = document.getElementById('drinksLog');
-        if (!drinksLog.classList.contains('hidden')) {
-          refreshDrinksLog();
-        }
-      } else {
-        terminalLog('Failed to record drink', 'error');
-      }
-    } catch (err) {
-      terminalLog('Network error - drink not saved', 'error');
-    }
+    recordDrink(count, note);
   },
 
-  checkin: async (args) => {
-    const parts = args.join(' ').split('note:');
-    const note = parts[1]?.trim() || 'Daily check-in';
-
-    try {
-      const response = await fetch('/api/drinks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: 0, note })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        const now = new Date().toLocaleTimeString();
-        const dateStr = new Date().toLocaleDateString();
-        terminalLog(`[${now}] ⏰ Check-in recorded for ${dateStr}`, 'success');
-        terminalLog(`Note: "${note}"`, 'info');
-        terminalLog('This timestamp will appear in your history to track non-drinking days.', 'info');
-      } else {
-        terminalLog('Failed to record check-in', 'error');
-      }
-    } catch (err) {
-      terminalLog('Network error - check-in not saved', 'error');
-    }
+  checkin: (args) => {
+    const raw = args.join(' ');
+    const note = raw.match(/note:\s*(.+)$/i)?.[1]?.trim() || 'Randy has the keys.';
+    terminalLog(`⏰ Local check-in: ${note}`, 'success');
+    terminalLog('Demo only. Nothing was stored or transmitted.', 'info');
   }
 };
 
 // Handle terminal input
-terminalInput.addEventListener('keydown', async (e) => {
+terminalInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     const input = terminalInput.value.trim();
     if (!input) return;
 
     // Echo command
-    terminalLog(`<span class="terminal-success">${input}</span>`, 'prompt');
+    terminalLog(input, 'prompt');
     terminalInput.value = '';
 
-    // Parse command
-    const parts = input.split(' ');
+    // Accept both terminal shorthand and dummy Discord-style /drink commands.
+    const normalizedInput = input.replace(/^\/drink(?:\s+|$)/i, '');
+    const parts = normalizedInput.split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const args = parts.slice(1);
 
     if (commands[cmd]) {
-      await commands[cmd](args);
+      commands[cmd](args);
     } else {
       terminalLog(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
     }
@@ -1081,73 +1032,34 @@ terminalClose.addEventListener('click', () => {
   terminalClose.textContent = terminalMinimized ? '▲' : '_';
 });
 
-// Fetch drinking stats from server
-async function fetchDrinkStats() {
-  try {
-    const response = await fetch('/api/drinks/stats');
-    const stats = await response.json();
-    persistentDrinkCount = stats.todayCount || 0;
-
-    // Sync on-screen counter with server
-    drinkCount = stats.todayCount || 0;
-    countDisplay.textContent = drinkCount;
-
-    terminalLog('Connection established', 'success');
-    terminalLog(`Today: ${stats.todayCount} drinks | Total: ${stats.totalDrinks} drinks`, 'info');
-    terminalLog(`Sessions tracked: ${stats.totalSessions} days`, 'info');
-
-    if (stats.lastDrink) {
-      const lastTime = new Date(stats.lastDrink);
-      terminalLog(`Last drink: ${lastTime.toLocaleTimeString()}`, 'info');
-    }
-
-    terminalLog('Ready to track! Type "help" for commands.', 'success');
-  } catch (err) {
-    terminalLog('Server connection failed. Local mode only.', 'warning');
-    console.error('Failed to fetch stats:', err);
-  }
+// Local demo state. Nothing persists and nothing leaves the page.
+function initializeDemoTracker() {
+  drinkCount = persistentDrinkCount;
+  countDisplay.textContent = drinkCount;
+  updateVibeMeter();
+  terminalOutput.replaceChildren();
+  terminalLog('LOCAL LAHEY DATASET LOADED', 'success');
+  terminalLog('this was vibecoded. the database was not invited.', 'warning');
+  terminalLog('Try /drink stats, /drink history, or help.', 'info');
 }
 
-// Record drink to server (called by button)
-async function recordDrink(count = 1) {
-  try {
-    const response = await fetch('/api/drinks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ count })
-    });
+function recordDrink(count = 1, note = 'The liquor made a recommendation.') {
+  const entry = {
+    time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+    count,
+    note,
+  };
+  demoEntries.push(entry);
+  persistentDrinkCount = demoStats().todayCount;
+  drinkCount = persistentDrinkCount;
+  countDisplay.textContent = drinkCount;
+  updateVibeMeter();
+  terminalLog(`[${entry.time}] Added ${count} fictional drink(s) — ${note}`, 'success');
+  terminalLog(`Local demo total: ${drinkCount}. Refresh and Lahey forgets everything.`, 'info');
 
-    const result = await response.json();
-
-    if (result.success) {
-      persistentDrinkCount = result.todayCount;
-
-      // Update on-screen counter to match server
-      drinkCount = result.todayCount;
-      countDisplay.textContent = drinkCount;
-
-      const now = new Date().toLocaleTimeString();
-      terminalLog(`[${now}] Drink #${result.todayCount} recorded! 🍺`, 'success');
-      terminalLog(`Session total: ${result.todayCount} | All-time: ${result.totalDrinks}`, 'info');
-
-      // Refresh drinks log if it's open
-      const drinksLog = document.getElementById('drinksLog');
-      if (!drinksLog.classList.contains('hidden')) {
-        refreshDrinksLog();
-      }
-    } else {
-      terminalLog('Failed to record drink', 'error');
-    }
-  } catch (err) {
-    terminalLog('Network error - drink not saved', 'error');
-    console.error('Failed to record drink:', err);
-  }
+  const drinksLog = document.getElementById('drinksLog');
+  if (!drinksLog.classList.contains('hidden')) refreshDrinksLog();
 }
-
-// Initialize terminal on load
-setTimeout(() => {
-  fetchDrinkStats();
-}, 500);
 
 // Status messages based on drink count
 const statusMessages = [
@@ -1190,9 +1102,8 @@ function createFloatingEmoji(x, y) {
 }
 
 // Drink button click handler
-drinkBtn.addEventListener('click', async (e) => {
-  // Record to server first
-  await recordDrink(1);
+drinkBtn.addEventListener('click', (e) => {
+  recordDrink(1);
 
   // Update status (drinkCount is now synced from server)
   const statusIndex = Math.min(drinkCount - 1, statusMessages.length - 1);
@@ -1269,6 +1180,7 @@ function createParticles() {
 
 // Initialize
 createParticles();
+initializeDemoTracker();
 
 // Keyboard shortcut (spacebar to drink)
 document.addEventListener('keydown', (e) => {
@@ -1370,173 +1282,88 @@ function toggleDrinksLog() {
   }
 }
 
-async function refreshDrinksLog() {
+function refreshDrinksLog() {
   const content = document.getElementById('drinksLogContent');
+  content.replaceChildren();
 
-  try {
-    const response = await fetch('/api/drinks');
-    const data = await response.json();
-
-    if (!data.sessions || data.sessions.length === 0) {
-      content.innerHTML = '<div class="no-drinks">No drinks logged yet.</div>';
-      return;
-    }
-
-    // Get today's date
-    const today = new Date().toISOString().split('T')[0];
-    const todaySession = data.sessions.find(s => s.date === today);
-
-    if (!todaySession || todaySession.drinks.length === 0) {
-      content.innerHTML = '<div class="no-drinks">No drinks logged today.</div>';
-      return;
-    }
-
-    // Render drinks in reverse order (newest first)
-    const drinks = [...todaySession.drinks].reverse();
-    content.innerHTML = drinks.map((drink, index) => {
-      const actualIndex = todaySession.drinks.length - 1 - index;
-      const time = new Date(drink.timestamp).toLocaleTimeString();
-      const noteHtml = drink.note ? `<div class="drink-entry-note">"${drink.note}"</div>` : '';
-
-      return `
-        <div class="drink-entry">
-          <div class="drink-entry-header">
-            <span class="drink-entry-time">${time}</span>
-            <span class="drink-entry-count">${drink.count} drink(s)</span>
-          </div>
-          ${noteHtml}
-          <div class="drink-entry-actions">
-            <button class="drink-entry-btn" onclick="editDrink(${actualIndex})">Edit</button>
-            <button class="drink-entry-btn delete" onclick="deleteDrink(${actualIndex})">Delete</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-  } catch (err) {
-    content.innerHTML = '<div class="no-drinks">Failed to load drinks.</div>';
-    console.error('Failed to load drinks:', err);
+  if (demoEntries.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'no-drinks';
+    empty.textContent = 'Lahey misplaced the demo ledger.';
+    content.append(empty);
+    return;
   }
+
+  [...demoEntries].reverse().forEach((drink, reverseIndex) => {
+    const actualIndex = demoEntries.length - 1 - reverseIndex;
+    const entry = document.createElement('div');
+    entry.className = 'drink-entry';
+
+    const header = document.createElement('div');
+    header.className = 'drink-entry-header';
+    const time = document.createElement('span');
+    time.className = 'drink-entry-time';
+    time.textContent = drink.time;
+    const count = document.createElement('span');
+    count.className = 'drink-entry-count';
+    count.textContent = `${drink.count} drink(s)`;
+    header.append(time, count);
+
+    const note = document.createElement('div');
+    note.className = 'drink-entry-note';
+    note.textContent = `"${drink.note}"`;
+
+    const actions = document.createElement('div');
+    actions.className = 'drink-entry-actions';
+    const edit = document.createElement('button');
+    edit.className = 'drink-entry-btn';
+    edit.textContent = 'Edit';
+    edit.addEventListener('click', () => editDrink(actualIndex));
+    const remove = document.createElement('button');
+    remove.className = 'drink-entry-btn delete';
+    remove.textContent = 'Delete';
+    remove.addEventListener('click', () => deleteDrink(actualIndex));
+    actions.append(edit, remove);
+
+    entry.append(header, note, actions);
+    content.append(entry);
+  });
 }
 
-async function editDrink(index) {
-  try {
-    const response = await fetch('/api/drinks');
-    const data = await response.json();
+function editDrink(index) {
+  const drink = demoEntries[index];
+  if (!drink) return;
 
-    const today = new Date().toISOString().split('T')[0];
-    const todaySession = data.sessions.find(s => s.date === today);
-
-    if (!todaySession) return;
-
-    const drink = todaySession.drinks[index];
-
-    // Prompt for new count
-    const newCountStr = prompt(`Edit drink count (current: ${drink.count}):`, drink.count);
-    if (newCountStr === null) return;
-
-    const newCount = parseInt(newCountStr);
-    if (isNaN(newCount) || newCount < 0 || newCount > 100) {
-      alert('Invalid count. Please use 0-100.');
-      return;
-    }
-
-    // Prompt for new note
-    const newNote = prompt(`Edit note (current: "${drink.note || 'none'}"):`, drink.note || '');
-
-    // Update the drink
-    drink.count = newCount;
-    drink.note = newNote || null;
-
-    // Save back to server
-    const saveResponse = await fetch('/api/drinks/update', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessions: data.sessions })
-    });
-
-    if (saveResponse.ok) {
-      terminalLog('✅ Drink entry updated', 'success');
-      refreshDrinksLog();
-      fetchDrinkStats(); // Refresh main display
-    } else {
-      terminalLog('Failed to update drink entry', 'error');
-    }
-
-  } catch (err) {
-    terminalLog('Network error - update failed', 'error');
-    console.error('Failed to edit drink:', err);
+  const newCountStr = prompt(`Edit demo count (current: ${drink.count}):`, drink.count);
+  if (newCountStr === null) return;
+  const newCount = Number.parseInt(newCountStr, 10);
+  if (!Number.isInteger(newCount) || newCount < 0 || newCount > 100) {
+    alert('Invalid count. Please use 0-100.');
+    return;
   }
+
+  const newNote = prompt(`Edit Lahey note (current: "${drink.note}"):`, drink.note);
+  if (newNote === null) return;
+  drink.count = newCount;
+  drink.note = newNote.trim() || 'The liquor declined to comment.';
+  persistentDrinkCount = demoStats().todayCount;
+  drinkCount = persistentDrinkCount;
+  countDisplay.textContent = drinkCount;
+  updateVibeMeter();
+  terminalLog('✅ Local demo entry updated', 'success');
+  refreshDrinksLog();
 }
 
-async function deleteDrink(index) {
-  if (!confirm('Delete this drink entry?')) return;
-
-  try {
-    const response = await fetch('/api/drinks');
-    const data = await response.json();
-
-    const today = new Date().toISOString().split('T')[0];
-    const todaySession = data.sessions.find(s => s.date === today);
-
-    if (!todaySession) return;
-
-    // Remove the drink at index
-    todaySession.drinks.splice(index, 1);
-
-    // If no drinks left today, remove the session
-    if (todaySession.drinks.length === 0) {
-      const sessionIndex = data.sessions.findIndex(s => s.date === today);
-      data.sessions.splice(sessionIndex, 1);
-    }
-
-    // Save back to server
-    const saveResponse = await fetch('/api/drinks/update', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessions: data.sessions })
-    });
-
-    if (saveResponse.ok) {
-      terminalLog('🗑️ Drink entry deleted', 'warning');
-      refreshDrinksLog();
-      fetchDrinkStats(); // Refresh main display
-    } else {
-      terminalLog('Failed to delete drink entry', 'error');
-    }
-
-  } catch (err) {
-    terminalLog('Network error - delete failed', 'error');
-    console.error('Failed to delete drink:', err);
-  }
+function deleteDrink(index) {
+  if (!demoEntries[index] || !confirm('Remove this fictional Lahey entry?')) return;
+  demoEntries.splice(index, 1);
+  persistentDrinkCount = demoStats().todayCount;
+  drinkCount = persistentDrinkCount;
+  countDisplay.textContent = drinkCount;
+  updateVibeMeter();
+  terminalLog('🗑️ Local demo entry removed. No server was bothered.', 'warning');
+  refreshDrinksLog();
 }
-
-async function updateApiStatusBadge() {
-  const badge = document.getElementById('apiStatusBadge');
-  if (!badge) return;
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-    const response = await fetch('/api/drinks/stats', { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      badge.className = 'api-status-badge degraded';
-      badge.textContent = `API DEGRADED (${response.status})`;
-      return;
-    }
-
-    badge.className = 'api-status-badge ok';
-    badge.textContent = 'API OK';
-  } catch (err) {
-    badge.className = 'api-status-badge offline';
-    badge.textContent = 'API OFFLINE';
-  }
-}
-
-updateApiStatusBadge();
-setInterval(updateApiStatusBadge, 45000);
 
 // Console message
 console.log('%c🦝 RACCOON GANG - DRINKING TRACKER 🦝', 'color: #8a2be2; font-size: 20px; font-weight: bold; text-shadow: 0 0 10px #8a2be2;');

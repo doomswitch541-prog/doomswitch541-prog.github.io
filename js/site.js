@@ -17,15 +17,21 @@ const BACKGROUND_MANIFEST = {
 
 // === Shared Navigation ===
 const SiteNavigation = {
-    links: [
-        ['/', 'Home'],
-        ['/clock', 'Clock'],
-        ['/screensaver', 'Screensaver'],
-        ['/visuals', 'Visuals'],
-        ['/365', '365'],
-        ['/fun', 'Fun'],
-        ['/weather', 'Weather'],
-        ['/directory', 'Directory'],
+    groups: [
+        { label: 'HQ', links: [
+            ['/', 'Home'],
+            ['/directory', 'Directory'],
+        ]},
+        { label: 'Time + atmosphere', links: [
+            ['/clock', 'Clock'],
+            ['/weather', 'Weather'],
+            ['/screensaver', 'Screensaver'],
+        ]},
+        { label: 'Collections', links: [
+            ['/365', '365'],
+            ['/visuals', 'Visuals'],
+            ['/fun', 'Fun'],
+        ]},
     ],
 
     init() {
@@ -49,6 +55,7 @@ const SiteNavigation = {
     },
 
     buildDrawer(path) {
+        let linkIndex = 0;
         const btn = document.createElement('button');
         btn.className = 'nav-menu-btn';
         btn.setAttribute('aria-label', 'Open menu');
@@ -67,9 +74,15 @@ const SiteNavigation = {
                 '<button class="nav-drawer-close" aria-label="Close menu">&times;</button>' +
             '</div>' +
             '<nav class="nav-drawer-links">' +
-                this.links.map(([href, label], i) =>
-                    `<a href="${href}" style="--i:${i}"${path === href ? ' aria-current="page"' : ''}>` +
-                    `<span class="nav-drawer-label">${label}</span><span class="nav-drawer-arrow">&rsaquo;</span></a>`
+                this.groups.map((group, groupIndex) =>
+                    `<section class="nav-drawer-group" aria-labelledby="nav-group-${groupIndex}">` +
+                    `<div class="nav-drawer-group-label" id="nav-group-${groupIndex}">${group.label}</div>` +
+                    '<div class="nav-drawer-group-links">' +
+                    group.links.map(([href, label]) =>
+                        `<a href="${href}" style="--i:${linkIndex++}"${path === href ? ' aria-current="page"' : ''}>` +
+                        `<span class="nav-drawer-label">${label}</span><span class="nav-drawer-arrow">&rsaquo;</span></a>`
+                    ).join('') +
+                    '</div></section>'
                 ).join('') +
             '</nav>';
 
