@@ -23,7 +23,10 @@
         { day: 77, file: 'the-four-about.html', accent: '#ff5b8d' },
         { day: 95, file: 'day9.html', accent: '#00ff41' },
         { day: 96, file: 'day10.html', accent: '#ff6b00' },
-        { day: 176, file: 'discord-pipeline-about.html', accent: '#8b9cff' }
+        { day: 104, file: 'hermes-agent-about.html', accent: '#e7b95f' },
+        { day: 121, file: 'rgmodelserve-about.html', accent: '#78e7d1' },
+        { day: 176, file: 'discord-pipeline-about.html', accent: '#8b9cff' },
+        { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' }
     ];
 
     const nav = document.querySelector('[data-archive-day]');
@@ -37,7 +40,7 @@
     const previous = pages[currentIndex - 1];
     const next = pages[currentIndex + 1];
     const link = (page, direction, glyph) => page
-        ? `<a href="/365/${page.file}" rel="${direction}" aria-label="${direction === 'prev' ? 'Previous' : 'Next'} available page, Day ${page.day}">${glyph}</a>`
+        ? `<a href="${page.href || `/365/${page.file}`}" rel="${direction}" aria-label="${direction === 'prev' ? 'Previous' : 'Next'} available page, Day ${page.day}">${glyph}</a>`
         : `<a class="archive-boundary" aria-hidden="true" tabindex="-1">${glyph}</a>`;
 
     nav.className = 'archive-pagination';
@@ -58,6 +61,6 @@
 
         event.preventDefault();
         event.stopImmediatePropagation();
-        window.location.href = `/365/${destination.file}`;
+        window.location.href = destination.href || `/365/${destination.file}`;
     }, true);
 })();

@@ -39,6 +39,22 @@ body[data-project="discord"] {
     --accent-soft: rgba(139, 156, 255, 0.13);
 }
 
+body[data-project="hermes"] {
+    --night: #0a0d13;
+    --panel: #121821;
+    --accent: #e7b95f;
+    --accent-2: #73c7e8;
+    --accent-soft: rgba(231, 185, 95, 0.12);
+}
+
+body[data-project="rgmodelserve"] {
+    --night: #071213;
+    --panel: #0b1b1d;
+    --accent: #78e7d1;
+    --accent-2: #a88cff;
+    --accent-soft: rgba(120, 231, 209, 0.1);
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -380,6 +396,238 @@ body[data-project="discord"] .about-card {
     background: rgba(16, 20, 37, 0.96);
 }
 
+.hermes-route {
+    width: min(440px, calc(100% - 2rem));
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.hermes-route::before {
+    content: "";
+    position: absolute;
+    top: 1.15rem;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    box-shadow: 0 0 16px rgba(231, 185, 95, 0.34);
+}
+
+.hermes-hop {
+    min-width: 0;
+    position: relative;
+    padding-top: 3rem;
+    color: var(--quiet);
+    font: 0.56rem/1.45 var(--mono);
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+.hermes-hop::before {
+    content: "";
+    position: absolute;
+    top: 0.72rem;
+    left: 50%;
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 1px solid var(--accent);
+    background: var(--night);
+    transform: translateX(-50%) rotate(45deg);
+    box-shadow: 0 0 0 0.3rem rgba(231, 185, 95, 0.06), 0 0 18px rgba(231, 185, 95, 0.26);
+}
+
+.hermes-hop:last-child::before {
+    border-color: var(--accent-2);
+    background: var(--accent-2);
+}
+
+.hermes-glyph {
+    position: absolute;
+    top: calc(100% + 3.2rem);
+    left: 50%;
+    color: rgba(231, 185, 95, 0.72);
+    font: 500 clamp(3.5rem, 10vw, 6rem)/1 var(--sans);
+    transform: translateX(-50%);
+}
+
+body[data-project="hermes"] .about-card {
+    background: rgba(18, 24, 33, 0.96);
+}
+
+.modelserve-figure {
+    background:
+        linear-gradient(rgba(120, 231, 209, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120, 231, 209, 0.035) 1px, transparent 1px),
+        rgba(7, 18, 19, 0.88);
+    background-size: 24px 24px;
+}
+
+.switchboard {
+    width: min(520px, calc(100% - 2rem));
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 7rem minmax(0, 1fr);
+    gap: clamp(1rem, 4vw, 2rem);
+    align-items: center;
+}
+
+.switchboard::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(120, 231, 209, 0.2), var(--accent), var(--accent-2), rgba(168, 140, 255, 0.2));
+    box-shadow: 0 0 18px rgba(120, 231, 209, 0.22);
+}
+
+.switchboard-clients,
+.switchboard-backends {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.switchboard-clients span,
+.switchboard-backends span {
+    position: relative;
+    z-index: 1;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: var(--muted);
+    background: rgba(7, 18, 19, 0.94);
+    font: 0.57rem/1.2 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.switchboard-clients span {
+    border-right-color: rgba(120, 231, 209, 0.55);
+    text-align: right;
+}
+
+.switchboard-backends span { border-left-color: rgba(168, 140, 255, 0.55); }
+
+.switchboard-backends b {
+    margin-right: 0.35rem;
+    color: var(--accent-2);
+    font-weight: 500;
+}
+
+.switchboard-core {
+    width: 7rem;
+    aspect-ratio: 1;
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-content: center;
+    gap: 0.45rem;
+    border: 1px solid var(--accent);
+    color: var(--ink);
+    background: var(--panel);
+    text-align: center;
+    clip-path: polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%);
+    box-shadow: 0 0 50px rgba(120, 231, 209, 0.12);
+}
+
+.switchboard-core::before,
+.switchboard-core::after {
+    content: "";
+    position: absolute;
+    inset: 0.75rem;
+    border: 1px solid rgba(120, 231, 209, 0.16);
+    clip-path: inherit;
+}
+
+.switchboard-core::after {
+    inset: 1.15rem;
+    border-color: rgba(168, 140, 255, 0.18);
+}
+
+.switchboard-core span {
+    color: var(--accent);
+    font: 1.25rem/1 var(--mono);
+    letter-spacing: 0.12em;
+}
+
+.switchboard-core strong {
+    color: var(--quiet);
+    font: 0.5rem/1 var(--mono);
+    letter-spacing: 0.2em;
+}
+
+body[data-project="rgmodelserve"] .about-card {
+    background: rgba(11, 27, 29, 0.96);
+}
+
+@media (max-width: 520px) {
+    .switchboard {
+        width: min(310px, calc(100% - 1.5rem));
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .switchboard::before {
+        top: 8%;
+        bottom: 8%;
+        left: 50%;
+        right: auto;
+        width: 1px;
+        height: auto;
+        background: linear-gradient(rgba(120, 231, 209, 0.2), var(--accent), var(--accent-2), rgba(168, 140, 255, 0.2));
+    }
+
+    .switchboard-clients,
+    .switchboard-backends {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.4rem;
+    }
+
+    .switchboard-clients span,
+    .switchboard-backends span {
+        padding: 0.6rem 0.3rem;
+        text-align: center;
+    }
+
+    .switchboard-core { margin-inline: auto; }
+}
+
+@media (max-width: 520px) {
+    .hermes-route {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+    }
+
+    .hermes-route::before {
+        top: 1rem;
+        bottom: 1rem;
+        left: 1.1rem;
+        right: auto;
+        width: 1px;
+        height: auto;
+        background: linear-gradient(var(--accent), var(--accent-2));
+    }
+
+    .hermes-hop {
+        min-height: 2.2rem;
+        padding: 0.45rem 0 0.45rem 3.2rem;
+        text-align: left;
+    }
+
+    .hermes-hop::before {
+        top: 0.62rem;
+        left: 0.7rem;
+        transform: rotate(45deg);
+    }
+
+    .hermes-glyph { display: none; }
+}
+
 .orbit-label {
     position: absolute;
     color: var(--quiet);
@@ -443,16 +691,6 @@ body[data-project="four"] .about-card { background: rgba(17, 17, 38, 0.96); }
 
 .about-card h3 { margin-top: 2rem; font-size: 1.05rem; font-weight: 540; overflow-wrap: anywhere; }
 .about-card p { margin-top: 0.7rem; color: var(--muted); font-size: 0.87rem; line-height: 1.73; overflow-wrap: anywhere; }
-
-.artifact-line {
-    margin-top: 2.5rem;
-    padding: 1rem 1.15rem;
-    border-left: 1px solid var(--accent);
-    color: rgba(242, 245, 250, 0.72);
-    background: rgba(255, 255, 255, 0.018);
-    font: 0.74rem/1.7 var(--mono);
-    overflow-wrap: anywhere;
-}
 
 .about-closing {
     display: grid;

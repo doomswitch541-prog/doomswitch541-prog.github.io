@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0d13">
+    <title>Hermes Agent — Local Model Messenger</title>
+    <link rel="stylesheet" href="/365/archive-about.css">
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+</head>
+<body data-project="hermes">
+    <header class="about-masthead">
+        <a class="about-mark" href="/365/"><span>RG</span> / HERMES / LOCAL AGENT</a>
+        <time class="about-date" datetime="2026-04-15">Day 104 · April 15, 2026</time>
+    </header>
+
+    <main class="about-main">
+        <section class="about-hero">
+            <div>
+                <p class="about-kicker">Android tablet · Local inference</p>
+                <h1>Hermes Agent</h1>
+                <p class="about-lede"><strong>A tablet became a doorway into the models running on the machine.</strong> Hermes Agent spoke a familiar chat-completions protocol; RGModelServe translated that request into the local backend actually available, keeping the route on the private network while preserving tools and model choice.</p>
+            </div>
+
+            <div class="about-figure" aria-label="Hermes request route from tablet through the local gateway to a model and its tools">
+                <div class="hermes-route">
+                    <div class="hermes-hop">Tablet</div>
+                    <div class="hermes-hop">Gateway</div>
+                    <div class="hermes-hop">Local model</div>
+                    <div class="hermes-hop">Tool result</div>
+                    <div class="hermes-glyph" aria-hidden="true">☿</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section">
+            <p class="section-kicker">The route</p>
+            <h2>Keep the client simple. Let the gateway know the machine.</h2>
+            <p class="section-lede">The Hermes client only needed a compatible endpoint and a model name. RGModelServe carried the local complexity: discover what was running, expose stable aliases, route requests to Ollama or llama.cpp, preserve the tool-call format, and return one consistent response shape to the tablet.</p>
+
+            <div class="about-grid">
+                <article class="about-card"><code>CLIENT</code><h3>The tablet asks in a standard language</h3><p>Hermes Agent uses an OpenAI-compatible request shape. That keeps the mobile client independent from the details of the model runtime behind it.</p></article>
+                <article class="about-card"><code>GATEWAY</code><h3>RGModelServe owns the translation</h3><p>The gateway presents one local surface while routing each model alias toward the backend capable of serving it. The interface stays stable even when the underlying runtime changes.</p></article>
+                <article class="about-card"><code>MODEL</code><h3>Coder models run on local hardware</h3><p>The operational path favors local llama.cpp coder backends sized for the machine. Larger and smaller variants make model choice an allocation of capability, latency, and available memory.</p></article>
+                <article class="about-card"><code>TOOLS</code><h3>Structured calls survive the route</h3><p>Templates and parsers preserve the difference between ordinary text and a requested tool action. That turns the tablet from a remote chat box into a client for a local agent loop.</p></article>
+            </div>
+
+        </section>
+
+        <section class="about-section about-closing">
+            <blockquote>The messenger traveled. The data stayed on the <span>local road.</span></blockquote>
+            <p>Hermes mattered because it separated the place where a request began from the machine that could answer it. A tablet could carry the interface while the gateway, model weights, memory pressure, and tool execution remained under local control.</p>
+        </section>
+    </main>
+
+    <nav data-archive-day="104" aria-label="365 Days navigation"></nav>
+</body>
+</html>

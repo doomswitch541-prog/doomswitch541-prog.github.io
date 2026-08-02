@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#071213">
+    <title>rgmodelserve — One Doorway to Every Model</title>
+    <link rel="stylesheet" href="/365/archive-about.css">
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+</head>
+<body data-project="rgmodelserve">
+    <header class="about-masthead">
+        <a class="about-mark" href="/365/"><span>RG</span> / MODEL SERVE / GATEWAY</a>
+        <time class="about-date" datetime="2026-05-02">Day 121 · May 2, 2026</time>
+    </header>
+
+    <main class="about-main">
+        <section class="about-hero">
+            <div>
+                <p class="about-kicker">Inference routing · Capacity control</p>
+                <h1>rgmodel<wbr>serve</h1>
+                <p class="about-lede"><strong>One front door for models that run in different places and speak different protocols.</strong> Applications ask for a model by name. RGModelServe finds the right engine, prepares its capacity, carries the stream, and returns a response the application already understands.</p>
+            </div>
+
+            <div class="about-figure modelserve-figure" aria-label="Applications entering RGModelServe and being routed to Ollama, llama.cpp, or an optional remote model">
+                <div class="switchboard">
+                    <div class="switchboard-clients" aria-hidden="true">
+                        <span>RGInfV1</span>
+                        <span>Hermes</span>
+                        <span>Tools</span>
+                    </div>
+                    <div class="switchboard-core">
+                        <span>RGM</span>
+                        <strong>ROUTE</strong>
+                    </div>
+                    <div class="switchboard-backends" aria-hidden="true">
+                        <span><b>O</b> Ollama</span>
+                        <span><b>L</b> llama.cpp</span>
+                        <span><b>R</b> Remote</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section">
+            <p class="section-kicker">The gateway</p>
+            <h2>The interface stays steady while the engines change.</h2>
+            <p class="section-lede">Local applications do not need to know which runtime loaded a model, which response format it emits, or whether enough memory is free. RGModelServe absorbs those differences behind one catalog and one compatible request surface.</p>
+
+            <div class="about-grid">
+                <article class="about-card"><code>ROUTING</code><h3>The model name chooses the engine</h3><p>Ollama handles its native fleet. llama.cpp serves GGUF models that need their own context, quantization, or runtime settings. An optional remote route can join the same catalog without changing the client.</p></article>
+                <article class="about-card"><code>TRANSLATION</code><h3>Different streams become one contract</h3><p>The gateway accepts both OpenAI-compatible and Ollama-native requests. It can pass streams through directly or translate between SSE and NDJSON so each interface receives the shape it expects.</p></article>
+                <article class="about-card"><code>CAPACITY</code><h3>The requested model gets the machine</h3><p>The coordinator unloads competing models, starts the required local backend, and applies model-specific context settings. Limited memory becomes a managed resource instead of a manual ritual.</p></article>
+                <article class="about-card"><code>VISIBILITY</code><h3>Clients can see the available fleet</h3><p>Health, catalog, active-model, and request-activity surfaces show what can run and what is running. Optional remote usage can also be measured and capped at the gateway boundary.</p></article>
+            </div>
+        </section>
+
+        <section class="about-section about-closing">
+            <blockquote>Change the engine.<br><span>Keep the doorway.</span></blockquote>
+            <p>RGModelServe separates interface work from inference infrastructure. RGInfV1, Hermes, and future clients can keep a stable relationship with “the model,” while the gateway handles local runtimes, backend quirks, memory pressure, and route selection underneath.</p>
+        </section>
+    </main>
+
+    <nav data-archive-day="121" aria-label="365 Days navigation"></nav>
+</body>
+</html>

@@ -743,12 +743,27 @@
                     <article class="timeline-slide">
                         <div class="timeline-kicker">Apr 06–07 · Days 95–96</div>
                         <h2 class="timeline-title">NERV Terminal + System Monitor</h2>
-                        <p class="timeline-copy">The preserved terminal and monitor interfaces take their artifact-backed places as local-only archive simulations from the second machine.</p>
+                        <p class="timeline-copy">Two NERV interfaces turn a fixed local page directory and deterministic system state into theatrical terminal and monitor simulations.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Apr 15 · Day 104</div>
+                        <h2 class="timeline-title">Hermes Agent</h2>
+                        <p class="timeline-copy">An Android tablet becomes a client for locally served models and tools through the stable RGModelServe gateway.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">May 02 · Day 121</div>
+                        <h2 class="timeline-title">rgmodelserve</h2>
+                        <p class="timeline-copy">One gateway unifies model discovery, protocol translation, backend routing, and local inference capacity.</p>
                     </article>
                     <article class="timeline-slide">
                         <div class="timeline-kicker">Jun 26 · Day 176</div>
                         <h2 class="timeline-title">Discord Pipeline</h2>
                         <p class="timeline-copy">A hand-coded 2018 bot lineage passes through a Linux rebuild and self-authored specification into the Windows pipeline used today.</p>
+                    </article>
+                    <article class="timeline-slide">
+                        <div class="timeline-kicker">Aug 02 · Day 213</div>
+                        <h2 class="timeline-title">deepseek · chinese fren</h2>
+                        <p class="timeline-copy">A playful static landing page for open-source intelligence from across the sea, built around DeepSeek blue and its whale.</p>
                     </article>
                 </div>
                 <button class="timeline-arrow next" type="button" aria-label="Next archive note">→</button>
@@ -1322,7 +1337,7 @@
                 description: 'A local agent runner for defining agents with tools, executing bounded tasks, and watching each reasoning and tool step in real time.',
                 timeline: {
                     label: 'project born',
-                    entry: 'Feb 15, 2026 · approx.',
+                    entry: 'Feb 15, 2026',
                     confidence: 'user-range'
                 },
                 theme: {
@@ -1358,7 +1373,7 @@
                 statusLabel: '● Live',
                 description: 'Cinematic patriotic scrollytelling from the original Clock project, created during the public Anthropic–Pentagon confrontation.',
                 timeline: {
-                    label: 'artifact date',
+                    label: 'project milestone',
                     entry: 'Feb 25, 2026',
                     confidence: 'filesystem'
                 },
@@ -1441,7 +1456,7 @@
                 status: 'live',
                 statusLabel: '● Local Archive',
                 description: 'A preserved MAGI terminal interface that performs a theatrical local scan and reveals the fixed 365 page manifest without network or device inspection.',
-                timeline: { label: 'artifact placement', entry: 'Apr 6, 2026', confidence: 'cross-machine-artifact' },
+                timeline: { label: 'system milestone', entry: 'Apr 6, 2026', confidence: 'calendar' },
                 theme: {
                     primary: '#00ff41', secondary: '#b7ffd0',
                     background: 'linear-gradient(135deg, rgba(0, 255, 65, 0.13), rgba(7, 18, 10, 0.28))',
@@ -1455,14 +1470,14 @@
                 status: 'live',
                 statusLabel: '● Local Simulation',
                 description: 'A preserved NERV system-monitor interface driven by deterministic local simulation, with no host telemetry, permissions, storage, or external requests.',
-                timeline: { label: 'artifact placement', entry: 'Apr 7, 2026', confidence: 'cross-machine-artifact' },
+                timeline: { label: 'system milestone', entry: 'Apr 7, 2026', confidence: 'calendar' },
                 theme: {
                     primary: '#ff6b00', secondary: '#00ff41',
                     background: 'linear-gradient(135deg, rgba(255, 107, 0, 0.14), rgba(15, 5, 5, 0.3))',
                     glow: 'rgba(255, 107, 0, 0.3)', border: 'rgba(255, 107, 0, 0.44)'
                 }
             },
-            ...Array.from({ length: 23 }, (_, index) => ({
+            ...Array.from({ length: 7 }, (_, index) => ({
                 day: 97 + index,
                 name: 'Completed Day',
                 status: 'complete',
@@ -1473,11 +1488,63 @@
                     glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
                 }
             })),
-            ...Array.from({ length: 31 }, (_, index) => ({
-                day: 120 + index,
+            {
+                day: 104,
+                name: 'Hermes Agent',
+                file: 'hermes-agent-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Agent Milestone',
+                description: 'An Android tablet client connected through RGModelServe to local Ollama and llama.cpp backends, preserving model choice and structured tool calls on the private network.',
+                timeline: { label: 'agent milestone', entry: 'Apr 15, 2026', confidence: 'user-range' },
+                theme: {
+                    primary: '#e7b95f', secondary: '#73c7e8',
+                    background: 'linear-gradient(135deg, rgba(231, 185, 95, 0.16), rgba(115, 199, 232, 0.07))',
+                    glow: 'rgba(231, 185, 95, 0.32)', border: 'rgba(231, 185, 95, 0.46)'
+                }
+            },
+            ...Array.from({ length: 15 }, (_, index) => ({
+                day: 105 + index,
                 name: 'Completed Day',
                 status: 'complete',
-                timeline: { label: 'archive date', entry: `May ${1 + index}, 2026`, confidence: 'calendar' },
+                timeline: { label: 'archive date', entry: `Apr ${16 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 120,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: 'May 1, 2026', confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            },
+            {
+                day: 121,
+                name: 'rgmodelserve',
+                file: 'rgmodelserve-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Infrastructure Milestone',
+                description: 'A stable model gateway that unifies Ollama, llama.cpp, and optional remote inference behind routing, stream translation, catalog, and capacity controls.',
+                timeline: { label: 'infrastructure milestone', entry: 'May 2, 2026', confidence: 'calendar' },
+                theme: {
+                    primary: '#78e7d1', secondary: '#a88cff',
+                    background: 'linear-gradient(135deg, rgba(120, 231, 209, 0.15), rgba(168, 140, 255, 0.07))',
+                    glow: 'rgba(120, 231, 209, 0.3)', border: 'rgba(120, 231, 209, 0.44)'
+                }
+            },
+            ...Array.from({ length: 29 }, (_, index) => ({
+                day: 122 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `May ${3 + index}, 2026`, confidence: 'calendar' },
                 theme: {
                     primary: '#8b93a7', secondary: '#aeb5c5',
                     background: 'rgba(255, 255, 255, 0.035)',
@@ -1509,6 +1576,53 @@
                     background: 'linear-gradient(135deg, rgba(139, 156, 255, 0.17), rgba(104, 231, 199, 0.07))',
                     glow: 'rgba(139, 156, 255, 0.34)', border: 'rgba(139, 156, 255, 0.48)'
                 }
+            },
+            ...Array.from({ length: 4 }, (_, index) => ({
+                day: 177 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Jun ${27 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            ...Array.from({ length: 31 }, (_, index) => ({
+                day: 181 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Jul ${1 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 212,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: 'Aug 1, 2026', confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            },
+            {
+                day: 213,
+                name: 'deepseek · chinese fren',
+                href: '/deepseek-site/',
+                status: 'live',
+                statusLabel: '● Fun Project',
+                description: 'A playful static landing page for DeepSeek, with the whale, theme controls, compact model markers, and a locally vendored Anime.js entrance.',
+                timeline: { label: 'fun project', entry: 'Aug 2, 2026', confidence: 'user-date' },
+                theme: {
+                    primary: '#4D6BFE', secondary: '#7c9bff',
+                    background: 'linear-gradient(135deg, rgba(77, 107, 254, 0.18), rgba(124, 155, 255, 0.07))',
+                    glow: 'rgba(77, 107, 254, 0.34)', border: 'rgba(77, 107, 254, 0.48)'
+                }
             }
             // Future days will be added here
         ];
@@ -1538,7 +1652,7 @@
 
             if (dayData && (dayData.status === 'live' || dayData.status === 'complete')) {
                 if (dayData.status === 'live') {
-                    card.href = `/365/${dayData.file}`;
+                    card.href = dayData.href || `/365/${dayData.file}`;
                 }
                 card.className = 'day-card';
                 card.dataset.state = dayData.status === 'live' ? 'live' : 'complete';
