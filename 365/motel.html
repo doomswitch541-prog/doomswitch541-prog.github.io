@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paradise Motel</title>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
     <style>
         * {
             margin: 0;
@@ -356,7 +358,7 @@
     <div class="vignette"></div>
 
     <!-- Pagination Navigation -->
-    <div class="pagination">
+    <div class="pagination" data-archive-day="1">
         <button class="pagination-btn" id="prevBtn" onclick="navigate('prev')">◀</button>
         <span class="page-indicator" id="pageIndicator">Day 1/365</span>
         <button class="pagination-btn" id="nextBtn" onclick="navigate('next')">▶</button>

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#090d24">
     <title>Knowledgebase — 365 Days of Pages</title>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
     <style>
         * {
             box-sizing: border-box;
@@ -75,6 +77,7 @@
 
         main {
             width: min(100%, 780px);
+            margin-bottom: 5rem;
             padding: clamp(1.5rem, 5vw, 4rem);
             position: relative;
             border: 1px solid var(--line);
@@ -149,6 +152,141 @@
         .topics { counter-reset: topic; }
         .topic { counter-increment: topic; }
 
+        .study {
+            margin-top: clamp(3.5rem, 9vw, 6.5rem);
+            padding-top: clamp(2rem, 5vw, 3.5rem);
+            border-top: 1px solid var(--line);
+        }
+
+        .section-label {
+            color: var(--cyan);
+            font-size: 0.64rem;
+            letter-spacing: 0.17em;
+            text-transform: uppercase;
+        }
+
+        .study h2 {
+            max-width: 15ch;
+            margin-top: 0.9rem;
+            font-size: clamp(1.7rem, 5vw, 3rem);
+            line-height: 1.05;
+            letter-spacing: -0.045em;
+        }
+
+        .study-lede,
+        .concept p,
+        .closing-note {
+            color: var(--muted);
+            font-size: clamp(0.84rem, 2vw, 0.96rem);
+            line-height: 1.78;
+        }
+
+        .study-lede {
+            max-width: 43rem;
+            margin-top: 1.2rem;
+        }
+
+        .concepts {
+            display: grid;
+            gap: 1px;
+            margin-top: 2.5rem;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--line);
+        }
+
+        .concept {
+            display: grid;
+            grid-template-columns: minmax(9rem, 0.55fr) minmax(0, 1.45fr);
+            gap: clamp(1rem, 4vw, 2.5rem);
+            padding: clamp(1.25rem, 4vw, 2rem);
+            background: rgba(8, 11, 30, 0.94);
+        }
+
+        .concept h3 {
+            color: var(--ink);
+            font-size: clamp(0.88rem, 2vw, 1rem);
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .concept h3 span {
+            display: block;
+            margin-bottom: 0.55rem;
+            color: var(--violet);
+            font-size: 0.58rem;
+            letter-spacing: 0.14em;
+        }
+
+        .retrieval-path {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 2.5rem;
+        }
+
+        .retrieval-path::before {
+            content: "";
+            position: absolute;
+            top: 1.2rem;
+            left: 8%;
+            right: 8%;
+            height: 1px;
+            background: linear-gradient(90deg, var(--violet), var(--cyan));
+            opacity: 0.45;
+        }
+
+        .path-step {
+            position: relative;
+            min-height: 7.5rem;
+            padding: 3rem 0.85rem 0.9rem;
+            border: 1px solid rgba(167, 139, 250, 0.15);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.018);
+        }
+
+        .path-step::before {
+            content: attr(data-step);
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            width: 1rem;
+            height: 1rem;
+            display: grid;
+            place-items: center;
+            z-index: 1;
+            border: 1px solid var(--cyan);
+            border-radius: 50%;
+            color: var(--cyan);
+            background: #090d24;
+            font-size: 0.48rem;
+        }
+
+        .path-step strong {
+            display: block;
+            color: rgba(246, 244, 255, 0.86);
+            font-size: 0.69rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .path-step p {
+            margin-top: 0.5rem;
+            color: rgba(246, 244, 255, 0.48);
+            font-size: 0.7rem;
+            line-height: 1.5;
+        }
+
+        .closing-note {
+            margin-top: 2.5rem;
+            padding-left: 1.2rem;
+            border-left: 1px solid var(--cyan);
+        }
+
         @media (max-width: 480px) {
             main {
                 margin-top: 3.5rem;
@@ -172,6 +310,24 @@
                 display: inline;
                 margin-right: 0.75rem;
             }
+
+            .concept {
+                grid-template-columns: 1fr;
+            }
+
+            .retrieval-path {
+                grid-template-columns: 1fr;
+            }
+
+            .retrieval-path::before {
+                top: 1rem;
+                bottom: 1rem;
+                left: 1.25rem;
+                right: auto;
+                width: 1px;
+                height: auto;
+                background: linear-gradient(var(--violet), var(--cyan));
+            }
         }
     </style>
 </head>
@@ -186,6 +342,42 @@
             <div class="topic">Retrieval</div>
             <div class="topic">Classifiers</div>
         </div>
+
+        <section class="study">
+            <p class="section-label">Represent / find / decide</p>
+            <h2>How meaning becomes something a system can work with.</h2>
+            <p class="study-lede">The study moved past storing documents as pages of text and into the structures underneath search: turning language into comparable representations, finding useful passages by meaning, and making bounded decisions from patterns.</p>
+
+            <div class="concepts">
+                <article class="concept">
+                    <h3><span>01 / Represent</span>Embeddings</h3>
+                    <p>An embedding maps text into a vector: a long coordinate made of numbers whose position reflects learned relationships in language. Similar ideas can sit near one another even when they do not share the same words. That makes semantic comparison possible, but the representation is not knowledge by itself; its usefulness depends on the model, the text being embedded, and the distance measure used to compare vectors.</p>
+                </article>
+                <article class="concept">
+                    <h3><span>02 / Find</span>Retrieval</h3>
+                    <p>Retrieval begins before a question is asked. Source material has to be cleaned, divided into useful chunks, embedded, indexed, and kept with enough metadata to return to its origin. A query follows the same representational path, then similarity search produces candidates that can be filtered, reranked, and assembled as context. Chunk size, overlap, ranking, and provenance determine whether the answer receives the right evidence or merely nearby language.</p>
+                </article>
+                <article class="concept">
+                    <h3><span>03 / Decide</span>Classifiers</h3>
+                    <p>A classifier turns an input into one or more defined labels. Some learn from examples; others use rules, similarity, or a language model prompted with a label set. The important work is not only choosing a label—it is defining the categories, handling overlap, setting confidence thresholds, measuring false positives and false negatives, and leaving room for “unknown” when the evidence is weak.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="study">
+            <p class="section-label">A retrieval path</p>
+            <h2>Six linked decisions between a source and a useful result.</h2>
+            <div class="retrieval-path" aria-label="Retrieval study sequence">
+                <article class="path-step" data-step="1"><strong>Collect</strong><p>Keep the source, structure, and origin intact.</p></article>
+                <article class="path-step" data-step="2"><strong>Chunk</strong><p>Divide by meaning without losing necessary context.</p></article>
+                <article class="path-step" data-step="3"><strong>Embed</strong><p>Create comparable vectors with one consistent model.</p></article>
+                <article class="path-step" data-step="4"><strong>Search</strong><p>Return candidates by similarity and metadata.</p></article>
+                <article class="path-step" data-step="5"><strong>Rank</strong><p>Prefer the passages most relevant to the question.</p></article>
+                <article class="path-step" data-step="6"><strong>Ground</strong><p>Carry the selected evidence into the response.</p></article>
+            </div>
+            <p class="closing-note">The project was a foundation: learning where retrieval can fail, what a representation can and cannot preserve, and how classification turns fuzzy language into an explicit boundary that can be tested.</p>
+        </section>
     </main>
+    <nav data-archive-day="15" aria-label="365 Days navigation"></nav>
 </body>
 </html>

@@ -5,6 +5,8 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Celestial Drift</title>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -2289,7 +2291,7 @@
     </header>
 
     <!-- 365 pagination -->
-    <div class="pagination" aria-label="365 Days navigation">
+    <div class="pagination" data-archive-day="6" data-archive-offset="sitebar" aria-label="365 Days navigation">
         <button class="pagination-btn" id="prevBtn" type="button" onclick="navigate365('prev')" aria-label="Previous page">←</button>
         <span class="page-indicator" id="pageIndicator">Day 6/365</span>
         <button class="pagination-btn" id="nextBtn" type="button" onclick="navigate365('next')" aria-label="Next page">→</button>

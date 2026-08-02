@@ -401,6 +401,33 @@
             box-shadow: 0 15px 36px rgba(16, 185, 129, 0.2), inset 0 0 30px rgba(16, 185, 129, 0.25);
         }
 
+        .day-card.milestone {
+            padding-top: 2.75rem;
+            outline: 1px solid rgba(0, 255, 249, 0.34);
+            outline-color: color-mix(in srgb, var(--milestone-accent, #00fff9) 34%, transparent);
+            outline-offset: 4px;
+            box-shadow: inset 0 1px 0 rgba(0, 255, 249, 0.42), 0 10px 34px rgba(0, 0, 0, 0.18);
+            box-shadow:
+                inset 0 1px 0 color-mix(in srgb, var(--milestone-accent, #00fff9) 62%, transparent),
+                0 10px 34px rgba(0, 0, 0, 0.18);
+        }
+
+        .day-card.milestone::after {
+            content: 'MILESTONE';
+            position: absolute;
+            top: 0.8rem;
+            right: 0.9rem;
+            color: var(--milestone-accent, #00fff9);
+            color: color-mix(in srgb, var(--milestone-accent, #00fff9) 82%, white);
+            font-size: 0.52rem;
+            font-weight: 700;
+            letter-spacing: 0.17em;
+        }
+
+        .day-card.milestone .day-number {
+            font-size: 3.35rem;
+        }
+
         .day-description {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.7);
@@ -641,6 +668,11 @@
                         <p class="timeline-copy">A learning project for embeddings, retrieval, classifiers, and the ideas surrounding them.</p>
                     </article>
                     <article class="timeline-slide">
+                        <div class="timeline-kicker">Jan 17 · Day 16</div>
+                        <h2 class="timeline-title">RGInfV1 started</h2>
+                        <p class="timeline-copy">The first shape of the local conversation system: a browser room, a local bridge, a selected Ollama model, and a live response stream.</p>
+                    </article>
+                    <article class="timeline-slide">
                         <div class="timeline-kicker">Jan 17–31 · Days 16–30</div>
                         <h2 class="timeline-title">RGInfV1</h2>
                         <p class="timeline-copy">The local chat interface becomes its own system: model selection, streaming responses, saved conversations, and a clearer view of inference.</p>
@@ -820,6 +852,8 @@
                 name: 'SolarFlare',
                 file: 'solarflare-about.html',
                 status: 'live',
+                milestone: true,
+                statusLabel: '◆ Milestone',
                 description: 'Milestone about page marking the first day of serious SolarFlare planning and work, beginning the path toward the local chat interface that became RGInfV1 on this machine',
                 timeline: {
                     label: 'work begins',
@@ -893,6 +927,8 @@
                 name: 'Knowledgebase',
                 file: 'knowledgebase-about.html',
                 status: 'live',
+                milestone: true,
+                statusLabel: '◆ Milestone',
                 description: 'A learning project exploring embeddings, retrieval, classifiers, and the ideas surrounding them.',
                 timeline: {
                     label: 'project study',
@@ -907,14 +943,35 @@
                     border: 'rgba(167, 139, 250, 0.5)'
                 }
             },
-            ...Array.from({ length: 4 }, (_, index) => ({
-                day: 16 + index,
+            {
+                day: 16,
+                name: 'RGInfV1 — Started',
+                file: 'rginfv1-started.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Started',
+                description: 'The first shape of RGInfV1: a browser conversation room, a local bridge, model selection, streaming responses, saved threads, and visible local state.',
+                timeline: {
+                    label: 'project started',
+                    entry: 'Jan 17, 2026',
+                    confidence: 'user-sequence'
+                },
+                theme: {
+                    primary: '#4a9eff',
+                    secondary: '#e94560',
+                    background: 'linear-gradient(135deg, rgba(74, 158, 255, 0.19), rgba(233, 69, 96, 0.11))',
+                    glow: 'rgba(74, 158, 255, 0.36)',
+                    border: 'rgba(74, 158, 255, 0.5)'
+                }
+            },
+            ...Array.from({ length: 3 }, (_, index) => ({
+                day: 17 + index,
                 name: 'RGInfV1 — Chat Interface',
                 status: 'complete',
                 description: 'Design and development of the local-model chat interface: model selection, streaming responses, saved conversations, and inference visibility.',
                 timeline: {
                     label: 'project work',
-                    entry: `Jan ${17 + index}, 2026`,
+                    entry: `Jan ${18 + index}, 2026`,
                     confidence: 'user-sequence'
                 },
                 theme: {
@@ -930,6 +987,8 @@
                 name: 'RGInfV1',
                 file: 'rginfv1-about.html',
                 status: 'live',
+                milestone: true,
+                statusLabel: '◆ Milestone',
                 description: 'A local-first chat interface for choosing Ollama models, streaming responses, keeping conversations, and understanding inference on your own machine.',
                 timeline: {
                     label: 'milestone',
@@ -984,7 +1043,8 @@
                 name: 'RGClaw',
                 file: 'rgclaw-about.html',
                 status: 'live',
-                statusLabel: '● Milestone',
+                milestone: true,
+                statusLabel: '◆ Milestone',
                 description: 'A local agent runner for defining agents with tools, executing bounded tasks, and watching each reasoning and tool step in real time.',
                 timeline: {
                     label: 'project born',
@@ -1070,6 +1130,10 @@
                 card.dataset.state = dayData.status === 'live' ? 'live' : 'complete';
                 if (dayData.status === 'complete') {
                     card.classList.add('work-log');
+                }
+                if (dayData.milestone) {
+                    card.classList.add('milestone');
+                    card.style.setProperty('--milestone-accent', dayData.theme?.primary || '#00fff9');
                 }
 
                 // Apply custom theme styling
