@@ -23,6 +23,14 @@ body[data-project="four"] {
     --accent-soft: rgba(255, 91, 141, 0.11);
 }
 
+body[data-project="corpus"] {
+    --night: #070d18;
+    --panel: #0d1727;
+    --accent: #69a9ff;
+    --accent-2: #65e6c4;
+    --accent-soft: rgba(105, 169, 255, 0.13);
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -215,6 +223,74 @@ h1 {
 }
 
 .four-glyph span { color: var(--accent); }
+
+.corpus-device {
+    width: min(290px, 76vw);
+    aspect-ratio: 0.58;
+    position: relative;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(105, 169, 255, 0.38);
+    border-radius: 2.7rem;
+    background: linear-gradient(165deg, rgba(19, 34, 56, 0.96), rgba(6, 12, 22, 0.98));
+    box-shadow: inset 0 0 0 0.42rem rgba(0, 0, 0, 0.32), 0 2rem 6rem rgba(0, 0, 0, 0.34);
+}
+
+.corpus-device::before {
+    content: "";
+    position: absolute;
+    top: 0.72rem;
+    width: 29%;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.corpus-stack {
+    width: 72%;
+    display: grid;
+    gap: 0.72rem;
+}
+
+.corpus-sheet {
+    min-height: 4.3rem;
+    padding: 0.9rem;
+    display: grid;
+    align-content: center;
+    gap: 0.42rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 0.85rem;
+    background: rgba(255, 255, 255, 0.045);
+    transform: translateX(var(--shift, 0));
+}
+
+.corpus-sheet::before,
+.corpus-sheet::after {
+    content: "";
+    display: block;
+    height: 0.26rem;
+    border-radius: 999px;
+    background: var(--accent);
+    opacity: 0.72;
+}
+
+.corpus-sheet::before { width: 44%; }
+.corpus-sheet::after { width: 78%; opacity: 0.2; }
+.corpus-sheet:nth-child(2) { --shift: 0.8rem; }
+.corpus-sheet:nth-child(3) { --shift: -0.45rem; }
+
+.corpus-index {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.15rem;
+    color: var(--accent-2);
+    font: 0.58rem/1 var(--mono);
+    letter-spacing: 0.16em;
+}
+
+body[data-project="corpus"] .about-card {
+    background: rgba(13, 23, 39, 0.96);
+}
 
 .orbit-label {
     position: absolute;

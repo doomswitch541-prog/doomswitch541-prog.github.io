@@ -16,6 +16,7 @@
         { day: 20, file: 'rginfv1-about.html', accent: '#e94560' },
         { day: 23, file: 'rginfv1-memory.html', accent: '#a78bfa' },
         { day: 30, file: 'long-context-research.html', accent: '#f6c453' },
+        { day: 33, file: 'corpus-about.html', accent: '#69a9ff' },
         { day: 40, file: 'karpathy-agent-studies.html', accent: '#fb923c' },
         { day: 45, file: 'rgclaw-about.html', accent: '#fb923c' },
         { day: 55, file: 'americans.html', accent: '#ff2a6d' },
