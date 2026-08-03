@@ -21,6 +21,7 @@
         { day: 45, file: 'rgclaw-about.html', accent: '#fb923c' },
         { day: 46, file: 'raccoongang-started.html', accent: '#9ddb74' },
         { day: 55, file: 'americans.html', accent: '#ff2a6d' },
+        { day: 58, file: 'sonnet45-thinking-partner.html', accent: '#d98c6a' },
         { day: 77, file: 'the-four-about.html', accent: '#ff5b8d' },
         { day: 95, file: 'day9.html', accent: '#00ff41' },
         { day: 96, file: 'day10.html', accent: '#ff6b00' },

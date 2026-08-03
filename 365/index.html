@@ -1449,8 +1449,7 @@
             },
             ...[
                 { date: 26, day: 56, blurb: 'Classifiers up close — the small, fast models that sort what comes in.' },
-                { date: 27, day: 57, blurb: 'The latency test — why the apps feel instant: one large model answers while small ones handle the side work.' },
-                { date: 28, day: 58, blurb: 'A small model that quietly remembers for you — a lightweight extractor pulling durable memory, where rg4o’s memory grew from.' }
+                { date: 27, day: 57, blurb: 'The latency test — why the apps feel instant: one large model answers while small ones handle the side work.' }
             ].map(({ date, day, blurb }) => ({
                 day,
                 name: 'Sonnet 4.5 — Thinking Partner',
@@ -1469,6 +1468,27 @@
                     border: 'rgba(217, 140, 106, 0.46)'
                 }
             })),
+            {
+                day: 58,
+                name: 'Sonnet 4.5 — Thinking Partner',
+                file: 'sonnet45-thinking-partner.html',
+                status: 'live',
+                category: 'studies',
+                statusLabel: '● Study',
+                description: 'A late-February run of thinking-partner sessions — the read a model makes of you and the biases in it, over-cautious filtering, classifiers and a latency test, and the small-model memory design that became rg4o’s.',
+                timeline: {
+                    label: 'studies',
+                    entry: 'Feb 28, 2026',
+                    confidence: 'user-context'
+                },
+                theme: {
+                    primary: '#d98c6a',
+                    secondary: '#f0cba9',
+                    background: 'linear-gradient(135deg, rgba(217, 140, 106, 0.17), rgba(240, 203, 169, 0.08))',
+                    glow: 'rgba(217, 140, 106, 0.34)',
+                    border: 'rgba(217, 140, 106, 0.48)'
+                }
+            },
             ...Array.from({ length: 18 }, (_, index) => ({
                 day: 59 + index,
                 name: 'Completed Day',
