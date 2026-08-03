@@ -7,24 +7,23 @@
     <title>Nova — Local Image Generation</title>
     <link rel="stylesheet" href="/365/archive-nav.css">
     <script src="/365/archive-nav.js" defer></script>
+    <script>document.documentElement.classList.add('js');</script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
             color-scheme: dark;
-            --ink: #f0f0f2;
-            --muted: #9aa3b2;
-            --quiet: #5b6472;
             --black: #020203;
-            --panel: #0a0f1a;
-            --glass: rgba(52, 211, 153, 0.06);
-            --line: rgba(255, 255, 255, 0.09);
+            --ink: #f1f1f3;
+            --read: #cdd2da;
+            --muted: #8b93a0;
+            --quiet: #565e6b;
+            --line: rgba(255, 255, 255, 0.1);
             --green: #34d399;
-            --green-dark: #059669;
             --teal: #2dd4bf;
             --purple: #a78bfa;
-            --yellow: #fbbf24;
-            --red: #f87171;
+            --glass: rgba(255, 255, 255, 0.045);
+            --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
             --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
             --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
@@ -33,427 +32,299 @@
 
         body {
             min-width: 320px;
-            min-height: 100vh;
-            overflow-x: hidden;
             color: var(--ink);
             font-family: var(--sans);
-            background:
-                radial-gradient(circle at 84% 14%, rgba(167, 139, 250, 0.14), transparent 30rem),
-                radial-gradient(circle at 8% 72%, rgba(52, 211, 153, 0.1), transparent 32rem),
-                radial-gradient(ellipse at 50% 0%, #0a0f1a 0%, var(--black) 62%);
+            background: var(--black);
+            overflow-x: hidden;
         }
 
-        body::before {
-            content: "";
+        /* ---- ambient ink field (full-bleed background) ---- */
+        .field {
+            position: fixed;
+            inset: -12%;
+            z-index: 0;
+            pointer-events: none;
+            filter: url(#ink) blur(18px);
+            opacity: 0.85;
+        }
+        .blob { position: absolute; border-radius: 50%; mix-blend-mode: screen; }
+        .b1 { width: 62vmax; height: 62vmax; left: -8%; top: -14%; background: radial-gradient(circle, rgba(52,211,153,0.5), transparent 62%); animation: drift1 26s ease-in-out infinite; }
+        .b2 { width: 58vmax; height: 58vmax; right: -12%; top: 8%; background: radial-gradient(circle, rgba(167,139,250,0.46), transparent 62%); animation: drift2 32s ease-in-out infinite; }
+        .b3 { width: 66vmax; height: 66vmax; left: 18%; bottom: -22%; background: radial-gradient(circle, rgba(45,212,191,0.4), transparent 62%); animation: drift3 30s ease-in-out infinite; }
+
+        @keyframes drift1 { 50% { transform: translate(6vw, 5vh) scale(1.12); } }
+        @keyframes drift2 { 50% { transform: translate(-5vw, 7vh) scale(1.08); } }
+        @keyframes drift3 { 50% { transform: translate(4vw, -6vh) scale(1.14); } }
+
+        .vignette {
             position: fixed;
             inset: 0;
-            z-index: -1;
+            z-index: 1;
             pointer-events: none;
-            opacity: 0.26;
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.016) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.016) 1px, transparent 1px);
-            background-size: 50px 50px;
-            mask-image: radial-gradient(circle at 50% 26%, black, transparent 78%);
+            background: radial-gradient(circle at 50% 42%, transparent 30%, rgba(2,2,3,0.72) 100%);
         }
 
         a { color: inherit; }
 
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: max(1rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-right)) 1rem max(1.2rem, env(safe-area-inset-left));
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(2, 2, 3, 0.74);
-            backdrop-filter: blur(18px) saturate(140%);
-        }
+        /* ---- scroll / scenes ---- */
+        .scroll { position: relative; z-index: 2; }
 
-        .brand {
-            font-family: var(--mono);
-            font-size: 0.72rem;
-            letter-spacing: 0.2em;
-            text-decoration: none;
-        }
-
-        .brand span { color: var(--green); }
-
-        .topbar nav { display: flex; gap: 1.2rem; }
-
-        .topbar nav a {
-            color: var(--muted);
-            font-family: var(--mono);
-            font-size: 0.65rem;
-            letter-spacing: 0.1em;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-
-        .topbar nav a:hover,
-        .topbar nav a:focus-visible { color: var(--ink); outline: none; }
-
-        main { padding-bottom: 7rem; }
-
-        .hero {
-            width: min(1180px, calc(100% - 2.5rem));
-            min-height: 100svh;
-            margin: 0 auto;
-            padding: clamp(8rem, 16vh, 11rem) 0 5rem;
+        .scene {
+            min-height: 100vh;
             display: grid;
-            grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
-            align-items: center;
-            gap: clamp(3rem, 8vw, 7rem);
+            place-items: center;
+            padding: clamp(4rem, 12vh, 9rem) clamp(1.4rem, 5vw, 4rem);
         }
+        .wrap { width: min(760px, 100%); }
 
-        .eyebrow {
-            margin-bottom: 1.3rem;
-            color: var(--green);
+        .mono {
             font-family: var(--mono);
-            font-size: 0.68rem;
-            letter-spacing: 0.18em;
+            font-size: 0.66rem;
+            letter-spacing: 0.2em;
             text-transform: uppercase;
+            color: var(--teal);
         }
 
-        h1 {
-            font-size: clamp(4.6rem, 15vw, 10rem);
-            font-weight: 640;
-            line-height: 0.82;
-            letter-spacing: -0.075em;
-            background: linear-gradient(120deg, var(--green) 8%, var(--teal) 46%, var(--purple) 96%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        .hero-copy {
-            max-width: 32rem;
-            margin-top: 2.3rem;
-            color: var(--muted);
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            line-height: 1.75;
-        }
-
-        .hero-copy strong { color: var(--ink); font-weight: 500; }
-
-        .gen-console {
+        /* glass card */
+        .glass {
             position: relative;
-            min-height: 452px;
-            overflow: hidden;
+            padding: clamp(1.8rem, 5vw, 3rem);
             border: 1px solid var(--line);
             border-radius: 22px;
-            background: rgba(4, 7, 14, 0.78);
-            box-shadow: 0 36px 110px rgba(0, 0, 0, 0.5), 0 0 90px rgba(52, 211, 153, 0.07);
-            backdrop-filter: blur(22px);
+            background: var(--glass);
+            backdrop-filter: blur(22px) saturate(1.35);
+            -webkit-backdrop-filter: blur(22px) saturate(1.35);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 34px 90px rgba(0,0,0,0.5);
         }
 
-        .gen-console::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background: linear-gradient(150deg, rgba(52, 211, 153, 0.07), transparent 42%, rgba(167, 139, 250, 0.09));
+        /* cold open */
+        .cold .wrap { text-align: center; }
+        .co-wordmark {
+            font-size: clamp(4.6rem, 20vw, 12rem);
+            font-weight: 600;
+            letter-spacing: -0.06em;
+            line-height: 0.9;
+            background: linear-gradient(115deg, #6ff0be 2%, #8bf5e6 38%, #c9baff 98%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            filter: drop-shadow(0 0 46px rgba(45, 212, 191, 0.4)) drop-shadow(0 0 90px rgba(167, 139, 250, 0.22));
         }
+        .co-sub { margin-top: 1.5rem; color: var(--ink); font-size: clamp(1rem, 2.2vw, 1.25rem); font-weight: 400; letter-spacing: 0.01em; }
+        .co-date { margin-top: 0.5rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--quiet); }
+        .co-cue { margin-top: 3rem; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.24em; color: var(--quiet); }
+        .co-cue::after { content: ""; display: block; width: 1px; height: 44px; margin: 0.9rem auto 0; background: linear-gradient(var(--teal), transparent); }
 
-        .console-head {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.95rem 1.1rem;
-            border-bottom: 1px solid var(--line);
-            color: var(--quiet);
-            font: 0.6rem var(--mono);
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
+        /* text scenes */
+        .beat h2 {
+            font-size: clamp(1.9rem, 5vw, 3.2rem);
+            font-weight: 560;
+            line-height: 1.08;
+            letter-spacing: -0.04em;
         }
+        .beat p { margin-top: 1.3rem; color: var(--read); font-size: 1.04rem; line-height: 1.8; }
+        .beat .mono { margin-bottom: 1.2rem; }
 
-        .local-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            padding: 0.32rem 0.6rem;
-            border: 1px solid rgba(52, 211, 153, 0.34);
-            border-radius: 999px;
-            color: var(--green);
-            background: rgba(52, 211, 153, 0.08);
-            font: 0.58rem var(--mono);
-            letter-spacing: 0.1em;
-        }
-
-        .local-badge i {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 10px rgba(52, 211, 153, 0.75);
-            animation: pulse 2.4s ease-in-out infinite;
-        }
-
-        @keyframes pulse { 50% { opacity: 0.35; } }
-
-        .stream-map {
-            position: relative;
-            padding: clamp(1.8rem, 5vw, 3.2rem);
+        /* hero denoise */
+        .denoise { position: relative; height: 260vh; }
+        .pin { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; padding: clamp(3rem, 8vh, 6rem) clamp(1.4rem, 5vw, 4rem); }
+        .stage {
+            --p: 1;
+            width: min(980px, 100%);
             display: grid;
-            gap: 1.3rem;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            gap: clamp(2rem, 5vw, 4rem);
+            align-items: center;
         }
 
-        .stream-step {
+        .frame {
             position: relative;
-            display: grid;
-            grid-template-columns: 82px 1fr;
-            gap: 1rem;
-            align-items: start;
-            font-family: var(--mono);
-        }
-
-        .stream-step:not(:last-child)::after {
-            content: "";
-            position: absolute;
-            left: 88px;
-            top: 30px;
-            width: 1px;
-            height: calc(100% + 1rem);
-            background: linear-gradient(var(--green), var(--purple));
-            opacity: 0.4;
-        }
-
-        .step-id { padding-top: 0.2rem; color: var(--quiet); font-size: 0.6rem; letter-spacing: 0.1em; }
-
-        .step-body {
-            position: relative;
-            padding: 0.95rem 1rem 0.95rem 1.3rem;
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.022);
-        }
-
-        .step-body::before {
-            content: "";
-            position: absolute;
-            left: -5px;
-            top: 17px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 14px rgba(52, 211, 153, 0.7);
-        }
-
-        .stream-step:nth-child(2) .step-body::before { background: var(--teal); box-shadow: 0 0 14px rgba(45, 212, 191, 0.7); }
-        .stream-step:nth-child(3) .step-body::before { background: var(--purple); box-shadow: 0 0 14px rgba(167, 139, 250, 0.7); }
-        .stream-step:last-child .step-body::before { background: var(--yellow); box-shadow: 0 0 14px rgba(251, 191, 36, 0.6); }
-
-        .step-name { color: var(--ink); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
-        .step-detail { margin-top: 0.4rem; color: var(--quiet); font-size: 0.64rem; line-height: 1.55; }
-
-        .denoise {
-            margin-top: 0.7rem;
-            height: 5px;
-            border-radius: 3px;
+            aspect-ratio: 4 / 5;
+            border-radius: 20px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 40px 100px rgba(0,0,0,0.55);
         }
-
-        .denoise b {
-            display: block;
-            width: 72%;
-            height: 100%;
-            border-radius: 3px;
-            background: linear-gradient(90deg, var(--green), var(--teal));
-            box-shadow: 0 0 12px rgba(45, 212, 191, 0.5);
-            animation: denoise 3.4s ease-in-out infinite;
+        .bloom {
+            position: absolute; inset: -16%;
+            background:
+                radial-gradient(38% 44% at 34% 34%, rgba(52,211,153,0.95), transparent 60%),
+                radial-gradient(40% 48% at 70% 40%, rgba(167,139,250,0.9), transparent 62%),
+                radial-gradient(52% 60% at 48% 76%, rgba(45,212,191,0.85), transparent 64%),
+                #06080c;
+            filter: url(#ripple) blur(calc((1 - var(--p)) * 15px));
+            transform: scale(calc(1 + (1 - var(--p)) * 0.07));
         }
-
-        @keyframes denoise {
-            0% { width: 14%; }
-            60% { width: 88%; }
-            100% { width: 14%; }
+        .frame .fgrain {
+            position: absolute; inset: 0;
+            background-image: var(--grain);
+            background-size: 200px 200px;
+            mix-blend-mode: overlay;
+            opacity: calc((1 - var(--p)) * 0.9);
         }
+        .frame .rim { position: absolute; inset: 0; border-radius: 20px; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 60px rgba(0,0,0,0.4); }
 
-        .steptag {
-            margin-top: 0.55rem;
-            color: var(--teal);
-            font-size: 0.58rem;
-            letter-spacing: 0.12em;
-        }
+        .readout .step { color: var(--teal); }
+        .readout .stepnum { color: var(--green); font-variant-numeric: tabular-nums; }
+        .readout h2 { margin-top: 1rem; font-size: clamp(1.7rem, 4vw, 2.7rem); font-weight: 560; line-height: 1.1; letter-spacing: -0.04em; }
+        .readout p { margin-top: 1.1rem; color: var(--read); font-size: 0.98rem; line-height: 1.8; }
+        .track { margin-top: 1.6rem; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
+        .track b { display: block; height: 100%; width: calc(var(--p) * 100%); background: linear-gradient(90deg, var(--green), var(--teal)); }
 
-        .section {
-            width: min(1080px, calc(100% - 2.5rem));
-            margin: 0 auto;
-            padding: clamp(5rem, 10vw, 8rem) 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
+        /* close */
+        .close .wrap { text-align: center; }
+        .close .seal { width: 128px; height: 160px; margin: 0 auto 2rem; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 30px 70px rgba(0,0,0,0.5); }
+        .close .seal .bloom { filter: url(#ink); inset: -16%; }
+        .close h2 { font-size: clamp(1.7rem, 4.5vw, 2.8rem); font-weight: 560; letter-spacing: -0.035em; line-height: 1.14; }
+        .close .foot { margin-top: 1.4rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
 
-        .section-label { color: var(--green); font: 0.66rem var(--mono); letter-spacing: 0.18em; text-transform: uppercase; }
+        /* reveals */
+        .js .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform 0.9s cubic-bezier(.2,.7,.2,1); }
+        .reveal.in { opacity: 1; transform: none; }
 
-        .section h2 {
-            max-width: 16ch;
-            margin-top: 1rem;
-            font-size: clamp(2rem, 5vw, 4.2rem);
-            font-weight: 520;
-            line-height: 1.06;
-            letter-spacing: -0.05em;
-        }
+        /* cold-open entrance (CSS only) */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+        .co-wordmark { animation: fadeUp 0.9s 0.10s both cubic-bezier(.2,.7,.2,1); }
+        .co-sub { animation: fadeUp 0.8s 0.50s both cubic-bezier(.2,.7,.2,1); }
+        .co-date { animation: fadeUp 0.8s 0.66s both cubic-bezier(.2,.7,.2,1); }
+        .co-cue { animation: fadeUp 0.9s 0.85s both cubic-bezier(.2,.7,.2,1); }
 
-        .section > p.lede {
-            max-width: 44rem;
-            margin-top: 1.2rem;
-            color: var(--muted);
-            line-height: 1.8;
-        }
-
-        .capabilities {
-            margin-top: 4rem;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1px;
-            overflow: hidden;
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            background: var(--line);
-        }
-
-        .capability { padding: clamp(1.5rem, 4vw, 2.5rem); background: rgba(6, 10, 20, 0.95); }
-        .capability code { color: var(--teal); font: 0.63rem var(--mono); letter-spacing: 0.12em; }
-        .capability h3 { margin: 1.8rem 0 0.7rem; font-size: 1.1rem; font-weight: 520; }
-        .capability p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
-
-        .architecture {
-            margin-top: 4rem;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr auto 1fr;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .arch-node { min-height: 184px; padding: 1.5rem; border: 1px solid var(--line); border-radius: 16px; background: var(--glass); }
-        .arch-node span { color: var(--quiet); font: 0.62rem var(--mono); letter-spacing: 0.12em; }
-        .arch-node h3 { margin: 2.4rem 0 0.65rem; font-size: 1rem; }
-        .arch-node p { color: var(--muted); font-size: 0.8rem; line-height: 1.55; }
-        .arch-arrow { color: var(--green); font-family: var(--mono); }
-
-        .closing {
-            display: grid;
-            grid-template-columns: 0.85fr 1.15fr;
-            gap: clamp(2rem, 8vw, 7rem);
-            align-items: end;
-        }
-
-        .closing-quote { font-size: clamp(2.2rem, 6vw, 5.2rem); font-weight: 560; line-height: 0.98; letter-spacing: -0.065em; }
-        .closing-quote span { color: var(--green); }
-        .closing-copy { color: var(--muted); line-height: 1.85; }
-
-        @media (max-width: 820px) {
-            .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 9rem; }
-            .hero-copy { max-width: 40rem; }
-            .gen-console { min-height: 0; }
-            .architecture { grid-template-columns: 1fr; }
-            .arch-arrow { text-align: center; transform: rotate(90deg); }
-            .closing { grid-template-columns: 1fr; align-items: start; }
-        }
-
-        @media (max-width: 560px) {
-            .topbar nav a:not(:last-child) { display: none; }
-            .hero, .section { width: min(100% - 1.5rem, 1080px); }
-            h1 { font-size: clamp(4.4rem, 26vw, 7rem); }
-            .stream-map { padding: 1.25rem; }
-            .stream-step { grid-template-columns: 46px 1fr; gap: 0.65rem; }
-            .stream-step:not(:last-child)::after { left: 52px; }
-            .capabilities { grid-template-columns: 1fr; }
+        @media (max-width: 760px) {
+            .stage { grid-template-columns: 1fr; gap: 1.8rem; }
+            .frame { aspect-ratio: 16 / 11; }
         }
 
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
-            .local-badge i { animation: none; }
-            .denoise b { animation: none; width: 72%; }
+            .blob { animation: none; }
+            .stage { --p: 1 !important; }
+            .frame .fgrain { display: none; }
+            .bloom { filter: url(#ink); }
+            .js .reveal { opacity: 1; transform: none; transition: none; }
+            .co-wordmark, .co-sub, .co-date, .co-cue { animation: none; }
         }
     </style>
 </head>
 <body>
-    <header class="topbar">
-        <a class="brand" href="/365/"><span>RG</span> / NOVA / LOCAL</a>
-        <nav aria-label="Page sections">
-            <a href="#studio">Studio</a>
-            <a href="#path">Path</a>
-            <a href="/365/">365</a>
-        </nav>
-    </header>
+    <svg class="filters" aria-hidden="true" width="0" height="0" style="position:absolute">
+        <defs>
+            <filter id="ink" x="-25%" y="-25%" width="150%" height="150%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.011 0.015" numOctaves="2" seed="7" result="t"/>
+                <feDisplacementMap in="SourceGraphic" in2="t" scale="42" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="ripple" x="-30%" y="-30%" width="160%" height="160%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.02 0.03" numOctaves="2" seed="4" result="t"/>
+                <feDisplacementMap id="ripple-map" in="SourceGraphic" in2="t" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
 
-    <main>
-        <section class="hero">
-            <div>
-                <p class="eyebrow">February 17, 2026 · Local diffusion</p>
-                <h1>Nova</h1>
-                <p class="hero-copy"><strong>A diffusion studio behind a single page.</strong> Write a prompt, watch it resolve step by step against a local Stable Diffusion backend, and keep every frame — the first ones came up during Carnival.</p>
+    <div class="field" aria-hidden="true">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+    </div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <main class="scroll">
+        <section class="scene cold">
+            <div class="wrap">
+                <h1 class="co-wordmark">Nova</h1>
+                <p class="co-sub">Local image generation.</p>
+                <p class="co-date">Feb 17, 2026 · Day 47</p>
+                <p class="co-cue">Scroll</p>
             </div>
+        </section>
 
-            <div class="gen-console" aria-label="Nova generation pipeline">
-                <div class="console-head">
-                    <span>Diffusion / ready</span>
-                    <span class="local-badge"><i></i>Local Only</span>
+        <section class="scene beat">
+            <div class="wrap glass reveal">
+                <p class="mono">01 · Prompt</p>
+                <h2>It starts with a few words.</h2>
+                <p>A prompt and a negative prompt, a size, a step count, a CFG scale, and a seed you can pin to get the same frame back. That's the input — the rest happens on the machine.</p>
+            </div>
+        </section>
+
+        <section class="scene denoise" aria-label="An image resolving out of noise as you scroll">
+            <div class="pin">
+                <div class="stage">
+                    <div class="frame">
+                        <div class="bloom"></div>
+                        <div class="fgrain"></div>
+                        <div class="rim"></div>
+                    </div>
+                    <div class="readout">
+                        <p class="mono step"><span class="stepnum">0</span> / 30 steps</p>
+                        <h2 class="reveal">The static settles into an image.</h2>
+                        <p class="reveal">This is diffusion: the model starts from a field of noise and walks it back over thirty passes, each one a little less random than the last, toward what the prompt described.</p>
+                        <div class="track reveal"><b></b></div>
+                    </div>
                 </div>
-                <div class="stream-map">
-                    <div class="stream-step">
-                        <span class="step-id">01 / PROMPT</span>
-                        <div class="step-body"><div class="step-name">Written intent</div><div class="step-detail">Prompt, negative prompt, size, steps, CFG, and a seed you can pin.</div></div>
-                    </div>
-                    <div class="stream-step">
-                        <span class="step-id">02 / BRIDGE</span>
-                        <div class="step-body"><div class="step-name">Express, local</div><div class="step-detail">One backend-agnostic API on localhost — nothing addressed to the cloud.</div></div>
-                    </div>
-                    <div class="stream-step">
-                        <span class="step-id">03 / DIFFUSE</span>
-                        <div class="step-body">
-                            <div class="step-name">ComfyUI denoise</div>
-                            <div class="denoise"><b></b></div>
-                            <div class="steptag">step 22 / 30 · euler_ancestral</div>
-                        </div>
-                    </div>
-                    <div class="stream-step">
-                        <span class="step-id">04 / IMAGE</span>
-                        <div class="step-body"><div class="step-name">Saved frame</div><div class="step-detail">PNG plus a JSON of every setting, written next to it — yours to keep.</div></div>
-                    </div>
-                </div>
             </div>
         </section>
 
-        <section class="section" id="studio">
-            <p class="section-label">The studio</p>
-            <h2>A generation surface you fully own.</h2>
-            <p class="lede">Nova is the same idea as the local chat, pointed at pixels: a focused browser page bridged to a diffusion backend running on the hardware already in the room. Choose the model, shape the prompt, and watch the image resolve — no account, no queue, no upload.</p>
-            <div class="capabilities">
-                <article class="capability"><code>BACKEND / AGNOSTIC</code><h3>One UI, either engine</h3><p>Unified <code>/api/nova/*</code> endpoints speak to ComfyUI or AUTOMATIC1111 alike, auto-detecting which is online and translating sampler names across them.</p></article>
-                <article class="capability"><code>MODELS / OFFLINE</code><h3>Weights that stay put</h3><p>Checkpoints pulled once from the official HuggingFace orgs drop into the backend and run offline forever — SD 1.5 and SDXL, no account needed to keep generating.</p></article>
-                <article class="capability"><code>PROGRESS / LIVE</code><h3>Watch it resolve</h3><p>A WebSocket carries real-time step tracking from ComfyUI, with a polling fallback, so the denoise is visible instead of a spinner hiding the work.</p></article>
-                <article class="capability"><code>IMAGES / PERSIST</code><h3>Every frame is a file</h3><p>Each generation saves a PNG beside a JSON of its settings and seed, filling a history filmstrip you can reopen, reproduce, or delete — the same pattern as the saved chats.</p></article>
+        <section class="scene beat">
+            <div class="wrap glass reveal">
+                <p class="mono">02 · Where it runs</p>
+                <h2>On your own machine.</h2>
+                <p>Stable Diffusion through ComfyUI, on the GPU or CPU already in the room. No account, no upload, no per-image cost. It's local models doing an ordinary job.</p>
             </div>
         </section>
 
-        <section class="section" id="path">
-            <p class="section-label">The local path</p>
-            <h2>Three pieces. One machine.</h2>
-            <div class="architecture">
-                <article class="arch-node"><span>01 / BROWSER</span><h3>Studio interface</h3><p>Model and sampler dropdowns, prompt fields, step and CFG sliders, seed, and the live progress bar.</p></article>
-                <div class="arch-arrow">→</div>
-                <article class="arch-node"><span>02 / EXPRESS</span><h3>Backend bridge</h3><p>Translates one set of endpoints to whichever engine is active and streams progress back as it goes.</p></article>
-                <div class="arch-arrow">→</div>
-                <article class="arch-node"><span>03 / COMFYUI</span><h3>Local diffusion</h3><p>Loads the checkpoint and denoises on the machine's own GPU or CPU, writing the finished frame to disk.</p></article>
+        <section class="scene beat">
+            <div class="wrap glass reveal">
+                <p class="mono">03 · After</p>
+                <h2>Then it's a file.</h2>
+                <p>Every image saves as a PNG next to a JSON of its settings and seed. Reopen it, reproduce it, or delete it — a plain folder of frames, yours to keep.</p>
             </div>
         </section>
 
-        <section class="section closing">
-            <p class="closing-quote">A few words in, and the picture <span>resolves.</span></p>
-            <p class="closing-copy">Nova put a full diffusion studio behind a single page: choose the model, shape the prompt, watch it come up step by step, and keep the frame. A creative tool that runs entirely on your own hardware.</p>
+        <section class="scene close">
+            <div class="wrap">
+                <div class="seal reveal" aria-hidden="true"><div class="bloom"></div></div>
+                <h2 class="reveal">Type a few words, get a picture. That's the whole thing.</h2>
+                <p class="foot reveal">The first ones were Mardi Gras.</p>
+            </div>
         </section>
     </main>
 
     <nav data-archive-day="47" aria-label="365 Days navigation"></nav>
+
+    <script>
+        (function () {
+            var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            // scene reveals
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+                });
+            }, { threshold: 0.25, rootMargin: '0px 0px -8% 0px' });
+            document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+            // scroll-scrubbed denoise
+            var pin = document.querySelector('.denoise');
+            var stage = document.querySelector('.stage');
+            var stepnum = document.querySelector('.stepnum');
+            var rmap = document.getElementById('ripple-map');
+            var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+
+            if (pin && stage && !reduce) {
+                var queued = false;
+                var scrub = function () {
+                    queued = false;
+                    var total = pin.offsetHeight - window.innerHeight;
+                    var p = clamp(-pin.getBoundingClientRect().top / total, 0, 1);
+                    stage.style.setProperty('--p', p.toFixed(3));
+                    if (stepnum) stepnum.textContent = Math.round(p * 30);
+                    if (rmap) rmap.setAttribute('scale', ((1 - p) * 48).toFixed(1));
+                };
+                var onScroll = function () { if (!queued) { queued = true; requestAnimationFrame(scrub); } };
+                window.addEventListener('scroll', onScroll, { passive: true });
+                window.addEventListener('resize', onScroll);
+                scrub();
+            } else if (stepnum) {
+                stepnum.textContent = 30;
+            }
+        })();
+    </script>
 </body>
 </html>
