@@ -1389,13 +1389,34 @@
                     border: 'rgba(157, 219, 116, 0.48)'
                 }
             },
-            ...Array.from({ length: 6 }, (_, index) => ({
-                day: 47 + index,
+            {
+                day: 47,
+                name: 'Nova',
+                file: 'nova-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Local Image Gen',
+                description: 'A fully-local image generation studio bridged to Stable Diffusion — pick a model, watch it denoise step by step, and keep every frame on the machine. First frames came up around Mardi Gras.',
+                timeline: {
+                    label: 'feature milestone',
+                    entry: 'Feb 17, 2026',
+                    confidence: 'user-date'
+                },
+                theme: {
+                    primary: '#34d399',
+                    secondary: '#a78bfa',
+                    background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.16), rgba(167, 139, 250, 0.1))',
+                    glow: 'rgba(52, 211, 153, 0.32)',
+                    border: 'rgba(52, 211, 153, 0.46)'
+                }
+            },
+            ...Array.from({ length: 5 }, (_, index) => ({
+                day: 48 + index,
                 name: 'Completed Day',
                 status: 'complete',
                 timeline: {
                     label: 'archive date',
-                    entry: `Feb ${17 + index}, 2026`,
+                    entry: `Feb ${18 + index}, 2026`,
                     confidence: 'calendar'
                 },
                 theme: {

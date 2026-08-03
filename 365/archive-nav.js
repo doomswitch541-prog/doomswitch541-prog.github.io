@@ -20,6 +20,7 @@
         { day: 40, file: 'karpathy-agent-studies.html', accent: '#fb923c' },
         { day: 45, file: 'rgclaw-about.html', accent: '#fb923c' },
         { day: 46, file: 'raccoongang-started.html', accent: '#9ddb74' },
+        { day: 47, file: 'nova-about.html', accent: '#34d399' },
         { day: 55, file: 'americans.html', accent: '#ff2a6d' },
         { day: 58, file: 'sonnet45-thinking-partner.html', accent: '#d98c6a' },
         { day: 77, file: 'the-four-about.html', accent: '#ff5b8d' },
