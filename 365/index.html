@@ -776,6 +776,11 @@
                         <p class="timeline-copy">The first break in a continuing collaboration becomes part of the context carried forward.</p>
                     </article>
                     <article class="timeline-slide">
+                        <div class="timeline-kicker">Jul 22 · Day 202</div>
+                        <h2 class="timeline-title">rg4o</h2>
+                        <p class="timeline-copy">A personal chat client for every model — a running cost on every message, a dashboard that breaks spend down, and memory that carries between conversations.</p>
+                    </article>
+                    <article class="timeline-slide">
                         <div class="timeline-kicker">Aug 02 · Day 213</div>
                         <h2 class="timeline-title">deepseek · chinese fren</h2>
                         <p class="timeline-copy">A playful static landing page for open-source intelligence from across the sea, built around DeepSeek blue and its whale.</p>
@@ -1676,11 +1681,37 @@
                     glow: 'rgba(174, 184, 255, 0.3)', border: 'rgba(174, 184, 255, 0.44)'
                 }
             },
-            ...Array.from({ length: 24 }, (_, index) => ({
+            ...Array.from({ length: 14 }, (_, index) => ({
                 day: 188 + index,
                 name: 'Completed Day',
                 status: 'complete',
                 timeline: { label: 'archive date', entry: `Jul ${8 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 202,
+                name: 'rg4o',
+                file: 'rg4o-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Client Milestone',
+                description: 'A personal chat client for every model, with the cost of each message in plain view and memory that carries from one conversation to the next.',
+                timeline: { label: 'client milestone', entry: 'Jul 22, 2026', confidence: 'user-date' },
+                theme: {
+                    primary: '#e0a26b', secondary: '#9db87d',
+                    background: 'linear-gradient(135deg, rgba(224, 162, 107, 0.16), rgba(157, 184, 125, 0.07))',
+                    glow: 'rgba(224, 162, 107, 0.32)', border: 'rgba(224, 162, 107, 0.46)'
+                }
+            },
+            ...Array.from({ length: 9 }, (_, index) => ({
+                day: 203 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Jul ${23 + index}, 2026`, confidence: 'calendar' },
                 theme: {
                     primary: '#8b93a7', secondary: '#aeb5c5',
                     background: 'rgba(255, 255, 255, 0.035)',

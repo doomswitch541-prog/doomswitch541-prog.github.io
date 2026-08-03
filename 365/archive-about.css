@@ -725,3 +725,144 @@ body[data-project="four"] .about-card { background: rgba(17, 17, 38, 0.96); }
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
 }
+
+/* ── rg4o (Day 202) ──────────────────────────────────── */
+body[data-project="rg4o"] {
+    --night: #0d0a06;
+    --panel: #17110a;
+    --accent: #e0a26b;
+    --accent-2: #9db87d;
+    --accent-soft: rgba(224, 162, 107, 0.13);
+}
+
+body[data-project="rg4o"] .about-card { background: rgba(23, 17, 10, 0.96); }
+
+.rg4o-figure {
+    background:
+        linear-gradient(rgba(224, 162, 107, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(224, 162, 107, 0.035) 1px, transparent 1px),
+        rgba(13, 10, 6, 0.88);
+    background-size: 24px 24px;
+}
+
+.rg4o-meter {
+    width: min(430px, calc(100% - 2rem));
+    padding: 1.15rem 1.25rem 1.3rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--panel) 82%, transparent);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(224, 162, 107, 0.16);
+    backdrop-filter: blur(8px);
+}
+
+.rg4o-meter-lab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--quiet);
+    font: 0.56rem var(--mono);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.rg4o-meter-lab::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 10px var(--accent-2);
+}
+
+.rg4o-meter-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.rg4o-cell { min-width: 0; }
+
+.rg4o-k {
+    display: block;
+    color: var(--quiet);
+    font: 0.6rem var(--mono);
+    letter-spacing: 0.04em;
+}
+
+.rg4o-v {
+    display: block;
+    margin-top: 0.4rem;
+    color: var(--accent);
+    font: clamp(0.9rem, 2.2vw, 1.1rem) var(--mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.rg4o-bar {
+    height: 6px;
+    margin-top: 1.1rem;
+    border-radius: 4px;
+    background: var(--night);
+    overflow: hidden;
+}
+
+.rg4o-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent-2), color-mix(in srgb, var(--accent-2) 60%, var(--accent)));
+}
+
+/* warm robot sign-off (from rg4o's own about page, remapped to the archive palette) */
+body[data-project="rg4o"] .about-closing { align-items: start; }
+
+.signoff {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    padding: 2.4rem 0 0;
+}
+
+.bot { position: relative; width: 150px; height: 165px; animation: botFloat 4.2s ease-in-out infinite; }
+
+.bot-aura {
+    position: absolute;
+    left: 50%;
+    top: 54%;
+    width: 132px;
+    height: 132px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 58%, transparent), transparent 66%);
+    filter: blur(15px);
+    animation: botAura 3.6s ease-in-out infinite;
+}
+
+.bot-svg { position: relative; display: block; width: 150px; height: 165px; overflow: visible; }
+.bot-body { fill: color-mix(in srgb, var(--panel) 85%, var(--accent)); stroke: color-mix(in srgb, var(--accent) 32%, var(--line)); stroke-width: 2; }
+.bot-face { fill: var(--night); }
+.bot-stroke { stroke: color-mix(in srgb, var(--accent) 32%, var(--line)); stroke-width: 3; stroke-linecap: round; }
+.bot-eye { fill: var(--accent); filter: drop-shadow(0 0 4px var(--accent)); transform-box: fill-box; transform-origin: center; animation: botBlink 4.8s ease-in-out infinite; }
+.bot-smile { stroke: var(--accent); stroke-width: 3.4; fill: none; stroke-linecap: round; }
+.bot-dot { fill: var(--accent); filter: drop-shadow(0 0 5px var(--accent)); animation: botDot 2s ease-in-out infinite; }
+.bot-heart { fill: var(--accent); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 80%, transparent)); transform-box: fill-box; transform-origin: center; animation: botHeart 2.4s ease-in-out infinite; }
+.bot-arm-wave { transform-box: fill-box; transform-origin: 50% 100%; animation: botWave 2.1s ease-in-out infinite; }
+
+@keyframes botFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes botAura { 0%, 100% { opacity: 0.42; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.09); } }
+@keyframes botBlink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
+@keyframes botWave { 0%, 100% { transform: rotate(-15deg); } 50% { transform: rotate(11deg); } }
+@keyframes botHeart { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.16); } }
+@keyframes botDot { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+@media (max-width: 520px) {
+    .rg4o-meter-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 0.7rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rg4o-fill { transition: none; }
+    .bot, .bot-aura, .bot-eye, .bot-dot, .bot-heart, .bot-arm-wave { animation: none; }
+    .bot-arm-wave { transform: rotate(-8deg); }
+}
