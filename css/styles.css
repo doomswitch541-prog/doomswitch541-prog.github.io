@@ -971,6 +971,22 @@ body.nav-open .nav-drawer-links a {
   background: var(--glass-border);
 }
 
+.weather-wind {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wind-arrow {
+  width: 12px;
+  height: 12px;
+  color: var(--accent);
+  transform: rotate(0deg);
+  transform-origin: center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 4px var(--accent-glow));
+}
+
 /* === Quick Actions === */
 .quick-actions {
   display: flex;

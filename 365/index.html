@@ -1559,7 +1559,7 @@
                     glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
                 }
             })),
-            ...Array.from({ length: 5 }, (_, index) => ({
+            ...Array.from({ length: 3 }, (_, index) => ({
                 day: 90 + index,
                 name: 'Completed Day',
                 status: 'complete',
@@ -1570,6 +1570,34 @@
                     glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
                 }
             })),
+            {
+                day: 93,
+                name: 'RG Claude',
+                file: 'rg-claude-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Desktop Guardian',
+                description: 'A local Claude Code buddy — a pixel-raccoon desktop pet that keeps a clock, guards the machine’s ports and inbound connections, and fronts a small local platform of scheduler, cron, news scraper, and static-site builder, all running on qwen through Ollama.',
+                timeline: { label: 'project milestone', entry: 'Apr 4, 2026', confidence: 'user-date' },
+                theme: {
+                    primary: '#4ade80',
+                    secondary: '#f5a24b',
+                    background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.16), rgba(245, 162, 75, 0.09))',
+                    glow: 'rgba(74, 222, 128, 0.32)',
+                    border: 'rgba(74, 222, 128, 0.46)'
+                }
+            },
+            {
+                day: 94,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: 'Apr 5, 2026', confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            },
             {
                 day: 95,
                 name: 'NERV Terminal',

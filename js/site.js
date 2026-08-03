@@ -355,10 +355,19 @@ const HomeWeather = {
         95: 'Thunderstorm', 96: 'Storm + hail', 99: 'Heavy storm + hail',
     },
 
+    // 8-point compass. Meteorological wind direction is the bearing the wind
+    // blows *from*, so a north wind (0°) is named "N" and the vane points north.
+    cardinal(deg) {
+        const points = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        return points[Math.round(deg / 45) % 8];
+    },
+
     init() {
         this.pill = document.getElementById('weather');
         this.temp = document.getElementById('weather-temp');
         this.description = document.getElementById('weather-desc');
+        this.windText = document.getElementById('weather-wind-text');
+        this.windArrow = document.getElementById('wind-arrow');
         if (!this.pill || !this.temp || !this.description) return;
 
         this.pill.hidden = false;
@@ -375,8 +384,9 @@ const HomeWeather = {
         const params = new URLSearchParams({
             latitude: this.latitude,
             longitude: this.longitude,
-            current: 'temperature_2m,weather_code',
+            current: 'temperature_2m,weather_code,wind_speed_10m,wind_direction_10m',
             temperature_unit: 'fahrenheit',
+            wind_speed_unit: 'mph',
             timezone: 'auto',
             forecast_days: '1',
         });
@@ -396,10 +406,21 @@ const HomeWeather = {
 
             this.temp.textContent = `${Math.round(temperature)}°`;
             this.description.textContent = this.conditions[code] || 'Current weather';
+
+            const windSpeed = Number(data.current?.wind_speed_10m);
+            const windDir = Number(data.current?.wind_direction_10m);
+            if (this.windText && Number.isFinite(windSpeed) && Number.isFinite(windDir)) {
+                const from = this.cardinal(windDir);
+                this.windText.textContent = `${from} ${Math.round(windSpeed)}mph`;
+                if (this.windArrow) this.windArrow.style.transform = `rotate(${windDir}deg)`;
+                this.pill.title = `Wind from the ${from} at ${Math.round(windSpeed)} mph — HQ weather via Open-Meteo`;
+            }
+
             this.pill.classList.remove('weather-unavailable');
         } catch (error) {
             this.temp.textContent = '--°';
             this.description.textContent = 'Weather unavailable';
+            if (this.windText) this.windText.textContent = '--';
             this.pill.classList.add('weather-unavailable');
             console.warn('[weather] Open-Meteo unavailable', error);
         } finally {

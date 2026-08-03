@@ -114,7 +114,8 @@
         .co-cue { margin-top: 3rem; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.24em; color: var(--quiet); }
         .co-cue::after { content: ""; display: block; width: 1px; height: 44px; margin: 0.9rem auto 0; background: linear-gradient(var(--teal), transparent); }
 
-        /* text scenes */
+        /* text scenes — shorter than the hero so consecutive cards sit close */
+        .scene.beat { min-height: auto; padding-block: clamp(3.25rem, 9vh, 5.5rem); }
         .beat h2 {
             font-size: clamp(1.9rem, 5vw, 3.2rem);
             font-weight: 560;
@@ -177,6 +178,14 @@
         .close h2 { font-size: clamp(1.7rem, 4.5vw, 2.8rem); font-weight: 560; letter-spacing: -0.035em; line-height: 1.14; }
         .close .foot { margin-top: 1.4rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
 
+        /* between-panel scroll cue */
+        .cue { position: relative; z-index: 2; display: grid; place-items: center; padding: clamp(0.25rem, 2.5vh, 1.25rem) 0; }
+        .cue span { font-family: var(--mono); font-size: 1.3rem; line-height: 1; color: var(--quiet); animation: cueBob 2.4s ease-in-out infinite; }
+        @keyframes cueBob {
+            0%, 100% { transform: translateY(-4px); opacity: 0.3; }
+            50% { transform: translateY(4px); opacity: 0.8; }
+        }
+
         /* reveals */
         .js .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform 0.9s cubic-bezier(.2,.7,.2,1); }
         .reveal.in { opacity: 1; transform: none; }
@@ -201,6 +210,7 @@
             .bloom { filter: url(#ink); }
             .js .reveal { opacity: 1; transform: none; transition: none; }
             .co-wordmark, .co-sub, .co-date, .co-cue { animation: none; }
+            .cue span { animation: none; opacity: 0.5; transform: none; }
         }
     </style>
 </head>
@@ -243,6 +253,8 @@
             </div>
         </section>
 
+        <div class="cue reveal" aria-hidden="true"><span>&darr;</span></div>
+
         <section class="scene denoise" aria-label="An image resolving out of noise as you scroll">
             <div class="pin">
                 <div class="stage">
@@ -261,6 +273,8 @@
             </div>
         </section>
 
+        <div class="cue reveal" aria-hidden="true"><span>&darr;</span></div>
+
         <section class="scene beat">
             <div class="wrap glass reveal">
                 <p class="mono">02 · Where it runs</p>
@@ -268,6 +282,8 @@
                 <p>Stable Diffusion through ComfyUI, on the GPU or CPU already in the room. No account, no upload, no per-image cost. It's local models doing an ordinary job.</p>
             </div>
         </section>
+
+        <div class="cue reveal" aria-hidden="true"><span>&darr;</span></div>
 
         <section class="scene beat">
             <div class="wrap glass reveal">
