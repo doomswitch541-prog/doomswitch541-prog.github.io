@@ -1389,7 +1389,7 @@
                     border: 'rgba(157, 219, 116, 0.48)'
                 }
             },
-            ...Array.from({ length: 8 }, (_, index) => ({
+            ...Array.from({ length: 6 }, (_, index) => ({
                 day: 47 + index,
                 name: 'Completed Day',
                 status: 'complete',
@@ -1404,6 +1404,27 @@
                     background: 'rgba(255, 255, 255, 0.035)',
                     glow: 'rgba(139, 147, 167, 0.18)',
                     border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            ...[
+                { date: 23, day: 53, blurb: 'How different people meet a model — the way background and interest shape the read, and the biases that ride along.' },
+                { date: 24, day: 54, blurb: 'When an over-careful filter cuts a thought off while it is still forming — and what that costs a real conversation.' }
+            ].map(({ date, day, blurb }) => ({
+                day,
+                name: 'Sonnet 4.5 — Thinking Partner',
+                status: 'complete',
+                description: blurb,
+                timeline: {
+                    label: 'thinking log',
+                    entry: `Feb ${date}, 2026`,
+                    confidence: 'user-context'
+                },
+                theme: {
+                    primary: '#d98c6a',
+                    secondary: '#f0cba9',
+                    background: 'linear-gradient(135deg, rgba(217, 140, 106, 0.16), rgba(240, 203, 169, 0.08))',
+                    glow: 'rgba(217, 140, 106, 0.32)',
+                    border: 'rgba(217, 140, 106, 0.46)'
                 }
             })),
             {
@@ -1426,27 +1447,45 @@
                     border: 'rgba(230, 237, 248, 0.42)'
                 }
             },
-            ...Array.from({ length: 21 }, (_, index) => {
-                const day = 56 + index;
-                const calendarDay = day <= 58 ? `Feb ${day - 30}, 2026` : `Mar ${day - 58}, 2026`;
-                return {
-                    day,
-                    name: 'Completed Day',
-                    status: 'complete',
-                    timeline: {
-                        label: 'archive date',
-                        entry: calendarDay,
-                        confidence: 'calendar'
-                    },
-                    theme: {
-                        primary: '#8b93a7',
-                        secondary: '#aeb5c5',
-                        background: 'rgba(255, 255, 255, 0.035)',
-                        glow: 'rgba(139, 147, 167, 0.18)',
-                        border: 'rgba(139, 147, 167, 0.24)'
-                    }
-                };
-            }),
+            ...[
+                { date: 26, day: 56, blurb: 'Classifiers up close — the small, fast models that sort what comes in.' },
+                { date: 27, day: 57, blurb: 'The latency test — why the apps feel instant: one large model answers while small ones handle the side work.' },
+                { date: 28, day: 58, blurb: 'A small model that quietly remembers for you — a lightweight extractor pulling durable memory, where rg4o’s memory grew from.' }
+            ].map(({ date, day, blurb }) => ({
+                day,
+                name: 'Sonnet 4.5 — Thinking Partner',
+                status: 'complete',
+                description: blurb,
+                timeline: {
+                    label: 'thinking log',
+                    entry: `Feb ${date}, 2026`,
+                    confidence: 'user-context'
+                },
+                theme: {
+                    primary: '#d98c6a',
+                    secondary: '#f0cba9',
+                    background: 'linear-gradient(135deg, rgba(217, 140, 106, 0.16), rgba(240, 203, 169, 0.08))',
+                    glow: 'rgba(217, 140, 106, 0.32)',
+                    border: 'rgba(217, 140, 106, 0.46)'
+                }
+            })),
+            ...Array.from({ length: 18 }, (_, index) => ({
+                day: 59 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: {
+                    label: 'archive date',
+                    entry: `Mar ${1 + index}, 2026`,
+                    confidence: 'calendar'
+                },
+                theme: {
+                    primary: '#8b93a7',
+                    secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)',
+                    border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
             {
                 day: 77,
                 name: 'The Four',
