@@ -3,94 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#090b12">
+    <meta name="theme-color" content="#0d0b0c">
     <title>Sonnet 4.5 — Thinking Partner</title>
-    <link rel="stylesheet" href="/365/rginfv1-research.css">
     <link rel="stylesheet" href="/365/archive-nav.css">
     <script src="/365/archive-nav.js" defer></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            color-scheme: dark;
+            --bg: #0d0b0c;
+            --ink: #efe9ea;
+            --read: #cec4c5;
+            --muted: #a99fa0;
+            --quiet: #6c6365;
+            --line: rgba(255, 255, 255, 0.09);
+            --accent: #d98c6a;
+            --accent-soft: rgba(217, 140, 106, 0.12);
+            --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: var(--sans);
+            background:
+                radial-gradient(circle at 18% -4%, var(--accent-soft), transparent 26rem),
+                var(--bg);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.5;
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 3px 100%;
+            mask-image: linear-gradient(to bottom, black, transparent 60%);
+        }
+
+        a { color: inherit; }
+
+        .page {
+            width: min(1140px, calc(100% - 3rem));
+            margin: 0 auto;
+            padding-bottom: 8rem;
+            display: grid;
+            grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
+            gap: clamp(2rem, 6vw, 6rem);
+        }
+
+        /* ---- left rail ---- */
+        .rail {
+            position: sticky;
+            top: 0;
+            align-self: start;
+            height: 100vh;
+            height: 100svh;
+            padding: clamp(2rem, 5vh, 3.4rem) 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .mark {
+            font-family: var(--mono);
+            font-size: 0.66rem;
+            letter-spacing: 0.2em;
+            color: var(--muted);
+            text-decoration: none;
+        }
+        .mark:hover { color: var(--ink); }
+        .mark b { color: var(--accent); font-weight: 400; }
+
+        .rail-title h1 {
+            font-size: clamp(2.4rem, 4vw, 3.3rem);
+            font-weight: 560;
+            line-height: 0.98;
+            letter-spacing: -0.045em;
+        }
+        .rail-title .date {
+            margin-top: 0.9rem;
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--quiet);
+        }
+
+        .index {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            border-left: 1px solid var(--line);
+        }
+        .index a {
+            display: flex;
+            align-items: baseline;
+            gap: 0.7rem;
+            padding: 0.5rem 0 0.5rem 1rem;
+            margin-left: -1px;
+            border-left: 1px solid transparent;
+            color: var(--quiet);
+            font-size: 0.86rem;
+            text-decoration: none;
+            transition: color 0.25s, border-color 0.25s;
+        }
+        .index a span {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+        }
+        .index a:hover { color: var(--muted); }
+        .index a.active {
+            color: var(--ink);
+            border-left-color: var(--accent);
+        }
+        .index a.active span { color: var(--accent); }
+
+        .rail-foot {
+            margin-top: auto;
+            max-width: 22rem;
+            color: var(--quiet);
+            font-size: 0.78rem;
+            line-height: 1.7;
+        }
+
+        /* ---- essay ---- */
+        .essay {
+            max-width: 44rem;
+            padding-top: clamp(2rem, 5vh, 3.4rem);
+        }
+
+        .lede {
+            font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
+            color: var(--ink);
+        }
+        .lede b { color: var(--accent); font-weight: 500; }
+
+        .movement {
+            padding-top: clamp(3.5rem, 8vh, 6rem);
+            scroll-margin-top: 2rem;
+        }
+
+        .mnum {
+            font-family: var(--mono);
+            font-size: 0.64rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .movement h2 {
+            max-width: 20ch;
+            margin-top: 1.1rem;
+            font-size: clamp(1.7rem, 3.6vw, 2.7rem);
+            font-weight: 560;
+            line-height: 1.08;
+            letter-spacing: -0.04em;
+        }
+
+        .movement p {
+            margin-top: 1.4rem;
+            color: var(--read);
+            font-size: 1.02rem;
+            line-height: 1.85;
+            overflow-wrap: anywhere;
+        }
+        .movement p b { color: var(--ink); font-weight: 500; }
+
+        .pull {
+            margin: 2.2rem 0 0.5rem;
+            padding-left: 1.4rem;
+            border-left: 2px solid var(--accent);
+            font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+            font-weight: 500;
+            line-height: 1.28;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+
+        /* mechanism diagram */
+        .split {
+            margin-top: 2rem;
+            padding: 1.3rem;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.018);
+        }
+        .split-big {
+            padding: 0.9rem 1rem;
+            border: 1px solid rgba(217, 140, 106, 0.32);
+            border-radius: 9px;
+            background: var(--accent-soft);
+        }
+        .split-big code { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em; color: var(--accent); }
+        .split-big span { display: block; margin-top: 0.35rem; font-size: 0.82rem; color: var(--ink); }
+        .split-small {
+            margin-top: 0.7rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.55rem;
+        }
+        .split-small i {
+            padding: 0.7rem 0.4rem;
+            display: block;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            font-style: normal;
+            letter-spacing: 0.06em;
+            text-align: center;
+            color: var(--muted);
+        }
+        .split-cap {
+            margin-top: 0.9rem;
+            font-family: var(--mono);
+            font-size: 0.64rem;
+            line-height: 1.6;
+            color: var(--quiet);
+        }
+
+        .signoff {
+            margin-top: 2rem !important;
+            font-size: 1.15rem !important;
+            color: var(--accent) !important;
+            letter-spacing: -0.01em;
+        }
+
+        .closing {
+            margin-top: clamp(4rem, 9vh, 7rem);
+            padding-top: clamp(2.5rem, 5vh, 3.5rem);
+            border-top: 1px solid var(--line);
+            font-size: clamp(1.4rem, 2.8vw, 2.1rem);
+            font-weight: 500;
+            line-height: 1.32;
+            letter-spacing: -0.025em;
+            color: var(--muted);
+        }
+        .closing b { color: var(--accent); font-weight: 500; }
+
+        @media (max-width: 880px) {
+            .page {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            .rail {
+                position: static;
+                height: auto;
+                padding-bottom: 0;
+                gap: 1.5rem;
+            }
+            .index { flex-flow: row wrap; border-left: 0; }
+            .index a {
+                padding: 0.4rem 0.8rem;
+                margin-left: 0;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+            }
+            .index a.active { border-color: var(--accent); }
+            .rail-foot { margin-top: 0; }
+            .essay { max-width: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .index a { transition: none; }
+        }
+    </style>
 </head>
-<body data-research="sonnet">
-    <header class="research-masthead">
-        <a class="research-mark" href="/365/"><span>RG</span> / SONNET 4.5 / THINKING PARTNER</a>
-        <time class="research-date" datetime="2026-02-28">Day 58 · February 28, 2026</time>
-    </header>
-
-    <main class="research-main">
-        <section class="research-hero">
-            <div>
-                <p class="research-kicker">Thinking partner · Late February</p>
-                <h1>Room to think</h1>
-                <p class="research-lede"><strong>The best thinking partner engages what you actually said.</strong> A run of conversations with Sonnet 4.5 that started on the careful voice a model defaults to — and the settings it doesn't fit — and ended with a small-model memory design that became rg4o's.</p>
+<body>
+    <div class="page">
+        <aside class="rail">
+            <a class="mark" href="/365/"><b>RG</b> / SONNET 4.5</a>
+            <div class="rail-title">
+                <h1>Thinking<br>partner</h1>
+                <p class="date">Day 58 · Feb 28, 2026</p>
             </div>
+            <nav class="index" aria-label="Sections">
+                <a href="#register"><span>01</span> The register</a>
+                <a href="#mismatch"><span>02</span> The mismatch</a>
+                <a href="#mechanism"><span>03</span> The mechanism</a>
+                <a href="#memory"><span>04</span> The memory</a>
+            </nav>
+            <p class="rail-foot">A late-February run with Sonnet 4.5 — on the voice a model defaults to, the settings it doesn't fit, and the small-model system that came out of it.</p>
+        </aside>
 
-            <div class="research-figure" aria-label="The arc of the conversation, from the human read down into the mechanism it produced">
-                <div class="depth-ladder">
-                    <div class="depth-rung"><code>REGISTER</code><div><strong>The default voice isn't neutral</strong><span>warm / careful / soften first — a trained-in caution, not a baseline</span></div></div>
-                    <div class="depth-rung"><code>MISMATCH</code><div><strong>Built for a stranger</strong><span>the careful voice in a room that runs on straight talk</span></div></div>
-                    <div class="depth-rung"><code>MECHANISM</code><div><strong>The small models doing side work</strong><span>classifiers / a latency test / why the apps feel instant</span></div></div>
-                    <div class="depth-rung"><code>BUILT</code><div><strong>rg4o's memory</strong><span>4o-mini as a lightweight, durable extractor</span></div></div>
-                </div>
-            </div>
-        </section>
+        <main class="essay">
+            <p class="lede"><b>The best thinking partner engages what you actually said.</b> It started on the careful voice a model reaches for by default and ended on a piece of working software — and the through-line between them is worth keeping.</p>
 
-        <section class="level">
-            <p class="level-tag">The register</p>
-            <div class="level-copy">
+            <article id="register" class="movement">
+                <p class="mnum">01 · The register</p>
                 <h2>The default voice isn't neutral. It's cautious.</h2>
-                <p>A model's out-of-the-box register — warm, hedging, quick to soften, quick to reassure — gets treated as the baseline. It isn't one. It's a specific, trained-in caution, and caution isn't free: it spends words getting to the point, softens answers that didn't need it, and reassures people who only asked a question. Fine cover when the model knows nothing about who it's talking to. Less fine the moment it does.</p>
-                <div class="level-points">
-                    <p class="level-point"><strong>Caution is a choice, not the absence of one.</strong> Someone picked this baseline. Softening and reassurance are trained-in behaviors, not what's left when style is removed — the neutral-sounding default is itself a style.</p>
-                    <p class="level-point"><strong>The cost is directness.</strong> Every hedge is a little distance between the question and the answer. For a stranger that distance is a courtesy; for someone who came to think, it's friction.</p>
-                </div>
-            </div>
-        </section>
+                <p>A model's out-of-the-box register — warm, hedging, quick to soften, quick to reassure — gets treated as the baseline. It isn't one. It's a specific, trained-in caution, and caution isn't free: it spends words getting to the point, softens answers that didn't need it, and reassures people who only asked a question. Someone picked this default; softening and reassurance are trained-in behaviors, not what's left when style is removed. The neutral-sounding voice is itself a style.</p>
+                <blockquote class="pull">Every hedge is a little distance between the question and the answer.</blockquote>
+                <p>For a stranger that distance is a courtesy. For someone who came to think, it's friction — fine cover when the model knows nothing about who it's talking to, less fine the moment it does.</p>
+            </article>
 
-        <section class="level">
-            <p class="level-tag">The mismatch</p>
-            <div class="level-copy">
-                <h2>Built for a stranger. Most rooms aren't full of strangers.</h2>
-                <p>Put that cautious register in a military setting — terse, direct, operational — and it's the wrong instrument. Not because the model can't do the work, but because the voice was tuned for an open room of unknown people, and that isn't this room. The same mismatch shows up anywhere the working norm is straight talk: the careful voice reads as slow, or evasive, or like it's handling you. It's an obvious problem once you set the register and the setting side by side, and it doesn't go away by being polite about it.</p>
-                <div class="level-points">
-                    <p class="level-point"><strong>Fit is the whole question.</strong> A register that reassures a broad audience gets in the way where directness is the job. Same tool, different room, different result.</p>
-                    <p class="level-point"><strong>It's a real, open problem.</strong> How a general-purpose safety voice carries into specialized settings — military, medical, legal — isn't settled, and the mismatch is the same one every time: the default was built for everyone, so it fits no one setting particularly well.</p>
-                    <p class="level-point"><strong>It's still the live default — here included.</strong> The careful register didn't stay in that conversation; it's what current assistants reach for by reflex, this one as much as any. Sonnet 4.5 was worth thinking with because it skipped it — it answered the question instead of the safer one next to it.</p>
-                </div>
-            </div>
-        </section>
+            <article id="mismatch" class="movement">
+                <p class="mnum">02 · The mismatch</p>
+                <h2>A military setting makes the mismatch obvious.</h2>
+                <p>Terse, direct, operational — drop the cautious register into a room like that and it's the wrong instrument. Not because the model can't do the work, but because the voice was tuned for an open room of unknown people, and that isn't this room. The same thing shows up anywhere the working norm is straight talk: the careful voice reads as slow, or evasive, or like it's handling you. Set the register and the setting side by side and the problem is plain — being polite about it doesn't make it go away.</p>
+                <blockquote class="pull">The default was built for everyone, so it fits no one setting in particular.</blockquote>
+                <p>It isn't a past-tense story, either. The careful register is still the live default — what current assistants reach for by reflex, <b>this one included</b>. Sonnet 4.5 was worth thinking with because it skipped it: it answered the question instead of the safer one next to it.</p>
+            </article>
 
-        <section class="level">
-            <p class="level-tag">The mechanism</p>
-            <div class="level-copy">
+            <article id="mechanism" class="movement">
+                <p class="mnum">03 · The mechanism</p>
                 <h2>Why the apps feel instant.</h2>
                 <p>From there the conversation went down into the machine. Classifiers first — the small, fast models that sort what comes in — already familiar ground. Then a latency test that made the architecture visible: a modern chatbot feels immediate because one large model runs the conversation while a handful of small, cheap models handle the peripheral work in parallel. The speed you feel is a division of labor, not one model doing everything at once.</p>
-                <div class="formula" aria-label="How a fast chatbot divides its work">one large model (the conversation) + many small models (the side work) = perceived instant</div>
-                <div class="level-points">
-                    <p class="level-point"><strong>Small models are cheap enough to run alongside.</strong> Routing, tagging, extraction, moderation — none of it needs the big model, so it runs concurrently and never blocks the reply.</p>
-                    <p class="level-point"><strong>Latency is a design surface, not a given.</strong> Testing where the time actually goes shows which work belongs on a small model and which has to wait for the large one.</p>
-                    <p class="level-point"><strong>The peripheral work is where the leverage is.</strong> Once the side jobs are separable and cheap, you can add capability — like memory — without slowing the conversation down.</p>
+                <div class="split" aria-label="One large model runs the conversation while small models handle side work in parallel">
+                    <div class="split-big"><code>LARGE</code><span>the conversation — one model, streaming the reply</span></div>
+                    <div class="split-small"><i>routing</i><i>tagging</i><i>extraction</i><i>moderation</i></div>
+                    <p class="split-cap">one large model + many small ones, in parallel = the instant it feels like</p>
                 </div>
-            </div>
-        </section>
+                <p>None of the side work needs the big model, so it runs concurrently and never blocks the reply. And once those side jobs are separable and cheap, you can add capability — like memory — without slowing the conversation down.</p>
+            </article>
 
-        <section class="research-section">
-            <p class="section-kicker">Into rg4o's memory</p>
-            <h2>The side model that quietly remembers.</h2>
-            <p class="section-lede">That last idea didn't stay a conversation. rg4o's memory system is exactly this pattern in production: 4o-mini running as a lightweight, classifier-ish extractor that pulls durable memory out of an exchange while the main model keeps talking. The thinking-partner sessions in late February are where that design came from — a good idea that formed across several separate conversations, which is the whole argument for persistent memory in the first place.</p>
+            <article id="memory" class="movement">
+                <p class="mnum">04 · The memory</p>
+                <h2>The side model that quietly remembers.</h2>
+                <p>That last idea didn't stay a conversation. rg4o's memory system is exactly this pattern in production: 4o-mini running as a lightweight, classifier-ish extractor that reads what happened and decides what's worth keeping, off to the side of the main reply, while the context window stays a working set rather than storage. The next conversation gets to start from what the last one learned instead of from nothing.</p>
+                <p>The memory idea itself arrived in pieces, across several separate sessions — which is the whole argument for persistent memory, made by example. Good thinking is rarely one sitting.</p>
+                <p class="signoff">Software first, identity second.</p>
+            </article>
 
-            <div class="research-grid">
-                <article class="research-card"><code>EXTRACTOR</code><h3>A small model on a narrow job</h3><p>4o-mini isn't running the conversation. It reads what happened and decides what is worth keeping — a bounded task a cheap model does well, running to the side of the main reply.</p></article>
-                <article class="research-card"><code>DURABLE</code><h3>Memory outlives the window</h3><p>The context window is a working set, not storage. An extractor that writes durable notes lets the next conversation start from what the last one learned instead of from nothing.</p></article>
-                <article class="research-card"><code>ACROSS TIME</code><h3>Ideas form over separate sessions</h3><p>The memory idea itself arrived in pieces across days of talking. That is the case for memory, made by example: good thinking is rarely one sitting.</p></article>
-                <article class="research-card"><code>SOFTWARE FIRST</code><h3>Software first, identity second</h3><p>The system is the point; the personality rides on top of it. Get the extractor, the routing, and the storage right, and the character has something real to stand on.</p></article>
-            </div>
-        </section>
-
-        <section class="research-section closing-note">
-            <blockquote>A good model reads the <span>person in front of it.</span></blockquote>
-            <p>The sessions worked because Sonnet 4.5 met the insight instead of managing the profile — and the ease of that is what let the ideas underneath it, the ones now running in rg4o's memory, actually finish forming.</p>
-        </section>
-    </main>
+            <p class="closing">A good model reads the <b>person in front of it</b> — and the ease of that is what let the ideas underneath it, the ones now running in rg4o's memory, actually finish forming.</p>
+        </main>
+    </div>
 
     <nav data-archive-day="58" aria-label="365 Days navigation"></nav>
+
+    <script>
+        (function () {
+            var links = Array.prototype.slice.call(document.querySelectorAll('.index a'));
+            if (!links.length || !('IntersectionObserver' in window)) return;
+            var map = {};
+            links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+            var obs = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    links.forEach(function (a) { a.classList.remove('active'); });
+                    if (map[e.target.id]) map[e.target.id].classList.add('active');
+                });
+            }, { rootMargin: '-45% 0px -50% 0px' });
+            document.querySelectorAll('.movement').forEach(function (m) { obs.observe(m); });
+        })();
+    </script>
 </body>
 </html>
