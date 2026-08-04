@@ -24,6 +24,7 @@
         { day: 55, file: 'americans.html', accent: '#ff2a6d' },
         { day: 58, file: 'sonnet45-thinking-partner.html', accent: '#d98c6a' },
         { day: 77, file: 'the-four-about.html', accent: '#ff5b8d' },
+        { day: 89, file: 'music-room-about.html', accent: '#cd804c' },
         { day: 93, file: 'rg-claude-about.html', accent: '#4ade80' },
         { day: 95, file: 'day9.html', accent: '#00ff41' },
         { day: 96, file: 'day10.html', accent: '#ff6b00' },
