@@ -369,6 +369,22 @@ body.nav-open .nav-drawer { transform: translateX(0); }
   background: var(--glass-border);
 }
 
+/* A category label can link to its gallery landing. Keep it looking like the
+   label — reset the big drawer-link styling it would otherwise inherit. */
+.nav-drawer-group-label a {
+  display: inline;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  animation: none;
+  transition: color var(--transition-fast);
+}
+.nav-drawer-group-label a[aria-current="page"] { color: var(--accent); }
+.nav-drawer-group-label a[aria-current="page"]::before { display: none; }
+
 .nav-drawer-group-links { display: flex; flex-direction: column; gap: 2px; }
 
 .nav-drawer-links a {
@@ -423,6 +439,7 @@ body.nav-open .nav-drawer { transform: translateX(0); }
   .nav-menu-btn:hover .bars span { background: var(--text-primary); }
   .nav-drawer-close:hover { color: var(--text-primary); background: var(--glass-highlight); }
   .nav-drawer-links a:hover { color: var(--text-primary); background: var(--glass-bg); }
+  .nav-drawer-group-label a:hover { color: var(--text-secondary); background: none; }
   .nav-drawer-links a:hover .nav-drawer-label { transform: translateX(4px); }
   .nav-drawer-links a:hover .nav-drawer-arrow { opacity: 1; transform: translateX(2px); }
 }

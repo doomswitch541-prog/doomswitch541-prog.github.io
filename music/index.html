@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Music — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .visuals-page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: calc(var(--space-2xl) + var(--space-lg)) var(--space-lg) var(--space-2xl);
+        }
+        .visuals-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+        .visuals-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 200;
+            font-size: clamp(3rem, 10vw, 6rem);
+            line-height: 1;
+            letter-spacing: -0.04em;
+            color: var(--text-primary);
+            text-shadow: 0 2px 40px var(--accent-soft);
+        }
+        .visuals-header .subtitle {
+            margin-top: var(--space-sm);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: var(--space-md);
+        }
+        .gallery-item {
+            aspect-ratio: 1;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(14px);
+            transition: transform var(--transition-base), border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+        }
+        .gallery-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            background: var(--glass-highlight);
+            box-shadow: 0 12px 30px var(--accent-soft);
+        }
+        .gallery-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            width: 100%;
+            height: 100%;
+            padding: var(--space-md);
+            text-decoration: none;
+            color: var(--text-primary);
+            text-align: center;
+        }
+        .gallery-item .icon {
+            font-size: 2.2rem;
+            line-height: 1;
+            transition: transform var(--transition-base);
+        }
+        .gallery-item:hover .icon { transform: scale(1.12); }
+        .gallery-item .page-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+        .gallery-item .page-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+        }
+        @media (max-width: 768px) {
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: var(--space-sm); }
+            .gallery-item .icon { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dynamic Backgrounds -->
+    <div class="bg-layer night" id="bg-night"></div>
+    <div class="bg-layer evening" id="bg-evening"></div>
+    <div class="bg-layer afternoon" id="bg-afternoon"></div>
+    <div class="bg-layer day" id="bg-day"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/" class="btn">RG</a>
+        </div>
+        <div class="nav-center"></div>
+        <div class="nav-right">
+            <button id="theme-switch" class="btn">Auto</button>
+        </div>
+    </nav>
+
+    <main class="visuals-page">
+        <header class="visuals-header">
+            <h1>Music</h1>
+            <p class="subtitle">Sound &amp; era</p>
+        </header>
+
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <a href="/music/zeppelin" class="gallery-link">
+                    <div class="icon">⚡</div>
+                    <span class="page-title">Fifty-Five Years Loud</span>
+                    <span class="page-tag">Led Zeppelin</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/site.js"></script>
+</body>
+</html>

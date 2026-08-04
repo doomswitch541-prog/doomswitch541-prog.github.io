@@ -17,20 +17,26 @@ const BACKGROUND_MANIFEST = {
 
 // === Shared Navigation ===
 const SiteNavigation = {
+    // Categories mirror the rgpages split. A group with `href` makes its label a
+    // tap target for that category's gallery landing; the links under it go
+    // straight to the pieces. Clock/weather/screensaver are visuals too.
     groups: [
         { label: 'HQ', links: [
             ['/', 'Home'],
+            ['/365', '365'],
             ['/directory', 'Directory'],
         ]},
-        { label: 'Time + atmosphere', links: [
+        { label: 'Visuals', href: '/visuals', links: [
             ['/clock', 'Clock'],
             ['/weather', 'Weather'],
             ['/screensaver', 'Screensaver'],
+            ['/visuals', 'Gallery'],
         ]},
-        { label: 'Collections', links: [
-            ['/365', '365'],
-            ['/visuals', 'Visuals'],
-            ['/fun', 'Fun'],
+        { label: 'Music', href: '/music', links: [
+            ['/music/zeppelin', 'Fifty-Five Years Loud'],
+        ]},
+        { label: 'TBP', href: '/tbp', links: [
+            ['/tbp/lahey', 'The Liquor Weather Report'],
         ]},
     ],
 
@@ -76,7 +82,11 @@ const SiteNavigation = {
             '<nav class="nav-drawer-links">' +
                 this.groups.map((group, groupIndex) =>
                     `<section class="nav-drawer-group" aria-labelledby="nav-group-${groupIndex}">` +
-                    `<div class="nav-drawer-group-label" id="nav-group-${groupIndex}">${group.label}</div>` +
+                    `<div class="nav-drawer-group-label" id="nav-group-${groupIndex}">` +
+                    (group.href
+                        ? `<a href="${group.href}"${path === group.href ? ' aria-current="page"' : ''}>${group.label}</a>`
+                        : group.label) +
+                    '</div>' +
                     '<div class="nav-drawer-group-links">' +
                     group.links.map(([href, label]) =>
                         `<a href="${href}" style="--i:${linkIndex++}"${path === href ? ' aria-current="page"' : ''}>` +
