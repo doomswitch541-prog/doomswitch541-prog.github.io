@@ -28,6 +28,7 @@
         { day: 95, file: 'day9.html', accent: '#00ff41' },
         { day: 96, file: 'day10.html', accent: '#ff6b00' },
         { day: 104, file: 'hermes-agent-about.html', accent: '#e7b95f' },
+        { day: 106, file: 'warm-layer-about.html', accent: '#f0a860' },
         { day: 121, file: 'rgmodelserve-about.html', accent: '#78e7d1' },
         { day: 176, file: 'discord-pipeline-about.html', accent: '#8b9cff' },
         { day: 182, file: 'raccoongang-game-about.html', accent: '#7ee8d2' },

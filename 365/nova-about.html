@@ -73,8 +73,10 @@
             min-height: 100vh;
             display: grid;
             place-items: center;
-            padding: clamp(4rem, 12vh, 9rem) clamp(1.4rem, 5vw, 4rem);
+            padding: clamp(3rem, 8vh, 6rem) clamp(1.4rem, 5vw, 4rem);
         }
+        .scene.cold { min-height: 92vh; }
+        .scene.close { min-height: 88vh; }
         .wrap { width: min(760px, 100%); }
 
         .mono {
@@ -126,7 +128,7 @@
         .beat .mono { margin-bottom: 1.2rem; }
 
         /* hero denoise */
-        .denoise { position: relative; height: 260vh; }
+        .denoise { position: relative; height: 150vh; }
         .pin { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; padding: clamp(3rem, 8vh, 6rem) clamp(1.4rem, 5vw, 4rem); }
         .stage {
             --p: 1;
@@ -178,12 +180,16 @@
         .close h2 { font-size: clamp(1.7rem, 4.5vw, 2.8rem); font-weight: 560; letter-spacing: -0.035em; line-height: 1.14; }
         .close .foot { margin-top: 1.4rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
 
-        /* between-panel scroll cue */
-        .cue { position: relative; z-index: 2; display: grid; place-items: center; padding: clamp(0.25rem, 2.5vh, 1.25rem) 0; }
-        .cue span { font-family: var(--mono); font-size: 1.3rem; line-height: 1; color: var(--quiet); animation: cueBob 2.4s ease-in-out infinite; }
+        /* between-panel scroll cue — minimal but obvious */
+        .cue { position: relative; z-index: 2; display: grid; place-items: center; padding: clamp(0.25rem, 2vh, 1rem) 0; }
+        .cue span {
+            font-family: var(--mono); font-size: 1.55rem; line-height: 1; color: var(--teal);
+            filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.55));
+            animation: cueBob 1.8s ease-in-out infinite;
+        }
         @keyframes cueBob {
-            0%, 100% { transform: translateY(-4px); opacity: 0.3; }
-            50% { transform: translateY(4px); opacity: 0.8; }
+            0%, 100% { transform: translateY(-5px); opacity: 0.55; }
+            50% { transform: translateY(5px); opacity: 1; }
         }
 
         /* reveals */

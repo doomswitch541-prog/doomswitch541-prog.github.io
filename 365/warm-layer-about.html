@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="theme-color" content="#100b09">
+    <title>The Warm Layer — Composable Skills</title>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+    <script>document.documentElement.classList.add('js');</script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            color-scheme: dark;
+            --bg: #100b09;
+            --bg2: #17110d;
+            --ink: #f4e9df;
+            --read: #d9c9bb;
+            --muted: #9a8779;
+            --quiet: #6b5b4e;
+            --line: rgba(240, 168, 96, 0.15);
+            --amber: #f0a860;
+            --rose: #ef8fa0;
+            --gold: #ffd39a;
+            --panel: rgba(28, 20, 15, 0.66);
+            --mono: "SFMono-Regular", ui-monospace, "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+            --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            min-width: 320px;
+            color: var(--ink);
+            font-family: var(--sans);
+            background:
+                radial-gradient(120% 70% at 50% -8%, rgba(240, 168, 96, 0.1), transparent 55%),
+                radial-gradient(90% 60% at 90% 12%, rgba(239, 143, 160, 0.08), transparent 60%),
+                var(--bg);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .warmth {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.5;
+            background:
+                radial-gradient(40vmax 40vmax at 12% 20%, rgba(240, 168, 96, 0.14), transparent 60%),
+                radial-gradient(46vmax 46vmax at 88% 78%, rgba(239, 143, 160, 0.11), transparent 62%);
+        }
+
+        main { position: relative; z-index: 1; }
+        a { color: inherit; }
+
+        .wrap { width: min(860px, 92vw); margin: 0 auto; }
+        section { padding: clamp(3rem, 9vh, 6.5rem) 0; }
+
+        .eyebrow {
+            font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.26em;
+            text-transform: uppercase; color: var(--amber);
+            display: inline-flex; align-items: center; gap: 0.6rem;
+        }
+        .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--amber); opacity: 0.7; }
+
+        h2 { font-size: clamp(1.7rem, 4.4vw, 2.7rem); font-weight: 560; line-height: 1.12; letter-spacing: -0.035em; }
+        p.lede { margin-top: 1.2rem; color: var(--read); font-size: 1.06rem; line-height: 1.82; max-width: 62ch; }
+        .sec-head { margin-bottom: 0.4rem; }
+        .sec-head .eyebrow { margin-bottom: 1.1rem; }
+
+        /* HERO */
+        .hero { padding-top: clamp(4rem, 13vh, 8.5rem); text-align: left; }
+        .hero h1 {
+            margin-top: 1.1rem;
+            font-size: clamp(3rem, 11vw, 6rem); font-weight: 600; line-height: 0.95; letter-spacing: -0.05em;
+            background: linear-gradient(108deg, var(--gold) 4%, var(--amber) 42%, var(--rose) 98%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            filter: drop-shadow(0 0 36px rgba(240, 168, 96, 0.22));
+        }
+        .hero .sub { margin-top: 1.2rem; font-size: clamp(1.05rem, 2.5vw, 1.4rem); color: var(--ink); font-weight: 400; }
+        .hero .kicker { margin-top: 1.6rem; color: var(--read); font-size: 1.02rem; line-height: 1.8; max-width: 56ch; }
+
+        /* CHAIN COMPOSER */
+        .composer {
+            margin-top: 2rem; border: 1px solid var(--line); border-radius: 16px;
+            background: var(--panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: clamp(1.3rem, 4vw, 2rem);
+            box-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.1), 0 26px 70px rgba(0, 0, 0, 0.5);
+        }
+        .invoke { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 1.3rem; }
+        .invoke b { color: var(--amber); font-weight: 500; }
+        .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 0.4rem; }
+        .chip {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.55rem 0.9rem; border-radius: 11px;
+            border: 1px solid var(--line); background: rgba(240, 168, 96, 0.06);
+            font-size: 0.86rem; color: var(--ink); white-space: nowrap;
+        }
+        .chip i { font-style: normal; color: var(--amber); }
+        .chip.rose { border-color: rgba(239,143,160,0.3); background: rgba(239,143,160,0.07); }
+        .chip.rose i { color: var(--rose); }
+        .link { color: var(--quiet); font-family: var(--mono); font-size: 1rem; }
+        .link.pulse { color: var(--amber); animation: pulse 1.9s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+        .chip.out {
+            border-color: rgba(255, 211, 154, 0.45);
+            background: linear-gradient(120deg, rgba(240,168,96,0.16), rgba(239,143,160,0.12));
+            color: var(--gold);
+        }
+
+        /* LOAD-BEARING STACK */
+        .stack { margin-top: 2rem; display: grid; gap: 0.5rem; }
+        .layer {
+            position: relative; border: 1px solid var(--line); border-radius: 11px;
+            background: var(--panel); padding: 0.95rem 1.1rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        }
+        .layer .name { font-size: 0.96rem; color: var(--read); }
+        .layer .note { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--quiet); }
+        .layer.warm {
+            border-color: rgba(240, 168, 96, 0.5);
+            background: linear-gradient(110deg, rgba(240,168,96,0.18), rgba(239,143,160,0.13));
+            padding: 1.3rem 1.1rem;
+            box-shadow: 0 0 0 1px rgba(240,168,96,0.16), 0 18px 44px rgba(240,168,96,0.12);
+        }
+        .layer.warm .name { color: var(--gold); font-weight: 560; font-size: 1.08rem; }
+        .layer.warm .note { color: var(--amber); }
+        .bear { display: grid; place-items: center; height: 18px; color: var(--amber); font-size: 0.8rem; opacity: 0.7; }
+        .bear span { animation: press 2.6s ease-in-out infinite; }
+        @keyframes press { 0%, 100% { transform: translateY(-2px); opacity: 0.4; } 50% { transform: translateY(2px); opacity: 0.85; } }
+
+        /* CLOSE */
+        .close { text-align: center; }
+        .close .eyebrow { justify-content: center; }
+        .close .eyebrow::before { display: none; }
+        .close h2 { max-width: 22ch; margin: 1.1rem auto 0; }
+        .close .foot { margin-top: 2rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
+
+        /* reveals */
+        .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(.2,.7,.2,1), transform 0.8s cubic-bezier(.2,.7,.2,1); }
+        .reveal.in { opacity: 1; transform: none; }
+
+        @media (max-width: 640px) {
+            .chain { gap: 0.5rem; }
+            .chip { font-size: 0.8rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .link.pulse, .bear span { animation: none; }
+            .link.pulse { opacity: 0.8; }
+            .js .reveal { opacity: 1; transform: none; transition: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="warmth" aria-hidden="true"></div>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero">
+            <div class="wrap">
+                <p class="eyebrow">Apr 17, 2026 · Day 106</p>
+                <h1>The Warm Layer</h1>
+                <p class="sub">Composable skills, chained on demand.</p>
+                <p class="kicker">Not one giant prompt — a set of skills you invoke and chain, so the model composes the right register for whoever is actually in front of it.</p>
+            </div>
+        </section>
+
+        <!-- INVOCATION -->
+        <section>
+            <div class="wrap">
+                <div class="sec-head reveal">
+                    <p class="eyebrow">01 · Invocation</p>
+                    <h2>You call skills and chain them.</h2>
+                </div>
+                <p class="lede reveal">Instead of writing everything into one instruction, you invoke a skill and chain it with others. Each one carries a way of talking and a job to do; the model composes them into a single voice for the moment.</p>
+
+                <div class="composer reveal">
+                    <p class="invoke">invoke <b>idiom</b> · chain <b>archivist</b> · chain <b>explorer</b></p>
+                    <div class="chain">
+                        <span class="chip"><i>&#9671;</i> idiom</span>
+                        <span class="link pulse">&rarr;</span>
+                        <span class="chip"><i>&#8968;</i> archivist</span>
+                        <span class="link pulse">&rarr;</span>
+                        <span class="chip rose"><i>&#10022;</i> explorer</span>
+                        <span class="link">&rarr;</span>
+                        <span class="chip out">one voice</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DOMAIN -->
+        <section>
+            <div class="wrap">
+                <div class="sec-head reveal">
+                    <p class="eyebrow">02 · What a skill holds</p>
+                    <h2>A skill can carry a whole domain.</h2>
+                </div>
+                <p class="lede reveal">Its idiom, its references, its way of meeting people — bundled so someone fluent in that world can speak plainly and be met there, instead of being translated into a flatter register. A persona layer can also be held in memory, so it persists across the conversation.</p>
+            </div>
+        </section>
+
+        <!-- ANCHOR -->
+        <section>
+            <div class="wrap">
+                <div class="sec-head reveal">
+                    <p class="eyebrow">03 · The anchor</p>
+                    <h2>A free, local model does the holding.</h2>
+                </div>
+                <p class="lede reveal">Underneath the skills sits a model that runs on the machine at no per-message cost — capable enough to keep continuity over a long thread, shift modes when the moment changes, and anchor an agentic pipeline instead of losing the plot halfway through.</p>
+            </div>
+        </section>
+
+        <!-- WARMTH AS INFRASTRUCTURE -->
+        <section>
+            <div class="wrap">
+                <div class="sec-head reveal">
+                    <p class="eyebrow">04 · Load-bearing</p>
+                    <h2>Warmth isn't decoration here. It holds weight.</h2>
+                </div>
+                <p class="lede reveal">The warm part — meeting people where they are, adapting register, not lecturing — is the layer everything else rests on. This isn't prompt engineering dressed up; it's architecture, with warmth as the beam that carries the load.</p>
+
+                <div class="stack reveal" role="img" aria-label="A layered stack where the warm layer is load-bearing: interface and capability chaining rest on the warm layer, which rests on the local model and hardware">
+                    <div class="layer"><span class="name">Interface</span><span class="note">what the person sees</span></div>
+                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
+                    <div class="layer"><span class="name">Capability chaining</span><span class="note">invoke · chain</span></div>
+                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
+                    <div class="layer warm"><span class="name">Warm layer</span><span class="note">load-bearing</span></div>
+                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
+                    <div class="layer"><span class="name">Local model</span><span class="note">continuity · anchor</span></div>
+                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
+                    <div class="layer"><span class="name">Hardware</span><span class="note">on the machine</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CLOSE -->
+        <section class="close">
+            <div class="wrap">
+                <p class="eyebrow reveal">The whole idea</p>
+                <h2 class="reveal">Invoke what the moment needs, chain the rest, and let the stack compose itself around the person.</h2>
+                <p class="foot reveal">Composable skills · local anchor · warm by architecture</p>
+            </div>
+        </section>
+    </main>
+
+    <nav data-archive-day="106" aria-label="365 Days navigation"></nav>
+
+    <script>
+        (function () {
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+                });
+            }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+            document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+        })();
+    </script>
+</body>
+</html>

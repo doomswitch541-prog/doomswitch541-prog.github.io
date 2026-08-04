@@ -1548,7 +1548,7 @@
                     border: 'rgba(255, 91, 141, 0.48)'
                 }
             },
-            ...Array.from({ length: 12 }, (_, index) => ({
+            ...Array.from({ length: 8 }, (_, index) => ({
                 day: 78 + index,
                 name: 'Completed Day',
                 status: 'complete',
@@ -1559,6 +1559,45 @@
                     glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
                 }
             })),
+            {
+                day: 86,
+                name: 'RG Claude — first light',
+                status: 'complete',
+                category: 'studies',
+                statusLabel: '● Precursor',
+                description: 'First sighting of the desktop pet — the RG Claude raccoon shows up on the machine, the guardian that grows into the Day 93 build. Page to come.',
+                timeline: { label: 'toward RG Claude', entry: 'Mar 28, 2026', confidence: 'artifact-date' },
+                theme: {
+                    primary: '#4ade80', secondary: '#86ffb5',
+                    background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.14), rgba(134, 255, 181, 0.06))',
+                    glow: 'rgba(74, 222, 128, 0.28)', border: 'rgba(74, 222, 128, 0.42)'
+                }
+            },
+            ...Array.from({ length: 2 }, (_, index) => ({
+                day: 87 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Mar ${29 + index}, 2026`, confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 89,
+                name: 'System Map',
+                status: 'complete',
+                category: 'studies',
+                statusLabel: '● Precursor',
+                description: 'The local platform behind the pet takes shape — a live admin System Map of scheduler, cron, LLM routes, scraper, stores, and builder. Page to come.',
+                timeline: { label: 'toward RG Claude', entry: 'Mar 31, 2026', confidence: 'artifact-date' },
+                theme: {
+                    primary: '#4ade80', secondary: '#86ffb5',
+                    background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.14), rgba(134, 255, 181, 0.06))',
+                    glow: 'rgba(74, 222, 128, 0.28)', border: 'rgba(74, 222, 128, 0.42)'
+                }
+            },
             ...Array.from({ length: 3 }, (_, index) => ({
                 day: 90 + index,
                 name: 'Completed Day',
@@ -1652,11 +1691,39 @@
                     glow: 'rgba(231, 185, 95, 0.32)', border: 'rgba(231, 185, 95, 0.46)'
                 }
             },
-            ...Array.from({ length: 15 }, (_, index) => ({
-                day: 105 + index,
+            {
+                day: 105,
                 name: 'Completed Day',
                 status: 'complete',
-                timeline: { label: 'archive date', entry: `Apr ${16 + index}, 2026`, confidence: 'calendar' },
+                timeline: { label: 'archive date', entry: 'Apr 16, 2026', confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            },
+            {
+                day: 106,
+                name: 'The Warm Layer',
+                file: 'warm-layer-about.html',
+                status: 'live',
+                category: 'studies',
+                statusLabel: '● Study',
+                description: 'Composable skill architecture from the Hermes stretch — invoking and chaining skills so a model composes the right register for whoever it is talking to, anchored by a free local model, with warmth as the load-bearing layer rather than decoration.',
+                timeline: { label: 'studies', entry: 'Apr 17, 2026', confidence: 'user-range' },
+                theme: {
+                    primary: '#f0a860',
+                    secondary: '#ef8fa0',
+                    background: 'linear-gradient(135deg, rgba(240, 168, 96, 0.17), rgba(239, 143, 160, 0.09))',
+                    glow: 'rgba(240, 168, 96, 0.32)',
+                    border: 'rgba(240, 168, 96, 0.46)'
+                }
+            },
+            ...Array.from({ length: 13 }, (_, index) => ({
+                day: 107 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: `Apr ${18 + index}, 2026`, confidence: 'calendar' },
                 theme: {
                     primary: '#8b93a7', secondary: '#aeb5c5',
                     background: 'rgba(255, 255, 255, 0.035)',
