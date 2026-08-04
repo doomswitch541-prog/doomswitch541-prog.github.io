@@ -111,32 +111,27 @@
             color: var(--gold);
         }
 
-        /* LOAD-BEARING STACK */
-        .stack { margin-top: 2rem; display: grid; gap: 0.5rem; }
-        .layer {
-            position: relative; border: 1px solid var(--line); border-radius: 11px;
-            background: var(--panel); padding: 0.95rem 1.1rem;
-            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        /* TWO REGISTERS — Hermes-style labeled cards */
+        .registers { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.9rem; }
+        .rcard {
+            border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: clamp(1.2rem, 3.5vw, 1.7rem);
+            box-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.09);
         }
-        .layer .name { font-size: 0.96rem; color: var(--read); }
-        .layer .note { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--quiet); }
-        .layer.warm {
-            border-color: rgba(240, 168, 96, 0.5);
-            background: linear-gradient(110deg, rgba(240,168,96,0.18), rgba(239,143,160,0.13));
-            padding: 1.3rem 1.1rem;
-            box-shadow: 0 0 0 1px rgba(240,168,96,0.16), 0 18px 44px rgba(240,168,96,0.12);
-        }
-        .layer.warm .name { color: var(--gold); font-weight: 560; font-size: 1.08rem; }
-        .layer.warm .note { color: var(--amber); }
-        .bear { display: grid; place-items: center; height: 18px; color: var(--amber); font-size: 0.8rem; opacity: 0.7; }
-        .bear span { animation: press 2.6s ease-in-out infinite; }
-        @keyframes press { 0%, 100% { transform: translateY(-2px); opacity: 0.4; } 50% { transform: translateY(2px); opacity: 0.85; } }
+        .rcard code { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); }
+        .rcard.sci code { color: var(--rose); }
+        .rcard h4 { font-size: 1.25rem; margin: 0.55rem 0 0.5rem; color: var(--ink); font-weight: 560; letter-spacing: -0.02em; }
+        .rcard p { color: var(--read); font-size: 0.93rem; line-height: 1.7; }
+        .rnote { margin-top: 1.1rem; font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+        .rnote b { color: var(--gold); font-weight: 500; }
 
         /* CLOSE */
         .close { text-align: center; }
         .close .eyebrow { justify-content: center; }
         .close .eyebrow::before { display: none; }
-        .close h2 { max-width: 22ch; margin: 1.1rem auto 0; }
+        .close blockquote { font-size: clamp(1.45rem, 4.4vw, 2.2rem); font-weight: 560; letter-spacing: -0.03em; line-height: 1.2; max-width: 24ch; margin: 1.1rem auto 0; color: var(--ink); }
+        .close blockquote span { color: var(--gold); }
         .close .foot { margin-top: 2rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
 
         /* reveals */
@@ -146,11 +141,11 @@
         @media (max-width: 640px) {
             .chain { gap: 0.5rem; }
             .chip { font-size: 0.8rem; }
+            .registers { grid-template-columns: 1fr; }
         }
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
-            .link.pulse, .bear span { animation: none; }
-            .link.pulse { opacity: 0.8; }
+            .link.pulse { animation: none; opacity: 0.8; }
             .js .reveal { opacity: 1; transform: none; transition: none; }
         }
     </style>
@@ -164,8 +159,8 @@
             <div class="wrap">
                 <p class="eyebrow">Apr 17, 2026 · Day 106</p>
                 <h1>The Warm Layer</h1>
-                <p class="sub">Composable skills, chained on demand.</p>
-                <p class="kicker">Not one giant prompt — a set of skills you invoke and chain, so the model composes the right register for whoever is actually in front of it.</p>
+                <p class="sub">A free local model, skills chained on demand.</p>
+                <p class="kicker">Not one giant prompt — a free model on the machine and a set of skills you invoke and chain. Warm when you want it, scientific when you need to get something done.</p>
             </div>
         </section>
 
@@ -208,33 +203,35 @@
         <section>
             <div class="wrap">
                 <div class="sec-head reveal">
-                    <p class="eyebrow">03 · The anchor</p>
+                    <p class="eyebrow">03 · The free model</p>
                     <h2>A free, local model does the holding.</h2>
                 </div>
                 <p class="lede reveal">Underneath the skills sits Nemotron — a free model that runs on the machine at no per-message cost, served through <a href="/365/rgmodelserve-about.html">RGModelServe</a> — capable enough to keep continuity over a long thread, shift modes when the moment changes, and anchor an agentic pipeline instead of losing the plot halfway through.</p>
             </div>
         </section>
 
-        <!-- WARMTH AS INFRASTRUCTURE -->
+        <!-- TWO REGISTERS -->
         <section>
             <div class="wrap">
                 <div class="sec-head reveal">
-                    <p class="eyebrow">04 · Load-bearing</p>
-                    <h2>Warmth isn't decoration here. It holds weight.</h2>
+                    <p class="eyebrow">04 · Two registers</p>
+                    <h2>Warm when you want it. Scientific when you need to work.</h2>
                 </div>
-                <p class="lede reveal">The warm part — meeting people where they are, adapting register, not lecturing — is the layer everything else rests on. This isn't prompt engineering dressed up; it's architecture, with warmth as the beam that carries the load.</p>
+                <p class="lede reveal">The same free model and the same chained skills produce either register. Ask for company and it meets you where you are; ask it to get something done and it turns exact — steps, checks, sources, no flourish. You pick; the chain composes it.</p>
 
-                <div class="stack reveal" role="img" aria-label="A layered stack where the warm layer is load-bearing: interface and capability chaining rest on the warm layer, which rests on the local model and hardware">
-                    <div class="layer"><span class="name">Interface</span><span class="note">what the person sees</span></div>
-                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
-                    <div class="layer"><span class="name">Capability chaining</span><span class="note">invoke · chain</span></div>
-                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
-                    <div class="layer warm"><span class="name">Warm layer</span><span class="note">load-bearing</span></div>
-                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
-                    <div class="layer"><span class="name">Local model</span><span class="note">continuity · anchor</span></div>
-                    <div class="bear" aria-hidden="true"><span>&#8615;</span></div>
-                    <div class="layer"><span class="name">Hardware</span><span class="note">on the machine</span></div>
+                <div class="registers reveal">
+                    <article class="rcard">
+                        <code>when you want</code>
+                        <h4>Warm</h4>
+                        <p>Meets you in your own idiom, adapts to the moment, doesn't lecture. Company, not a form to fill out.</p>
+                    </article>
+                    <article class="rcard sci">
+                        <code>when you need</code>
+                        <h4>Scientific</h4>
+                        <p>Precise and sourced — the steps, the checks, the tool calls that get a task done, then stop.</p>
+                    </article>
                 </div>
+                <p class="rnote reveal">one <b>free model</b> · one <b>chain</b> · two registers</p>
             </div>
         </section>
 
@@ -242,8 +239,8 @@
         <section class="close">
             <div class="wrap">
                 <p class="eyebrow reveal">The whole idea</p>
-                <h2 class="reveal">Invoke what the moment needs, chain the rest, and let the stack compose itself around the person.</h2>
-                <p class="foot reveal">Composable skills · local anchor · warm by architecture</p>
+                <blockquote class="reveal">Chain what the moment needs — warm when you want it, <span>scientific when you don't.</span></blockquote>
+                <p class="foot reveal">Free model · composable skills · two registers</p>
             </div>
         </section>
     </main>
