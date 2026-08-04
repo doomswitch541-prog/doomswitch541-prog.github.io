@@ -474,6 +474,18 @@ body.nav-open .nav-drawer-links a {
   background: var(--glass-highlight);
 }
 
+/* 365 gets a prominent, accent-colored slot in the centre of the nav pill. */
+.nav-365 {
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.nav-365:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .btn-primary {
   background: var(--accent-soft);
   color: var(--accent);

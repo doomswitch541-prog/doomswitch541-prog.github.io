@@ -355,8 +355,9 @@ const HomeWeather = {
         95: 'Thunderstorm', 96: 'Storm + hail', 99: 'Heavy storm + hail',
     },
 
-    // 8-point compass. Meteorological wind direction is the bearing the wind
-    // blows *from*, so a north wind (0°) is named "N" and the vane points north.
+    // 8-point compass. Open-Meteo gives the bearing the wind blows *from*, so a
+    // north wind (0°) is named "N". The label shows that source; the arrow points
+    // the way the wind is actually heading (downwind = source + 180°).
     cardinal(deg) {
         const points = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
         return points[Math.round(deg / 45) % 8];
@@ -412,7 +413,7 @@ const HomeWeather = {
             if (this.windText && Number.isFinite(windSpeed) && Number.isFinite(windDir)) {
                 const from = this.cardinal(windDir);
                 this.windText.textContent = `${from} ${Math.round(windSpeed)}mph`;
-                if (this.windArrow) this.windArrow.style.transform = `rotate(${windDir}deg)`;
+                if (this.windArrow) this.windArrow.style.transform = `rotate(${(windDir + 180) % 360}deg)`;
                 this.pill.title = `Wind from the ${from} at ${Math.round(windSpeed)} mph — HQ weather via Open-Meteo`;
             }
 
