@@ -349,43 +349,68 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 
 .nav-drawer-group { min-width: 0; }
 
-.nav-drawer-group-label {
+/* Category header: the drawer's mono eyebrow-label grown into an interactive
+   accordion header. Keeps the label DNA (JetBrains Mono, uppercase, tracked)
+   and its trailing hairline; the rotating chevron is the expand affordance. */
+.nav-drawer-cat {
+  width: 100%;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 10px;
-  margin: 0 14px 5px 18px;
-  color: var(--text-tertiary);
+  gap: 12px;
+  padding: 13px 12px 13px 18px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-secondary);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  font-weight: 300;
-  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  text-align: left;
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 
-.nav-drawer-group-label::after {
-  content: '';
+.nav-drawer-cat-rule {
   height: 1px;
   background: var(--glass-border);
+  transition: background var(--transition-fast);
 }
 
-/* A category label can link to its gallery landing. Keep it looking like the
-   label — reset the big drawer-link styling it would otherwise inherit. */
-.nav-drawer-group-label a {
-  display: inline;
-  padding: 0;
-  border-radius: 0;
-  color: inherit;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  animation: none;
-  transition: color var(--transition-fast);
+.nav-drawer-cat-chevron {
+  color: var(--text-tertiary);
+  font-size: 1.15rem;
+  line-height: 1;
+  transform-origin: center;
+  transition: transform var(--transition-base), color var(--transition-fast);
 }
-.nav-drawer-group-label a[aria-current="page"] { color: var(--accent); }
-.nav-drawer-group-label a[aria-current="page"]::before { display: none; }
 
-.nav-drawer-group-links { display: flex; flex-direction: column; gap: 2px; }
+.nav-drawer-group.is-open > .nav-drawer-cat { color: var(--text-primary); }
+.nav-drawer-cat[aria-expanded="true"] .nav-drawer-cat-chevron { transform: rotate(90deg); color: var(--accent); }
+.nav-drawer-cat[aria-expanded="true"] .nav-drawer-cat-rule { background: var(--glass-border-hover); }
+
+/* Submenu: collapses via grid-rows 0fr → 1fr. A hairline down the left edge
+   shows the items nesting under their header. */
+.nav-drawer-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-base);
+}
+.nav-drawer-sub.open { grid-template-rows: 1fr; }
+
+.nav-drawer-sub-inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 4px 27px;
+  padding-left: 11px;
+  border-left: 1px solid var(--glass-border);
+}
+
+.nav-drawer-sub-inner a { font-size: 1rem; color: var(--text-tertiary); }
 
 .nav-drawer-links a {
   position: relative;
@@ -405,6 +430,7 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 .nav-drawer-label { transition: transform var(--transition-fast); }
 
 .nav-drawer-links a:focus-visible,
+.nav-drawer-cat:focus-visible,
 .nav-drawer-close:focus-visible,
 .nav-menu-btn:focus-visible {
   outline: 1px solid var(--accent);
@@ -439,13 +465,15 @@ body.nav-open .nav-drawer { transform: translateX(0); }
   .nav-menu-btn:hover .bars span { background: var(--text-primary); }
   .nav-drawer-close:hover { color: var(--text-primary); background: var(--glass-highlight); }
   .nav-drawer-links a:hover { color: var(--text-primary); background: var(--glass-bg); }
-  .nav-drawer-group-label a:hover { color: var(--text-secondary); background: none; }
+  .nav-drawer-cat:hover { color: var(--text-primary); background: var(--glass-bg); }
+  .nav-drawer-cat:hover .nav-drawer-cat-chevron { color: var(--text-secondary); }
+  .nav-drawer-cat:hover .nav-drawer-cat-rule { background: var(--glass-border-hover); }
   .nav-drawer-links a:hover .nav-drawer-label { transform: translateX(4px); }
   .nav-drawer-links a:hover .nav-drawer-arrow { opacity: 1; transform: translateX(2px); }
 }
 
-/* Links slide in just after the panel, staggered by their index. */
-body.nav-open .nav-drawer-links a {
+/* Category headers slide in just after the panel, staggered by their index. */
+body.nav-open .nav-drawer-cat {
   animation: drawer-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
   animation-delay: calc(120ms + var(--i) * 45ms);
 }
@@ -453,6 +481,12 @@ body.nav-open .nav-drawer-links a {
 @keyframes drawer-in {
   from { opacity: 0; transform: translateX(-12px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.nav-open .nav-drawer-cat { animation: none; }
+  .nav-drawer-sub,
+  .nav-drawer-cat-chevron { transition: none; }
 }
 
 @media (max-width: 768px) {

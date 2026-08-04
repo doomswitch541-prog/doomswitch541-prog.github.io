@@ -61,7 +61,6 @@ const SiteNavigation = {
     },
 
     buildDrawer(path) {
-        let linkIndex = 0;
         const btn = document.createElement('button');
         btn.className = 'nav-menu-btn';
         btn.setAttribute('aria-label', 'Open menu');
@@ -71,6 +70,9 @@ const SiteNavigation = {
         const scrim = document.createElement('div');
         scrim.className = 'nav-scrim';
 
+        // Each category is a collapsing accordion: a header row that toggles its
+        // submenu open. Keeps the drawer to a short stack of headers until you
+        // pick one. The group holding the current page starts open.
         const drawer = document.createElement('aside');
         drawer.className = 'nav-drawer';
         drawer.setAttribute('aria-hidden', 'true');
@@ -80,23 +82,41 @@ const SiteNavigation = {
                 '<button class="nav-drawer-close" aria-label="Close menu">&times;</button>' +
             '</div>' +
             '<nav class="nav-drawer-links">' +
-                this.groups.map((group, groupIndex) =>
-                    `<section class="nav-drawer-group" aria-labelledby="nav-group-${groupIndex}">` +
-                    `<div class="nav-drawer-group-label" id="nav-group-${groupIndex}">` +
-                    (group.href
-                        ? `<a href="${group.href}"${path === group.href ? ' aria-current="page"' : ''}>${group.label}</a>`
-                        : group.label) +
-                    '</div>' +
-                    '<div class="nav-drawer-group-links">' +
-                    group.links.map(([href, label]) =>
-                        `<a href="${href}" style="--i:${linkIndex++}"${path === href ? ' aria-current="page"' : ''}>` +
-                        `<span class="nav-drawer-label">${label}</span><span class="nav-drawer-arrow">&rsaquo;</span></a>`
-                    ).join('') +
-                    '</div></section>'
-                ).join('') +
+                this.groups.map((group, groupIndex) => {
+                    const subId = `nav-sub-${groupIndex}`;
+                    const isOpen = (group.href && path === group.href) ||
+                                   group.links.some(([href]) => href === path);
+                    return `<section class="nav-drawer-group${isOpen ? ' is-open' : ''}">` +
+                        `<button class="nav-drawer-cat" style="--i:${groupIndex}" aria-expanded="${isOpen}" aria-controls="${subId}">` +
+                            `<span class="nav-drawer-cat-label">${group.label}</span>` +
+                            '<span class="nav-drawer-cat-rule" aria-hidden="true"></span>' +
+                            '<span class="nav-drawer-cat-chevron" aria-hidden="true">&rsaquo;</span>' +
+                        '</button>' +
+                        `<div class="nav-drawer-sub${isOpen ? ' open' : ''}" id="${subId}">` +
+                            '<div class="nav-drawer-sub-inner">' +
+                            group.links.map(([href, label]) =>
+                                `<a href="${href}"${path === href ? ' aria-current="page"' : ''}>` +
+                                `<span class="nav-drawer-label">${label}</span><span class="nav-drawer-arrow">&rsaquo;</span></a>`
+                            ).join('') +
+                            '</div>' +
+                        '</div>' +
+                    '</section>';
+                }).join('') +
             '</nav>';
 
         document.body.append(scrim, drawer, btn);
+
+        // iOS-safe accordion: each header owns its own click handler, toggling
+        // only its own submenu. No hover-open, no document-level race.
+        drawer.querySelectorAll('.nav-drawer-cat').forEach((cat) => {
+            cat.addEventListener('click', () => {
+                const willOpen = cat.getAttribute('aria-expanded') !== 'true';
+                cat.setAttribute('aria-expanded', String(willOpen));
+                const sub = document.getElementById(cat.getAttribute('aria-controls'));
+                if (sub) sub.classList.toggle('open', willOpen);
+                cat.closest('.nav-drawer-group').classList.toggle('is-open', willOpen);
+            });
+        });
 
         // iOS-safe open/close: real <button> + a real scrim element each own their
         // own click handler. No document-level click race, no CSS :hover opening —
