@@ -51,6 +51,9 @@
 
         main { position: relative; z-index: 1; }
         a { color: inherit; }
+        /* inline cross-link to another 365 project */
+        .lede a, .kicker a { color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(240, 168, 96, 0.42); transition: border-color 0.2s ease, color 0.2s ease; }
+        .lede a:hover, .kicker a:hover { border-bottom-color: var(--amber); color: var(--gold); }
 
         .wrap { width: min(860px, 92vw); margin: 0 auto; }
         section { padding: clamp(3rem, 9vh, 6.5rem) 0; }
@@ -173,7 +176,7 @@
                     <p class="eyebrow">01 · Invocation</p>
                     <h2>You call skills and chain them.</h2>
                 </div>
-                <p class="lede reveal">Instead of writing everything into one instruction, you invoke a skill and chain it with others. Each one carries a way of talking and a job to do; the model composes them into a single voice for the moment.</p>
+                <p class="lede reveal">Instead of writing everything into one instruction, you invoke a skill and chain it with others. Each one carries a way of talking and a job to do; the model composes them into a single voice for the moment. The invoking and chaining run on <a href="/365/hermes-agent-about.html">Hermes</a>.</p>
 
                 <div class="composer reveal">
                     <p class="invoke">invoke <b>idiom</b> · chain <b>archivist</b> · chain <b>explorer</b></p>
@@ -208,7 +211,7 @@
                     <p class="eyebrow">03 · The anchor</p>
                     <h2>A free, local model does the holding.</h2>
                 </div>
-                <p class="lede reveal">Underneath the skills sits a model that runs on the machine at no per-message cost — capable enough to keep continuity over a long thread, shift modes when the moment changes, and anchor an agentic pipeline instead of losing the plot halfway through.</p>
+                <p class="lede reveal">Underneath the skills sits Nemotron — a free model that runs on the machine at no per-message cost, served through <a href="/365/rgmodelserve-about.html">RGModelServe</a> — capable enough to keep continuity over a long thread, shift modes when the moment changes, and anchor an agentic pipeline instead of losing the plot halfway through.</p>
             </div>
         </section>
 

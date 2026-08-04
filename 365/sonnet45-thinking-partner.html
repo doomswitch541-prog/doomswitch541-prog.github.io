@@ -49,6 +49,9 @@
         }
 
         a { color: inherit; }
+        /* inline cross-link to another 365 project */
+        .xlink { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(217, 140, 106, 0.42); transition: border-color 0.2s ease, color 0.2s ease; }
+        .xlink:hover { border-bottom-color: var(--accent); color: #eab090; }
 
         .page {
             width: min(1140px, calc(100% - 3rem));
@@ -334,12 +337,12 @@
             <article id="memory" class="movement">
                 <p class="mnum">04 · The memory</p>
                 <h2>The side model that quietly remembers.</h2>
-                <p>That last idea didn't stay a conversation. rg4o's memory system is exactly this pattern in production: 4o-mini running as a lightweight, classifier-ish extractor that reads what happened and decides what's worth keeping, off to the side of the main reply, while the context window stays a working set rather than storage. The next conversation gets to start from what the last one learned instead of from nothing.</p>
+                <p>That last idea didn't stay a conversation. <a class="xlink" href="/365/rg4o-about.html">rg4o's memory system</a> is exactly this pattern in production: 4o-mini running as a lightweight, classifier-ish extractor that reads what happened and decides what's worth keeping, off to the side of the main reply, while the context window stays a working set rather than storage. The next conversation gets to start from what the last one learned instead of from nothing.</p>
                 <p>The memory idea itself arrived in pieces, across several separate sessions — which is the whole argument for persistent memory, made by example. Good thinking is rarely one sitting.</p>
                 <p class="signoff">Software first, identity second.</p>
             </article>
 
-            <p class="closing">A good model reads the <b>person in front of it</b> — and the ease of that is what let the ideas underneath it, the ones now running in rg4o's memory, actually finish forming.</p>
+            <p class="closing">A good model reads the <b>person in front of it</b> — and the ease of that is what let the ideas underneath it, the ones now running in <a class="xlink" href="/365/rg4o-about.html">rg4o's memory</a>, actually finish forming.</p>
         </main>
     </div>
 
