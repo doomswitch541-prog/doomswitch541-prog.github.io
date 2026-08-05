@@ -35,7 +35,8 @@
         { day: 182, file: 'raccoongang-game-about.html', accent: '#7ee8d2' },
         { day: 187, file: 'fables-first-removal.html', accent: '#aeb8ff' },
         { day: 202, file: 'rg4o-about.html', accent: '#e0a26b' },
-        { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' }
+        { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' },
+        { day: 216, file: 'rgcode-about.html', accent: '#5cc8ff' }
     ];
 
     const nav = document.querySelector('[data-archive-day]');

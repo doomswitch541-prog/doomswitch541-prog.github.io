@@ -58,6 +58,18 @@
         .wrap { width: min(860px, 92vw); margin: 0 auto; }
         section { padding: clamp(3rem, 9vh, 6.5rem) 0; }
 
+        /* masthead — Hermes-family frame */
+        .masthead {
+            position: relative; z-index: 1;
+            width: min(860px, 92vw); margin: 0 auto;
+            padding: max(1.15rem, env(safe-area-inset-top)) 0 1.15rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+            border-bottom: 1px solid var(--line); font-family: var(--mono);
+        }
+        .masthead .mark { font-size: 0.67rem; letter-spacing: 0.18em; text-transform: uppercase; text-decoration: none; color: var(--read); }
+        .masthead .mark b { color: var(--amber); font-weight: 500; }
+        .masthead .date { color: var(--quiet); font-size: 0.59rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: right; }
+
         .eyebrow {
             font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.26em;
             text-transform: uppercase; color: var(--amber);
@@ -126,13 +138,13 @@
         .rnote { margin-top: 1.1rem; font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
         .rnote b { color: var(--gold); font-weight: 500; }
 
-        /* CLOSE */
-        .close { text-align: center; }
-        .close .eyebrow { justify-content: center; }
-        .close .eyebrow::before { display: none; }
-        .close blockquote { font-size: clamp(1.45rem, 4.4vw, 2.2rem); font-weight: 560; letter-spacing: -0.03em; line-height: 1.2; max-width: 24ch; margin: 1.1rem auto 0; color: var(--ink); }
+        /* CLOSE — Hermes two-column */
+        .close .closing-grid { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: clamp(2rem, 7vw, 5.5rem); align-items: end; }
+        .close .eyebrow { margin-bottom: 1.1rem; }
+        .close blockquote { font-size: clamp(1.8rem, 5vw, 3.2rem); font-weight: 560; letter-spacing: -0.045em; line-height: 1.02; color: var(--ink); }
         .close blockquote span { color: var(--gold); }
-        .close .foot { margin-top: 2rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
+        .close .closing-side p { color: var(--read); font-size: 1rem; line-height: 1.85; }
+        .close .foot { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
 
         /* reveals */
         .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(.2,.7,.2,1), transform 0.8s cubic-bezier(.2,.7,.2,1); }
@@ -142,6 +154,7 @@
             .chain { gap: 0.5rem; }
             .chip { font-size: 0.8rem; }
             .registers { grid-template-columns: 1fr; }
+            .close .closing-grid { grid-template-columns: 1fr; align-items: start; gap: 1.5rem; }
         }
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
@@ -153,11 +166,16 @@
 <body>
     <div class="warmth" aria-hidden="true"></div>
 
+    <header class="masthead">
+        <a class="mark" href="/365/"><b>RG</b> / WARM LAYER / COMPOSABLE SKILLS</a>
+        <time class="date" datetime="2026-04-17">Day 106 · April 17, 2026</time>
+    </header>
+
     <main>
         <!-- HERO -->
         <section class="hero">
             <div class="wrap">
-                <p class="eyebrow">Apr 17, 2026 · Day 106</p>
+                <p class="eyebrow">Local model · Composable skills</p>
                 <h1>The Warm Layer</h1>
                 <p class="sub">A free local model, skills chained on demand.</p>
                 <p class="kicker">Not one giant prompt — a free model on the machine and a set of skills you invoke and chain. Warm when you want it, scientific when you need to get something done.</p>
@@ -237,10 +255,15 @@
 
         <!-- CLOSE -->
         <section class="close">
-            <div class="wrap">
-                <p class="eyebrow reveal">The whole idea</p>
-                <blockquote class="reveal">Chain what the moment needs — warm when you want it, <span>scientific when you don't.</span></blockquote>
-                <p class="foot reveal">Free model · composable skills · two registers</p>
+            <div class="wrap closing-grid">
+                <div>
+                    <p class="eyebrow reveal">The whole idea</p>
+                    <blockquote class="reveal">Chain what the moment needs — warm when you want it, <span>scientific when you don't.</span></blockquote>
+                </div>
+                <div class="closing-side reveal">
+                    <p>One free model on the machine, a set of skills you invoke and chain. The register isn't another model or another prompt — it is what the chain composes when you ask. Company when you want it; exact when you need it.</p>
+                    <p class="foot">Free model · composable skills · two registers</p>
+                </div>
             </div>
         </section>
     </main>

@@ -132,10 +132,10 @@
         .id .state { color: var(--muted); font-size: 0.6rem; letter-spacing: 0.22em; margin-top: 0.2rem; }
         .id .state b { color: var(--amber); font-weight: 500; }
         .tabs {
-            display: grid; grid-template-columns: repeat(3, 1fr);
+            display: grid; grid-template-columns: repeat(5, 1fr);
             border-top: 1px solid var(--line); margin-top: 0.9rem;
         }
-        .tabs span { text-align: center; padding: 0.62rem 0; font-size: 0.62rem; letter-spacing: 0.16em; color: var(--muted); border-right: 1px solid var(--line); }
+        .tabs span { text-align: center; padding: 0.62rem 0.1rem; font-size: 0.53rem; letter-spacing: 0.07em; color: var(--muted); border-right: 1px solid var(--line); }
         .tabs span:last-child { border-right: 0; }
         .tabs span.on { color: var(--green); background: rgba(74, 222, 128, 0.06); }
 
@@ -158,18 +158,16 @@
         .console-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
         .console-body h4 { color: var(--green); font-weight: 500; font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.5rem; }
         .console-body .row { display: flex; justify-content: space-between; gap: 1rem; }
+        .console-bar .dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
 
-        /* ---------- SYSTEM MAP ---------- */
-        .map-shell { margin-top: 2rem; border: 1px solid var(--line); border-radius: 14px; background: rgba(6, 12, 10, 0.6); padding: 0.5rem; overflow: hidden; }
-        .map-shell svg { display: block; width: 100%; height: auto; }
-        .node rect { rx: 7; }
-        .node text { font-family: var(--mono); font-size: 13px; fill: var(--ink); letter-spacing: 0.02em; }
-        .edge { fill: none; stroke: rgba(120, 220, 160, 0.28); stroke-width: 1.4; }
-        .edge.flow { stroke: var(--green); stroke-dasharray: 5 9; animation: flow 1.4s linear infinite; opacity: 0.75; }
-        @keyframes flow { to { stroke-dashoffset: -14; } }
-        .elabel { font-family: var(--mono); font-size: 10px; fill: var(--muted); letter-spacing: 0.04em; }
-        .legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin-top: 1rem; font-family: var(--mono); font-size: 0.64rem; color: var(--muted); }
-        .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 0.4rem; vertical-align: middle; }
+        /* ---------- WORK MODE ---------- */
+        .work-card { margin-top: 2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); font-family: var(--mono); overflow: hidden; }
+        .work-body { display: flex; align-items: center; gap: 1.1rem; padding: 1.3rem 1.2rem; }
+        .work-body .runner { width: 58px; flex: none; image-rendering: pixelated; transform-origin: center bottom; animation: run 0.42s ease-in-out infinite; }
+        @keyframes run { 0%, 100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-4px) rotate(-4deg); } 75% { transform: translateY(-2px) rotate(4deg); } }
+        .work-body .say { flex: 1; }
+        .work-body .wb { display: inline-block; padding: 0.42rem 0.8rem; border-radius: 8px; background: rgba(245, 162, 75, 0.1); border: 1px solid rgba(245, 162, 75, 0.28); color: var(--amber); font-size: 0.78rem; letter-spacing: 0.03em; }
+        .work-body .st { display: block; margin-top: 0.55rem; font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
 
         /* ---------- STAT STRIP ---------- */
         .strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 2rem; }
@@ -193,14 +191,12 @@
             .hero-grid { grid-template-columns: 1fr; }
             .hero .hud { max-width: 340px; margin-inline: auto; }
             .console-cols { grid-template-columns: 1fr; gap: 1rem; }
-            .map-shell { overflow-x: auto; }
-            .map-shell svg { min-width: 640px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
-            .pet .eye, .edge.flow { animation: none; }
-            .edge.flow { stroke-dasharray: none; }
+            .pet .eye { animation: none; }
+            .work-body .runner { animation: none; }
             .js .reveal { opacity: 1; transform: none; transition: none; }
         }
     </style>
@@ -231,7 +227,7 @@
                         <div class="state">STATUS · <b>OFFLINE</b> · LOCAL</div>
                     </div>
                     <div class="tabs">
-                        <span>SYS</span><span class="on">NET</span><span>SEC</span>
+                        <span>SYS</span><span class="on">NET</span><span>SEC</span><span>SESSION</span><span>WORK</span>
                     </div>
                 </div>
             </div>
@@ -285,78 +281,53 @@
             </div>
         </section>
 
-        <!-- THE PLATFORM -->
+        <!-- THE LEDGER -->
         <section>
             <div class="wrap">
                 <div class="sec-head reveal">
-                    <p class="eyebrow">03 · Behind the face</p>
-                    <h2>The pet is the front of a small local platform.</h2>
+                    <p class="eyebrow">03 · The ledger</p>
+                    <h2>Later, it started keeping the books on every session.</h2>
                 </div>
-                <p class="lede reveal">A scheduler runs jobs on a clock. A cron runner fires them. A scraper pulls headlines, a builder turns results into a static site, and everything routes through one admin console with a live map of itself.</p>
+                <p class="lede reveal">One more tab arrived after the guardian: a running record of every Claude Code session on the machine — when it opened, how long it ran, which project it touched — so nothing slips by unlogged. The pet keeps the clock; this keeps the history.</p>
 
-                <div class="map-shell reveal">
-                    <svg viewBox="0 0 780 470" role="img" aria-label="System map: admin UI and API routes feeding a scheduler, cron runner, local LLM routes on Ollama, a news scraper, data stores, and a static-site builder">
-                        <!-- edges -->
-                        <path class="edge flow" d="M180,66 C300,66 360,90 430,108"/>
-                        <path class="edge" d="M430,120 C300,150 220,170 150,196"/>
-                        <path class="edge" d="M460,132 C480,180 470,220 430,262"/>
-                        <path class="edge" d="M500,132 C560,170 590,210 610,254"/>
-                        <path class="edge flow" d="M150,222 C150,250 150,262 150,288"/>
-                        <path class="edge flow" d="M170,314 C230,340 300,352 360,372"/>
-                        <path class="edge" d="M150,314 C150,350 150,368 150,394"/>
-                        <path class="edge flow" d="M200,300 C280,300 330,300 360,300"/>
-                        <path class="edge" d="M430,300 C300,410 220,430 172,428"/>
-                        <path class="edge flow" d="M430,290 C470,300 500,320 540,352"/>
-                        <path class="edge flow" d="M610,314 C610,344 610,360 610,388"/>
-
-                        <!-- nodes -->
-                        <g class="node"><rect x="118" y="46" width="124" height="40" fill="rgba(115,199,232,0.16)" stroke="#73c7e8"/><text x="180" y="71" text-anchor="middle" fill="#bfe6f5">Admin UI</text></g>
-                        <g class="node"><rect x="418" y="100" width="124" height="40" fill="rgba(115,199,232,0.16)" stroke="#73c7e8"/><text x="480" y="125" text-anchor="middle" fill="#bfe6f5">API Routes</text></g>
-
-                        <g class="node"><rect x="88" y="196" width="124" height="40" fill="rgba(245,162,75,0.16)" stroke="#f5a24b"/><text x="150" y="221" text-anchor="middle" fill="#fbd8ab">Scheduler</text></g>
-                        <g class="node"><rect x="88" y="288" width="124" height="40" fill="rgba(245,162,75,0.16)" stroke="#f5a24b"/><text x="150" y="313" text-anchor="middle" fill="#fbd8ab">Cron Runner</text></g>
-
-                        <g class="node"><rect x="360" y="262" width="124" height="40" fill="rgba(74,222,128,0.16)" stroke="#4ade80"/><text x="422" y="287" text-anchor="middle" fill="#b9ffd6">LLM Routes</text></g>
-                        <g class="node"><rect x="360" y="352" width="124" height="40" fill="rgba(74,222,128,0.16)" stroke="#4ade80"/><text x="422" y="377" text-anchor="middle" fill="#b9ffd6">Ollama · qwen</text></g>
-
-                        <g class="node"><rect x="88" y="394" width="124" height="40" fill="rgba(167,139,250,0.16)" stroke="#a78bfa"/><text x="150" y="419" text-anchor="middle" fill="#d9cffb">News Scraper</text></g>
-
-                        <g class="node"><rect x="548" y="254" width="128" height="40" fill="rgba(45,212,191,0.16)" stroke="#2dd4bf"/><text x="612" y="279" text-anchor="middle" fill="#b8f2ea">DB · KV Store</text></g>
-                        <g class="node"><rect x="548" y="352" width="128" height="40" fill="rgba(74,222,128,0.16)" stroke="#4ade80"/><text x="612" y="377" text-anchor="middle" fill="#b9ffd6">SSG Builder</text></g>
-                        <g class="node"><rect x="562" y="410" width="100" height="34" fill="rgba(74,222,128,0.10)" stroke="rgba(74,222,128,0.5)"/><text x="612" y="431" text-anchor="middle" fill="#8fe6b0">dist/</text></g>
-
-                        <!-- edge labels -->
-                        <text class="elabel" x="300" y="80">http</text>
-                        <text class="elabel" x="150" y="266">trigger</text>
-                        <text class="elabel" x="270" y="352">exec</text>
-                        <text class="elabel" x="280" y="292">llm_cron</text>
-                        <text class="elabel" x="500" y="330">build</text>
-                        <text class="elabel" x="422" y="336">inference</text>
-                    </svg>
-                    <div class="legend">
-                        <span><i style="background:#73c7e8"></i>Frontend / API</span>
-                        <span><i style="background:#f5a24b"></i>Scheduler</span>
-                        <span><i style="background:#4ade80"></i>LLM · Build</span>
-                        <span><i style="background:#a78bfa"></i>News pipeline</span>
-                        <span><i style="background:#2dd4bf"></i>Data store</span>
+                <div class="console reveal">
+                    <div class="console-bar"><span class="dot"></span> LOG · SESSIONS — claude code</div>
+                    <div class="console-body">
+                        <div class="grp mono">
+                            <div class="row"><span class="k">rghq</span><span class="z">14:02 · 41m · committed</span></div>
+                            <div class="row"><span class="k">rg4o</span><span class="z">11:20 · 1h08 · committed</span></div>
+                            <div class="row"><span class="k">rgmodelserve</span><span class="z">09:47 · 22m · no-op</span></div>
+                            <div class="row"><span class="v">sessions logged today</span><span class="a">7</span></div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="strip reveal">
+                    <div><div class="n">0</div><div class="l">inbound connections</div></div>
+                    <div><div class="n">5</div><div class="l">modes</div></div>
+                    <div><div class="n">100%</div><div class="l">local · offline</div></div>
                 </div>
             </div>
         </section>
 
-        <!-- LOCAL -->
+        <!-- WORKING -->
         <section>
             <div class="wrap">
                 <div class="sec-head reveal">
-                    <p class="eyebrow">04 · Where the work happens</p>
-                    <h2>It runs on models already on the machine.</h2>
+                    <p class="eyebrow">04 · Working</p>
+                    <h2>When a session gets going, so does the raccoon.</h2>
                 </div>
-                <p class="lede reveal">The pet talks to qwen on Ollama — no account, no cloud round-trip. That is why it costs almost no tokens: the thinking, the summaries, the scans all happen right there on the box.</p>
+                <p class="lede reveal">Work mode is the fifth tab. The moment a coding session starts doing something, the pet drops the still pose, breaks into a run cycle, and starts narrating — a fresh speech bubble for whatever state it is in. Idle it sits; working, it runs.</p>
 
-                <div class="strip reveal">
-                    <div><div class="n">~0</div><div class="l">tokens billed</div></div>
-                    <div><div class="n">0</div><div class="l">inbound connections</div></div>
-                    <div><div class="n">100%</div><div class="l">local</div></div>
+                <div class="work-card reveal">
+                    <div class="console-bar"><span class="dot amber"></span> WORK — session active</div>
+                    <div class="work-body">
+                        <svg class="runner" id="runner" viewBox="0 0 12 13" aria-hidden="true"></svg>
+                        <div class="say">
+                            <span class="wb" id="work-bubble">reading files&hellip;</span>
+                            <span class="st">running · narrating · watching the diff</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -364,10 +335,10 @@
         <!-- CLOSE -->
         <section class="close">
             <div class="wrap">
-                <p class="eyebrow reveal">The realization</p>
-                <h2 class="reveal">Old web habits, a few California contacts from back in the day — some of them at FAANG. Somewhere in building it, I stopped and wondered if I'd rebuilt an internal tool.</h2>
-                <p class="punch reveal">Turns out I had.</p>
-                <p class="foot reveal">On the Linux machine · local models · fully offline</p>
+                <p class="eyebrow reveal">The point</p>
+                <h2 class="reveal">It looks like a toy. It works like a watchtower.</h2>
+                <p class="punch reveal">And it never leaves the box.</p>
+                <p class="foot reveal">On the Linux machine · guards the box · fully offline</p>
             </div>
         </section>
     </main>
@@ -408,6 +379,19 @@
                     }
                 }
                 pet.innerHTML = svg;
+            }
+
+            // ---- runner (work mode) reuses the same art ----
+            var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var runner = document.getElementById('runner');
+            if (runner && pet) { runner.innerHTML = pet.innerHTML; }
+
+            // ---- rotating work-state speech bubble ----
+            var wb = document.getElementById('work-bubble');
+            var phrases = ['reading files…', 'editing app.js…', 'running tests…', 'staging changes…', 'writing the commit…', 'thinking…'];
+            if (wb && !reduce) {
+                var wi = 0;
+                setInterval(function () { wi = (wi + 1) % phrases.length; wb.textContent = phrases[wi]; }, 2600);
             }
 
             // ---- live clock in the HUD ----

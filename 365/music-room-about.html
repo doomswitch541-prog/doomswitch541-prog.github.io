@@ -159,6 +159,18 @@
         .face h4 { font-size: 1rem; color: var(--cream); margin: 0.3rem 0 0.5rem; }
         .face p { font-size: 0.78rem; color: #cabfa6; line-height: 1.6; }
 
+        /* system map — the web-admin face, drawn in copper */
+        .sysmap { margin-top: 1.4rem; border: 1px solid var(--line-soft); border-radius: 8px; overflow-x: auto; background: rgba(13, 11, 8, 0.5); }
+        .sysmap svg { display: block; width: 100%; min-width: 660px; height: auto; padding: 0.6rem; }
+        .sm-node text { font-family: var(--mono); font-size: 13px; fill: var(--cream); letter-spacing: 0.02em; }
+        .sm-edge { fill: none; stroke: rgba(205, 128, 76, 0.3); stroke-width: 1.4; }
+        .sm-edge.flow { stroke: var(--copper); stroke-dasharray: 5 9; animation: smflow 1.4s linear infinite; opacity: 0.8; }
+        @keyframes smflow { to { stroke-dashoffset: -14; } }
+        .sm-elabel { font-family: var(--mono); font-size: 10px; fill: var(--dim); letter-spacing: 0.04em; }
+        .sm-cap { margin-top: 0.7rem; font-size: 0.72rem; color: var(--dim); }
+        .sm-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.9rem; font-size: 0.66rem; color: var(--dim); }
+        .sm-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 0.35rem; vertical-align: middle; }
+
         /* palette dots */
         .palette { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; font-size: 0.68rem; color: var(--dim); }
         .palette span i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 0.35rem; vertical-align: middle; }
@@ -176,6 +188,7 @@
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
             .viz i { animation: none; transform: scaleY(0.6); }
+            .sm-edge.flow { animation: none; stroke-dasharray: none; }
             .js .reveal { opacity: 1; transform: none; transition: none; }
         }
     </style>
@@ -338,6 +351,55 @@
                         <p>The browser view of the same nodes — scheduler, cron, LLM routes, scraper, stores, builder — laid out as a graph you can read at a glance.</p>
                     </div>
                 </div>
+
+                <div class="sysmap reveal">
+                    <svg viewBox="0 0 780 470" role="img" aria-label="System map: admin UI and API routes feeding a scheduler and cron runner, local LLM routes on Ollama, a news scraper, data stores, and a static-site builder">
+                        <!-- edges -->
+                        <path class="sm-edge flow" d="M180,66 C300,66 360,90 430,108"/>
+                        <path class="sm-edge" d="M430,120 C300,150 220,170 150,196"/>
+                        <path class="sm-edge" d="M460,132 C480,180 470,220 430,262"/>
+                        <path class="sm-edge" d="M500,132 C560,170 590,210 610,254"/>
+                        <path class="sm-edge flow" d="M150,222 C150,250 150,262 150,288"/>
+                        <path class="sm-edge flow" d="M170,314 C230,340 300,352 360,372"/>
+                        <path class="sm-edge" d="M150,314 C150,350 150,368 150,394"/>
+                        <path class="sm-edge flow" d="M200,300 C280,300 330,300 360,300"/>
+                        <path class="sm-edge" d="M430,300 C300,410 220,430 172,428"/>
+                        <path class="sm-edge flow" d="M430,290 C470,300 500,320 540,352"/>
+                        <path class="sm-edge flow" d="M610,314 C610,344 610,360 610,388"/>
+
+                        <!-- nodes -->
+                        <g class="sm-node"><rect x="118" y="46" width="124" height="40" rx="6" fill="rgba(119,168,220,0.15)" stroke="#77a8dc"/><text x="180" y="71" text-anchor="middle" fill="#bcd6f2">Admin UI</text></g>
+                        <g class="sm-node"><rect x="418" y="100" width="124" height="40" rx="6" fill="rgba(119,168,220,0.15)" stroke="#77a8dc"/><text x="480" y="125" text-anchor="middle" fill="#bcd6f2">API Routes</text></g>
+
+                        <g class="sm-node"><rect x="88" y="196" width="124" height="40" rx="6" fill="rgba(238,207,131,0.15)" stroke="#eecf83"/><text x="150" y="221" text-anchor="middle" fill="#f6e4b4">Scheduler</text></g>
+                        <g class="sm-node"><rect x="88" y="288" width="124" height="40" rx="6" fill="rgba(238,207,131,0.15)" stroke="#eecf83"/><text x="150" y="313" text-anchor="middle" fill="#f6e4b4">Cron Runner</text></g>
+
+                        <g class="sm-node"><rect x="360" y="262" width="124" height="40" rx="6" fill="rgba(186,166,255,0.15)" stroke="#baa6ff"/><text x="422" y="287" text-anchor="middle" fill="#ddd0ff">LLM Routes</text></g>
+                        <g class="sm-node"><rect x="360" y="352" width="124" height="40" rx="6" fill="rgba(186,166,255,0.15)" stroke="#baa6ff"/><text x="422" y="377" text-anchor="middle" fill="#ddd0ff">Ollama · qwen</text></g>
+
+                        <g class="sm-node"><rect x="88" y="394" width="124" height="40" rx="6" fill="rgba(111,220,226,0.14)" stroke="#6fdce2"/><text x="150" y="419" text-anchor="middle" fill="#bdeef1">News Scraper</text></g>
+
+                        <g class="sm-node"><rect x="548" y="254" width="128" height="40" rx="6" fill="rgba(146,232,190,0.14)" stroke="#92e8be"/><text x="612" y="279" text-anchor="middle" fill="#c5efd8">DB · KV Store</text></g>
+                        <g class="sm-node"><rect x="548" y="352" width="128" height="40" rx="6" fill="rgba(146,232,190,0.14)" stroke="#92e8be"/><text x="612" y="377" text-anchor="middle" fill="#c5efd8">SSG Builder</text></g>
+                        <g class="sm-node"><rect x="562" y="410" width="100" height="34" rx="6" fill="rgba(146,232,190,0.09)" stroke="rgba(146,232,190,0.5)"/><text x="612" y="431" text-anchor="middle" fill="#a7e4c6">dist/</text></g>
+
+                        <!-- edge labels -->
+                        <text class="sm-elabel" x="300" y="80">http</text>
+                        <text class="sm-elabel" x="150" y="266">trigger</text>
+                        <text class="sm-elabel" x="270" y="352">exec</text>
+                        <text class="sm-elabel" x="280" y="292">llm_cron</text>
+                        <text class="sm-elabel" x="500" y="330">build</text>
+                        <text class="sm-elabel" x="422" y="336">inference</text>
+                    </svg>
+                </div>
+                <div class="sm-legend">
+                    <span><i style="background:#77a8dc"></i>Frontend / API</span>
+                    <span><i style="background:#eecf83"></i>Scheduler</span>
+                    <span><i style="background:#baa6ff"></i>LLM · inference</span>
+                    <span><i style="background:#6fdce2"></i>News pipeline</span>
+                    <span><i style="background:#92e8be"></i>Store · build</span>
+                </div>
+                <p class="sm-cap">↑ the admin graph — the same scheduler, cron, LLM routes, scraper, and builder the deck drives, drawn as wiring.</p>
             </div>
         </section>
 
