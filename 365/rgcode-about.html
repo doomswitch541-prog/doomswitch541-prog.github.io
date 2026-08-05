@@ -75,6 +75,17 @@
         .masthead .mark { font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; text-decoration: none; color: var(--read); }
         .masthead .mark b { color: var(--signal); font-weight: 500; }
         .masthead .date { color: var(--quiet); font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: right; }
+        .mast-right { display: flex; align-items: center; gap: 0.85rem; }
+        .mast-share {
+            display: inline-flex; align-items: center; justify-content: center; flex: none;
+            width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+            color: var(--muted); background: rgba(120, 180, 255, 0.05); border: 1px solid var(--line);
+            transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        .mast-share:hover { color: var(--signal); border-color: rgba(92, 200, 255, 0.4); background: rgba(92, 200, 255, 0.08); }
+        .mast-share:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+        .mast-share.copied { color: var(--ok); border-color: rgba(91, 224, 160, 0.5); }
+        .mast-share svg { width: 15px; height: 15px; }
 
         .eyebrow {
             font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.24em;
@@ -211,7 +222,15 @@
 
     <header class="masthead">
         <a class="mark" href="/365/"><b>RG</b> / RGCODE / LOCAL CODING HARNESS</a>
-        <time class="date" datetime="2026-08-05">Day 216 · August 5, 2026</time>
+        <div class="mast-right">
+            <time class="date" datetime="2026-07-05">Day 185 · July 5, 2026</time>
+            <button class="mast-share" id="pageShare" type="button" aria-label="Share this page" title="Share">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.6" y1="13.5" x2="15.4" y2="17.5"></line><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"></line>
+                </svg>
+            </button>
+        </div>
     </header>
 
     <main>
@@ -362,7 +381,7 @@
         </section>
     </main>
 
-    <nav data-archive-day="216" aria-label="365 Days navigation"></nav>
+    <nav data-archive-day="185" aria-label="365 Days navigation"></nav>
 
     <script>
         (function () {
@@ -372,6 +391,21 @@
                 });
             }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
             document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+            // share intent — native sheet on mobile, clipboard fallback on desktop
+            var share = document.getElementById('pageShare');
+            if (share) {
+                share.addEventListener('click', async function () {
+                    var text = 'RGCode — a local coding harness that runs local models on real projects and keeps the whole run visible.';
+                    var url = location.href;
+                    try {
+                        if (navigator.share) { await navigator.share({ title: 'RGCode', text: text, url: url }); return; }
+                        await navigator.clipboard.writeText(text + ' ' + url);
+                        share.classList.add('copied');
+                        setTimeout(function () { share.classList.remove('copied'); }, 1600);
+                    } catch (e) {}
+                });
+            }
         })();
     </script>
 </body>

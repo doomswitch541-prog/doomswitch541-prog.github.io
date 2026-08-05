@@ -209,6 +209,45 @@
             padding: 1rem 1.3rem 0.8rem 1.3rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
+            position: relative;
+        }
+
+        /* Share the current forecast — its own control, never on the pagination. */
+        .hud-share {
+            position: absolute;
+            top: 0.9rem;
+            right: 1.1rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid rgba(255, 234, 167, 0.3);
+            border-radius: 8px;
+            color: var(--soft-gold);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .hud-share:hover,
+        .hud-share:active {
+            border-color: var(--soft-gold);
+            background: rgba(255, 234, 167, 0.1);
+            color: #fff;
+        }
+
+        .hud-share:focus-visible {
+            outline: 2px solid var(--soft-gold);
+            outline-offset: 2px;
+        }
+
+        .hud-share.copied {
+            color: #fff;
+            border-color: var(--soft-gold);
+            background: rgba(255, 234, 167, 0.12);
         }
 
         .hud-widget-scroll {
@@ -1235,13 +1274,17 @@
 
             .hud-widget {
                 position: fixed;
-                top: 50%;
+                /* Centre inside the space *below* the page masthead, not the whole
+                   viewport — at top:50% the tall box rode up over the "Weather"
+                   header on shorter screens. The +2.5rem nudge and the header-aware
+                   max-height keep the top edge clear of the header on any height. */
+                top: calc(50% + 2.5rem);
                 left: 3vw;
                 right: 3vw;
                 width: auto;
                 max-width: none;
                 transform: translateY(-50%);
-                max-height: 72vh;
+                max-height: calc(100dvh - 13rem);
                 overflow-y: auto;
                 z-index: 100;
             }
@@ -1360,7 +1403,7 @@
 
             .hud-widget {
                 width: calc(100% - 6vw);
-                margin: 2.5vh 3vw 0 3vw;
+                margin: 0 3vw;
             }
 
             .hud-widget.collapsed {
@@ -1911,6 +1954,9 @@
     <!-- Minimal HUD Widget -->
     <div class="hud-widget" id="hudWidget">
         <div class="hud-widget-header">
+            <button class="hud-share" id="hudShare" type="button" aria-label="Share this forecast" title="Share forecast">
+                <i class="fas fa-share-nodes"></i>
+            </button>
             <button class="hud-toggle" id="hudToggle" aria-label="Toggle HUD">
                 <span id="toggleIcon">−</span>
                 <span id="toggleText">HUD</span>
@@ -2182,9 +2228,9 @@
                         </div>
                         <div class="api-stat-item full-width">
                             <div class="api-stat-coords" id="apiCoords">
-                                <span class="api-stat-pulse"></span>30.1025, -92.1247
+                                <span class="api-stat-pulse"></span>HQ
                             </div>
-                            <div class="api-stat-label">Coordinates</div>
+                            <div class="api-stat-label">Marker</div>
                         </div>
                     </div>
                     <!-- API History Log -->
@@ -2280,6 +2326,34 @@
         const hudToggle = document.getElementById('hudToggle');
         const toggleIcon = document.getElementById('toggleIcon');
 
+        // Share the current forecast — deliberately location-free (temp, sky,
+        // wind only, never the marker or coordinates). Native sheet on mobile,
+        // clipboard fallback on desktop.
+        const hudShare = document.getElementById('hudShare');
+        if (hudShare) {
+            hudShare.addEventListener('click', async () => {
+                const clean = (s) => (s || '').replace(/\s+/g, ' ').trim();
+                const skip = (s) => !s || /loading/i.test(s) || /^-{1,2}/.test(s);
+                const temp = clean(document.querySelector('#hudTemp span')?.textContent);
+                const cond = clean(document.querySelector('#hudConditions span')?.textContent);
+                const wind = clean(document.getElementById('windSpeed')?.textContent);
+                const parts = [];
+                if (!skip(temp)) parts.push(temp);
+                if (!skip(cond)) parts.push(cond);
+                if (!skip(wind)) parts.push('wind ' + wind);
+                const report = 'Celestial Drift' + (parts.length ? ' — ' + parts.join(' · ') : '');
+                const url = location.href;
+                const icon = hudShare.querySelector('i');
+                try {
+                    if (navigator.share) { await navigator.share({ title: 'Celestial Drift', text: report, url }); return; }
+                    await navigator.clipboard.writeText(`${report} ${url}`);
+                    hudShare.classList.add('copied');
+                    if (icon) icon.className = 'fas fa-check';
+                    setTimeout(() => { hudShare.classList.remove('copied'); if (icon) icon.className = 'fas fa-share-nodes'; }, 1600);
+                } catch (_) {}
+            });
+        }
+
         const contentEl = document.querySelector('.content');
         const accentBar = document.querySelector('.accent-bar');
 
@@ -2372,7 +2446,7 @@
 
             document.getElementById('apiCallCount').textContent = apiCallCount;
             document.getElementById('apiCoords').innerHTML = `
-                <span class="api-stat-pulse"></span>${location.lat.toFixed(4)}, ${location.lon.toFixed(4)}
+                <span class="api-stat-pulse"></span>${location.name}
             `;
             document.getElementById('apiLastCall').textContent = timeString;
 

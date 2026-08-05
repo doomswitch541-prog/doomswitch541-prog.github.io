@@ -1237,13 +1237,15 @@
 
             .hud-widget {
                 position: fixed;
-                top: 50%;
+                /* Centre below the page masthead, not the whole viewport — at
+                   top:50% the tall box rode up over the header on shorter screens. */
+                top: calc(50% + 2.5rem);
                 left: 3vw;
                 right: 3vw;
                 width: auto;
                 max-width: none;
                 transform: translateY(-50%);
-                max-height: 72vh;
+                max-height: calc(100dvh - 13rem);
                 overflow-y: auto;
                 z-index: 100;
             }
@@ -1362,7 +1364,7 @@
 
             .hud-widget {
                 width: calc(100% - 6vw);
-                margin: 2.5vh 3vw 0 3vw;
+                margin: 0 3vw;
             }
 
             .hud-widget.collapsed {
@@ -2202,9 +2204,9 @@
                         </div>
                         <div class="api-stat-item full-width">
                             <div class="api-stat-coords" id="apiCoords">
-                                <span class="api-stat-pulse"></span>30.1025, -92.1247
+                                <span class="api-stat-pulse"></span>HQ
                             </div>
-                            <div class="api-stat-label">Coordinates</div>
+                            <div class="api-stat-label">Marker</div>
                         </div>
                     </div>
                     <!-- API History Log -->
@@ -2433,7 +2435,7 @@
 
             document.getElementById('apiCallCount').textContent = apiCallCount;
             document.getElementById('apiCoords').innerHTML = `
-                <span class="api-stat-pulse"></span>${location.lat.toFixed(4)}, ${location.lon.toFixed(4)}
+                <span class="api-stat-pulse"></span>${location.name}
             `;
             document.getElementById('apiLastCall').textContent = timeString;
 

@@ -33,10 +33,10 @@
         { day: 121, file: 'rgmodelserve-about.html', accent: '#78e7d1' },
         { day: 176, file: 'discord-pipeline-about.html', accent: '#8b9cff' },
         { day: 182, file: 'raccoongang-game-about.html', accent: '#7ee8d2' },
+        { day: 185, file: 'rgcode-about.html', accent: '#5cc8ff' },
         { day: 187, file: 'fables-first-removal.html', accent: '#aeb8ff' },
         { day: 202, file: 'rg4o-about.html', accent: '#e0a26b' },
-        { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' },
-        { day: 216, file: 'rgcode-about.html', accent: '#5cc8ff' }
+        { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' }
     ];
 
     const nav = document.querySelector('[data-archive-day]');

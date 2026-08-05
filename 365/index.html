@@ -1831,7 +1831,7 @@
                     glow: 'rgba(126, 232, 210, 0.32)', border: 'rgba(126, 232, 210, 0.46)'
                 }
             },
-            ...Array.from({ length: 4 }, (_, index) => ({
+            ...Array.from({ length: 2 }, (_, index) => ({
                 day: 183 + index,
                 name: 'Completed Day',
                 status: 'complete',
@@ -1842,6 +1842,32 @@
                     glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
                 }
             })),
+            {
+                day: 185,
+                name: 'RGCode',
+                file: 'rgcode-about.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Coding Harness',
+                description: 'A local coding harness for tool-capable models — hands a local model a project and real file/shell tools, runs the loop on Ollama or RGModelServe, and keeps the whole run visible: context, tool calls, results, and why it stopped. Audits each model’s tool template before trusting it.',
+                timeline: { label: 'project milestone', entry: 'Jul 5, 2026', confidence: 'user-date' },
+                theme: {
+                    primary: '#5cc8ff', secondary: '#9fdcff',
+                    background: 'linear-gradient(135deg, rgba(92, 200, 255, 0.16), rgba(157, 140, 255, 0.06))',
+                    glow: 'rgba(92, 200, 255, 0.32)', border: 'rgba(92, 200, 255, 0.46)'
+                }
+            },
+            {
+                day: 186,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: { label: 'archive date', entry: 'Jul 6, 2026', confidence: 'calendar' },
+                theme: {
+                    primary: '#8b93a7', secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)', border: 'rgba(139, 147, 167, 0.24)'
+                }
+            },
             {
                 day: 187,
                 name: "Fable's First Removal",
@@ -1917,21 +1943,6 @@
                     primary: '#4D6BFE', secondary: '#7c9bff',
                     background: 'linear-gradient(135deg, rgba(77, 107, 254, 0.18), rgba(124, 155, 255, 0.07))',
                     glow: 'rgba(77, 107, 254, 0.34)', border: 'rgba(77, 107, 254, 0.48)'
-                }
-            },
-            {
-                day: 216,
-                name: 'RGCode',
-                file: 'rgcode-about.html',
-                status: 'live',
-                milestone: true,
-                statusLabel: '◆ Coding Harness',
-                description: 'A local coding harness for tool-capable models — hands a local model a project and real file/shell tools, runs the loop on Ollama or RGModelServe, and keeps the whole run visible: context, tool calls, results, and why it stopped. Audits each model’s tool template before trusting it.',
-                timeline: { label: 'project milestone', entry: 'Aug 5, 2026', confidence: 'user-placement' },
-                theme: {
-                    primary: '#5cc8ff', secondary: '#9fdcff',
-                    background: 'linear-gradient(135deg, rgba(92, 200, 255, 0.16), rgba(157, 140, 255, 0.06))',
-                    glow: 'rgba(92, 200, 255, 0.32)', border: 'rgba(92, 200, 255, 0.46)'
                 }
             }
             // Future days will be added here
