@@ -866,3 +866,116 @@ body[data-project="rg4o"] .about-closing { align-items: start; }
     .bot, .bot-aura, .bot-eye, .bot-dot, .bot-heart, .bot-arm-wave { animation: none; }
     .bot-arm-wave { transform: rotate(-8deg); }
 }
+
+/* ── Warm Layer (Day 106) — chains the Hermes route-figure onto a hearth palette ── */
+body[data-project="warm"] {
+    --night: #100b09;
+    --panel: #1a130d;
+    --ink: #f4e9df;
+    --muted: #9a8779;
+    --quiet: #6b5b4e;
+    --accent: #f0a860;
+    --accent-2: #ef8fa0;
+    --accent-soft: rgba(240, 168, 96, 0.13);
+}
+
+body[data-project="warm"] .about-card { background: rgba(26, 19, 13, 0.96); }
+body[data-project="warm"] .about-card.sci code { color: var(--accent-2); }
+
+.warm-figure {
+    background:
+        linear-gradient(rgba(240, 168, 96, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(240, 168, 96, 0.035) 1px, transparent 1px),
+        rgba(16, 11, 9, 0.9);
+    background-size: 24px 24px;
+}
+
+/* the figure: Hermes 4's "orb" (a memory sphere, anti-anthropomorphic) — warm, with the skills orbiting it */
+.warm-orb-stack {
+    display: grid;
+    gap: 1.9rem;
+    place-items: center;
+    width: min(430px, calc(100% - 1.5rem));
+}
+
+.warm-invoke {
+    color: var(--muted);
+    font: 0.6rem/1.7 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.warm-invoke b { color: var(--accent); font-weight: 500; }
+.warm-invoke i { font-style: normal; color: var(--accent-2); padding: 0 0.15rem; }
+
+.warm-orbit {
+    position: relative;
+    width: min(300px, 74vw);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+}
+
+.warm-orbit::before,
+.warm-orbit::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(240, 168, 96, 0.16);
+}
+
+.warm-orbit::before { inset: 3%; }
+.warm-orbit::after { inset: 22%; border-color: rgba(239, 143, 160, 0.2); }
+
+.warm-orbit .bloom {
+    position: absolute;
+    inset: -6%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240, 168, 96, 0.3), rgba(239, 143, 160, 0.12) 46%, transparent 70%);
+    filter: blur(20px);
+    animation: orbBreathe 6.5s ease-in-out infinite;
+}
+
+.warm-orb {
+    position: relative;
+    z-index: 1;
+    width: 44%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, #ffe7c6 0%, #f0a860 34%, #d9764f 64%, #7f3a4e 100%);
+    box-shadow:
+        inset -12px -16px 38px rgba(74, 20, 40, 0.55),
+        inset 9px 11px 24px rgba(255, 231, 198, 0.5),
+        0 0 58px rgba(240, 168, 96, 0.42);
+    animation: orbBreathe 6.5s ease-in-out infinite;
+}
+
+.warm-orb::after {
+    content: "one voice";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: rgba(26, 12, 8, 0.62);
+    font: 0.5rem var(--mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+@keyframes orbBreathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.045); }
+}
+
+/* orbiting skill labels — positions come from the shared .orbit-label rules */
+.warm-orbit .orbit-label { color: var(--muted); }
+
+@media (max-width: 520px) {
+    .warm-orbit { width: min(260px, 70vw); }
+    .warm-invoke { font-size: 0.55rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .warm-orb, .warm-orbit .bloom { animation: none; }
+}

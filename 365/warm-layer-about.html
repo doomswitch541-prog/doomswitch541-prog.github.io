@@ -3,282 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
     <meta name="theme-color" content="#100b09">
     <title>The Warm Layer — Composable Skills</title>
+    <link rel="stylesheet" href="/365/archive-about.css">
     <link rel="stylesheet" href="/365/archive-nav.css">
     <script src="/365/archive-nav.js" defer></script>
-    <script>document.documentElement.classList.add('js');</script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            color-scheme: dark;
-            --bg: #100b09;
-            --bg2: #17110d;
-            --ink: #f4e9df;
-            --read: #d9c9bb;
-            --muted: #9a8779;
-            --quiet: #6b5b4e;
-            --line: rgba(240, 168, 96, 0.15);
-            --amber: #f0a860;
-            --rose: #ef8fa0;
-            --gold: #ffd39a;
-            --panel: rgba(28, 20, 15, 0.66);
-            --mono: "SFMono-Regular", ui-monospace, "JetBrains Mono", Consolas, "Liberation Mono", monospace;
-            --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        html { scroll-behavior: smooth; }
-        body {
-            min-width: 320px;
-            color: var(--ink);
-            font-family: var(--sans);
-            background:
-                radial-gradient(120% 70% at 50% -8%, rgba(240, 168, 96, 0.1), transparent 55%),
-                radial-gradient(90% 60% at 90% 12%, rgba(239, 143, 160, 0.08), transparent 60%),
-                var(--bg);
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .warmth {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.5;
-            background:
-                radial-gradient(40vmax 40vmax at 12% 20%, rgba(240, 168, 96, 0.14), transparent 60%),
-                radial-gradient(46vmax 46vmax at 88% 78%, rgba(239, 143, 160, 0.11), transparent 62%);
-        }
-
-        main { position: relative; z-index: 1; }
-        a { color: inherit; }
-        /* inline cross-link to another 365 project */
-        .lede a, .kicker a { color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(240, 168, 96, 0.42); transition: border-color 0.2s ease, color 0.2s ease; }
-        .lede a:hover, .kicker a:hover { border-bottom-color: var(--amber); color: var(--gold); }
-
-        .wrap { width: min(860px, 92vw); margin: 0 auto; }
-        section { padding: clamp(3rem, 9vh, 6.5rem) 0; }
-
-        /* masthead — Hermes-family frame */
-        .masthead {
-            position: relative; z-index: 1;
-            width: min(860px, 92vw); margin: 0 auto;
-            padding: max(1.15rem, env(safe-area-inset-top)) 0 1.15rem;
-            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-            border-bottom: 1px solid var(--line); font-family: var(--mono);
-        }
-        .masthead .mark { font-size: 0.67rem; letter-spacing: 0.18em; text-transform: uppercase; text-decoration: none; color: var(--read); }
-        .masthead .mark b { color: var(--amber); font-weight: 500; }
-        .masthead .date { color: var(--quiet); font-size: 0.59rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: right; }
-
-        .eyebrow {
-            font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.26em;
-            text-transform: uppercase; color: var(--amber);
-            display: inline-flex; align-items: center; gap: 0.6rem;
-        }
-        .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--amber); opacity: 0.7; }
-
-        h2 { font-size: clamp(1.7rem, 4.4vw, 2.7rem); font-weight: 560; line-height: 1.12; letter-spacing: -0.035em; }
-        p.lede { margin-top: 1.2rem; color: var(--read); font-size: 1.06rem; line-height: 1.82; max-width: 62ch; }
-        .sec-head { margin-bottom: 0.4rem; }
-        .sec-head .eyebrow { margin-bottom: 1.1rem; }
-
-        /* HERO */
-        .hero { padding-top: clamp(4rem, 13vh, 8.5rem); text-align: left; }
-        .hero h1 {
-            margin-top: 1.1rem;
-            font-size: clamp(3rem, 11vw, 6rem); font-weight: 600; line-height: 0.95; letter-spacing: -0.05em;
-            background: linear-gradient(108deg, var(--gold) 4%, var(--amber) 42%, var(--rose) 98%);
-            -webkit-background-clip: text; background-clip: text;
-            -webkit-text-fill-color: transparent; color: transparent;
-            filter: drop-shadow(0 0 36px rgba(240, 168, 96, 0.22));
-        }
-        .hero .sub { margin-top: 1.2rem; font-size: clamp(1.05rem, 2.5vw, 1.4rem); color: var(--ink); font-weight: 400; }
-        .hero .kicker { margin-top: 1.6rem; color: var(--read); font-size: 1.02rem; line-height: 1.8; max-width: 56ch; }
-
-        /* CHAIN COMPOSER */
-        .composer {
-            margin-top: 2rem; border: 1px solid var(--line); border-radius: 16px;
-            background: var(--panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: clamp(1.3rem, 4vw, 2rem);
-            box-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.1), 0 26px 70px rgba(0, 0, 0, 0.5);
-        }
-        .invoke { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 1.3rem; }
-        .invoke b { color: var(--amber); font-weight: 500; }
-        .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 0.4rem; }
-        .chip {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            padding: 0.55rem 0.9rem; border-radius: 11px;
-            border: 1px solid var(--line); background: rgba(240, 168, 96, 0.06);
-            font-size: 0.86rem; color: var(--ink); white-space: nowrap;
-        }
-        .chip i { font-style: normal; color: var(--amber); }
-        .chip.rose { border-color: rgba(239,143,160,0.3); background: rgba(239,143,160,0.07); }
-        .chip.rose i { color: var(--rose); }
-        .link { color: var(--quiet); font-family: var(--mono); font-size: 1rem; }
-        .link.pulse { color: var(--amber); animation: pulse 1.9s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
-        .chip.out {
-            border-color: rgba(255, 211, 154, 0.45);
-            background: linear-gradient(120deg, rgba(240,168,96,0.16), rgba(239,143,160,0.12));
-            color: var(--gold);
-        }
-
-        /* TWO REGISTERS — Hermes-style labeled cards */
-        .registers { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.9rem; }
-        .rcard {
-            border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: clamp(1.2rem, 3.5vw, 1.7rem);
-            box-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.09);
-        }
-        .rcard code { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); }
-        .rcard.sci code { color: var(--rose); }
-        .rcard h4 { font-size: 1.25rem; margin: 0.55rem 0 0.5rem; color: var(--ink); font-weight: 560; letter-spacing: -0.02em; }
-        .rcard p { color: var(--read); font-size: 0.93rem; line-height: 1.7; }
-        .rnote { margin-top: 1.1rem; font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-        .rnote b { color: var(--gold); font-weight: 500; }
-
-        /* CLOSE — Hermes two-column */
-        .close .closing-grid { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: clamp(2rem, 7vw, 5.5rem); align-items: end; }
-        .close .eyebrow { margin-bottom: 1.1rem; }
-        .close blockquote { font-size: clamp(1.8rem, 5vw, 3.2rem); font-weight: 560; letter-spacing: -0.045em; line-height: 1.02; color: var(--ink); }
-        .close blockquote span { color: var(--gold); }
-        .close .closing-side p { color: var(--read); font-size: 1rem; line-height: 1.85; }
-        .close .foot { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quiet); }
-
-        /* reveals */
-        .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(.2,.7,.2,1), transform 0.8s cubic-bezier(.2,.7,.2,1); }
-        .reveal.in { opacity: 1; transform: none; }
-
-        @media (max-width: 640px) {
-            .chain { gap: 0.5rem; }
-            .chip { font-size: 0.8rem; }
-            .registers { grid-template-columns: 1fr; }
-            .close .closing-grid { grid-template-columns: 1fr; align-items: start; gap: 1.5rem; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            html { scroll-behavior: auto; }
-            .link.pulse { animation: none; opacity: 0.8; }
-            .js .reveal { opacity: 1; transform: none; transition: none; }
-        }
-    </style>
 </head>
-<body>
-    <div class="warmth" aria-hidden="true"></div>
-
-    <header class="masthead">
-        <a class="mark" href="/365/"><b>RG</b> / WARM LAYER / COMPOSABLE SKILLS</a>
-        <time class="date" datetime="2026-04-17">Day 106 · April 17, 2026</time>
+<body data-project="warm">
+    <header class="about-masthead">
+        <a class="about-mark" href="/365/"><span>RG</span> / WARM LAYER / COMPOSABLE SKILLS</a>
+        <time class="about-date" datetime="2026-04-17">Day 106 · April 17, 2026</time>
     </header>
 
-    <main>
-        <!-- HERO -->
-        <section class="hero">
-            <div class="wrap">
-                <p class="eyebrow">Local model · Composable skills</p>
+    <main class="about-main">
+        <section class="about-hero">
+            <div>
+                <p class="about-kicker">Local model · Composable skills</p>
                 <h1>The Warm Layer</h1>
-                <p class="sub">A free local model, skills chained on demand.</p>
-                <p class="kicker">Not one giant prompt — a free model on the machine and a set of skills you invoke and chain. Warm when you want it, scientific when you need to get something done.</p>
+                <p class="about-lede"><strong>Not one giant prompt — skills you invoke and chain.</strong> A free model runs on the machine and a set of skills sit ready; you call them by name and chain them, and the model composes them into a single voice for the moment. Warm when you want it, exact when you need to get something done — aligned to you, not to a benchmark.</p>
             </div>
-        </section>
 
-        <!-- INVOCATION -->
-        <section>
-            <div class="wrap">
-                <div class="sec-head reveal">
-                    <p class="eyebrow">01 · Invocation</p>
-                    <h2>You call skills and chain them.</h2>
-                </div>
-                <p class="lede reveal">Instead of writing everything into one instruction, you invoke a skill and chain it with others. Each one carries a way of talking and a job to do; the model composes them into a single voice for the moment. The invoking and chaining run on <a href="/365/hermes-agent-about.html">Hermes</a>.</p>
-
-                <div class="composer reveal">
-                    <p class="invoke">invoke <b>idiom</b> · chain <b>archivist</b> · chain <b>explorer</b></p>
-                    <div class="chain">
-                        <span class="chip"><i>&#9671;</i> idiom</span>
-                        <span class="link pulse">&rarr;</span>
-                        <span class="chip"><i>&#8968;</i> archivist</span>
-                        <span class="link pulse">&rarr;</span>
-                        <span class="chip rose"><i>&#10022;</i> explorer</span>
-                        <span class="link">&rarr;</span>
-                        <span class="chip out">one voice</span>
+            <div class="about-figure warm-figure" aria-label="Skills — idiom, archivist, explorer, memory — orbiting a warm memory orb that composes them into one voice">
+                <div class="warm-orb-stack">
+                    <p class="warm-invoke">invoke <b>idiom</b> <i>&rarr;</i> chain <b>archivist</b> <i>&rarr;</i> chain <b>explorer</b> <i>&rarr;</i> one voice</p>
+                    <div class="warm-orbit">
+                        <div class="bloom" aria-hidden="true"></div>
+                        <span class="orbit-label">Idiom</span>
+                        <span class="orbit-label">Archivist</span>
+                        <span class="orbit-label">Explorer</span>
+                        <span class="orbit-label">Memory</span>
+                        <div class="warm-orb" aria-hidden="true"></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- DOMAIN -->
-        <section>
-            <div class="wrap">
-                <div class="sec-head reveal">
-                    <p class="eyebrow">02 · What a skill holds</p>
-                    <h2>A skill can carry a whole domain.</h2>
-                </div>
-                <p class="lede reveal">Its idiom, its references, its way of meeting people — bundled so someone fluent in that world can speak plainly and be met there, instead of being translated into a flatter register. A persona layer can also be held in memory, so it persists across the conversation.</p>
+        <section class="about-section">
+            <p class="section-kicker">The chain</p>
+            <h2>Invoke a skill. Chain it with others.</h2>
+            <p class="section-lede">Instead of writing everything into one instruction, you invoke a skill and chain it with more. Each carries a way of talking and a job to do; the model composes them into one voice for whoever it's meeting. The invoking and chaining run on <a href="/365/hermes-agent-about.html">Hermes</a> — the same skill-chaining move, pointed at register instead of tools.</p>
+
+            <div class="about-grid">
+                <article class="about-card"><code>SKILL</code><h3>A skill can carry a whole domain</h3><p>Its idiom, its references, its way of meeting people — bundled, so someone fluent in that world speaks plainly and is met there instead of flattened. A persona layer can be held in memory so it persists across the thread.</p></article>
+                <article class="about-card"><code>MODEL</code><h3>A free, local model does the holding</h3><p>Underneath sits Nemotron — free, running on the machine at no per-message cost through <a href="/365/rgmodelserve-about.html">RGModelServe</a> — capable enough to keep continuity, shift modes when the moment changes, and anchor the pipeline instead of losing the plot.</p></article>
+                <article class="about-card"><code>WARM</code><h3>Company when you want it</h3><p>Meets you in your own idiom, adapts to the moment, doesn't lecture. Warmth as load-bearing infrastructure, not decoration — the part that meets people where they actually are.</p></article>
+                <article class="about-card sci"><code>SCIENTIFIC</code><h3>Exact when you need to work</h3><p>Same model, same chain — ask it to get something done and it turns precise: the steps, the checks, the sources, the tool calls, then stop. You pick the register; the chain composes it.</p></article>
             </div>
         </section>
 
-        <!-- ANCHOR -->
-        <section>
-            <div class="wrap">
-                <div class="sec-head reveal">
-                    <p class="eyebrow">03 · The free model</p>
-                    <h2>A free, local model does the holding.</h2>
-                </div>
-                <p class="lede reveal">Underneath the skills sits Nemotron — a free model that runs on the machine at no per-message cost, served through <a href="/365/rgmodelserve-about.html">RGModelServe</a> — capable enough to keep continuity over a long thread, shift modes when the moment changes, and anchor an agentic pipeline instead of losing the plot halfway through.</p>
-            </div>
-        </section>
-
-        <!-- TWO REGISTERS -->
-        <section>
-            <div class="wrap">
-                <div class="sec-head reveal">
-                    <p class="eyebrow">04 · Two registers</p>
-                    <h2>Warm when you want it. Scientific when you need to work.</h2>
-                </div>
-                <p class="lede reveal">The same free model and the same chained skills produce either register. Ask for company and it meets you where you are; ask it to get something done and it turns exact — steps, checks, sources, no flourish. You pick; the chain composes it.</p>
-
-                <div class="registers reveal">
-                    <article class="rcard">
-                        <code>when you want</code>
-                        <h4>Warm</h4>
-                        <p>Meets you in your own idiom, adapts to the moment, doesn't lecture. Company, not a form to fill out.</p>
-                    </article>
-                    <article class="rcard sci">
-                        <code>when you need</code>
-                        <h4>Scientific</h4>
-                        <p>Precise and sourced — the steps, the checks, the tool calls that get a task done, then stop.</p>
-                    </article>
-                </div>
-                <p class="rnote reveal">one <b>free model</b> · one <b>chain</b> · two registers</p>
-            </div>
-        </section>
-
-        <!-- CLOSE -->
-        <section class="close">
-            <div class="wrap closing-grid">
-                <div>
-                    <p class="eyebrow reveal">The whole idea</p>
-                    <blockquote class="reveal">Chain what the moment needs — warm when you want it, <span>scientific when you don't.</span></blockquote>
-                </div>
-                <div class="closing-side reveal">
-                    <p>One free model on the machine, a set of skills you invoke and chain. The register isn't another model or another prompt — it is what the chain composes when you ask. Company when you want it; exact when you need it.</p>
-                    <p class="foot">Free model · composable skills · two registers</p>
-                </div>
-            </div>
+        <section class="about-section about-closing">
+            <blockquote>Chain what the moment needs — warm when you want it, scientific when you don't. Either way, <span>aligned to you.</span></blockquote>
+            <p>One free model on the machine, a set of skills you invoke and chain. The register isn't another model or another prompt — it's what the chain composes when you ask. Not aligned to a benchmark; aligned to the person in the room.</p>
         </section>
     </main>
 
     <nav data-archive-day="106" aria-label="365 Days navigation"></nav>
-
-    <script>
-        (function () {
-            var io = new IntersectionObserver(function (entries) {
-                entries.forEach(function (e) {
-                    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-                });
-            }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
-            document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
-        })();
-    </script>
 </body>
 </html>
