@@ -990,6 +990,7 @@ body.nav-open .nav-drawer-cat {
 #second-hand {
   transition: transform 0.1s linear;
   stroke: var(--accent);
+  filter: drop-shadow(0 0 2px var(--accent-glow));
 }
 
 .compass-svg circle[fill="var(--accent)"] {
