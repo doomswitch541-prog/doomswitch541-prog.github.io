@@ -58,26 +58,36 @@
         }
 
         .header h1 {
-            font-size: clamp(2.5rem, 8vw, 5rem);
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff2a6d, #00fff9, #ff2a6d);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 4s ease infinite;
-            margin-bottom: 1rem;
+            font-family: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Consolas, "Courier New", monospace;
+            font-size: clamp(2rem, 5.4vw, 3.6rem);
+            font-weight: 600;
+            letter-spacing: 0.005em;
+            color: #eaf1ff;
+            margin-bottom: 1.15rem;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 0.6rem;
         }
 
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+        .header h1 .n { color: #22d3ee; }
+
+        .header h1::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 3.1rem;
+            height: 2px;
+            transform: translateX(-50%);
+            border-radius: 2px;
+            background: linear-gradient(90deg, #ff2a6d, #00fff9);
         }
 
         .header p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.2rem;
-            letter-spacing: 0.2em;
+            font-family: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Consolas, "Courier New", monospace;
+            color: rgba(220, 232, 245, 0.5);
+            font-size: 0.82rem;
+            letter-spacing: 0.34em;
             text-transform: uppercase;
         }
 
@@ -560,7 +570,7 @@
             }
 
             .header h1 {
-                font-size: 2.5rem;
+                font-size: 2rem;
             }
 
             .stats {
@@ -662,7 +672,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>365 Days of Pages</h1>
+            <h1><span class="n">365</span> Days of Pages</h1>
             <p>A Year of Creative Web Experiments</p>
         </div>
 
