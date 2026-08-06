@@ -1,6 +1,62 @@
 (() => {
     'use strict';
 
+    // Site menu — the way OUT of the archive. Rendered on every page that loads
+    // this script (the /365 index and each milestone page). iOS-safe: a real
+    // button + a real scrim, each with its own handler, no hover-open.
+    (function renderMenu() {
+        if (!document.body || document.querySelector('.archive-menu-btn')) return;
+
+        const links = [
+            ['/', 'Home'],
+            ['/365/', 'All 365'],
+            ['/visuals', 'Visuals'],
+            ['/music', 'Music'],
+            ['/tbp', 'TBP'],
+            ['/directory', 'Directory']
+        ];
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'archive-menu-btn';
+        btn.setAttribute('aria-label', 'Site menu');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.innerHTML = '<span></span><span></span><span></span>';
+
+        const scrim = document.createElement('div');
+        scrim.className = 'archive-menu-scrim';
+
+        const menu = document.createElement('nav');
+        menu.className = 'archive-menu';
+        menu.setAttribute('aria-label', 'Site');
+        menu.innerHTML = links.map(([href, label]) => `<a href="${href}">${label}</a>`).join('');
+
+        const setOpen = (open) => {
+            document.body.classList.toggle('archive-menu-open', open);
+            btn.setAttribute('aria-expanded', String(open));
+        };
+
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            setOpen(!document.body.classList.contains('archive-menu-open'));
+        });
+        scrim.addEventListener('click', () => setOpen(false));
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setOpen(false);
+        });
+
+        // Immersive milestone pages already carry a top masthead + the bottom
+        // pagination, so the menu joins the bottom zone there; the /365 hub (no
+        // masthead) keeps it top-left, next to the header.
+        if (document.querySelector('[data-archive-day]')) {
+            btn.classList.add('archive-menu-btn--bottom');
+            menu.classList.add('archive-menu--bottom');
+        }
+
+        document.body.append(scrim, menu, btn);
+        document.body.classList.add('has-archive-menu');
+    })();
+
     const pages = [
         { day: 1, file: 'motel.html', accent: '#ff2a6d' },
         { day: 2, file: 'luxurytierhomeless.html', accent: '#8b5cf6' },

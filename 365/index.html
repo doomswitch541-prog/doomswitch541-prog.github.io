@@ -47,6 +47,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding-top: 3rem;
             position: relative;
             z-index: 1;
             overflow: visible;
@@ -74,13 +75,12 @@
         .header h1::after {
             content: "";
             position: absolute;
-            left: 50%;
+            left: 0;
+            right: 0;
             bottom: 0;
-            width: 3.1rem;
-            height: 2px;
-            transform: translateX(-50%);
-            border-radius: 2px;
-            background: linear-gradient(90deg, #ff2a6d, #00fff9);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff2a6d 32%, #00fff9 68%, transparent);
+            opacity: 0.85;
         }
 
         .header p {
@@ -538,32 +538,6 @@
             box-shadow: 0 0 20px var(--tooltip-glow, rgba(255, 42, 109, 0.5));
         }
 
-        .back-button {
-            position: fixed;
-            top: 2rem;
-            left: 2rem;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 255, 249, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #00fff9;
-            text-decoration: none;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .back-button:hover {
-            transform: scale(1.1);
-            border-color: #00fff9;
-            box-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
-        }
-
         @media (max-width: 768px) {
             body {
                 padding: max(1.15rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.15rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
@@ -629,13 +603,6 @@
                 font-size: 1rem;
             }
 
-            .back-button {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-                top: 1rem;
-                left: 1rem;
-            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -655,13 +622,12 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
 </head>
 <body>
     <!-- Starfield background -->
     <div class="stars" id="stars"></div>
-
-    <!-- Back button -->
-    <a href="/" class="back-button" title="Back to Home">←</a>
 
     <!-- Tooltip Popup -->
     <div class="tooltip-popup" id="tooltip">
