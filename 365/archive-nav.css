@@ -306,6 +306,51 @@ body.has-archive-menu-page .api-status-badge {
     padding-top: calc(var(--archive-bar-h, 4.5rem) + 1rem);
 }
 
+/* Standalone bar for content pages that never had a brand/date masthead. Drop
+   <nav class="archive-topbar" data-archive-inbar style="--archive-accent:#…"> in
+   as the first body child; the RG span picks up that accent. */
+.archive-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0;
+    padding: max(0.7rem, env(safe-area-inset-top)) max(1.1rem, calc((100% - 1100px) / 2 + 1rem)) 0.7rem;
+    background: rgba(10, 11, 16, 0.74);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+    backdrop-filter: blur(18px) saturate(135%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace;
+}
+
+.archive-topbar .brand {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    line-height: 1.35;
+    color: rgba(235, 240, 248, 0.9);
+    text-decoration: none;
+}
+
+.archive-topbar .brand span { color: var(--archive-accent, #22d3ee); }
+
+.archive-topbar-date {
+    margin-left: auto;
+    font-size: 0.6rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: rgba(180, 190, 205, 0.72);
+    white-space: nowrap;
+    text-align: right;
+}
+
+.archive-topbar[data-archive-inbar] ~ main {
+    padding-top: calc(var(--archive-bar-h, 4.5rem) + 1rem);
+}
+
 @media (prefers-reduced-motion: no-preference) {
     .archive-menu,
     .archive-menu-btn span {
