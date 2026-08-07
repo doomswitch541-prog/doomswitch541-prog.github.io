@@ -1303,6 +1303,23 @@
                 z-index: 100;
             }
 
+            /* The clock moves out of the left stack to the header's bottom-right,
+               filling the empty right side and saving a row. Toggle sits top-left,
+               share top-right, location bottom-left, clock bottom-right. */
+            .hud-clock {
+                position: absolute;
+                right: 1.3rem;
+                bottom: 0.85rem;
+                margin-bottom: 0;
+                font-size: clamp(2rem, 8vw, 2.6rem);
+                line-height: 1;
+                text-align: right;
+            }
+
+            .hud-location {
+                margin-bottom: 0;
+            }
+
             .hud-content {
                 display: flex;
                 flex-direction: column;
@@ -1415,20 +1432,22 @@
                 font-size: 0.72rem;
             }
 
+            /* Centre the box: the 768px rule already pins left:3vw / right:3vw for
+               a symmetric span. Layering width+margin on top of that over-
+               constrained it and pushed the box off to the right, so we just
+               reset those here and let left/right do the centring. */
             .hud-widget {
-                width: calc(100% - 6vw);
-                margin: 0 3vw;
+                left: 3vw;
+                right: 3vw;
+                width: auto;
+                margin: 0;
             }
 
             .hud-widget.collapsed {
+                left: 3vw;
+                right: 3vw;
                 width: auto;
-                margin-left: 5vw;
-                margin-right: auto;
-            }
-
-            .hud-clock {
-                font-size: 1.4rem;
-                margin-bottom: 0.8rem;
+                margin: 0;
             }
 
             .hud-weather {
@@ -2189,7 +2208,7 @@
             </div>
 
             <!-- Weather Charts Section (NEW) -->
-            <div class="collapsible-section collapsed" id="chartsSection">
+            <div class="collapsible-section" id="chartsSection">
                 <button class="section-header" id="chartsHeader" aria-label="Toggle weather charts">
                     <i class="fas fa-chart-area"></i>
                     <span>Trends</span>
@@ -2558,13 +2577,12 @@
             { section: 'settingsSection', header: 'settingsHeader' }
         ];
 
-        // On mobile, collapse most sections by default to prevent overflow
-        const isMobile = window.innerWidth <= 768;
-        if (isMobile) {
-            ['astronomySection', 'windSection', 'extendedSection', 'chartsSection', 'apiStatsSection', 'settingsSection'].forEach(id => {
-                document.getElementById(id).classList.add('collapsed');
-            });
-        }
+        // Every data box opens by default — only the utility boxes (API stats +
+        // settings) start collapsed. The widget scrolls its own content, so the
+        // open sections no longer need to be hidden to avoid overflow.
+        ['apiStatsSection', 'settingsSection'].forEach(id => {
+            document.getElementById(id).classList.add('collapsed');
+        });
 
         collapsibleSections.forEach(({ section, header }) => {
             const sectionEl = document.getElementById(section);
