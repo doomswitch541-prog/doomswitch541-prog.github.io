@@ -52,13 +52,36 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            padding: 1.5rem 4rem;
+            padding: max(0.7rem, env(safe-area-inset-top)) clamp(1.1rem, 5vw, 3rem) 0.7rem;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            gap: 0.85rem;
             background: rgba(0, 0, 0, 0.8);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
+        }
+
+        .top-nav .brand {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.18em;
+            line-height: 1.35;
+            color: rgba(240, 245, 244, 0.9);
+            text-decoration: none;
+        }
+
+        .top-nav .brand span { color: var(--emerald); }
+
+        .top-nav-date {
+            margin-left: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: rgba(180, 190, 190, 0.7);
+            white-space: nowrap;
         }
 
         .logo {
@@ -779,18 +802,9 @@
     </style>
 </head>
 <body>
-    <nav class="top-nav">
-        <div class="logo">
-            <div class="logo-icon">✦</div>
-            SOLARFLARE
-        </div>
-        <ul class="nav-links">
-            <li><a href="#features">Features</a></li>
-            <li><a href="#architecture">Architecture</a></li>
-            <li><a href="#memory">Memory</a></li>
-            <li><a href="/365/">365 Days</a></li>
-            <li><a href="solarflare-about.html">Launch App</a></li>
-        </ul>
+    <nav class="top-nav" data-archive-inbar>
+        <a class="brand" href="/365/"><span>RG</span> / SOLARFLARE / LOCAL-FIRST AI</a>
+        <time class="top-nav-date" datetime="2026-01-09">Day 8 · Jan 9, 2026</time>
     </nav>
 
     <section class="hero">

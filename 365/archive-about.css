@@ -112,6 +112,34 @@ a { color: inherit; }
     font-family: var(--mono);
 }
 
+/* Unified 365 top bar. When a page opts in via data-archive-inbar, the masthead
+   becomes a pinned frosted-glass bar spanning the viewport with its content held
+   to the same centred column. archive-nav.js drops the hamburger in as the first
+   element and publishes --archive-bar-h so the page below clears the fixed bar.
+   The glass tints with each page's own --night, so per-page character stays. */
+.about-masthead[data-archive-inbar] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    width: auto;
+    margin: 0;
+    gap: 0.85rem;
+    justify-content: flex-start;
+    padding: max(0.7rem, env(safe-area-inset-top))
+             max(1.1rem, calc((100% - 1100px) / 2 + 1rem)) 0.7rem;
+    background: color-mix(in srgb, var(--night) 78%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+    backdrop-filter: blur(18px) saturate(135%);
+}
+
+.about-masthead[data-archive-inbar] .about-date { margin-left: auto; }
+
+body.has-archive-menu-inbar .about-main {
+    padding-top: calc(var(--archive-bar-h, 4.5rem) + 1rem);
+}
+
 .about-mark {
     font-size: 0.67rem;
     letter-spacing: 0.18em;

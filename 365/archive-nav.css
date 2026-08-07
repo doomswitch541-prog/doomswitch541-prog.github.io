@@ -272,6 +272,40 @@ body.has-archive-menu-page .api-status-badge {
     left: max(0.9rem, env(safe-area-inset-left));
 }
 
+/* Families that opt into the pinned glass bar but style their masthead locally
+   (the research pages and the two .masthead pages). Neutral dark frosting; each
+   keeps its own brand + date. Content padding uses the sibling combinator so it
+   only lands on these in-flow mastheads — never the already-fixed Pass-1 bars,
+   which share the bare <main> but clear themselves. */
+.research-masthead[data-archive-inbar],
+.masthead[data-archive-inbar] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    width: auto;
+    margin: 0;
+    gap: 0.85rem;
+    justify-content: flex-start;
+    padding: max(0.7rem, env(safe-area-inset-top))
+             max(1.1rem, calc((100% - 1100px) / 2 + 1rem)) 0.7rem;
+    background: rgba(10, 11, 16, 0.74);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+    backdrop-filter: blur(18px) saturate(135%);
+}
+
+.research-masthead[data-archive-inbar] .research-date,
+.masthead[data-archive-inbar] .mast-right,
+.masthead[data-archive-inbar] > time {
+    margin-left: auto;
+}
+
+.research-masthead[data-archive-inbar] ~ .research-main,
+.masthead[data-archive-inbar] ~ main {
+    padding-top: calc(var(--archive-bar-h, 4.5rem) + 1rem);
+}
+
 @media (prefers-reduced-motion: no-preference) {
     .archive-menu,
     .archive-menu-btn span {

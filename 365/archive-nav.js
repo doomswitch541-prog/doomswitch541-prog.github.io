@@ -61,13 +61,23 @@
         });
 
         if (inbar) {
-            // Hamburger becomes the bar's leading element — plain lines, no glass
-            // of its own (the bar provides the frosting).
+            // Hamburger becomes the bar's leading element (keeps its glass-square
+            // look; the bar frosts behind it).
             btn.classList.add('archive-menu-btn--inbar');
             bar.prepend(btn);
             menu.classList.add('archive-menu--inbar');
             document.body.append(scrim, menu);
             document.body.classList.add('has-archive-menu', 'has-archive-menu-inbar');
+            // Publish the bar's height so a page whose masthead used to sit in
+            // flow can pad its content clear of the now-pinned bar.
+            const publishBarHeight = () => {
+                document.body.style.setProperty(
+                    '--archive-bar-h', `${Math.round(bar.getBoundingClientRect().height)}px`
+                );
+            };
+            publishBarHeight();
+            requestAnimationFrame(publishBarHeight);
+            window.addEventListener('resize', publishBarHeight);
         } else {
             // Floating top-left button; the masthead insets its leading edge so
             // the "RG / …" mark clears it on narrow screens.
