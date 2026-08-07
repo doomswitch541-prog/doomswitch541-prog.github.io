@@ -255,6 +255,48 @@ body.has-archive-menu-page .api-status-badge {
     }
 }
 
+/* ── Inline variant — hamburger inside a page's own frosted top bar ──────
+   The unified glass-bar pattern: the bar itself supplies the frosting, so the
+   button drops its own glass and just carries the three lines as the bar's
+   leading element. The dropdown falls just beneath the bar (JS sets the exact
+   top from the bar's measured height). */
+.archive-menu-btn--inbar {
+    position: static;
+    top: auto;
+    left: auto;
+    width: 40px;
+    height: 40px;
+    margin-left: -0.35rem;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    color: rgba(233, 240, 248, 0.9);
+    flex-shrink: 0;
+}
+
+.archive-menu-btn--inbar span {
+    background: currentColor;
+    opacity: 0.9;
+}
+
+.archive-menu-btn--inbar:hover,
+.archive-menu-btn--inbar:focus-visible {
+    border: none;
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.archive-menu-btn--inbar:focus-visible {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55), 0 0 0 4px currentColor;
+}
+
+.archive-menu--inbar {
+    top: 3.6rem;
+    left: max(0.9rem, env(safe-area-inset-left));
+}
+
 @media (prefers-reduced-motion: no-preference) {
     .archive-menu,
     .archive-menu-btn span {

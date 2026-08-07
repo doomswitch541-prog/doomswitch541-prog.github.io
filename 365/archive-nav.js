@@ -31,9 +31,24 @@
         menu.setAttribute('aria-label', 'Site');
         menu.innerHTML = links.map(([href, label]) => `<a href="${href}">${label}</a>`).join('');
 
+        // Find the page's top bar (if any). A bar tagged [data-archive-inbar]
+        // opts into the unified glass-bar pattern: the hamburger lives *inside*
+        // that frosted bar. Every other page keeps the floating top-left button
+        // whose masthead insets to clear it.
+        const isMilestone = document.querySelector('[data-archive-day]');
+        const bar = isMilestone && document.querySelector(
+            '[data-archive-inbar], .about-masthead, .research-masthead, .masthead, .topbar, .rail, .navbar, .top-nav, .container > .header'
+        );
+        const inbar = !!(bar && bar.hasAttribute('data-archive-inbar'));
+
         const setOpen = (open) => {
             document.body.classList.toggle('archive-menu-open', open);
             btn.setAttribute('aria-expanded', String(open));
+            // The frosted bar's height varies (a wrapped brand makes it taller),
+            // so drop the dropdown just beneath the bar's actual bottom edge.
+            if (open && inbar) {
+                menu.style.top = `${Math.round(bar.getBoundingClientRect().bottom + 6)}px`;
+            }
         };
 
         btn.addEventListener('click', (event) => {
@@ -45,21 +60,22 @@
             if (event.key === 'Escape') setOpen(false);
         });
 
-        // The menu sits top-left on every page, matching the /365 hub. Milestone
-        // pages carry a bespoke top masthead whose "RG / …" mark hugs the left
-        // edge on narrow screens — so we tag that masthead and inset its leading
-        // edge (CSS) just enough to clear the button. Each page keeps its own
-        // design; the mark simply starts a touch further in on mobile.
-        if (document.querySelector('[data-archive-day]')) {
-            const masthead = document.querySelector(
-                '.about-masthead, .research-masthead, .masthead, .topbar, .rail, .navbar, .top-nav, .container > .header'
-            );
-            if (masthead) masthead.classList.add('archive-menu-inset');
-            document.body.classList.add('has-archive-menu-page');
+        if (inbar) {
+            // Hamburger becomes the bar's leading element — plain lines, no glass
+            // of its own (the bar provides the frosting).
+            btn.classList.add('archive-menu-btn--inbar');
+            bar.prepend(btn);
+            menu.classList.add('archive-menu--inbar');
+            document.body.append(scrim, menu);
+            document.body.classList.add('has-archive-menu', 'has-archive-menu-inbar');
+        } else {
+            // Floating top-left button; the masthead insets its leading edge so
+            // the "RG / …" mark clears it on narrow screens.
+            if (bar) bar.classList.add('archive-menu-inset');
+            if (isMilestone) document.body.classList.add('has-archive-menu-page');
+            document.body.append(scrim, menu, btn);
+            document.body.classList.add('has-archive-menu');
         }
-
-        document.body.append(scrim, menu, btn);
-        document.body.classList.add('has-archive-menu');
     })();
 
     const pages = [

@@ -64,8 +64,9 @@
             z-index: 20;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: max(1rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-right)) 1rem max(1.2rem, env(safe-area-inset-left));
+            justify-content: flex-start;
+            gap: 0.85rem;
+            padding: max(0.85rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-right)) 0.85rem max(1.1rem, env(safe-area-inset-left));
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             background: rgba(10, 10, 15, 0.72);
             backdrop-filter: blur(18px) saturate(135%);
@@ -79,6 +80,17 @@
         }
 
         .brand span { color: var(--coral); }
+
+        .topbar-date {
+            margin-left: auto;
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            text-align: right;
+            white-space: nowrap;
+        }
 
         .topbar nav { display: flex; gap: 1.2rem; }
 
@@ -362,13 +374,9 @@
     </style>
 </head>
 <body>
-    <header class="topbar">
+    <header class="topbar" data-archive-inbar>
         <a class="brand" href="/365/"><span>RG</span> / INF / V1</a>
-        <nav aria-label="Page sections">
-            <a href="#interface">Interface</a>
-            <a href="#system">System</a>
-            <a href="/365/">365</a>
-        </nav>
+        <time class="topbar-date" datetime="2026-01-21">Day 20 · Jan 21, 2026</time>
     </header>
 
     <main>

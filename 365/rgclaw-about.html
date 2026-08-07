@@ -63,17 +63,25 @@
             z-index: 20;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: max(1rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-right)) 1rem max(1.2rem, env(safe-area-inset-left));
+            justify-content: flex-start;
+            gap: 0.85rem;
+            padding: max(0.85rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-right)) 0.85rem max(1.1rem, env(safe-area-inset-left));
             border-bottom: 1px solid var(--line);
             background: rgba(10, 10, 10, 0.78);
             backdrop-filter: blur(18px);
         }
 
-        .wordmark { color: var(--orange); font: 700 0.75rem var(--mono); letter-spacing: 0.12em; text-decoration: none; }
-        .rail nav { display: flex; gap: 1.1rem; }
-        .rail nav a { color: var(--dim); font: 0.64rem var(--mono); letter-spacing: 0.1em; text-decoration: none; text-transform: uppercase; }
-        .rail nav a:hover, .rail nav a:focus-visible { color: var(--ink); outline: none; }
+        .wordmark { color: var(--ink); font: 500 0.7rem var(--mono); letter-spacing: 0.18em; text-decoration: none; }
+        .wordmark span { color: var(--orange); }
+        .rail-date {
+            margin-left: auto;
+            color: var(--dim);
+            font: 0.6rem var(--mono);
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            text-align: right;
+            white-space: nowrap;
+        }
 
         main { padding-bottom: 7rem; }
 
@@ -313,13 +321,9 @@
     </style>
 </head>
 <body>
-    <header class="rail">
-        <a class="wordmark" href="/365/">RGCLAW 🦝</a>
-        <nav aria-label="Page sections">
-            <a href="#loop">Execution</a>
-            <a href="#tools">Tools</a>
-            <a href="/365/">365</a>
-        </nav>
+    <header class="rail" data-archive-inbar>
+        <a class="wordmark" href="/365/"><span>RG</span> / RGCLAW / LOCAL AGENT RUNNER</a>
+        <time class="rail-date" datetime="2026-02-15">Day 45 · Feb 15, 2026</time>
     </header>
 
     <main>
