@@ -45,12 +45,17 @@
             if (event.key === 'Escape') setOpen(false);
         });
 
-        // Immersive milestone pages already carry a top masthead + the bottom
-        // pagination, so the menu joins the bottom zone there; the /365 hub (no
-        // masthead) keeps it top-left, next to the header.
+        // The menu sits top-left on every page, matching the /365 hub. Milestone
+        // pages carry a bespoke top masthead whose "RG / …" mark hugs the left
+        // edge on narrow screens — so we tag that masthead and inset its leading
+        // edge (CSS) just enough to clear the button. Each page keeps its own
+        // design; the mark simply starts a touch further in on mobile.
         if (document.querySelector('[data-archive-day]')) {
-            btn.classList.add('archive-menu-btn--bottom');
-            menu.classList.add('archive-menu--bottom');
+            const masthead = document.querySelector(
+                '.about-masthead, .research-masthead, .masthead, .topbar, .rail, .navbar, .top-nav, .container > .header'
+            );
+            if (masthead) masthead.classList.add('archive-menu-inset');
+            document.body.classList.add('has-archive-menu-page');
         }
 
         document.body.append(scrim, menu, btn);

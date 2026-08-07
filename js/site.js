@@ -393,6 +393,13 @@ const HomeWeather = {
         return points[Math.round(deg / 45) % 8];
     },
 
+    // Last good reading survives a reload, so a single Open-Meteo blip never
+    // blanks the strip — we keep showing the most recent conditions instead of
+    // "Weather unavailable". Coordinates stay server-side of the readout; the UI
+    // only ever renders temperature, sky, and wind.
+    cacheKey: 'hq-weather-last',
+    attempts: 3,
+
     init() {
         this.pill = document.getElementById('weather');
         this.temp = document.getElementById('weather-temp');
@@ -405,11 +412,37 @@ const HomeWeather = {
         this.pill.removeAttribute('aria-hidden');
         this.pill.setAttribute('aria-live', 'polite');
         this.pill.title = 'HQ weather via Open-Meteo';
+        this.paint(this.readCache());   // show last-good instantly, if we have it
         this.refresh();
         setInterval(() => this.refresh(), this.refreshMs);
     },
 
-    async refresh() {
+    readCache() {
+        try {
+            const raw = localStorage.getItem(this.cacheKey);
+            const reading = raw ? JSON.parse(raw) : null;
+            return reading && Number.isFinite(reading.temperature) ? reading : null;
+        } catch { return null; }
+    },
+
+    hasReading() {
+        return this.readCache() || this.temp.textContent !== '--°';
+    },
+
+    paint(reading) {
+        if (!reading) return;
+        this.temp.textContent = `${Math.round(reading.temperature)}°`;
+        this.description.textContent = this.conditions[reading.code] || 'Current weather';
+        if (this.windText && Number.isFinite(reading.windSpeed) && Number.isFinite(reading.windDir)) {
+            const from = this.cardinal(reading.windDir);
+            this.windText.textContent = `${from} ${Math.round(reading.windSpeed)}mph`;
+            if (this.windArrow) this.windArrow.style.transform = `rotate(${(reading.windDir + 180) % 360}deg)`;
+            this.pill.title = `Wind from the ${from} at ${Math.round(reading.windSpeed)} mph — HQ weather via Open-Meteo`;
+        }
+        this.pill.classList.remove('weather-unavailable');
+    },
+
+    async fetchOnce() {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 8000);
         const params = new URLSearchParams({
@@ -421,7 +454,6 @@ const HomeWeather = {
             timezone: 'auto',
             forecast_days: '1',
         });
-
         try {
             const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
                 signal: controller.signal,
@@ -434,28 +466,37 @@ const HomeWeather = {
             if (!Number.isFinite(temperature) || !Number.isFinite(code)) {
                 throw new Error('Weather response was incomplete');
             }
-
-            this.temp.textContent = `${Math.round(temperature)}°`;
-            this.description.textContent = this.conditions[code] || 'Current weather';
-
-            const windSpeed = Number(data.current?.wind_speed_10m);
-            const windDir = Number(data.current?.wind_direction_10m);
-            if (this.windText && Number.isFinite(windSpeed) && Number.isFinite(windDir)) {
-                const from = this.cardinal(windDir);
-                this.windText.textContent = `${from} ${Math.round(windSpeed)}mph`;
-                if (this.windArrow) this.windArrow.style.transform = `rotate(${(windDir + 180) % 360}deg)`;
-                this.pill.title = `Wind from the ${from} at ${Math.round(windSpeed)} mph — HQ weather via Open-Meteo`;
-            }
-
-            this.pill.classList.remove('weather-unavailable');
-        } catch (error) {
-            this.temp.textContent = '--°';
-            this.description.textContent = 'Weather unavailable';
-            if (this.windText) this.windText.textContent = '--';
-            this.pill.classList.add('weather-unavailable');
-            console.warn('[weather] Open-Meteo unavailable', error);
+            return {
+                temperature, code,
+                windSpeed: Number(data.current?.wind_speed_10m),
+                windDir: Number(data.current?.wind_direction_10m),
+            };
         } finally {
             clearTimeout(timeout);
+        }
+    },
+
+    async refresh() {
+        for (let attempt = 1; attempt <= this.attempts; attempt++) {
+            try {
+                const reading = await this.fetchOnce();
+                this.paint(reading);
+                try { localStorage.setItem(this.cacheKey, JSON.stringify({ ...reading, at: Date.now() })); } catch {}
+                return;
+            } catch (error) {
+                if (attempt < this.attempts) {
+                    await new Promise(resolve => setTimeout(resolve, 1500 * attempt));
+                    continue;
+                }
+                console.warn('[weather] Open-Meteo unavailable', error);
+                // A blip after we already had a reading leaves the last-good one
+                // on screen. Only blank out when there's genuinely nothing to show.
+                if (this.hasReading()) return;
+                this.temp.textContent = '--°';
+                this.description.textContent = 'Weather unavailable';
+                if (this.windText) this.windText.textContent = '--';
+                this.pill.classList.add('weather-unavailable');
+            }
         }
     },
 };

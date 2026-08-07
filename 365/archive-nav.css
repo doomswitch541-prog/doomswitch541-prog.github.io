@@ -225,18 +225,34 @@ body.archive-menu-open .archive-menu-btn span:nth-child(1) { transform: translat
 body.archive-menu-open .archive-menu-btn span:nth-child(2) { opacity: 0; }
 body.archive-menu-open .archive-menu-btn span:nth-child(3) { transform: translateY(-5.6px) rotate(-45deg); }
 
-/* Milestone pages: the menu drops to the bottom-left, joining the pagination
-   zone and clearing every page's top masthead. Opens upward. */
-.archive-menu-btn--bottom {
-    top: auto;
-    bottom: max(0.9rem, env(safe-area-inset-bottom));
+/* Milestone pages keep the menu top-left (like the /365 hub). Each page has its
+   own top masthead with an "RG / …" mark on the left; on narrow screens that
+   mark hugs the edge and would sit under the button, so we inset its leading
+   edge just enough to clear it. Centered desktop bars already clear the corner,
+   so the inset only applies on mobile. Nothing else about the design moves. */
+body.has-archive-menu-page .archive-menu-inset {
+    padding-left: 4.5rem;
 }
 
-.archive-menu--bottom {
-    top: auto;
-    bottom: calc(max(0.9rem, env(safe-area-inset-bottom)) + 3.25rem);
-    transform-origin: bottom left;
-    transform: translateY(8px) scale(0.98);
+@media (min-width: 760px) {
+    body.has-archive-menu-page .archive-menu-inset {
+        padding-left: 0;
+    }
+}
+
+/* A handful of pages float their own status chip or day counter in that same
+   top-left corner instead of a masthead mark, so we shift those clear of the
+   button as well. The NERV terminals (day9/day10) and the Lahey demo share
+   .api-status-badge; day6's weather HUD flows its day counter to the top-left
+   on mobile. Their own position stays — we only add the gap the button needs. */
+body.has-archive-menu-page .api-status-badge {
+    margin-left: 3.4rem;
+}
+
+@media (max-width: 759px) {
+    body.has-archive-menu-page .day-number {
+        padding-left: 4rem;
+    }
 }
 
 @media (prefers-reduced-motion: no-preference) {
