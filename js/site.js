@@ -37,6 +37,7 @@ const SiteNavigation = {
         ]},
         { label: 'TBP', href: '/tbp', links: [
             ['/tbp/lahey', 'The Liquor Weather Report'],
+            ['/tbp/rickyisms', 'Rickyisms'],
         ]},
     ],
 
