@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#090706">
+    <title>After-Hours Switchboard — Day 219</title>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+    <style>
+        :root {
+            color-scheme: dark;
+            --night: #090706;
+            --case: #15110e;
+            --face: #201a15;
+            --face-deep: #100d0b;
+            --brass: #b18a4d;
+            --brass-pale: #d4b77d;
+            --amber: #e3a64b;
+            --amber-hot: #ffd185;
+            --oxblood: #54211e;
+            --ivory: #ded1b3;
+            --ink: #302a22;
+            --muted: #8e806b;
+            --cord: #6e2b25;
+            --focus: #ffe0a1;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { min-width: 320px; background: var(--night); }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 50% 18%, rgba(95, 61, 30, 0.12), transparent 34rem),
+                linear-gradient(180deg, #0b0907 0%, #070605 100%);
+            color: var(--ivory);
+            font-family: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
+        }
+
+        button, select { font: inherit; }
+        button { -webkit-tap-highlight-color: transparent; }
+
+        a:focus-visible,
+        button:focus-visible,
+        select:focus-visible,
+        summary:focus-visible {
+            outline: 2px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        .archive-topbar { --archive-accent: var(--amber); }
+
+        main.switchboard-stage {
+            width: min(100%, 76rem);
+            margin: 0 auto;
+            padding-right: max(0.75rem, env(safe-area-inset-right));
+            padding-bottom: calc(7.4rem + env(safe-area-inset-bottom));
+            padding-left: max(0.75rem, env(safe-area-inset-left));
+        }
+
+        .room-title {
+            max-width: 54rem;
+            margin: 1.15rem auto 1rem;
+            text-align: center;
+        }
+
+        .room-title p {
+            margin: 0 0 0.45rem;
+            color: #756a5b;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+
+        .room-title h1 {
+            margin: 0;
+            color: #c5b89e;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1.35rem, 4vw, 2.35rem);
+            font-weight: 400;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        .room-title h1 span {
+            display: block;
+            margin-top: 0.18rem;
+            color: var(--amber);
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.5em;
+            letter-spacing: 0.36em;
+        }
+
+        .board {
+            position: relative;
+            isolation: isolate;
+            width: min(100%, 66rem);
+            min-height: 38rem;
+            margin: 0 auto;
+            padding: clamp(1rem, 2.5vw, 1.6rem);
+            border: 1px solid #3b2c20;
+            border-radius: 1.15rem;
+            background:
+                linear-gradient(100deg, transparent 0 48%, rgba(255,255,255,0.018) 49%, transparent 50%),
+                repeating-linear-gradient(92deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 13px),
+                linear-gradient(145deg, #251d17, #17120f 58%, #0e0b09);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 226, 170, 0.08),
+                inset 0 0 0 0.45rem #0e0b09,
+                inset 0 0 0 0.52rem #35261b,
+                0 1.5rem 4rem rgba(0, 0, 0, 0.55);
+        }
+
+        .board::before,
+        .board::after {
+            content: "";
+            position: absolute;
+            z-index: 5;
+            width: 0.42rem;
+            height: 0.42rem;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #9d7a45, #392918 60%, #110d09);
+            box-shadow: 0 0 0 1px #0b0907;
+        }
+
+        .board::before { top: 0.72rem; left: 0.72rem; }
+        .board::after { right: 0.72rem; bottom: 0.72rem; }
+
+        .board-head {
+            position: relative;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-height: 3.5rem;
+            margin-bottom: 1rem;
+            padding: 0.62rem 0.75rem;
+            border: 1px solid #392b21;
+            border-radius: 0.55rem;
+            background: linear-gradient(#17120f, #0f0c0a);
+            box-shadow: inset 0 1px rgba(255,255,255,0.025);
+        }
+
+        .exchange-mark {
+            min-width: 0;
+            color: var(--brass-pale);
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.63rem;
+            letter-spacing: 0.16em;
+            line-height: 1.45;
+            text-transform: uppercase;
+        }
+
+        .exchange-mark small {
+            display: block;
+            color: #776957;
+            font-size: 0.52rem;
+            letter-spacing: 0.12em;
+        }
+
+        .shift-counter {
+            margin-left: auto;
+            color: #95836a;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.12em;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .controls-button {
+            flex: 0 0 auto;
+            width: 2.75rem;
+            height: 2.75rem;
+            padding: 0;
+            border: 1px solid #6c5432;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, #201812 0 35%, transparent 37%),
+                conic-gradient(from 0deg, #3e2d1d, #a27d45, #3e2d1d, #8d6d3e, #3e2d1d);
+            color: #dac18c;
+            box-shadow: inset 0 0 0 0.35rem #14100d, 0 2px 5px #050403;
+            cursor: pointer;
+        }
+
+        .controls-button span { display: block; transform: translateY(-0.03rem); font-size: 1rem; }
+
+        .board-grid {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: minmax(15rem, 0.92fr) minmax(18rem, 1.25fr);
+            gap: 1rem;
+        }
+
+        .panel {
+            position: relative;
+            min-width: 0;
+            border: 1px solid #3a2b21;
+            border-radius: 0.7rem;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.018), transparent 35%),
+                #120f0c;
+            box-shadow: inset 0 0 1.7rem rgba(0,0,0,0.48);
+        }
+
+        .panel-label {
+            position: absolute;
+            top: -0.47rem;
+            left: 50%;
+            z-index: 3;
+            margin: 0;
+            padding: 0.14rem 0.65rem;
+            border: 1px solid #705837;
+            border-radius: 0.16rem;
+            background: #17110d;
+            color: #b79b68;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.5rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .incoming-panel {
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            gap: 0.85rem;
+            min-height: 28rem;
+            padding: 1.35rem 1rem 1rem;
+        }
+
+        .line-state {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            min-height: 1.25rem;
+            color: #766b5c;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .state-lamp {
+            width: 0.67rem;
+            height: 0.67rem;
+            flex: 0 0 auto;
+            border: 1px solid #3e301f;
+            border-radius: 50%;
+            background: #211810;
+            box-shadow: inset 0 0.08rem 0.18rem #080605;
+        }
+
+        .board.is-ringing .state-lamp {
+            border-color: #a36e2b;
+            background: var(--amber-hot);
+            box-shadow: 0 0 0.55rem var(--amber), 0 0 1.3rem rgba(227,166,75,0.44);
+        }
+
+        .board.is-ringing .line-state { color: var(--amber-hot); }
+
+        .call-slip {
+            position: relative;
+            min-height: 9.4rem;
+            padding: 1rem 1.05rem 1.1rem;
+            overflow: hidden;
+            border: 1px solid #82745b;
+            border-radius: 0.12rem;
+            background:
+                linear-gradient(90deg, transparent 0 1.25rem, rgba(130,65,54,0.17) 1.28rem 1.31rem, transparent 1.34rem),
+                repeating-linear-gradient(180deg, transparent 0 1.55rem, rgba(70,80,72,0.13) 1.57rem 1.61rem),
+                #d7c9aa;
+            color: var(--ink);
+            box-shadow: 0 0.45rem 0.75rem rgba(0,0,0,0.33);
+            transform: rotate(-0.35deg);
+        }
+
+        .call-slip::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(105deg, rgba(255,255,255,0.2), transparent 28%, rgba(90,65,40,0.04));
+        }
+
+        .caller-name {
+            position: relative;
+            z-index: 1;
+            margin: 0 0 0.55rem;
+            color: #6f3027;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.56rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .caller-line {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+            font-size: clamp(0.83rem, 2.1vw, 1rem);
+            line-height: 1.62;
+        }
+
+        .call-slip.is-idle .caller-name { color: #776d59; }
+        .call-slip.is-idle .caller-line { color: #6d6556; font-style: italic; }
+
+        .input-bank {
+            display: grid;
+            place-items: center;
+            align-self: end;
+            min-height: 8rem;
+            padding-top: 0.25rem;
+        }
+
+        .jack-wrap { display: grid; justify-items: center; gap: 0.5rem; }
+
+        .jack-label {
+            color: #93836c;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.52rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .jack {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 4.35rem;
+            height: 4.35rem;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, #080706 0 19%, #2b2119 20% 31%, #7c6037 32% 34%, #17110e 35% 52%, #4e3b27 53% 56%, #120e0b 57%);
+            color: #baa477;
+            box-shadow: inset 0 -0.2rem 0.4rem #050403, 0 0.25rem 0.55rem #050403;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .jack::before {
+            content: "";
+            position: absolute;
+            inset: 0.36rem;
+            border: 1px solid rgba(205,165,96,0.18);
+            border-radius: 50%;
+        }
+
+        .jack:disabled { cursor: default; opacity: 0.48; }
+
+        .input-jack.is-ready {
+            box-shadow: inset 0 -0.2rem 0.4rem #050403, 0 0 0 0.15rem rgba(227,166,75,0.15), 0 0 1.2rem rgba(227,166,75,0.18);
+        }
+
+        .input-jack.is-open {
+            background:
+                radial-gradient(circle, #090706 0 19%, #3b1714 20% 31%, #c69a52 32% 34%, #211612 35% 52%, #755638 53% 56%, #120e0b 57%);
+        }
+
+        .destinations-panel {
+            min-height: 28rem;
+            padding: 1.35rem 1rem 1rem;
+        }
+
+        .destination-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+
+        .destination {
+            display: grid;
+            grid-template-columns: 3.7rem 1fr;
+            align-items: center;
+            gap: 0.6rem;
+            min-width: 0;
+            min-height: 6.15rem;
+            padding: 0.55rem;
+            border: 1px solid #33271e;
+            border-radius: 0.48rem;
+            background: linear-gradient(135deg, #19130f, #0d0b09);
+        }
+
+        .destination:last-child { grid-column: 1 / -1; }
+
+        .destination .jack {
+            width: 3.45rem;
+            height: 3.45rem;
+        }
+
+        .destination-copy { min-width: 0; overflow: hidden; }
+
+        .destination-name {
+            display: block;
+            color: #c2aa7c;
+            font-size: 0.63rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            line-height: 1.35;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+        }
+
+        .destination-extension {
+            display: block;
+            margin-top: 0.28rem;
+            color: #685e51;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.49rem;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+        }
+
+        .destination .jack:not(:disabled):hover,
+        .destination .jack:not(:disabled):focus-visible {
+            filter: brightness(1.25);
+        }
+
+        .cord-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            pointer-events: none;
+        }
+
+        .cord-shadow,
+        .cord-line,
+        .cord-thread { fill: none; stroke-linecap: round; }
+        .cord-shadow { stroke: rgba(0,0,0,0.62); stroke-width: 11; transform: translateY(3px); }
+        .cord-line { stroke: var(--cord); stroke-width: 8; }
+        .cord-thread { stroke: #9a5143; stroke-width: 1.15; stroke-dasharray: 2 5; opacity: 0.68; }
+
+        .response-tray {
+            position: relative;
+            z-index: 4;
+            min-height: 7.6rem;
+            margin-top: 1rem;
+            padding: 0.85rem 1rem 0.9rem 1.15rem;
+            border: 1px solid #4a3b2b;
+            border-radius: 0.22rem;
+            background:
+                repeating-linear-gradient(180deg, transparent 0 1.55rem, rgba(87,73,50,0.14) 1.57rem 1.6rem),
+                #d9cbaa;
+            color: var(--ink);
+            box-shadow: inset 0.35rem 0 0 #7a3b30, 0 0.45rem 1rem rgba(0,0,0,0.35);
+            transform: rotate(0.15deg);
+        }
+
+        .response-label {
+            margin: 0 0 0.35rem;
+            color: #7b3a30;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.52rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .response-text {
+            margin: 0;
+            font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+            font-size: clamp(0.78rem, 1.8vw, 0.94rem);
+            line-height: 1.62;
+        }
+
+        .shift-ending {
+            position: relative;
+            z-index: 4;
+            display: none;
+            margin-top: 1rem;
+            padding: 1.2rem;
+            border: 1px solid #6e5330;
+            border-radius: 0.55rem;
+            background: #130f0c;
+            text-align: center;
+        }
+
+        .board.is-complete .shift-ending { display: block; }
+        .board.is-complete .response-tray { display: none; }
+
+        .shift-ending small {
+            color: #8e7858;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.55rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .shift-ending h2 {
+            margin: 0.55rem 0 0.55rem;
+            color: var(--brass-pale);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.35rem;
+            font-weight: 400;
+        }
+
+        .shift-ending p {
+            max-width: 42rem;
+            margin: 0 auto;
+            color: #a99c84;
+            font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+
+        .ending-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 1rem;
+        }
+
+        .board-action,
+        .sheet-action {
+            min-height: 2.65rem;
+            padding: 0.62rem 0.85rem;
+            border: 1px solid #735a37;
+            border-radius: 0.35rem;
+            background: #1b1511;
+            color: #d4bd91;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .board-action:hover,
+        .sheet-action:hover { border-color: var(--amber); color: var(--amber-hot); }
+
+        dialog {
+            width: min(calc(100% - 1.5rem), 29rem);
+            max-height: min(82vh, 44rem);
+            margin: auto;
+            padding: 0;
+            overflow: auto;
+            border: 1px solid #6b5130;
+            border-radius: 0.7rem;
+            background: #17120f;
+            color: #cfc1a5;
+            box-shadow: 0 1.5rem 5rem #000;
+        }
+
+        dialog::backdrop { background: rgba(3,2,2,0.78); backdrop-filter: blur(3px); }
+
+        .sheet-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #3c2e23;
+            background: rgba(23,18,15,0.96);
+        }
+
+        .sheet-head h2 {
+            margin: 0;
+            color: var(--brass-pale);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.05rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+        }
+
+        .sheet-close {
+            width: 2.5rem;
+            height: 2.5rem;
+            margin-left: auto;
+            padding: 0;
+            border: 1px solid #4c3a29;
+            border-radius: 50%;
+            background: #100d0b;
+            color: #b9a98c;
+            cursor: pointer;
+        }
+
+        .sheet-body { padding: 1rem; }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #30251d;
+        }
+
+        .control-row strong {
+            display: block;
+            color: #d1c09f;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .control-row small {
+            display: block;
+            max-width: 17rem;
+            margin-top: 0.2rem;
+            color: #7f7464;
+            font-size: 0.68rem;
+            line-height: 1.45;
+        }
+
+        .toggle {
+            min-width: 5.2rem;
+            min-height: 2.5rem;
+            padding: 0.5rem 0.65rem;
+            border: 1px solid #604a2f;
+            border-radius: 999px;
+            background: #0e0b09;
+            color: #a99a80;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.56rem;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .toggle[aria-pressed="true"] {
+            border-color: #ad7a39;
+            color: var(--amber-hot);
+            box-shadow: inset 0 0 0.7rem rgba(227,166,75,0.12);
+        }
+
+        details.inside {
+            margin-top: 1rem;
+            border: 1px solid #3c2e22;
+            border-radius: 0.5rem;
+            background: #100d0b;
+        }
+
+        details.inside summary {
+            padding: 0.85rem;
+            color: #c7ad7a;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .inside-copy {
+            padding: 0 0.85rem 0.85rem;
+            color: #928571;
+            font-size: 0.73rem;
+            line-height: 1.65;
+        }
+
+        .inside-copy p { margin: 0 0 0.7rem; }
+        .inside-copy p:last-child { margin-bottom: 0; }
+        .inside-copy strong { color: #c7b48f; }
+
+        .restart-row { padding-top: 1rem; text-align: right; }
+
+        .log-list {
+            display: grid;
+            gap: 0.6rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            counter-reset: calls;
+        }
+
+        .log-list li {
+            counter-increment: calls;
+            position: relative;
+            padding: 0.75rem 0.75rem 0.75rem 2.45rem;
+            border: 1px solid #493726;
+            border-radius: 0.35rem;
+            background: #100d0b;
+            color: #b8aa90;
+            font-size: 0.73rem;
+            line-height: 1.5;
+        }
+
+        .log-list li::before {
+            content: counter(calls, decimal-leading-zero);
+            position: absolute;
+            left: 0.7rem;
+            color: #9a7340;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+        }
+
+        .log-list strong { color: #d1bd95; }
+        .route-mark { color: var(--amber); font-family: ui-monospace, monospace; }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 700px) {
+            .room-title { margin-top: 0.85rem; }
+            .board { min-height: 0; padding: 0.85rem; border-radius: 0.85rem; }
+            .board-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .incoming-panel { min-height: 23.5rem; }
+            .destinations-panel { min-height: 0; }
+            .destination { min-height: 5.75rem; }
+            .cord-layer { z-index: 6; }
+        }
+
+        @media (min-width: 701px) {
+            .room-title { margin-top: 0.55rem; margin-bottom: 0.65rem; }
+            .incoming-panel,
+            .destinations-panel { min-height: 23.25rem; }
+            .response-tray { min-height: 6.8rem; }
+        }
+
+        @media (max-width: 390px) {
+            .archive-topbar .brand { font-size: 0.58rem; letter-spacing: 0.1em; }
+            .archive-topbar-date { font-size: 0.5rem; letter-spacing: 0.06em; }
+            .board { padding: 0.65rem; box-shadow: inset 0 0 0 0.32rem #0e0b09, inset 0 0 0 0.38rem #35261b, 0 1rem 2.5rem #000; }
+            .board-head { padding: 0.55rem; }
+            .exchange-mark { font-size: 0.55rem; }
+            .shift-counter { font-size: 0.5rem; letter-spacing: 0.08em; }
+            .incoming-panel, .destinations-panel { padding-inline: 0.72rem; }
+            .destination-grid { gap: 0.55rem; }
+            .destination { grid-template-columns: 3.15rem 1fr; gap: 0.35rem; min-height: 5.45rem; padding: 0.38rem; }
+            .destination .jack { width: 2.95rem; height: 2.95rem; }
+            .destination-name { font-size: 0.54rem; letter-spacing: 0.07em; }
+            .destination-extension { font-size: 0.44rem; letter-spacing: 0.07em; }
+            .response-tray { padding-inline: 0.85rem 0.7rem; }
+        }
+
+        @media (max-width: 340px) {
+            .archive-topbar .brand { font-size: 0.6rem; letter-spacing: 0.12em; }
+            .archive-topbar-date { font-size: 0.51rem; letter-spacing: 0.08em; }
+            .exchange-mark small { display: none; }
+            .destination-grid { grid-template-columns: 1fr; }
+            .destination:last-child { grid-column: auto; }
+        }
+
+        .board.motion-full.is-ringing .state-lamp { animation: lamp-ring 0.92s steps(2, end) infinite; }
+        .board.motion-full .cord-line,
+        .board.motion-full .cord-thread { animation: cable-settle 260ms ease-out both; }
+        .board.motion-full .response-tray.is-new { animation: slip-arrive 260ms ease-out both; }
+
+        @keyframes lamp-ring { 50% { filter: brightness(0.55); } }
+        @keyframes cable-settle { from { stroke-dashoffset: 35; opacity: 0.2; } }
+        @keyframes slip-arrive { from { opacity: 0; transform: translateY(0.45rem) rotate(0.15deg); } }
+    </style>
+</head>
+<body>
+    <nav class="archive-topbar" data-archive-inbar style="--archive-accent:#e3a64b" aria-label="Archive page header">
+        <a class="brand" href="/365/"><span>RG</span> / AFTER-HOURS</a>
+        <time class="archive-topbar-date" datetime="2026-08-08" aria-label="Day 219, August 8, 2026">Day 219 · Aug 08</time>
+    </nav>
+
+    <main class="switchboard-stage">
+        <header class="room-title">
+            <p>Night exchange · unattended departments</p>
+            <h1>After-Hours Switchboard <span>Operator on duty</span></h1>
+        </header>
+
+        <section class="board" id="switchboard" aria-label="After-hours telephone switchboard">
+            <div class="board-head">
+                <div class="exchange-mark">Mythic Exchange 04
+                    <small>Long-distance, below-ground &amp; lunar</small>
+                </div>
+                <div class="shift-counter" id="shiftCounter">Call 0 of 5</div>
+                <button class="controls-button" id="controlsButton" type="button" aria-label="Open switchboard controls" aria-haspopup="dialog">
+                    <span aria-hidden="true">⚙</span>
+                </button>
+            </div>
+
+            <div class="board-grid" id="boardGrid">
+                <section class="panel incoming-panel" aria-labelledby="incomingLabel">
+                    <h2 class="panel-label" id="incomingLabel">Incoming line</h2>
+                    <div class="line-state" id="lineState"><span class="state-lamp" aria-hidden="true"></span><span id="lineStateText">Waiting after midnight</span></div>
+                    <article class="call-slip is-idle" id="callSlip" aria-live="assertive" aria-atomic="true">
+                        <p class="caller-name" id="callerName">Night operator</p>
+                        <p class="caller-line" id="callerLine">The board is quiet. A lamp will announce the first caller.</p>
+                    </article>
+                    <div class="input-bank">
+                        <div class="jack-wrap">
+                            <span class="jack-label">Line 04 · Answer first</span>
+                            <button class="jack input-jack" id="inputJack" type="button" disabled aria-describedby="inputHint">
+                                <span class="sr-only">Answer ringing incoming line</span>
+                            </button>
+                            <span class="sr-only" id="inputHint">When this line rings, answer it before choosing a department.</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel destinations-panel" aria-labelledby="destinationLabel">
+                    <h2 class="panel-label" id="destinationLabel">Department trunks</h2>
+                    <div class="destination-grid">
+                        <div class="destination">
+                            <button class="jack destination-jack" type="button" data-route="lost" disabled aria-label="Connect to Lost and Found"></button>
+                            <span class="destination-copy"><span class="destination-name">Lost &amp; Found</span><span class="destination-extension">Ext. 13 · objects, names, echoes</span></span>
+                        </div>
+                        <div class="destination">
+                            <button class="jack destination-jack" type="button" data-route="transit" disabled aria-label="Connect to Night Transit"></button>
+                            <span class="destination-copy"><span class="destination-name">Night Transit</span><span class="destination-extension">Ext. 22 · ferries, roads, thresholds</span></span>
+                        </div>
+                        <div class="destination">
+                            <button class="jack destination-jack" type="button" data-route="omens" disabled aria-label="Connect to Omens and Appeals"></button>
+                            <span class="destination-copy"><span class="destination-name">Omens &amp; Appeals</span><span class="destination-extension">Ext. 31 · prophecy corrections</span></span>
+                        </div>
+                        <div class="destination">
+                            <button class="jack destination-jack" type="button" data-route="tides" disabled aria-label="Connect to Tides and Orbits"></button>
+                            <span class="destination-copy"><span class="destination-name">Tides &amp; Orbits</span><span class="destination-extension">Ext. 46 · moons, stars, weather</span></span>
+                        </div>
+                        <div class="destination">
+                            <button class="jack destination-jack" type="button" data-route="relay" disabled aria-label="Connect to Message Relay"></button>
+                            <span class="destination-copy"><span class="destination-name">Message Relay</span><span class="destination-extension">Ext. 88 · gods, mortals, undeliverable</span></span>
+                        </div>
+                    </div>
+                </section>
+
+                <svg class="cord-layer" id="cordLayer" aria-hidden="true" preserveAspectRatio="none">
+                    <path class="cord-shadow" id="cordShadow"></path>
+                    <path class="cord-line" id="cordLine"></path>
+                    <path class="cord-thread" id="cordThread"></path>
+                </svg>
+            </div>
+
+            <section class="response-tray" id="responseTray" aria-live="polite" aria-atomic="true">
+                <p class="response-label">Operator's pad</p>
+                <p class="response-text" id="responseText">Answer the lit line, then patch it to one department. The exchange accepts intuition and clerical accidents.</p>
+            </section>
+
+            <section class="shift-ending" id="shiftEnding" aria-live="polite">
+                <small>Five calls cleared · exchange closed</small>
+                <h2 id="endingTitle">Shift complete</h2>
+                <p id="endingText"></p>
+                <div class="ending-actions">
+                    <button class="board-action" id="reviewLogButton" type="button">Review five-line log</button>
+                    <button class="board-action" id="endingRestartButton" type="button">Restart shift</button>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <dialog id="controlsDialog" aria-labelledby="controlsTitle">
+        <div class="sheet-head">
+            <h2 id="controlsTitle">Switchboard controls</h2>
+            <button class="sheet-close" type="button" data-close-dialog="controlsDialog" aria-label="Close controls">×</button>
+        </div>
+        <div class="sheet-body">
+            <div class="control-row">
+                <span><strong>Sound</strong><small>Restrained rings, plugs, relays, and a low line hum. Off by default.</small></span>
+                <button class="toggle" id="soundToggle" type="button" aria-pressed="false">Off</button>
+            </div>
+            <div class="control-row">
+                <span><strong>Pace</strong><small>Changes the interval chosen after the next line is cleared.</small></span>
+                <button class="toggle" id="paceToggle" type="button" aria-pressed="false">Normal</button>
+            </div>
+            <div class="control-row">
+                <span><strong>Motion</strong><small>Reduces lamp pulsing and cable-settling movement.</small></span>
+                <button class="toggle" id="motionToggle" type="button" aria-pressed="true">Full</button>
+            </div>
+
+            <details class="inside">
+                <summary>Inside the Board</summary>
+                <div class="inside-copy">
+                    <p>Every caller, destination response, and shift closing is written into this page. Nothing is generated, fetched, or assembled from phrase pieces. The board makes no network requests.</p>
+                    <p>Four complete five-call decks rotate over eight nights. Each deck stays on duty for two local calendar nights. Normal calls arrive about every 9–26 seconds; Quick uses about 3–9 seconds. The first call arrives sooner.</p>
+                    <p>Settings and this five-call shift stay in local browser storage when it is available. Leaving the tab pauses an unanswered timer; returning schedules a fresh interval.</p>
+                    <p><strong id="windowDescription">Loading the night ledger…</strong></p>
+                </div>
+            </details>
+
+            <div class="restart-row">
+                <button class="sheet-action" id="restartButton" type="button">Restart current shift</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="logDialog" aria-labelledby="logTitle">
+        <div class="sheet-head">
+            <h2 id="logTitle">Five-line operator log</h2>
+            <button class="sheet-close" type="button" data-close-dialog="logDialog" aria-label="Close operator log">×</button>
+        </div>
+        <div class="sheet-body">
+            <ol class="log-list" id="logList"></ol>
+        </div>
+    </dialog>
+
+    <nav data-archive-day="219" aria-label="365 Days navigation"></nav>
+
+    <script>
+        (() => {
+            'use strict';
+
+            const DESTINATIONS = {
+                lost: 'Lost & Found',
+                transit: 'Night Transit',
+                omens: 'Omens & Appeals',
+                tides: 'Tides & Orbits',
+                relay: 'Message Relay'
+            };
+
+            const CALL_DECKS = [
+                {
+                    name: 'Acheron Desk',
+                    calls: [
+                        {
+                            caller: 'Charon, lower landing',
+                            line: 'Evening. Somebody paid with a laundromat token and now the boat keeps circling the rinse cycle. Which office handles counterfeit passage?',
+                            correct: 'transit',
+                            routes: {
+                                lost: 'Lost & Found asks Charon to describe the missing obol. He says, “Round, cold, and full of consequences.” They open a drawer containing forty-seven exact matches.',
+                                transit: 'Night Transit validates the laundromat token for one crossing and adds a note: NO SPIN CYCLE. Charon grunts approval and the dead form a tidier queue.',
+                                omens: 'Omens & Appeals reads the token as a sign that someone is avoiding a difficult wash. Charon says that may be everyone and hangs on thoughtfully.',
+                                tides: 'Tides & Orbits redirects the boat into a soft lunar current. Three shades arrive early and one returns with a sock that vanished in 1998.',
+                                relay: 'Message Relay sends the token’s serial number to every mint, temple, and corner shop. A laundromat in Thessaly replies, “Tell the ferryman he still owes us a quarter.”'
+                            }
+                        },
+                        {
+                            caller: 'Ariadne, corridor services',
+                            line: 'My thread came back from the labyrinth with a knot in it that I did not tie. It is humming in the voice of a small bull. Please advise.',
+                            correct: 'lost',
+                            routes: {
+                                lost: 'Lost & Found recognizes the knot as a misplaced lullaby. They tease it loose, label it MINOAN / GENTLE, and return the thread purring.',
+                                transit: 'Night Transit assigns the thread a platform number. It departs into the labyrinth and comes back with six commuters and a very apologetic minotaur.',
+                                omens: 'Omens & Appeals declares the knot favorable for picnics, disastrous for architecture. Ariadne writes this down beside a sketch of an exit.',
+                                tides: 'Tides & Orbits dips the thread in moonlight. It now points toward the sea at high tide and toward the nearest pastry at low tide.',
+                                relay: 'Message Relay puts the humming through to Crete. A bull calf answers, listens for a moment, and says, “That is my mother’s song.”'
+                            }
+                        },
+                        {
+                            caller: 'Cassandra, priority line',
+                            line: 'My prophecies are being marked as promotional mail. Troy has unsubscribed twice. I need a human review, or at least a human-adjacent one.',
+                            correct: 'omens',
+                            routes: {
+                                lost: 'Lost & Found locates her credibility behind a cabinet where Apollo dropped it years ago. It is dusty, furious, and still perfectly usable.',
+                                transit: 'Night Transit puts the warning on the express route. It arrives yesterday, where everyone agrees to deal with it tomorrow.',
+                                omens: 'Omens & Appeals removes Cassandra from the promotional list and stamps every future warning CERTIFIED INCONVENIENT. Troy’s inbox begins to smoke politely.',
+                                tides: 'Tides & Orbits schedules the next prophecy for an eclipse, when open rates are strongest. Cassandra hates the strategy and admits it may work.',
+                                relay: 'Message Relay reads the warning aloud to the city. The line goes quiet, then one gatekeeper whispers, “Could you resend with a shorter subject?”'
+                            }
+                        },
+                        {
+                            caller: 'Selene, eastbound sky',
+                            line: 'The moon has developed a squeak just past the second cloud. Endymion says he can sleep through it. I cannot.',
+                            correct: 'tides',
+                            routes: {
+                                lost: 'Lost & Found produces a tin of ancient axle grease labeled FOR CELESTIAL USE ONLY. Inside is one silver moth and excellent instructions.',
+                                transit: 'Night Transit offers a quieter route over the mountains. The moon takes it once and wakes every owl in Lydia.',
+                                omens: 'Omens & Appeals classifies the squeak as a minor portent: expect shy confessions and one loose garden gate before dawn.',
+                                tides: 'Tides & Orbits sends a mechanic up the next beam with a brass oilcan. The squeak stops; the sea settles by half an inch.',
+                                relay: 'Message Relay calls Endymion. He wakes, says “I heard nothing,” and immediately falls asleep with the receiver on his chest.'
+                            }
+                        },
+                        {
+                            caller: 'Hermes, moving rapidly',
+                            line: 'I have an undeliverable message addressed to myself, sent tomorrow, signature required. This feels personal.',
+                            correct: 'relay',
+                            routes: {
+                                lost: 'Lost & Found checks the return address and discovers it belongs to a road that disappears whenever named. Hermes smiles as if introduced to a rival.',
+                                transit: 'Night Transit gives the envelope its own pair of sandals. It overtakes Hermes at the next crossroads and waits there looking smug.',
+                                omens: 'Omens & Appeals opens a case under SELF-DELIVERY / PARADOX. The ruling says Hermes must surprise himself before sunrise.',
+                                tides: 'Tides & Orbits holds the message until Mercury is visible. Roman Hermes signs for Greek Hermes; both dispute the mileage.',
+                                relay: 'Message Relay loops the call through tomorrow. Hermes hears his own voice say, “Leave it under the stone.” He knows exactly which stone and sounds annoyed.'
+                            }
+                        }
+                    ],
+                    closings: {
+                        clear: { title: 'All circuits true', text: 'Five lamps went dark in their proper order. Somewhere below, a ferry keeps its schedule; somewhere above, the moon turns without a squeak. The board warms your hands for another minute, grateful in its old mechanical way.' },
+                        wandering: { title: 'A useful amount of static', text: 'Most callers reached the office they expected. The others reached the office they needed to argue with. At this hour the difference is mostly paperwork, and the exchange records a respectable shift.' },
+                        crossed: { title: 'The lines chose their own night', text: 'Every department received somebody surprising. By dawn, prophecy has a transit pass, the moon owns a forwarding address, and Lost & Found is caring for a boat. The board considers this a kind of success.' }
+                    }
+                },
+                {
+                    name: 'Backward Road',
+                    calls: [
+                        {
+                            caller: 'Orpheus, stairwell B',
+                            line: 'I need the route out again. Please remove every mirror, polished spoon, and person saying “almost there.”',
+                            correct: 'transit',
+                            routes: {
+                                lost: 'Lost & Found offers Orpheus a box of things people nearly kept. He finds one unplayed chord inside and carries it carefully upstairs.',
+                                transit: 'Night Transit closes the mirrors, wraps the spoons, and issues a route marked EYES FRONT / HEART ALLOWED. The stairwell begins counting upward.',
+                                omens: 'Omens & Appeals says the path is favorable if no lyre string breaks. One string immediately breaks, then ties itself back together out of embarrassment.',
+                                tides: 'Tides & Orbits lends him the dark side of the moon as a blindfold. It smells faintly of dust and cold iron.',
+                                relay: 'Message Relay places Eurydice on the line. Neither speaks. The silence between them makes it one landing farther than last time.'
+                            }
+                        },
+                        {
+                            caller: 'Echo, north ravine',
+                            line: 'I have lost the end of a sentence. Sentence. It was the part that belonged only to me. Me.',
+                            correct: 'lost',
+                            routes: {
+                                lost: 'Lost & Found checks a shelf of abandoned endings and finds hers curled inside a shell. Echo says it once, softly, and the ravine keeps quiet.',
+                                transit: 'Night Transit sends the sentence around the mountain. It returns longer, carrying two hikers, a goat bell, and somebody else’s goodbye.',
+                                omens: 'Omens & Appeals declares the missing ending an auspicious blank. Echo replies, “Blank,” with magnificent contempt.',
+                                tides: 'Tides & Orbits lets the sea finish the sentence. The answer arrives in foam and refuses to repeat itself.',
+                                relay: 'Message Relay disconnects the return channel for three seconds. Echo uses them to say her own name without anybody giving it back.'
+                            }
+                        },
+                        {
+                            caller: 'Tiresias, private number',
+                            line: 'The birds delivered two omens, one tragic and one about soup. I suspect their envelopes were switched.',
+                            correct: 'omens',
+                            routes: {
+                                lost: 'Lost & Found searches the rookery and retrieves a tragic recipe plus a lentil-stained warning. Tiresias says the handwriting explains everything.',
+                                transit: 'Night Transit gives both omens return tickets. The soup arrives in Thebes; the tragedy continues to Argos, where it already has relatives.',
+                                omens: 'Omens & Appeals swaps the envelopes and waives the divination fee. Dinner is saved. The dynasty remains complicated.',
+                                tides: 'Tides & Orbits asks whether the birds flew clockwise. Tiresias says they flew toward lunch, which the department logs as variable wind.',
+                                relay: 'Message Relay calls the birds. A crow admits the mix-up and offers a voucher for one clear sign, weekdays before dusk.'
+                            }
+                        },
+                        {
+                            caller: 'Máni, northern route',
+                            line: 'The wolf is gaining again. I would like a little more sky between us and fewer poets calling it romantic.',
+                            correct: 'tides',
+                            routes: {
+                                lost: 'Lost & Found supplies a decoy moon left by a theater company. The wolf chases it into the prop room and emerges wearing a crown.',
+                                transit: 'Night Transit opens a cloud tunnel toward morning. Máni gains seven minutes and sends the toll collector a grateful silver coin.',
+                                omens: 'Omens & Appeals rules that the chase signifies persistence, appetite, and poor boundary management. Máni requests the ruling be served directly to the wolf.',
+                                tides: 'Tides & Orbits widens the northern arc and trims a troublesome current. The wolf falls back; three fjords rise to applaud.',
+                                relay: 'Message Relay patches Máni to the wolf. There is heavy breathing, then the wolf says, almost shyly, “I only know this game.”'
+                            }
+                        },
+                        {
+                            caller: 'Iris, rain line',
+                            line: 'I have a rainbow addressed simply “to whoever still looks up.” No street, no city, excellent postage.',
+                            correct: 'relay',
+                            routes: {
+                                lost: 'Lost & Found files the rainbow under UNCLAIMED / BEAUTIFUL / WEATHER PERMIT PENDING. Children in four towns submit matching claims.',
+                                transit: 'Night Transit lays it across the evening commute. Everyone gets home nine minutes late and forgives the road.',
+                                omens: 'Omens & Appeals reads seven separate forecasts from it. The violet one says somebody will finally make the call.',
+                                tides: 'Tides & Orbits bends the rainbow over the western sea. Whales surface beneath it with the solemnity of witnesses.',
+                                relay: 'Message Relay marks the address VALID and sends it everywhere rain has just stopped. Receipts arrive as open windows.'
+                            }
+                        }
+                    ],
+                    closings: {
+                        clear: { title: 'The road held steady', text: 'Every caller found the proper extension. A singer climbs without turning, a lost voice keeps one sentence, and the rainbow reaches whoever bothered to look. You close the keys softly so the good routes stay open.' },
+                        wandering: { title: 'A few beautiful detours', text: 'The log contains three clean connections and a pair of roads no map admits. Nobody was dropped. Several callers arrived somewhere stranger and left with useful paperwork.' },
+                        crossed: { title: 'Operator’s scenic route', text: 'The trunks crossed freely tonight. Soup became an omen, a wolf received counseling, and the rainbow delayed traffic across two worlds. Morning will ask questions. Night Transit has already misplaced the form.' }
+                    }
+                },
+                {
+                    name: 'Seasonal Transfer',
+                    calls: [
+                        {
+                            caller: 'Persephone, platform six',
+                            line: 'My pass is stamped ARRIVED and DEPARTED on the same side. Mother will read into this. She reads into weather.',
+                            correct: 'transit',
+                            routes: {
+                                lost: 'Lost & Found discovers spring tucked between the two stamps. They shake out the pass and three crocuses land on the desk.',
+                                transit: 'Night Transit cancels the duplicate mark and adds SEASONAL RETURN / NO PENALTY. Persephone catches the next pomegranate-red carriage.',
+                                omens: 'Omens & Appeals confirms the double stamp predicts an early thaw and a difficult family dinner. Persephone says only one of those is news.',
+                                tides: 'Tides & Orbits aligns the pass with the equinox. It becomes valid twice a year and glows whenever Demeter starts worrying.',
+                                relay: 'Message Relay calls Demeter before rumor can. She says, “Put my daughter on,” with enough force to ripen grain beside the receiver.'
+                            }
+                        },
+                        {
+                            caller: 'Odin, well-side extension',
+                            line: 'Has anyone turned in an eye? Grey, stern, remembers too much. I know where I left it. I object to the principle.',
+                            correct: 'lost',
+                            routes: {
+                                lost: 'Lost & Found confirms the eye is still in the well and mails Odin a claim ticket. The ticket looks back at him until he signs.',
+                                transit: 'Night Transit routes the eye home by raven. It circles twice, sees the entire road, and chooses to remain a weekend longer.',
+                                omens: 'Omens & Appeals asks the eye what it saw. The answer fills nine pages; Odin pays extra to seal the last one.',
+                                tides: 'Tides & Orbits floats the eye to the surface at moonrise. It refuses retrieval until someone says please in Old Norse.',
+                                relay: 'Message Relay connects Odin to Mímir. “It is safe,” says the head. “It has been correcting my memory all evening.”'
+                            }
+                        },
+                        {
+                            caller: 'Cumaean Sibyl, leaf room',
+                            line: 'A draft rearranged my prophecies. Rome now ends before lunch and a baker inherits the sea. Can I get an official sequence?',
+                            correct: 'omens',
+                            routes: {
+                                lost: 'Lost & Found numbers every leaf by smell: laurel, dust, thunder, bread. The baker keeps one sea-blue page as compensation.',
+                                transit: 'Night Transit sends the leaves home in chronological order. A gust at the transfer station promotes the baker to consul.',
+                                omens: 'Omens & Appeals restores the authorized sequence and stamps the lunch ending APOCRYPHAL. Rome receives the revision and ignores it on schedule.',
+                                tides: 'Tides & Orbits grants the baker a small ceremonial bay instead of the whole sea. He names it after his best loaf.',
+                                relay: 'Message Relay dictates the leaves to a patient clerk. On page eighty, the clerk asks whether Rome could simply have a quiet year.'
+                            }
+                        },
+                        {
+                            caller: 'Chang’e, Palace of the Moon',
+                            line: 'The jade hare stirred the elixir counterclockwise during high tide. He looks innocent in a very organized way.',
+                            correct: 'tides',
+                            routes: {
+                                lost: 'Lost & Found locates the missing clockwise turn under the mortar. The hare puts it back and pretends the department has insulted him.',
+                                transit: 'Night Transit ships the elixir around Earth once to correct its direction. It returns with a customs seal and a taste of rain.',
+                                omens: 'Omens & Appeals interprets the mistake as a promise of long life with one afternoon of irresistible mischief.',
+                                tides: 'Tides & Orbits reverses a narrow lunar current for nine breaths. The elixir clears; the hare receives a written warning and eats the corner.',
+                                relay: 'Message Relay calls the hare’s supervisor. Chang’e points out that she is the supervisor. The line records a dignified silence.'
+                            }
+                        },
+                        {
+                            caller: 'Anansi, upper web',
+                            line: 'A message is stuck three strands left of the moon. It says “urgent,” which usually means somebody wants a story for free.',
+                            correct: 'relay',
+                            routes: {
+                                lost: 'Lost & Found removes the message with a long feather duster. Under it they find two rumors and a king’s missing button.',
+                                transit: 'Night Transit gives the message eight tiny boots. It marches across the web, complaining about the tolls.',
+                                omens: 'Omens & Appeals reads the vibration and rules that the sender will offer exposure instead of payment. Anansi cuts that strand neatly.',
+                                tides: 'Tides & Orbits lowers the moon one inch, loosening the web. Every spider notices; none files the required incident report.',
+                                relay: 'Message Relay opens the message. It is from a child asking how the leopard got its spots. Anansi sighs warmly and begins, “First, agree on my fee.”'
+                            }
+                        }
+                    ],
+                    closings: {
+                        clear: { title: 'The seasons changed trains', text: 'All five connections landed cleanly. Persephone has her pass, the moon has its recipe, and one child is about to hear a very expensive story. The board clicks as if counting seeds.' },
+                        wandering: { title: 'Filed under: mostly settled', text: 'A few papers reached neighboring desks, where neighboring gods made strong opinions known. The essential things moved: a season, an eye, a prophecy, an elixir, a story.' },
+                        crossed: { title: 'A glorious clerical spring', text: 'The exchange produced a baker with a coastline, an eye on holiday, and customs paperwork for immortality. Demeter will blame the weather. The weather has retained counsel.' }
+                    }
+                },
+                {
+                    name: 'Broken Constellation',
+                    calls: [
+                        {
+                            caller: 'Izanami, threshold office',
+                            line: 'The gate hinge has rusted shut again. Please send someone who respects boundaries and owns a very long wrench.',
+                            correct: 'transit',
+                            routes: {
+                                lost: 'Lost & Found retrieves the hinge pin from a box marked THINGS REMOVED IN ANGER. It still carries a little smoke from Yomi.',
+                                transit: 'Night Transit dispatches a silent mechanic with a long wrench and perfect manners. The gate opens exactly one person wide, as specified.',
+                                omens: 'Omens & Appeals calls the rust a sign that old vows require oiling. Izanami asks for the practical department’s number.',
+                                tides: 'Tides & Orbits sends warm rain against the hinge. The rust loosens; the threshold smells briefly of summer earth.',
+                                relay: 'Message Relay reaches Izanagi. He offers to help. Izanami says, “Put the mechanic back on,” and the connection improves.'
+                            }
+                        },
+                        {
+                            caller: 'Thoth, lunar records',
+                            line: 'One page is missing from the moon ledger. Without it, tomorrow is technically unlicensed.',
+                            correct: 'lost',
+                            routes: {
+                                lost: 'Lost & Found finds the page being used as a bookmark in a crocodile’s detective novel. Tomorrow receives its license with tooth marks.',
+                                transit: 'Night Transit issues tomorrow a temporary plate. Dawn must remain in the right lane and avoid ceremonial roads.',
+                                omens: 'Omens & Appeals declares an unlicensed tomorrow highly favorable for improvisers and terrible for appointment books.',
+                                tides: 'Tides & Orbits reconstructs the page from wave records. The numbers balance, though the sea adds a small doodle of an ibis.',
+                                relay: 'Message Relay asks every scribe on duty to check under their tablets. Seshat answers first and says, “Tell him to check his other hand.”'
+                            }
+                        },
+                        {
+                            caller: 'Pythia, basement tripod',
+                            line: 'The smoke alarm keeps interrupting the oracle. The last vision ended with “beware the—” and then a very responsible bell.',
+                            correct: 'omens',
+                            routes: {
+                                lost: 'Lost & Found searches the fumes and returns the missing noun: “goose.” Delphi updates the warning and locks the courtyard gate.',
+                                transit: 'Night Transit moves the prophecy to a smoke-free platform. The next vision concerns train delays and a goose carrying exact change.',
+                                omens: 'Omens & Appeals grants the alarm a ceremonial pause button and logs the full warning. The goose is already on site.',
+                                tides: 'Tides & Orbits clears the chamber with a sea breeze. Everyone hears distant gulls and becomes briefly uncertain about Apollo.',
+                                relay: 'Message Relay calls the alarm manufacturer. A calm voice says prophecies count as particulates and recommends opening a window.'
+                            }
+                        },
+                        {
+                            caller: 'Coyolxauhqui, night sky',
+                            line: 'My pieces are pulling the tide in separate directions. This is awkward for the coast and personally exhausting.',
+                            correct: 'tides',
+                            routes: {
+                                lost: 'Lost & Found inventories every bright piece and discovers one extra star. Coyolxauhqui keeps it; she has earned a spare.',
+                                transit: 'Night Transit gives each piece the same circular route. They move together, and the coast stops changing its mind.',
+                                omens: 'Omens & Appeals says the divided tide predicts five difficult meetings and a reunion nobody dressed for.',
+                                tides: 'Tides & Orbits gathers the pulls into one silver rhythm. The coast exhales; Coyolxauhqui rests between two clouds.',
+                                relay: 'Message Relay connects all the pieces to a conference line. They speak at once for eleven minutes, then agree the left shoulder will coordinate.'
+                            }
+                        },
+                        {
+                            caller: 'Mercury, western circuit',
+                            line: 'Only one snake on the caduceus is receiving messages. The other has become impossible at work.',
+                            correct: 'relay',
+                            routes: {
+                                lost: 'Lost & Found locates the missing messages beneath a warm stone. The silent snake admits it needed an afternoon without commerce.',
+                                transit: 'Night Transit gives each snake its own lane around the staff. Productivity rises; hissing becomes strictly procedural.',
+                                omens: 'Omens & Appeals calls the silence favorable for thieves, physicians, and anyone avoiding a meeting.',
+                                tides: 'Tides & Orbits places the staff under Gemini. Both snakes begin talking at once and request separate representatives.',
+                                relay: 'Message Relay repairs the split and adds a private channel. The first message through reads, “Lunch?” The second snake answers immediately.'
+                            }
+                        }
+                    ],
+                    closings: {
+                        clear: { title: 'Constellation restored', text: 'The gate moves, tomorrow is licensed, the oracle finishes her sentence, the tide agrees with itself, and both snakes are speaking again. You have earned the final click of the master key.' },
+                        wandering: { title: 'Lines mended where they landed', text: 'Some circuits wandered through rain, conference calls, and temporary plates. Still, the gate opened and the sky held together. The night ledger accepts practical outcomes.' },
+                        crossed: { title: 'Tomorrow granted provisional entry', text: 'The board leaves behind a smoke-free prophecy, a represented pair of snakes, and several celestial pieces riding public transit. Tomorrow arrives with tooth marks and valid paperwork.' }
+                    }
+                }
+            ];
+
+            const SETTINGS_KEY = 'rg-after-hours-switchboard-settings-v1';
+            const PROGRESS_KEY = 'rg-after-hours-switchboard-progress-v1';
+            const ANCHOR = { year: 2026, month: 7, day: 8 };
+            const ROUTE_KEYS = Object.keys(DESTINATIONS);
+
+            const board = document.getElementById('switchboard');
+            const boardGrid = document.getElementById('boardGrid');
+            const inputJack = document.getElementById('inputJack');
+            const destinationJacks = Array.from(document.querySelectorAll('.destination-jack'));
+            const callSlip = document.getElementById('callSlip');
+            const callerName = document.getElementById('callerName');
+            const callerLine = document.getElementById('callerLine');
+            const lineStateText = document.getElementById('lineStateText');
+            const shiftCounter = document.getElementById('shiftCounter');
+            const responseTray = document.getElementById('responseTray');
+            const responseText = document.getElementById('responseText');
+            const shiftEnding = document.getElementById('shiftEnding');
+            const endingTitle = document.getElementById('endingTitle');
+            const endingText = document.getElementById('endingText');
+            const cordLayer = document.getElementById('cordLayer');
+            const cordPaths = [document.getElementById('cordShadow'), document.getElementById('cordLine'), document.getElementById('cordThread')];
+            const controlsDialog = document.getElementById('controlsDialog');
+            const logDialog = document.getElementById('logDialog');
+            const soundToggle = document.getElementById('soundToggle');
+            const paceToggle = document.getElementById('paceToggle');
+            const motionToggle = document.getElementById('motionToggle');
+            const windowDescription = document.getElementById('windowDescription');
+            const logList = document.getElementById('logList');
+
+            let storageAvailable = true;
+            let ringTimer = 0;
+            let activeCall = false;
+            let lineAnswered = false;
+            let audioContext = null;
+            let humOscillator = null;
+            let humGain = null;
+
+            function safeRead(key) {
+                try {
+                    const value = localStorage.getItem(key);
+                    return value ? JSON.parse(value) : null;
+                } catch (error) {
+                    storageAvailable = false;
+                    return null;
+                }
+            }
+
+            function safeWrite(key, value) {
+                if (!storageAvailable) return;
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (error) {
+                    storageAvailable = false;
+                }
+            }
+
+            function localDateNumber(date) {
+                return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+            }
+
+            function deckForDate(date) {
+                const anchorNumber = Date.UTC(ANCHOR.year, ANCHOR.month, ANCHOR.day);
+                const dayOffset = Math.round((localDateNumber(date) - anchorNumber) / 86400000);
+                const windowNumber = Math.floor(dayOffset / 2);
+                const deckIndex = ((windowNumber % CALL_DECKS.length) + CALL_DECKS.length) % CALL_DECKS.length;
+                const windowStartOffset = windowNumber * 2;
+                const windowStart = new Date(ANCHOR.year, ANCHOR.month, ANCHOR.day + windowStartOffset);
+                const windowEnd = new Date(ANCHOR.year, ANCHOR.month, ANCHOR.day + windowStartOffset + 1);
+                const nextChange = new Date(ANCHOR.year, ANCHOR.month, ANCHOR.day + windowStartOffset + 2);
+                const key = `${windowStart.getFullYear()}-${String(windowStart.getMonth() + 1).padStart(2, '0')}-${String(windowStart.getDate()).padStart(2, '0')}`;
+                return { deckIndex, windowNumber, windowStart, windowEnd, nextChange, key };
+            }
+
+            const selection = deckForDate(new Date());
+            const deck = CALL_DECKS[selection.deckIndex];
+            const defaultMotion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const storedSettings = safeRead(SETTINGS_KEY) || {};
+            const settings = {
+                sound: storedSettings.sound === true,
+                pace: storedSettings.pace === 'quick' ? 'quick' : 'normal',
+                motion: typeof storedSettings.motion === 'boolean' ? storedSettings.motion : defaultMotion
+            };
+
+            const storedProgress = safeRead(PROGRESS_KEY);
+            const progress = storedProgress && storedProgress.windowKey === selection.key
+                ? {
+                    windowKey: selection.key,
+                    callIndex: Math.min(Math.max(Number(storedProgress.callIndex) || 0, 0), deck.calls.length),
+                    log: Array.isArray(storedProgress.log) ? storedProgress.log.slice(0, deck.calls.length) : [],
+                    completed: storedProgress.completed === true,
+                    active: storedProgress.active === true
+                }
+                : { windowKey: selection.key, callIndex: 0, log: [], completed: false, active: false };
+
+            function formatDate(date) {
+                return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+            }
+
+            function persistSettings() {
+                safeWrite(SETTINGS_KEY, settings);
+            }
+
+            function persistProgress() {
+                progress.active = activeCall;
+                safeWrite(PROGRESS_KEY, progress);
+            }
+
+            function updateControlLabels() {
+                soundToggle.setAttribute('aria-pressed', String(settings.sound));
+                soundToggle.textContent = settings.sound ? 'On' : 'Off';
+                paceToggle.setAttribute('aria-pressed', String(settings.pace === 'quick'));
+                paceToggle.textContent = settings.pace === 'quick' ? 'Quick' : 'Normal';
+                motionToggle.setAttribute('aria-pressed', String(settings.motion));
+                motionToggle.textContent = settings.motion ? 'Full' : 'Reduced';
+                board.classList.toggle('motion-full', settings.motion);
+            }
+
+            function currentCall() {
+                return deck.calls[progress.callIndex] || null;
+            }
+
+            function intervalFor(first, pace = settings.pace, randomValue = Math.random()) {
+                const range = first
+                    ? (pace === 'quick' ? [1200, 2800] : [2200, 5000])
+                    : (pace === 'quick' ? [3000, 9000] : [9000, 26000]);
+                return Math.round(range[0] + randomValue * (range[1] - range[0]));
+            }
+
+            function clearRingTimer() {
+                if (ringTimer) window.clearTimeout(ringTimer);
+                ringTimer = 0;
+            }
+
+            function scheduleRing() {
+                clearRingTimer();
+                if (document.hidden || activeCall || progress.completed || !currentCall()) return;
+                const first = progress.callIndex === 0 && progress.log.length === 0;
+                lineStateText.textContent = first ? 'Night line open · first call pending' : 'Line clear · next call pending';
+                ringTimer = window.setTimeout(beginCall, intervalFor(first));
+            }
+
+            function beginCall() {
+                clearRingTimer();
+                if (document.hidden || progress.completed || !currentCall()) {
+                    scheduleRing();
+                    return;
+                }
+                activeCall = true;
+                lineAnswered = false;
+                clearCable();
+                const call = currentCall();
+                callerName.textContent = call.caller;
+                callerLine.textContent = call.line;
+                callSlip.classList.remove('is-idle');
+                board.classList.add('is-ringing');
+                inputJack.disabled = false;
+                inputJack.classList.add('is-ready');
+                inputJack.classList.remove('is-open');
+                destinationJacks.forEach(jack => { jack.disabled = true; });
+                lineStateText.textContent = 'Ringing · answer incoming line';
+                shiftCounter.textContent = `Call ${progress.callIndex + 1} of ${deck.calls.length}`;
+                persistProgress();
+                playRing();
+            }
+
+            function answerLine() {
+                if (!activeCall || inputJack.disabled) return;
+                armAudioFromGesture();
+                lineAnswered = true;
+                board.classList.remove('is-ringing');
+                inputJack.classList.remove('is-ready');
+                inputJack.classList.add('is-open');
+                inputJack.disabled = true;
+                destinationJacks.forEach(jack => { jack.disabled = false; });
+                lineStateText.textContent = 'Line answered · choose one department';
+                playRelay();
+                destinationJacks[0].focus({ preventScroll: true });
+            }
+
+            function connectCall(route, jack) {
+                if (!activeCall || !lineAnswered || !ROUTE_KEYS.includes(route)) return;
+                armAudioFromGesture();
+                const call = currentCall();
+                const correct = route === call.correct;
+                destinationJacks.forEach(button => { button.disabled = true; });
+                drawCable(jack);
+                playPlug(correct);
+                responseText.textContent = call.routes[route];
+                responseTray.classList.remove('is-new');
+                void responseTray.offsetWidth;
+                responseTray.classList.add('is-new');
+                progress.log.push({ caller: call.caller, route, correct });
+                progress.callIndex += 1;
+                activeCall = false;
+                lineAnswered = false;
+                progress.active = false;
+                inputJack.classList.remove('is-open', 'is-ready');
+                callSlip.classList.add('is-idle');
+                lineStateText.textContent = correct ? 'Connection complete · line clear' : 'Cross-connection complete · line clear';
+                shiftCounter.textContent = `Call ${progress.callIndex} of ${deck.calls.length}`;
+                if (progress.callIndex >= deck.calls.length) {
+                    progress.completed = true;
+                    showEnding();
+                } else {
+                    scheduleRing();
+                }
+                persistProgress();
+            }
+
+            function clearCable() {
+                cordPaths.forEach(path => path.setAttribute('d', ''));
+            }
+
+            function drawCable(destinationJack) {
+                const gridRect = boardGrid.getBoundingClientRect();
+                const inputRect = inputJack.getBoundingClientRect();
+                const outputRect = destinationJack.getBoundingClientRect();
+                const x1 = inputRect.left + inputRect.width / 2 - gridRect.left;
+                const y1 = inputRect.top + inputRect.height / 2 - gridRect.top;
+                const x2 = outputRect.left + outputRect.width / 2 - gridRect.left;
+                const y2 = outputRect.top + outputRect.height / 2 - gridRect.top;
+                const sag = Math.max(42, Math.min(115, Math.abs(x2 - x1) * 0.28 + Math.abs(y2 - y1) * 0.1));
+                const d = window.innerWidth <= 700
+                    ? `M ${x1} ${y1} C ${x1 + sag} ${y1 + sag}, ${x2 + sag} ${y2 - sag}, ${x2} ${y2}`
+                    : `M ${x1} ${y1} C ${x1 + sag} ${y1 + sag}, ${x2 - sag} ${y2 + sag}, ${x2} ${y2}`;
+                cordLayer.setAttribute('viewBox', `0 0 ${gridRect.width} ${gridRect.height}`);
+                cordPaths.forEach(path => path.setAttribute('d', d));
+            }
+
+            function outcomeKey() {
+                const correctCount = progress.log.filter(entry => entry.correct).length;
+                return correctCount === deck.calls.length ? 'clear' : correctCount >= 3 ? 'wandering' : 'crossed';
+            }
+
+            function showEnding() {
+                clearRingTimer();
+                activeCall = false;
+                lineAnswered = false;
+                board.classList.remove('is-ringing');
+                board.classList.add('is-complete');
+                inputJack.disabled = true;
+                destinationJacks.forEach(jack => { jack.disabled = true; });
+                callerName.textContent = 'Night operator';
+                callerLine.textContent = 'The last lamp is dark. The five-call ledger is ready for review.';
+                callSlip.classList.add('is-idle');
+                lineStateText.textContent = 'Shift complete · master line closed';
+                shiftCounter.textContent = '5 of 5 · closed';
+                const ending = deck.closings[outcomeKey()];
+                endingTitle.textContent = ending.title;
+                endingText.textContent = ending.text;
+            }
+
+            function openDialog(dialog) {
+                if (typeof dialog.showModal === 'function') dialog.showModal();
+                else dialog.setAttribute('open', '');
+            }
+
+            function closeDialog(dialog) {
+                if (typeof dialog.close === 'function') dialog.close();
+                else dialog.removeAttribute('open');
+            }
+
+            function renderLog() {
+                logList.replaceChildren();
+                progress.log.forEach(entry => {
+                    const item = document.createElement('li');
+                    const caller = document.createElement('strong');
+                    caller.textContent = entry.caller;
+                    const mark = document.createElement('span');
+                    mark.className = 'route-mark';
+                    mark.textContent = entry.correct ? ' · connected → ' : ' · crossed → ';
+                    const destination = document.createTextNode(DESTINATIONS[entry.route]);
+                    item.append(caller, mark, destination);
+                    logList.append(item);
+                });
+            }
+
+            function restartShift() {
+                clearRingTimer();
+                progress.callIndex = 0;
+                progress.log = [];
+                progress.completed = false;
+                progress.active = false;
+                activeCall = false;
+                lineAnswered = false;
+                board.classList.remove('is-complete', 'is-ringing');
+                inputJack.disabled = true;
+                inputJack.classList.remove('is-open', 'is-ready');
+                destinationJacks.forEach(jack => { jack.disabled = true; });
+                clearCable();
+                callerName.textContent = 'Night operator';
+                callerLine.textContent = 'The board is quiet. A lamp will announce the first caller.';
+                callSlip.classList.add('is-idle');
+                responseText.textContent = 'Answer the lit line, then patch it to one department. The exchange accepts intuition and clerical accidents.';
+                lineStateText.textContent = 'Waiting after midnight';
+                shiftCounter.textContent = 'Call 0 of 5';
+                persistProgress();
+                closeDialog(controlsDialog);
+                closeDialog(logDialog);
+                scheduleRing();
+            }
+
+            function ensureAudio() {
+                if (!settings.sound) return null;
+                const AudioCtor = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtor) return null;
+                try {
+                    if (!audioContext) audioContext = new AudioCtor();
+                    return audioContext;
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            function armAudioFromGesture() {
+                const context = ensureAudio();
+                if (!context) return;
+                if (context.state === 'suspended') context.resume().catch(() => {});
+                startHum();
+            }
+
+            function tone(frequency, duration, volume, delay = 0, type = 'sine') {
+                const context = ensureAudio();
+                if (!context || context.state !== 'running') return;
+                const start = context.currentTime + delay;
+                const oscillator = context.createOscillator();
+                const gain = context.createGain();
+                oscillator.type = type;
+                oscillator.frequency.setValueAtTime(frequency, start);
+                gain.gain.setValueAtTime(0.0001, start);
+                gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+                gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+                oscillator.connect(gain).connect(context.destination);
+                oscillator.start(start);
+                oscillator.stop(start + duration + 0.02);
+            }
+
+            function playRing() {
+                if (!settings.sound || !audioContext || audioContext.state !== 'running') return;
+                tone(612, 0.17, 0.045, 0, 'sine');
+                tone(482, 0.2, 0.03, 0.15, 'sine');
+            }
+
+            function playRelay() {
+                tone(118, 0.045, 0.035, 0, 'square');
+                tone(82, 0.05, 0.025, 0.065, 'square');
+            }
+
+            function playPlug(correct) {
+                tone(76, 0.08, 0.05, 0, 'triangle');
+                tone(correct ? 354 : 247, 0.15, 0.022, 0.085, 'sine');
+            }
+
+            function startHum() {
+                const context = ensureAudio();
+                if (!context || context.state !== 'running' || humOscillator) return;
+                try {
+                    humOscillator = context.createOscillator();
+                    humGain = context.createGain();
+                    humOscillator.type = 'sine';
+                    humOscillator.frequency.value = 55;
+                    humGain.gain.value = 0.0035;
+                    humOscillator.connect(humGain).connect(context.destination);
+                    humOscillator.start();
+                } catch (error) {
+                    humOscillator = null;
+                    humGain = null;
+                }
+            }
+
+            function stopHum() {
+                if (humOscillator) {
+                    try { humOscillator.stop(); } catch (error) {}
+                    try { humOscillator.disconnect(); } catch (error) {}
+                }
+                if (humGain) {
+                    try { humGain.disconnect(); } catch (error) {}
+                }
+                humOscillator = null;
+                humGain = null;
+            }
+
+            document.getElementById('controlsButton').addEventListener('click', () => {
+                armAudioFromGesture();
+                openDialog(controlsDialog);
+            });
+
+            document.querySelectorAll('[data-close-dialog]').forEach(button => {
+                button.addEventListener('click', () => closeDialog(document.getElementById(button.dataset.closeDialog)));
+            });
+
+            [controlsDialog, logDialog].forEach(dialog => {
+                dialog.addEventListener('click', event => {
+                    if (event.target === dialog) closeDialog(dialog);
+                });
+            });
+
+            soundToggle.addEventListener('click', () => {
+                settings.sound = !settings.sound;
+                persistSettings();
+                updateControlLabels();
+                if (settings.sound) {
+                    armAudioFromGesture();
+                    playRelay();
+                } else {
+                    stopHum();
+                    if (audioContext && audioContext.state === 'running') audioContext.suspend().catch(() => {});
+                }
+            });
+
+            paceToggle.addEventListener('click', () => {
+                settings.pace = settings.pace === 'normal' ? 'quick' : 'normal';
+                persistSettings();
+                updateControlLabels();
+            });
+
+            motionToggle.addEventListener('click', () => {
+                settings.motion = !settings.motion;
+                persistSettings();
+                updateControlLabels();
+            });
+
+            inputJack.addEventListener('click', answerLine);
+            destinationJacks.forEach(jack => {
+                jack.addEventListener('click', () => connectCall(jack.dataset.route, jack));
+            });
+
+            document.getElementById('restartButton').addEventListener('click', restartShift);
+            document.getElementById('endingRestartButton').addEventListener('click', restartShift);
+            document.getElementById('reviewLogButton').addEventListener('click', () => {
+                renderLog();
+                openDialog(logDialog);
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    clearRingTimer();
+                    stopHum();
+                } else {
+                    if (settings.sound && audioContext && audioContext.state === 'running') startHum();
+                    if (!activeCall && !progress.completed) scheduleRing();
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (!lineAnswered && cordPaths[0].getAttribute('d')) clearCable();
+            });
+
+            windowDescription.textContent = `${deck.name} is on duty ${formatDate(selection.windowStart)}–${formatDate(selection.windowEnd)}. It changes after local midnight at the start of ${formatDate(selection.nextChange)}. ${storageAvailable ? 'Local storage is available.' : 'Local storage is unavailable; this visit will remain temporary.'}`;
+            updateControlLabels();
+
+            if (progress.completed || progress.callIndex >= deck.calls.length) {
+                progress.callIndex = deck.calls.length;
+                progress.completed = true;
+                showEnding();
+            } else if (progress.active) {
+                activeCall = true;
+                beginCall();
+            } else {
+                scheduleRing();
+            }
+
+            window.__switchboardTest = Object.freeze({
+                deckForDate,
+                intervalFor,
+                decks: CALL_DECKS,
+                destinations: DESTINATIONS,
+                selection: () => ({ ...selection }),
+                state: () => ({ ...progress, log: progress.log.map(entry => ({ ...entry })) })
+            });
+        })();
+    </script>
+</body>
+</html>
