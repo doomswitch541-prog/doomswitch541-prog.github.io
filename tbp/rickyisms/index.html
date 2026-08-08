@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#25231d">
+    <meta name="description" content="Ricky's sentence repair bench. Put in a normal saying and get the words fixed enough.">
+    <title>Rickyisms — Word Repair</title>
+    <style>
+        :root {
+            --asphalt: #191a16;
+            --asphalt-warm: #25231d;
+            --paper: #efe1b8;
+            --paper-old: #cfbd8e;
+            --ink: #171711;
+            --marker: #20201b;
+            --plaid: #9f2d27;
+            --plaid-dark: #4e1717;
+            --bottle: #35523c;
+            --cheese: #e4aa32;
+            --duct: #a4a69f;
+            --blue-pen: #244a73;
+            --dash: #10120f;
+            --words: 62;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html {
+            min-height: -webkit-fill-available;
+            background: var(--asphalt);
+        }
+
+        body {
+            min-height: 100dvh;
+            margin: 0;
+            overflow-x: hidden;
+            color: var(--paper);
+            background:
+                radial-gradient(circle at 82% 8%, rgba(228, 170, 50, 0.11), transparent 22rem),
+                radial-gradient(circle at 10% 68%, rgba(159, 45, 39, 0.1), transparent 30rem),
+                repeating-linear-gradient(117deg, transparent 0 48px, rgba(255,255,255,.018) 49px, transparent 50px 96px),
+                linear-gradient(145deg, var(--asphalt-warm), var(--asphalt) 72%);
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            z-index: 30;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.16;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
+            mix-blend-mode: soft-light;
+        }
+
+        button, input { font: inherit; }
+        button { -webkit-tap-highlight-color: transparent; }
+
+        .smoke {
+            position: fixed;
+            z-index: 0;
+            top: -16rem;
+            right: -14rem;
+            width: 42rem;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.18;
+            filter: blur(44px);
+            background:
+                radial-gradient(circle at 35% 40%, rgba(235, 230, 211, .5), transparent 20%),
+                radial-gradient(circle at 58% 58%, rgba(235, 230, 211, .32), transparent 24%),
+                radial-gradient(circle at 68% 28%, rgba(235, 230, 211, .2), transparent 18%);
+            animation: smoke-wander 15s ease-in-out infinite alternate;
+        }
+
+        @keyframes smoke-wander {
+            to { transform: translate(-3rem, 4rem) rotate(12deg) scale(1.1); }
+        }
+
+        .lot-strip {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            width: min(92rem, calc(100% - 2rem));
+            margin: max(1rem, env(safe-area-inset-top)) auto 0;
+            padding: 0.7rem 0.9rem;
+            border: 1px solid rgba(239,225,184,.22);
+            background:
+                repeating-linear-gradient(45deg, rgba(159,45,39,.24) 0 9px, transparent 9px 18px),
+                rgba(10, 12, 9, .76);
+            color: rgba(239,225,184,.72);
+            font: 700 0.65rem/1.2 "Courier New", monospace;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            transform: rotate(-0.18deg);
+        }
+
+        .lot-strip strong { color: var(--cheese); }
+        .lot-strip span:last-child { text-align: right; }
+
+        .yard {
+            position: relative;
+            z-index: 1;
+            width: min(92rem, 100%);
+            margin: 0 auto;
+            padding: clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 3.5rem) max(8rem, calc(env(safe-area-inset-bottom) + 7rem));
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(17rem, .72fr) minmax(32rem, 1.28fr);
+            gap: clamp(2rem, 6vw, 6rem);
+            align-items: center;
+            min-height: 78dvh;
+        }
+
+        .hero-copy {
+            position: relative;
+            padding: 2rem 0 4rem;
+        }
+
+        .grade-sticker {
+            display: inline-block;
+            margin: 0 0 1.3rem 1rem;
+            padding: 0.45rem 0.8rem 0.38rem;
+            color: var(--ink);
+            background: var(--cheese);
+            box-shadow: 0.25rem 0.3rem 0 rgba(0,0,0,.35);
+            font: 900 0.72rem/1 "Courier New", monospace;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transform: rotate(-3deg);
+        }
+
+        h1 {
+            position: relative;
+            margin: 0;
+            color: var(--paper);
+            font: 900 clamp(6rem, 16vw, 13rem)/0.67 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+            letter-spacing: -0.045em;
+            text-transform: uppercase;
+            text-shadow: 0.07em 0.06em 0 var(--plaid-dark), 0.11em 0.1em 0 rgba(0,0,0,.36);
+            transform: rotate(-1.2deg);
+        }
+
+        h1 span {
+            display: block;
+            margin-left: clamp(1.2rem, 5vw, 4rem);
+            color: var(--cheese);
+            transform: rotate(1.7deg);
+        }
+
+        .hero-line {
+            max-width: 31rem;
+            margin: clamp(2rem, 5vw, 3.5rem) 0 0 clamp(.4rem, 3vw, 2rem);
+            padding: 1rem 1.2rem;
+            border-left: 0.55rem solid var(--duct);
+            color: rgba(239,225,184,.82);
+            background: rgba(0,0,0,.18);
+            font: 700 clamp(1.05rem, 2vw, 1.35rem)/1.5 "Marker Felt", "Comic Sans MS", cursive;
+            transform: rotate(.6deg);
+        }
+
+        .hero-line strong { color: #fff2c8; }
+
+        .bench-wrap {
+            position: relative;
+            isolation: isolate;
+        }
+
+        .bench-wrap::before,
+        .bench-wrap::after {
+            content: '';
+            position: absolute;
+            z-index: 3;
+            width: 7.5rem;
+            height: 1.75rem;
+            background: rgba(181, 181, 171, .78);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.22);
+        }
+
+        .bench-wrap::before { top: -.6rem; left: 14%; transform: rotate(-7deg); }
+        .bench-wrap::after { right: 11%; bottom: -.6rem; transform: rotate(5deg); }
+
+        .bench {
+            position: relative;
+            padding: clamp(1rem, 3vw, 2rem);
+            border: 1px solid rgba(54, 31, 16, .8);
+            border-radius: 0.2rem;
+            color: var(--ink);
+            background:
+                linear-gradient(90deg, transparent 31%, rgba(72,39,19,.25) 31.3%, transparent 31.8% 68%, rgba(72,39,19,.28) 68.3%, transparent 68.8%),
+                repeating-linear-gradient(2deg, rgba(255,255,255,.06) 0 2px, transparent 2px 15px),
+                linear-gradient(112deg, #79502c, #9a6738 44%, #704523);
+            box-shadow: 1.2rem 1.3rem 0 rgba(0,0,0,.28), 0 2.4rem 6rem rgba(0,0,0,.34);
+            transform: rotate(.35deg);
+        }
+
+        .bench-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: rgba(255,245,213,.8);
+            font: 900 0.68rem/1.25 "Courier New", monospace;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .bench-head strong {
+            display: block;
+            color: #fff3ca;
+            font-size: 0.92rem;
+        }
+
+        .shop-tag {
+            flex: none;
+            padding: .35rem .55rem;
+            border: 1px solid rgba(255,255,255,.34);
+            transform: rotate(4deg);
+        }
+
+        .work-order {
+            position: relative;
+            padding: clamp(1rem, 3vw, 1.6rem);
+            background:
+                linear-gradient(rgba(42,74,115,.1) 1px, transparent 1px) 0 2.25rem / 100% 1.55rem,
+                var(--paper);
+            box-shadow: .45rem .55rem 0 rgba(0,0,0,.22);
+            transform: rotate(-.45deg);
+        }
+
+        .work-order::before {
+            content: 'WORK ORDER 00420';
+            position: absolute;
+            top: .45rem;
+            right: .7rem;
+            color: rgba(23,23,17,.48);
+            font: 700 .55rem/1 "Courier New", monospace;
+            letter-spacing: .07em;
+        }
+
+        .work-order label,
+        .damage-row label {
+            display: block;
+            color: rgba(23,23,17,.7);
+            font: 900 .62rem/1.2 "Courier New", monospace;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .saying-input {
+            width: 100%;
+            margin-top: .8rem;
+            padding: .8rem .2rem .65rem;
+            border: 0;
+            border-bottom: 2px solid rgba(36,74,115,.62);
+            border-radius: 0;
+            outline: 0;
+            color: var(--blue-pen);
+            background: transparent;
+            font: 700 1rem/1.35 "Marker Felt", "Comic Sans MS", cursive;
+        }
+
+        .saying-input:focus { border-bottom-color: var(--plaid); }
+
+        .damage-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1.2rem;
+        }
+
+        .damage-control { margin-top: .5rem; }
+
+        .damage-control input {
+            width: 100%;
+            accent-color: var(--plaid);
+        }
+
+        .damage-scale {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(23,23,17,.48);
+            font: 700 .52rem/1 "Courier New", monospace;
+            text-transform: uppercase;
+        }
+
+        .damage-output {
+            display: grid;
+            place-items: center;
+            width: 3.2rem;
+            aspect-ratio: 1;
+            border: 3px solid var(--plaid);
+            border-radius: 50%;
+            color: var(--plaid);
+            font: 900 1rem/1 "Courier New", monospace;
+            transform: rotate(-8deg);
+        }
+
+        .word-tray {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .42rem;
+            min-height: 5.1rem;
+            margin: 1.2rem 0 0;
+            padding: .75rem;
+            border: .45rem solid #4a4d47;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255,255,255,.07), transparent 15rem),
+                #1b1d1a;
+            box-shadow: inset 0 .4rem 1.2rem rgba(0,0,0,.6);
+        }
+
+        .magnet {
+            display: inline-flex;
+            align-items: center;
+            min-height: 1.85rem;
+            padding: .2rem .45rem;
+            border: 1px solid rgba(0,0,0,.2);
+            color: #111;
+            background: var(--magnet, #eee5cc);
+            box-shadow: .13rem .16rem 0 rgba(0,0,0,.35);
+            font: 900 .72rem/1 "Arial Narrow", Arial, sans-serif;
+            text-transform: uppercase;
+            transform: rotate(var(--tilt, 0deg));
+        }
+
+        .bench-actions {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: .7rem;
+            margin-top: 1rem;
+        }
+
+        .action {
+            min-height: 3rem;
+            padding: .75rem 1rem;
+            border: 1px solid rgba(255,255,255,.22);
+            color: #f7eccb;
+            background: #22241f;
+            cursor: pointer;
+            font: 900 .7rem/1 "Courier New", monospace;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            box-shadow: .25rem .3rem 0 rgba(0,0,0,.32);
+            transition: transform 160ms ease, background 160ms ease;
+        }
+
+        .action.primary { color: #171711; background: var(--cheese); border-color: #f0bf58; }
+        .action:hover, .action:focus-visible { transform: translateY(-2px) rotate(-.4deg); outline: 2px solid #fff0b8; outline-offset: 2px; }
+        .action:active { transform: translateY(1px); }
+
+        .receipt {
+            position: relative;
+            width: min(92%, 34rem);
+            margin: clamp(1.4rem, 4vw, 2.5rem) auto -3.2rem;
+            padding: 2rem 1.6rem 2.3rem;
+            background:
+                repeating-linear-gradient(0deg, rgba(0,0,0,.018) 0 1px, transparent 1px 4px),
+                #f6edcf;
+            box-shadow: .6rem .75rem 0 rgba(0,0,0,.26);
+            transform: rotate(-1.1deg);
+            clip-path: polygon(0 0, 100% 0, 100% 96%, 96% 98%, 91% 96%, 86% 99%, 80% 96%, 74% 99%, 68% 96%, 62% 99%, 56% 96%, 50% 99%, 44% 96%, 38% 99%, 32% 96%, 26% 99%, 20% 96%, 14% 99%, 8% 96%, 3% 99%, 0 96%);
+        }
+
+        .receipt.bump { animation: receipt-bump 420ms cubic-bezier(.2,.8,.2,1); }
+
+        @keyframes receipt-bump {
+            0% { transform: translateY(-1.5rem) rotate(-3deg); opacity: .2; }
+            100% { transform: translateY(0) rotate(-1.1deg); opacity: 1; }
+        }
+
+        .receipt-kicker {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-bottom: .7rem;
+            border-bottom: 1px dashed rgba(23,23,17,.42);
+            color: rgba(23,23,17,.58);
+            font: 700 .58rem/1.2 "Courier New", monospace;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .receipt h2 {
+            margin: 1.3rem 0 1rem;
+            color: var(--blue-pen);
+            font: 700 clamp(1.6rem, 4vw, 2.45rem)/1.08 "Marker Felt", "Comic Sans MS", cursive;
+            letter-spacing: -.02em;
+        }
+
+        .meaning {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: .5rem .8rem;
+            margin: 0;
+            padding-top: .9rem;
+            border-top: 1px dashed rgba(23,23,17,.32);
+            color: var(--ink);
+            font: 700 .76rem/1.45 "Courier New", monospace;
+        }
+
+        .meaning dt { color: var(--plaid); text-transform: uppercase; }
+        .meaning dd { margin: 0; }
+
+        .receipt-actions {
+            display: flex;
+            gap: .55rem;
+            margin-top: 1.2rem;
+        }
+
+        .receipt-button {
+            min-height: 2.7rem;
+            padding: .55rem .8rem;
+            border: 2px solid var(--blue-pen);
+            color: var(--blue-pen);
+            background: transparent;
+            cursor: pointer;
+            font: 900 .62rem/1 "Courier New", monospace;
+            text-transform: uppercase;
+            transform: rotate(.4deg);
+        }
+
+        .receipt-button:hover, .receipt-button:focus-visible { color: var(--plaid); border-color: var(--plaid); outline: 2px solid var(--plaid); outline-offset: 2px; }
+
+        .evidence {
+            margin-top: clamp(8rem, 14vw, 13rem);
+            padding-top: clamp(3rem, 7vw, 6rem);
+            border-top: .7rem solid var(--duct);
+        }
+
+        .section-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(15rem, 26rem);
+            gap: 2rem;
+            align-items: end;
+            margin-bottom: clamp(2rem, 5vw, 4rem);
+        }
+
+        .section-label {
+            margin-bottom: .8rem;
+            color: var(--cheese);
+            font: 900 .68rem/1 "Courier New", monospace;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            color: var(--paper);
+            font: 900 clamp(3.3rem, 9vw, 7rem)/.8 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+            letter-spacing: -.035em;
+            text-transform: uppercase;
+            transform: rotate(-.5deg);
+        }
+
+        .section-head p {
+            margin: 0;
+            color: rgba(239,225,184,.66);
+            font: 700 1rem/1.6 "Marker Felt", "Comic Sans MS", cursive;
+        }
+
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: clamp(.8rem, 2vw, 1.4rem);
+        }
+
+        .evidence-card {
+            grid-column: span 4;
+            position: relative;
+            min-height: 13rem;
+            padding: 1.3rem 1.2rem 1.1rem;
+            border: 0;
+            color: var(--ink);
+            background: var(--paper);
+            cursor: pointer;
+            text-align: left;
+            box-shadow: .45rem .55rem 0 rgba(0,0,0,.26);
+            transform: rotate(var(--turn, 0deg));
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .evidence-card:nth-child(3n+2) { background: #d8e0d2; }
+        .evidence-card:nth-child(3n) { background: #e0cfbd; }
+        .evidence-card::before {
+            content: '';
+            position: absolute;
+            top: -.5rem;
+            left: 50%;
+            width: 4.5rem;
+            height: 1.2rem;
+            background: rgba(170,170,162,.72);
+            transform: translateX(-50%) rotate(-2deg);
+        }
+
+        .evidence-card:hover, .evidence-card:focus-visible {
+            z-index: 2;
+            outline: 3px solid var(--cheese);
+            outline-offset: 3px;
+            box-shadow: .8rem .9rem 0 rgba(0,0,0,.34);
+            transform: rotate(0) translateY(-.3rem);
+        }
+
+        .case-number {
+            display: block;
+            margin-bottom: 1.4rem;
+            color: rgba(23,23,17,.48);
+            font: 900 .58rem/1 "Courier New", monospace;
+            letter-spacing: .08em;
+        }
+
+        .evidence-card strong {
+            display: block;
+            color: var(--blue-pen);
+            font: 700 clamp(1.35rem, 3vw, 2rem)/1.05 "Marker Felt", "Comic Sans MS", cursive;
+        }
+
+        .evidence-card small {
+            display: block;
+            margin-top: 1rem;
+            color: rgba(23,23,17,.62);
+            font: 700 .68rem/1.4 "Courier New", monospace;
+        }
+
+        .glove-box {
+            margin-top: clamp(5rem, 10vw, 9rem);
+            padding: clamp(1.2rem, 4vw, 2.4rem);
+            border: .35rem solid #383c36;
+            border-radius: .25rem 2rem .5rem .4rem;
+            background:
+                linear-gradient(105deg, rgba(255,255,255,.03), transparent 26%),
+                var(--dash);
+            box-shadow: inset 0 1rem 2rem rgba(0,0,0,.45), 0 1rem 3rem rgba(0,0,0,.22);
+        }
+
+        .glove-box-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(239,225,184,.15);
+        }
+
+        .glove-box h2 {
+            margin: 0;
+            color: var(--paper);
+            font: 900 clamp(2rem, 5vw, 3.5rem)/1 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+            letter-spacing: .01em;
+            text-transform: uppercase;
+        }
+
+        .glove-box-head span {
+            color: rgba(239,225,184,.42);
+            font: 700 .6rem/1 "Courier New", monospace;
+            text-transform: uppercase;
+        }
+
+        .saved-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .65rem;
+            margin-top: 1rem;
+        }
+
+        .saved-item,
+        .empty-glove {
+            min-height: 4.7rem;
+            padding: .9rem 1rem;
+            border: 1px solid rgba(239,225,184,.15);
+            color: rgba(239,225,184,.78);
+            background: rgba(255,255,255,.025);
+            font: 700 .78rem/1.45 "Courier New", monospace;
+        }
+
+        .saved-item { cursor: pointer; text-align: left; }
+        .saved-item:hover, .saved-item:focus-visible { color: var(--cheese); border-color: var(--cheese); outline: 1px solid var(--cheese); }
+        .empty-glove { grid-column: 1 / -1; color: rgba(239,225,184,.38); }
+
+        .sitenav {
+            position: fixed;
+            z-index: 25;
+            left: max(.75rem, env(safe-area-inset-left));
+            right: max(.75rem, env(safe-area-inset-right));
+            bottom: max(.7rem, env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: center;
+            gap: .35rem;
+            width: fit-content;
+            max-width: calc(100vw - 1.5rem);
+            margin: 0 auto;
+            padding: .35rem;
+            overflow-x: auto;
+            border: 1px solid rgba(239,225,184,.2);
+            background: rgba(17,18,15,.9);
+            box-shadow: 0 .8rem 2.5rem rgba(0,0,0,.36);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            scrollbar-width: none;
+        }
+
+        .sitenav::-webkit-scrollbar { display: none; }
+
+        .navlink {
+            flex: none;
+            min-height: 2.6rem;
+            display: grid;
+            place-items: center;
+            padding: .65rem .9rem;
+            color: rgba(239,225,184,.58);
+            text-decoration: none;
+            font: 900 .62rem/1 "Courier New", monospace;
+            letter-spacing: .08em;
+        }
+
+        .navlink:hover, .navlink:focus-visible, .navlink[aria-current="page"] { color: var(--cheese); outline: 1px solid var(--cheese); }
+
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; min-height: auto; }
+            .hero-copy { padding-bottom: 1rem; }
+            .bench-wrap { margin-top: 1rem; }
+            .evidence-card { grid-column: span 6; }
+        }
+
+        @media (max-width: 620px) {
+            .lot-strip span:nth-child(2) { display: none; }
+            .yard { padding-top: 1.5rem; }
+            h1 { font-size: clamp(5.2rem, 29vw, 8rem); }
+            .hero-line { margin-left: 0; }
+            .bench { padding: .8rem; box-shadow: .65rem .75rem 0 rgba(0,0,0,.28); }
+            .work-order { padding: 1rem .85rem; }
+            .work-order::before { position: static; display: block; margin-bottom: .7rem; }
+            .bench-actions { grid-template-columns: 1fr; }
+            .receipt { width: 96%; padding-inline: 1.1rem; }
+            .section-head { grid-template-columns: 1fr; }
+            .evidence-card { grid-column: 1 / -1; min-height: 10.5rem; }
+            .saved-list { grid-template-columns: 1fr; }
+            .damage-row { grid-template-columns: 1fr auto; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+            .smoke { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="smoke" aria-hidden="true"></div>
+
+    <header class="lot-strip">
+        <span><strong>Sunnyvale word repair</strong> · walk-ins welcome</span>
+        <span>Grade Ten English Department</span>
+        <span id="shop-time">Open whenever</span>
+    </header>
+
+    <main class="yard">
+        <section class="hero">
+            <div class="hero-copy">
+                <span class="grade-sticker">English, fixed enough</span>
+                <h1>Ricky<span>isms</span></h1>
+                <p class="hero-line">Sometimes the words get fucked up. <strong>The idea usually doesn't.</strong></p>
+            </div>
+
+            <div class="bench-wrap">
+                <div class="bench">
+                    <div class="bench-head">
+                        <div><strong>Sentence repair bench</strong>No refunds on perfectly good words</div>
+                        <span class="shop-tag">R.S. · PROP.</span>
+                    </div>
+
+                    <div class="work-order">
+                        <label for="saying">What were you trying to say?</label>
+                        <input class="saying-input" id="saying" type="text" maxlength="140" value="We'll deal with that when the time comes." autocomplete="off" spellcheck="true">
+
+                        <div class="damage-row">
+                            <div class="damage-control">
+                                <label for="word-damage">How fucked are the words?</label>
+                                <input id="word-damage" type="range" min="10" max="100" value="62">
+                                <div class="damage-scale" aria-hidden="true"><span>A little</span><span>Grade ten</span><span>Court</span></div>
+                            </div>
+                            <output class="damage-output" id="damage-output" for="word-damage">62</output>
+                        </div>
+
+                        <div class="word-tray" id="word-tray" aria-label="Loose sentence parts"></div>
+
+                        <div class="bench-actions">
+                            <button class="action primary" id="fix-words" type="button">Fix the words</button>
+                            <button class="action" id="surprise-me" type="button">Grab another saying</button>
+                        </div>
+                    </div>
+
+                    <article class="receipt" id="receipt" aria-live="polite">
+                        <div class="receipt-kicker"><span>Ricky's version</span><span id="repair-number">No. 0001</span></div>
+                        <h2 id="ricky-output">We'll burn that fridge when we get to it.</h2>
+                        <dl class="meaning">
+                            <dt>Means</dt>
+                            <dd id="plain-output">We'll deal with that when the time comes.</dd>
+                        </dl>
+                        <div class="receipt-actions">
+                            <button class="receipt-button" id="keep-it" type="button">Glove box</button>
+                            <button class="receipt-button" id="share-it" type="button">Share this one</button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="evidence" aria-labelledby="evidence-title">
+            <header class="section-head">
+                <div>
+                    <div class="section-label">Previously repaired</div>
+                    <h2 id="evidence-title">Evidence drawer</h2>
+                </div>
+                <p>These ones already went through the shop. Tap a sheet and it goes back on the bench.</p>
+            </header>
+
+            <div class="evidence-grid" id="evidence-grid">
+                <button class="evidence-card" type="button" style="--turn:-1.4deg" data-saying="Worst case Ontario." data-meaning="Worst-case scenario.">
+                    <span class="case-number">CASE 0027 · GEOGRAPHY</span><strong>Worst case Ontario.</strong><small>Worst-case scenario.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:1deg" data-saying="It's not rocket appliances." data-meaning="It's not rocket science.">
+                    <span class="case-number">CASE 0031 · SCIENCE</span><strong>It's not rocket appliances.</strong><small>It's not rocket science.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:-.5deg" data-saying="Get two birds stoned at once." data-meaning="Solve two problems at once.">
+                    <span class="case-number">CASE 0042 · EFFICIENCY</span><strong>Get two birds stoned at once.</strong><small>Solve two problems at once.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:.8deg" data-saying="Water under the fridge." data-meaning="The old problem is behind us.">
+                    <span class="case-number">CASE 0058 · PLUMBING</span><strong>Water under the fridge.</strong><small>The old problem is behind us.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:-1deg" data-saying="Supply and command." data-meaning="Supply and demand.">
+                    <span class="case-number">CASE 0064 · BUSINESS</span><strong>Supply and command.</strong><small>Supply and demand.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:1.3deg" data-saying="What comes around is all around." data-meaning="What goes around comes around.">
+                    <span class="case-number">CASE 0071 · KARMA</span><strong>What comes around is all around.</strong><small>What goes around comes around.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:-.6deg" data-saying="Denial and error." data-meaning="Trial and error.">
+                    <span class="case-number">CASE 0086 · COURT</span><strong>Denial and error.</strong><small>Trial and error.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:.5deg" data-saying="Friends with Benedicts." data-meaning="Friends with benefits.">
+                    <span class="case-number">CASE 0093 · RELATIONS</span><strong>Friends with Benedicts.</strong><small>Friends with benefits.</small>
+                </button>
+                <button class="evidence-card" type="button" style="--turn:-1.2deg" data-saying="Passed with flying carpets." data-meaning="Passed with flying colors.">
+                    <span class="case-number">CASE 0104 · SCHOOL</span><strong>Passed with flying carpets.</strong><small>Passed with flying colors.</small>
+                </button>
+            </div>
+        </section>
+
+        <section class="glove-box" aria-labelledby="glove-title">
+            <div class="glove-box-head">
+                <h2 id="glove-title">The glove box</h2>
+                <span>Saved on this phone</span>
+            </div>
+            <div class="saved-list" id="saved-list"></div>
+        </section>
+    </main>
+
+    <nav class="sitenav" aria-label="Site">
+        <a class="navlink" href="/">HOME</a>
+        <a class="navlink" href="/tbp">TBP</a>
+        <a class="navlink" href="/365">365</a>
+        <a class="navlink" href="/tbp/rickyisms" aria-current="page">RICKYISMS</a>
+    </nav>
+
+    <script>
+        (() => {
+            const sayingInput = document.getElementById('saying');
+            const damageInput = document.getElementById('word-damage');
+            const damageOutput = document.getElementById('damage-output');
+            const tray = document.getElementById('word-tray');
+            const rickyOutput = document.getElementById('ricky-output');
+            const plainOutput = document.getElementById('plain-output');
+            const receipt = document.getElementById('receipt');
+            const repairNumber = document.getElementById('repair-number');
+            const fixButton = document.getElementById('fix-words');
+            const surpriseButton = document.getElementById('surprise-me');
+            const keepButton = document.getElementById('keep-it');
+            const shareButton = document.getElementById('share-it');
+            const savedList = document.getElementById('saved-list');
+            const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const magnetColors = ['#eee5cc', '#d6e2d4', '#efcf8e', '#d8c6bd', '#cad8df'];
+
+            const starters = [
+                'We will deal with that when the time comes.',
+                'You cannot judge a book by its cover.',
+                'We should take it with a grain of salt.',
+                'That is a blessing in disguise.',
+                'The early bird gets the worm.',
+                'You have to learn through trial and error.',
+                'We need to understand supply and demand.',
+                'It is water under the bridge now.',
+                'That is not rocket science.',
+                'What goes around comes around.'
+            ];
+
+            const exactRepairs = [
+                { match: /deal with that when the time comes/i, say: "We'll burn that fridge when we get to it." },
+                { match: /judge a book by its cover/i, say: "You can't judge the cover of a book by looking at it." },
+                { match: /grain of salt/i, say: 'Take it with a grain assault.' },
+                { match: /blessing in disguise/i, say: "It's a blessing in the skies." },
+                { match: /early bird gets the worm/i, say: 'The first bird gets whatever worms are left.' },
+                { match: /trial and error/i, say: 'Denial and error.' },
+                { match: /supply and demand/i, say: 'Supply and command.' },
+                { match: /water under the bridge/i, say: 'Water under the fridge.' },
+                { match: /rocket science/i, say: "It's not rocket appliances." },
+                { match: /what goes around comes around/i, say: 'What comes around is all around.' },
+                { match: /worst.case scenario/i, say: 'Worst case Ontario.' },
+                { match: /two birds/i, say: 'Get two birds stoned at once.' },
+                { match: /friends with benefits/i, say: 'Friends with Benedicts.' },
+                { match: /flying colors/i, say: 'Flying carpets.' }
+            ];
+
+            const looseRepairs = [
+                ['scenario', 'Ontario'],
+                ['science', 'appliances'],
+                ['bridge', 'fridge'],
+                ['demand', 'command'],
+                ['trial', 'denial'],
+                ['benefits', 'Benedicts'],
+                ['colors', 'carpets'],
+                ['disguise', 'the skies'],
+                ['salt', 'assault'],
+                ['denominator', 'dominator'],
+                ['escape goat', 'scapegoat']
+            ];
+
+            const endings = [
+                " That's just how the cookie parts.",
+                " Everybody knows that, it's basic brain departments.",
+                " You don't need a book to figure that one around.",
+                " It's common denominator stuff.",
+                " Case closed, open and shut at the same time."
+            ];
+
+            let repairsMade = 1;
+            let surpriseIndex = 0;
+            let current = {
+                saying: "We'll burn that fridge when we get to it.",
+                meaning: "We'll deal with that when the time comes."
+            };
+
+            const cleanSentence = (value) => {
+                const text = value.trim().replace(/\s+/g, ' ');
+                if (!text) return starters[0];
+                return /[.!?]$/.test(text) ? text : `${text}.`;
+            };
+
+            const hash = (text) => [...text].reduce((total, char) => ((total << 5) - total + char.charCodeAt(0)) | 0, 0);
+
+            function repair(text, amount) {
+                const meaning = cleanSentence(text);
+                const exact = exactRepairs.find(item => item.match.test(meaning));
+                let saying = exact ? exact.say : meaning;
+
+                if (!exact) {
+                    let swaps = amount < 38 ? 1 : amount < 74 ? 2 : 3;
+                    const start = Math.abs(hash(meaning)) % looseRepairs.length;
+                    for (let index = 0; index < looseRepairs.length && swaps > 0; index += 1) {
+                        const [from, to] = looseRepairs[(start + index) % looseRepairs.length];
+                        const pattern = new RegExp(`\\b${from}\\b`, 'i');
+                        if (pattern.test(saying)) {
+                            saying = saying.replace(pattern, to);
+                            swaps -= 1;
+                        }
+                    }
+
+                    if (saying === meaning) {
+                        const base = meaning.replace(/[.!?]+$/, '');
+                        saying = amount < 38
+                            ? `${base}, more or less.`
+                            : `${base}. That's just common denominator.`;
+                    }
+                }
+
+                if (amount > 78 && !endings.some(ending => saying.includes(ending.trim()))) {
+                    saying = `${saying.replace(/[.!?]+$/, '')}.${endings[Math.abs(hash(meaning + amount)) % endings.length]}`;
+                }
+
+                return { saying, meaning };
+            }
+
+            function paintMagnets(text, animate = false) {
+                tray.replaceChildren();
+                text.split(/\s+/).slice(0, 22).forEach((word, index) => {
+                    const magnet = document.createElement('span');
+                    magnet.className = 'magnet';
+                    magnet.textContent = word;
+                    magnet.style.setProperty('--magnet', magnetColors[index % magnetColors.length]);
+                    magnet.style.setProperty('--tilt', `${((index * 7) % 9) - 4}deg`);
+                    tray.append(magnet);
+
+                    if (animate && !reduceMotion) {
+                        const direction = index % 2 ? 1 : -1;
+                        magnet.animate([
+                            { opacity: 0, transform: `translate(${direction * (35 + index * 2)}px, ${-22 + (index % 4) * 13}px) rotate(${direction * 24}deg) scale(.76)` },
+                            { opacity: 1, transform: `translate(0, 0) rotate(${((index * 7) % 9) - 4}deg) scale(1)` }
+                        ], { duration: 430 + index * 25, easing: 'cubic-bezier(.2,.8,.2,1)' });
+                    }
+                });
+            }
+
+            function showRepair(next, animate = true) {
+                current = next;
+                rickyOutput.textContent = current.saying;
+                plainOutput.textContent = current.meaning;
+                repairsMade += 1;
+                repairNumber.textContent = `No. ${String(repairsMade).padStart(4, '0')}`;
+                paintMagnets(current.saying, animate);
+
+                if (animate && !reduceMotion) {
+                    receipt.classList.remove('bump');
+                    void receipt.offsetWidth;
+                    receipt.classList.add('bump');
+                }
+            }
+
+            function makeRepair() {
+                showRepair(repair(sayingInput.value, Number(damageInput.value)));
+            }
+
+            damageInput.addEventListener('input', () => {
+                damageOutput.value = damageInput.value;
+                damageOutput.textContent = damageInput.value;
+                document.documentElement.style.setProperty('--words', damageInput.value);
+            });
+
+            fixButton.addEventListener('click', makeRepair);
+            sayingInput.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    makeRepair();
+                }
+            });
+
+            surpriseButton.addEventListener('click', () => {
+                surpriseIndex = (surpriseIndex + 1 + Math.floor(Math.random() * (starters.length - 1))) % starters.length;
+                sayingInput.value = starters[surpriseIndex];
+                makeRepair();
+            });
+
+            document.getElementById('evidence-grid').addEventListener('click', event => {
+                const card = event.target.closest('.evidence-card');
+                if (!card) return;
+                sayingInput.value = card.dataset.meaning;
+                showRepair({ saying: card.dataset.saying, meaning: card.dataset.meaning });
+                receipt.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+            });
+
+            function readSaved() {
+                try { return JSON.parse(localStorage.getItem('rg-rickyisms-glovebox') || '[]'); }
+                catch (_) { return []; }
+            }
+
+            function writeSaved(items) {
+                try { localStorage.setItem('rg-rickyisms-glovebox', JSON.stringify(items)); }
+                catch (_) {}
+            }
+
+            function renderSaved() {
+                const items = readSaved();
+                savedList.replaceChildren();
+                if (!items.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-glove';
+                    empty.textContent = 'Nothing in here but old receipts and one screwdriver.';
+                    savedList.append(empty);
+                    return;
+                }
+
+                items.forEach(item => {
+                    const button = document.createElement('button');
+                    button.className = 'saved-item';
+                    button.type = 'button';
+                    button.textContent = item.saying;
+                    button.addEventListener('click', () => {
+                        sayingInput.value = item.meaning;
+                        showRepair(item);
+                        receipt.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+                    });
+                    savedList.append(button);
+                });
+            }
+
+            keepButton.addEventListener('click', () => {
+                const items = readSaved().filter(item => item.saying !== current.saying);
+                items.unshift(current);
+                writeSaved(items.slice(0, 6));
+                renderSaved();
+                keepButton.textContent = 'In the glove box';
+                setTimeout(() => { keepButton.textContent = 'Glove box'; }, 1500);
+            });
+
+            shareButton.addEventListener('click', async () => {
+                const text = `Ricky said: “${current.saying}”\nWhat he meant: ${current.meaning}`;
+                try {
+                    if (navigator.share) {
+                        await navigator.share({ title: 'Rickyisms', text, url: location.href });
+                        return;
+                    }
+                    await navigator.clipboard.writeText(`${text}\n${location.href}`);
+                    shareButton.textContent = 'Copied';
+                    setTimeout(() => { shareButton.textContent = 'Share this one'; }, 1500);
+                } catch (_) {}
+            });
+
+            document.getElementById('shop-time').textContent = `Filed ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            damageOutput.value = damageInput.value;
+            paintMagnets(current.saying);
+            renderSaved();
+        })();
+    </script>
+</body>
+</html>
