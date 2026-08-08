@@ -6,6 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#17251d">
     <title>The Liquor Weather Report — Mr. Lahey</title>
+    <meta name="description" content="Sunnyvale's official shitwind forecast. Adjust the liquor pressure, read the winds, share the report.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="RG HQ">
+    <meta property="og:title" content="The Liquor Weather Report">
+    <meta property="og:description" content="Sunnyvale's official shitwind forecast. Adjust the liquor pressure, read the winds, share the report.">
+    <meta property="og:url" content="https://doomswitch541-prog.github.io/tbp/lahey/">
+    <meta property="og:image" content="https://doomswitch541-prog.github.io/assets/og/lahey.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="The Liquor Weather Report — a Sunnyvale storm bulletin with the liquor-pressure gauge pinned at Full Shiticane.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Liquor Weather Report">
+    <meta name="twitter:description" content="Sunnyvale's official shitwind forecast — read the winds, share the report.">
+    <meta name="twitter:image" content="https://doomswitch541-prog.github.io/assets/og/lahey.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=League+Gothic&family=Libre+Caslon+Text:ital@0;1&display=swap" rel="stylesheet">
@@ -511,22 +525,48 @@
                 { max: 17, title: 'Suspicious Calm', code: 'SC-01', lines: [
                     'The park is quiet. Too quiet. Keep one eye on the bottle and the other on Randy.',
                     'No active shitfronts detected. This is usually when somebody gets confident.',
+                    'Clear skies over Sunnyvale, barometric decency holding. Nobody move and nobody gets hurt.',
+                    'Zero precipitation, zero drama. A dangerous combination. Somebody is about to ruin it.',
+                    'Visibility good, cabinet full, Ricky asleep. Enjoy it while the front holds.',
+                    'Conditions nominal. The rum is at rest. Do not, under any circumstances, wake the rum.',
+                    'A high-pressure system of pure decency sits over the trailer. It will not last. It never does.',
                 ]},
                 { max: 36, title: 'Shit Breeze', code: 'SB-02', lines: [
                     'A minor disturbance near the cheeseburger corridor. Conditions remain manageable.',
                     'Paperwork is lifting off the hood of the supervisor car. Trouble may be local.',
+                    'Light shit breeze out of the northwest. Secure your lawn chairs and your excuses.',
+                    'A faint smell of consequences on the wind. Nothing a drink will not clarify.',
+                    'Randy reports his shirt is "thinking about it." Advisory: it comes off by evening.',
+                    'Scattered nonsense expected after dark. Bring the bottle inside, just in case.',
+                    'Pressure is ticking up. The park can feel it. So can the liquor.',
                 ]},
                 { max: 59, title: 'Shit Gust', code: 'SG-03', lines: [
                     'Loose lawn furniture. Randy remains within shouting distance. Trouble is developing over the park.',
                     'The shit winds are gathering behind lot forty-two. Maintain visual contact with the liquor cabinet.',
+                    'Gusting shitfronts near the trailer office. Do not attempt to reason with the weather.',
+                    'A wall of consequences building on the horizon. The rum-and-cokes are now load-bearing.',
+                    'Sustained shit gusts of forty. Ricky has an idea. This is how it always starts.',
+                    'The barometer is drunk, and the barometer is usually right.',
+                    'Debris field expanding. If you can read this, you are already downwind of Randy.',
                 ]},
                 { max: 81, title: 'Shit Squall', code: 'SS-04', lines: [
                     'Barometric decency is dropping fast. Shirts may be removed without warning.',
                     'A rotating disturbance has formed over Sunnyvale. The liquor has assumed operational command.',
+                    'Shit squall warning in effect. Take shelter, take a drink, take no prisoners.',
+                    'The park is now inside the weather, the weather is now inside the park, and the liquor is inside everyone.',
+                    'Conditions deteriorating beautifully. Bubbles has secured the kitties. You are on your own.',
+                    'Horizontal shit-rain near the swing set. Supervisor is "handling it," which means he is not.',
+                    'The forecast has stopped making sense and started making decisions.',
                 ]},
                 { max: 100, title: 'Full Shiticane', code: 'SH-05', lines: [
                     'All shit systems are now organized. Secure the trailer and let the liquor conduct the investigation.',
                     'Catastrophic park conditions. The forecast is liquor with a ninety-nine percent chance of consequences.',
+                    'Full shiticane, category Lahey. This is not a drill. This is a way of life.',
+                    'The eye of the shiticane is calm, well-lit, and holding a rum and coke. That is me. I am the liquor.',
+                    'Total system failure across Sunnyvale. There is no more weather. There is only liquor.',
+                    'The shit winds have made landfall. Randy is shirtless and at peace. It is finished.',
+                    'Maximum sustained chaos. Evacuate the sober, shelter the drunk, praise the bottle.',
+                    'This is your supervisor speaking. The park is gone, the liquor remains. Godspeed.',
                 ]},
             ];
 
@@ -590,6 +630,7 @@
 
             let saved = 42;
             try { saved = Number(localStorage.getItem('rg-lahey-pressure')) || 42; } catch (_) {}
+            lineIndex = Math.floor(Math.random() * forecastFor(saved).lines.length);
             applyPressure(saved);
 
             if (reduceMotion) return;
