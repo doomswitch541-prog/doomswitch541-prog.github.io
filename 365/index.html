@@ -717,6 +717,11 @@
                         <p class="timeline-copy">A cinematic act of patriotism from the original Clock project, created as the Anthropic–Pentagon confrontation became public.</p>
                     </article>
                     <article class="timeline-slide">
+                        <div class="timeline-kicker">Mar 12 · Day 70</div>
+                        <h2 class="timeline-title">Slingshot Matter</h2>
+                        <p class="timeline-copy">A handwritten Matter.js sketch gets a permanent bench: the blue elastic ball, sixteen octagons, automatic reload, and just enough scorekeeping to invite one more shot.</p>
+                    </article>
+                    <article class="timeline-slide">
                         <div class="timeline-kicker">Mar 19 · Day 77</div>
                         <h2 class="timeline-title">The Four</h2>
                         <p class="timeline-copy">A research archive about model character, alignment, institutions, and the human stakes of how intelligence is shaped.</p>
@@ -1491,13 +1496,52 @@
                     border: 'rgba(217, 140, 106, 0.48)'
                 }
             },
-            ...Array.from({ length: 18 }, (_, index) => ({
+            ...Array.from({ length: 11 }, (_, index) => ({
                 day: 59 + index,
                 name: 'Completed Day',
                 status: 'complete',
                 timeline: {
                     label: 'archive date',
                     entry: `Mar ${1 + index}, 2026`,
+                    confidence: 'calendar'
+                },
+                theme: {
+                    primary: '#8b93a7',
+                    secondary: '#aeb5c5',
+                    background: 'rgba(255, 255, 255, 0.035)',
+                    glow: 'rgba(139, 147, 167, 0.18)',
+                    border: 'rgba(139, 147, 167, 0.24)'
+                }
+            })),
+            {
+                day: 70,
+                name: 'Slingshot Matter',
+                file: 'slingshot-matter.html',
+                status: 'live',
+                milestone: true,
+                statusLabel: '◆ Handwritten Game',
+                description: 'A preserved handwritten browser-physics sketch: pull the blue ball into a jewel-colored octagon wall, clear the platform, and try to beat the local score.',
+                timeline: {
+                    label: 'archive placement',
+                    original: '2020',
+                    entry: 'Mar 12, 2026',
+                    confidence: 'user-placement'
+                },
+                theme: {
+                    primary: '#0b97f5',
+                    secondary: '#ffc04a',
+                    background: 'linear-gradient(135deg, rgba(11, 151, 245, 0.16), rgba(235, 13, 87, 0.11))',
+                    glow: 'rgba(11, 151, 245, 0.34)',
+                    border: 'rgba(255, 192, 74, 0.46)'
+                }
+            },
+            ...Array.from({ length: 6 }, (_, index) => ({
+                day: 71 + index,
+                name: 'Completed Day',
+                status: 'complete',
+                timeline: {
+                    label: 'archive date',
+                    entry: `Mar ${13 + index}, 2026`,
                     confidence: 'calendar'
                 },
                 theme: {
