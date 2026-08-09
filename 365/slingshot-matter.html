@@ -150,6 +150,11 @@
 
         .field-label strong { color: var(--gold); font-weight: 700; }
 
+        .bench-tools {
+            display: flex;
+            gap: 0.42rem;
+        }
+
         .notes-button {
             min-height: 2.75rem;
             padding: 0.58rem 0.78rem;
@@ -164,7 +169,10 @@
             cursor: pointer;
         }
 
-        .notes-button:hover { border-color: var(--blue); color: #fff; }
+        .notes-button:hover,
+        .notes-button:focus-visible { border-color: var(--blue); color: #fff; outline: 2px solid var(--blue); outline-offset: 2px; }
+
+        .notes-button.quick-restart { color: var(--gold); }
 
         .score-rack {
             display: grid;
@@ -249,6 +257,36 @@
         }
 
         .matter-mount canvas:active { cursor: grabbing; }
+        .matter-mount canvas:focus-visible { outline: 2px solid var(--blue); outline-offset: -3px; }
+
+        .shot-pop {
+            position: absolute;
+            z-index: 4;
+            top: 0.85rem;
+            right: 0.85rem;
+            max-width: calc(100% - 1.7rem);
+            padding: 0.4rem 0.55rem;
+            border: 1px solid rgba(255,192,74,0.72);
+            border-radius: 0.28rem;
+            color: var(--gold);
+            background: rgba(17,18,23,0.88);
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: clamp(0.62rem, 2vw, 0.78rem);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            line-height: 1;
+            opacity: 0;
+            pointer-events: none;
+            text-transform: uppercase;
+            transform: translateY(0.4rem) scale(0.96);
+        }
+
+        .shot-pop.is-visible {
+            opacity: 1;
+            animation: shot-pop 620ms cubic-bezier(.2,.8,.2,1) both;
+        }
+
+        .field-shell.launch-kick { animation: launch-kick 150ms ease-out; }
 
         .field-corner {
             position: absolute;
@@ -321,7 +359,8 @@
             cursor: pointer;
         }
 
-        .bench-action:hover { border-color: var(--gold); color: var(--gold); }
+        .bench-action:hover,
+        .bench-action:focus-visible { border-color: var(--gold); color: var(--gold); outline: 2px solid var(--gold); outline-offset: 2px; }
 
         .instruction-panel {
             display: grid;
@@ -487,6 +526,16 @@
             50% { color: #fff; transform: translateY(-0.08rem) scale(1.07); }
         }
 
+        @keyframes shot-pop {
+            0% { opacity: 0; transform: translateY(0.55rem) scale(0.94); }
+            22%, 72% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-0.35rem) scale(1.02); }
+        }
+
+        @keyframes launch-kick {
+            45% { box-shadow: inset 0 0 3rem rgba(11,151,245,0.14); }
+        }
+
         @media (max-width: 680px) {
             .hero { grid-template-columns: 1fr; gap: 0.65rem; margin-top: 0.75rem; }
             .hero-note { max-width: 30rem; margin-left: 0.35rem; }
@@ -508,7 +557,9 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .score-cell.bump output { animation: none; }
+            .score-cell.bump output,
+            .shot-pop.is-visible,
+            .field-shell.launch-kick { animation: none; }
         }
     </style>
 </head>
@@ -530,7 +581,10 @@
         <section class="workbench" aria-label="Slingshot Matter physics workbench">
             <div class="bench-head">
                 <div class="field-label"><strong>Field 01</strong> · elastic constraint / polygon stack</div>
-                <button class="notes-button" id="notesButton" type="button" aria-haspopup="dialog">Field notes</button>
+                <div class="bench-tools">
+                    <button class="notes-button quick-restart" id="quickRestartButton" type="button">Restart</button>
+                    <button class="notes-button" id="notesButton" type="button" aria-haspopup="dialog">Field notes</button>
+                </div>
             </div>
 
             <div class="score-rack" aria-label="Current run score">
@@ -542,6 +596,7 @@
 
             <div class="field-shell" id="fieldShell">
                 <div class="matter-mount" id="matterMount"></div>
+                <output class="shot-pop" id="shotPop" aria-hidden="true"></output>
                 <span class="field-corner" aria-hidden="true">matter / field 01</span>
                 <section class="clear-card" id="clearCard" aria-live="polite">
                     <small>All sixteen off the platform</small>
@@ -554,10 +609,10 @@
             <section class="instruction-panel" aria-label="How to play">
                 <span class="instruction-number" aria-hidden="true">01</span>
                 <div class="instruction-copy">
-                    <strong>Pull the blue ball. Release it into the wall.</strong>
-                    <span>Keyboard: focus the field, use W A S D to pull, Space to fire, and R to rebuild.</span>
+                    <strong>Pull back. Let go. The next ball loads fast.</strong>
+                    <span>Keyboard: W A S D or arrows aim, Space fires, and R rebuilds.</span>
                 </div>
-                <div class="field-status" id="fieldStatus" aria-live="polite">Sling loaded · 100 per drop · 500 clear bonus</div>
+                <div class="field-status" id="fieldStatus" aria-live="polite">Sling loaded · consecutive drops build the score</div>
             </section>
         </section>
     </main>
@@ -575,7 +630,7 @@
                 <li>Elastic ball</li>
                 <li>Reloading sling</li>
             </ol>
-            <p>The blue ball, octagon wall, local Matter.js engine, and automatic reloading remain at the center. This archive version gives the sketch a responsive field, scoring, and controls without turning it into a different game.</p>
+            <p>The blue ball, octagon wall, local Matter.js engine, and automatic reloading remain at the center. The sling now reloads faster, keyboard pulls take fewer taps, and dropping several octagons with one ball builds a real best score.</p>
             <div class="control-row">
                 <span>Flight trail and score movement</span>
                 <button class="bench-action" id="motionButton" type="button" aria-pressed="true">Motion full</button>
@@ -594,10 +649,12 @@
         (() => {
             'use strict';
 
-            const BEST_KEY = 'rg-slingshot-matter-best-v1';
+            const BEST_KEY = 'rg-slingshot-matter-best-v2';
             const SETTINGS_KEY = 'rg-slingshot-matter-settings-v1';
             const TARGET_COUNT = 16;
             const BALL_CATEGORY = 0x0002;
+            const RELOAD_DELAY = 320;
+            const MAX_SPENT_BALLS = 6;
             const COLORS = ['#eb0d57', '#0b97f5', '#ffc04a', '#972e57', '#006fa9'];
 
             const mount = document.getElementById('matterMount');
@@ -608,6 +665,7 @@
             const droppedOutput = document.getElementById('droppedOutput');
             const bestOutput = document.getElementById('bestOutput');
             const fieldStatus = document.getElementById('fieldStatus');
+            const shotPop = document.getElementById('shotPop');
             const clearCard = document.getElementById('clearCard');
             const clearCopy = document.getElementById('clearCopy');
             const notesDialog = document.getElementById('notesDialog');
@@ -620,15 +678,21 @@
             let sling = null;
             let ball = null;
             let targets = [];
+            let spentBalls = [];
             let anchor = { x: 0, y: 0 };
             let platformBounds = { left: 0, right: 0, y: 0 };
+            let aimBounds = { left: 0, right: 0, top: 0, bottom: 0, maxDistance: 1 };
             let shots = 0;
             let score = 0;
             let best = safeNumber(safeRead(BEST_KEY), 0);
             let dropped = new Set();
             let firing = false;
+            let draggingBall = false;
             let keyboardAiming = false;
+            let aimPower = 0;
+            let shotDrops = 0;
             let reloadTimer = 0;
+            let feedbackTimer = 0;
             let resizeTimer = 0;
             let lastWidth = 0;
             let trailBody = null;
@@ -666,6 +730,14 @@
                 return String(value).padStart(4, '0');
             }
 
+            function dropAward(numberInShot) {
+                return 100 + Math.max(0, numberInShot - 1) * 50;
+            }
+
+            function clearAward(shotCount) {
+                return Math.max(500, 1400 - Math.max(0, shotCount - 1) * 125);
+            }
+
             function dimensions() {
                 const width = Math.max(280, Math.round(mount.getBoundingClientRect().width));
                 const height = width < 560
@@ -677,9 +749,10 @@
             function createBall(radius) {
                 return Matter.Bodies.circle(anchor.x, anchor.y, radius, {
                     label: 'sling-ball',
-                    density: 0.004,
-                    restitution: 0.42,
-                    friction: 0.08,
+                    density: 0.0045,
+                    restitution: 0.5,
+                    friction: 0.06,
+                    frictionAir: 0.006,
                     collisionFilter: { category: BALL_CATEGORY },
                     render: {
                         fillStyle: '#0b97f5',
@@ -694,7 +767,7 @@
                 const size = dimensions();
                 const compact = size.width < 560;
                 const targetRadius = clamp(size.width * (compact ? 0.037 : 0.026), 11, 28);
-                const ballRadius = clamp(size.width * (compact ? 0.052 : 0.023), 16, 27);
+                const ballRadius = clamp(size.width * (compact ? 0.064 : 0.027), 22, 29);
                 const platformWidth = clamp(size.width * (compact ? 0.42 : 0.34), 124, 360);
                 const platformHeight = clamp(size.height * 0.032, 12, 20);
                 const platformX = size.width * (compact ? 0.73 : 0.72);
@@ -704,6 +777,15 @@
                 anchor = {
                     x: size.width * (compact ? 0.22 : 0.18),
                     y: size.height * (compact ? 0.73 : 0.72)
+                };
+                const aimLeft = Math.max(ballRadius * 0.65, anchor.x - size.width * (compact ? 0.28 : 0.23));
+                const aimVertical = size.height * 0.24;
+                aimBounds = {
+                    left: aimLeft,
+                    right: anchor.x + ballRadius * 0.35,
+                    top: anchor.y - aimVertical,
+                    bottom: anchor.y + aimVertical,
+                    maxDistance: Math.hypot(anchor.x - aimLeft, aimVertical)
                 };
                 platformBounds = {
                     left: platformX - platformWidth / 2,
@@ -741,10 +823,10 @@
                         const y = platformY - platformHeight / 2 - targetRadius - (3 - row) * spacing;
                         const target = Matter.Bodies.polygon(x, y, 8, targetRadius, {
                             label: `target-${row}-${column}`,
-                            density: 0.0018,
-                            friction: 0.58,
-                            frictionStatic: 0.72,
-                            restitution: 0.18,
+                            density: 0.00155,
+                            friction: 0.52,
+                            frictionStatic: 0.66,
+                            restitution: 0.22,
                             render: {
                                 fillStyle: COLORS[colorIndex % COLORS.length],
                                 strokeStyle: 'rgba(255,255,255,0.08)',
@@ -760,8 +842,8 @@
                 sling = Matter.Constraint.create({
                     pointA: anchor,
                     bodyB: ball,
-                    stiffness: compact ? 0.032 : 0.026,
-                    damping: 0.018,
+                    stiffness: compact ? 0.05 : 0.042,
+                    damping: 0.012,
                     render: {
                         visible: true,
                         lineWidth: compact ? 2 : 3,
@@ -776,22 +858,30 @@
                     mouse,
                     collisionFilter: { mask: BALL_CATEGORY },
                     constraint: {
-                        stiffness: 0.16,
+                        stiffness: 0.26,
                         render: { visible: false }
                     }
                 });
                 render.mouse = mouse;
 
                 Matter.World.add(engine.world, [platform, ...targets, ball, sling, mouseConstraint]);
-                Matter.Events.on(mouseConstraint, 'enddrag', event => {
-                    if (event.body === ball) commitShot('pointer');
+                Matter.Events.on(mouseConstraint, 'startdrag', event => {
+                    if (event.body !== ball || firing) return;
+                    draggingBall = true;
+                    fieldStatus.textContent = 'Pull back and release · dotted line shows the shot';
                 });
+                Matter.Events.on(mouseConstraint, 'enddrag', event => {
+                    if (event.body !== ball) return;
+                    draggingBall = false;
+                    commitShot('pointer');
+                });
+                Matter.Events.on(engine, 'beforeUpdate', constrainPointerAim);
                 Matter.Events.on(engine, 'afterUpdate', afterPhysicsUpdate);
-                Matter.Events.on(render, 'afterRender', drawTrail);
+                Matter.Events.on(render, 'afterRender', drawFieldOverlay);
 
                 render.canvas.tabIndex = 0;
                 render.canvas.setAttribute('role', 'application');
-                render.canvas.setAttribute('aria-label', 'Slingshot field. Drag the blue ball and release it toward the octagon wall. W, A, S, and D aim, Space fires, and R rebuilds.');
+                render.canvas.setAttribute('aria-label', 'Slingshot field. Drag the blue ball and release it toward the octagon wall. W, A, S, and D or the arrow keys aim, Space fires, and R rebuilds.');
                 render.canvas.addEventListener('keydown', handleFieldKeydown);
                 render.canvas.addEventListener('pointerdown', releaseKeyboardHold, { passive: true });
 
@@ -804,6 +894,8 @@
             function destroyField() {
                 window.clearTimeout(reloadTimer);
                 reloadTimer = 0;
+                window.clearTimeout(feedbackTimer);
+                feedbackTimer = 0;
                 if (render) Matter.Render.stop(render);
                 if (runner) Matter.Runner.stop(runner);
                 if (engine) {
@@ -818,10 +910,14 @@
                 sling = null;
                 ball = null;
                 targets = [];
+                spentBalls = [];
                 trailBody = null;
                 trail = [];
                 firing = false;
+                draggingBall = false;
                 keyboardAiming = false;
+                aimPower = 0;
+                shotDrops = 0;
             }
 
             function restartField() {
@@ -829,14 +925,16 @@
                 score = 0;
                 dropped = new Set();
                 clearCard.classList.remove('is-visible');
-                fieldStatus.textContent = 'Sling loaded · 100 per drop · 500 clear bonus';
+                shotPop.classList.remove('is-visible');
+                fieldStatus.textContent = 'Sling loaded · consecutive drops build the score';
                 createField();
             }
 
             function commitShot(method) {
                 if (firing || !ball) return;
+                const pull = Matter.Vector.sub(anchor, ball.position);
+                const pullDistance = Matter.Vector.magnitude(pull);
                 if (method === 'pointer') {
-                    const pullDistance = Matter.Vector.magnitude(Matter.Vector.sub(ball.position, anchor));
                     if (pullDistance < Math.max(6, ball.circleRadius * 0.35)) {
                         fieldStatus.textContent = 'Pull the blue ball back before releasing';
                         return;
@@ -847,24 +945,52 @@
                     Matter.Body.setVelocity(ball, { x: 0, y: 0 });
                     keyboardAiming = false;
                 }
+                const launchScale = render.options.width < 560 ? 0.13 : 0.115;
+                Matter.World.remove(engine.world, sling);
+                Matter.Body.setVelocity(ball, {
+                    x: pull.x * launchScale,
+                    y: pull.y * launchScale
+                });
                 firing = true;
+                draggingBall = false;
+                aimPower = 0;
+                shotDrops = 0;
                 shots += 1;
                 trailBody = ball;
                 trail = [{ x: ball.position.x, y: ball.position.y }];
-                fieldStatus.textContent = method === 'keyboard' ? 'Keyboard shot away · reloading sling' : 'Shot away · reloading sling';
+                fieldStatus.textContent = method === 'keyboard' ? 'Keyboard shot away · next ball loading' : 'Shot away · next ball loading';
+                fieldShell.classList.remove('launch-kick');
+                void fieldShell.offsetWidth;
+                fieldShell.classList.add('launch-kick');
                 updateScoreboard();
                 window.clearTimeout(reloadTimer);
-                reloadTimer = window.setTimeout(reloadBall, 560);
+                reloadTimer = window.setTimeout(reloadBall, RELOAD_DELAY);
             }
 
             function reloadBall() {
                 if (!engine || !sling) return;
                 const radius = ball ? ball.circleRadius : 24;
+                if (ball) spentBalls.push(ball);
+                while (spentBalls.length > MAX_SPENT_BALLS) {
+                    const oldest = spentBalls.shift();
+                    if (oldest && oldest !== trailBody) Matter.World.remove(engine.world, oldest);
+                }
                 ball = createBall(radius);
-                Matter.World.add(engine.world, ball);
                 sling.bodyB = ball;
+                Matter.World.add(engine.world, [ball, sling]);
                 firing = false;
                 fieldStatus.textContent = dropped.size === TARGET_COUNT ? 'Wall clear · sling remains loaded' : 'Sling loaded · pull and release';
+            }
+
+            function constrainPointerAim() {
+                if (!draggingBall || !ball || firing) return;
+                const position = {
+                    x: clamp(ball.position.x, aimBounds.left, aimBounds.right),
+                    y: clamp(ball.position.y, aimBounds.top, aimBounds.bottom)
+                };
+                Matter.Body.setPosition(ball, position);
+                Matter.Body.setVelocity(ball, { x: 0, y: 0 });
+                aimPower = clamp(Matter.Vector.magnitude(Matter.Vector.sub(position, anchor)) / aimBounds.maxDistance, 0, 1);
             }
 
             function releaseKeyboardHold() {
@@ -873,6 +999,7 @@
                 Matter.Body.setPosition(ball, anchor);
                 Matter.Body.setVelocity(ball, { x: 0, y: 0 });
                 keyboardAiming = false;
+                aimPower = 0;
             }
 
             function handleFieldKeydown(event) {
@@ -884,16 +1011,14 @@
                 }
                 if (!ball || firing) return;
 
-                const step = Math.max(8, render.options.width * 0.012);
-                const maxPullX = render.options.width * 0.19;
-                const maxPullY = render.options.height * 0.2;
+                const step = Math.max(14, render.options.width * 0.022);
                 let nextX = ball.position.x;
                 let nextY = ball.position.y;
 
-                if (key === 'a') nextX -= step;
-                else if (key === 'd') nextX += step;
-                else if (key === 'w') nextY -= step;
-                else if (key === 's') nextY += step;
+                if (key === 'a' || key === 'arrowleft') nextX -= step;
+                else if (key === 'd' || key === 'arrowright') nextX += step;
+                else if (key === 'w' || key === 'arrowup') nextY -= step;
+                else if (key === 's' || key === 'arrowdown') nextY += step;
                 else if (event.key === ' ' || event.code === 'Space') {
                     event.preventDefault();
                     if (Matter.Vector.magnitude(Matter.Vector.sub(ball.position, anchor)) > step) commitShot('keyboard');
@@ -906,10 +1031,11 @@
                     Matter.Body.setStatic(ball, true);
                     keyboardAiming = true;
                 }
-                nextX = clamp(nextX, anchor.x - maxPullX, anchor.x + maxPullX * 0.18);
-                nextY = clamp(nextY, anchor.y - maxPullY, anchor.y + maxPullY);
+                nextX = clamp(nextX, aimBounds.left, aimBounds.right);
+                nextY = clamp(nextY, aimBounds.top, aimBounds.bottom);
                 Matter.Body.setPosition(ball, { x: nextX, y: nextY });
-                fieldStatus.textContent = 'W A S D aim set · press Space to fire';
+                aimPower = clamp(Matter.Vector.magnitude(Matter.Vector.sub(ball.position, anchor)) / aimBounds.maxDistance, 0, 1);
+                fieldStatus.textContent = `${Math.round(aimPower * 100)}% pull · press Space to fire`;
             }
 
             function afterPhysicsUpdate() {
@@ -921,6 +1047,8 @@
                 }
 
                 let changed = false;
+                let droppedNow = 0;
+                let awardedNow = 0;
                 targets.forEach(target => {
                     if (dropped.has(target.id)) return;
                     const offPlatform = target.position.x < platformBounds.left - 8
@@ -928,7 +1056,11 @@
                         || target.position.y > platformBounds.y + 34;
                     if (!offPlatform) return;
                     dropped.add(target.id);
-                    score += 100;
+                    shotDrops += 1;
+                    droppedNow += 1;
+                    const award = dropAward(shotDrops);
+                    awardedNow += award;
+                    score += award;
                     changed = true;
                 });
 
@@ -938,19 +1070,65 @@
                         safeWrite(BEST_KEY, best);
                     }
                     updateScoreboard(true);
+                    showShotFeedback(`${droppedNow} down · +${awardedNow}`);
+                    fieldStatus.textContent = shotDrops === 1
+                        ? 'First drop · the next one is worth more'
+                        : `${shotDrops} dropped by this ball · combo building`;
                 }
 
                 if (dropped.size === TARGET_COUNT && !clearCard.classList.contains('is-visible')) {
-                    score += 500;
+                    const clearBonus = clearAward(shots);
+                    score += clearBonus;
                     if (score > best) {
                         best = score;
                         safeWrite(BEST_KEY, best);
                     }
-                    clearCopy.textContent = `${formatScore(score)} points in ${shots} ${shots === 1 ? 'shot' : 'shots'}. The field is empty and the sling is still loaded.`;
+                    clearCopy.textContent = `${formatScore(score)} points in ${shots} ${shots === 1 ? 'shot' : 'shots'}, including a ${clearBonus} point clear bonus.`;
                     clearCard.classList.add('is-visible');
-                    fieldStatus.textContent = 'Wall clear · 500 point bonus added';
+                    fieldStatus.textContent = `Wall clear · ${clearBonus} point speed bonus`;
+                    showShotFeedback(`Wall clear · +${clearBonus}`);
                     updateScoreboard(true);
                 }
+            }
+
+            function showShotFeedback(message) {
+                window.clearTimeout(feedbackTimer);
+                shotPop.textContent = message;
+                shotPop.classList.remove('is-visible');
+                void shotPop.offsetWidth;
+                shotPop.classList.add('is-visible');
+                feedbackTimer = window.setTimeout(() => shotPop.classList.remove('is-visible'), 640);
+            }
+
+            function drawFieldOverlay() {
+                drawTrail();
+                drawAimGuide();
+            }
+
+            function drawAimGuide() {
+                if (!render || !ball || firing || (!draggingBall && !keyboardAiming) || aimPower < 0.04) return;
+                const context = render.context;
+                const launch = Matter.Vector.sub(anchor, ball.position);
+                const magnitude = Math.max(1, Matter.Vector.magnitude(launch));
+                const direction = { x: launch.x / magnitude, y: launch.y / magnitude };
+                const dotCount = 4 + Math.round(aimPower * 7);
+                const spacing = clamp(render.options.width * 0.023, 12, 25);
+
+                context.save();
+                for (let index = 1; index <= dotCount; index += 1) {
+                    const fade = 1 - index / (dotCount + 2);
+                    context.beginPath();
+                    context.arc(
+                        anchor.x + direction.x * spacing * index,
+                        anchor.y + direction.y * spacing * index,
+                        clamp(1.4 + aimPower * 1.7, 1.4, 3.1),
+                        0,
+                        Math.PI * 2
+                    );
+                    context.fillStyle = `rgba(189,229,255,${fade * 0.62})`;
+                    context.fill();
+                }
+                context.restore();
             }
 
             function drawTrail() {
@@ -1002,6 +1180,7 @@
                 else notesDialog.removeAttribute('open');
             }
 
+            document.getElementById('quickRestartButton').addEventListener('click', restartField);
             document.getElementById('notesButton').addEventListener('click', openNotes);
             document.getElementById('closeNotesButton').addEventListener('click', closeNotes);
             notesDialog.addEventListener('click', event => {
@@ -1033,9 +1212,11 @@
 
             window.__slingshotTest = Object.freeze({
                 restart: restartField,
-                state: () => ({ shots, score, best, dropped: dropped.size, firing, motionFull }),
+                state: () => ({ shots, score, best, dropped: dropped.size, firing, draggingBall, keyboardAiming, aimPower, shotDrops, motionFull }),
                 dimensions,
-                bodies: () => ({ targets: targets.length, ball: ball ? { x: ball.position.x, y: ball.position.y } : null, anchor: { ...anchor } })
+                bodies: () => ({ targets: targets.length, spentBalls: spentBalls.length, ball: ball ? { x: ball.position.x, y: ball.position.y } : null, anchor: { ...anchor }, aimBounds: { ...aimBounds } }),
+                tuning: () => ({ reloadDelay: RELOAD_DELAY, maxSpentBalls: MAX_SPENT_BALLS }),
+                scoring: Object.freeze({ dropAward, clearAward })
             });
         })();
     </script>
