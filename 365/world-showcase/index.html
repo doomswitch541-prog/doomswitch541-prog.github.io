@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#06131e">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'self'; form-action 'none'">
+    <title>World Atlas — North Up</title>
+    <meta name="description" content="A sculpted, north-up atlas view of an entire continent, rendered locally in the browser.">
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="/365/archive-nav.js" defer></script>
+    <script src="./world-data.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./vendor/three.module.min.js",
+                "three/addons/": "./vendor/addons/"
+            }
+        }
+    </script>
+    <script type="module" src="./world.js"></script>
+</head>
+<body>
+    <main class="atlas" id="atlas">
+        <canvas id="worldCanvas" aria-label="A north-up, three-dimensional atlas of a continent with frozen northern highlands, western cities, a central desert, a dense southern metroplex, an eastern shore, and an offshore tropical isle.">
+            This atlas requires a browser with WebGL.
+        </canvas>
+
+        <div class="atmosphere" aria-hidden="true"></div>
+        <div class="labels" id="labels" aria-hidden="true"></div>
+        <header class="atlas-heading">
+            <p class="atlas-kicker">Whole continent · North up</p>
+            <h1>World<br>Atlas</h1>
+            <p class="atlas-subtitle">One landmass held in a single frame.</p>
+        </header>
+
+        <div class="north-mark" aria-label="North is up">
+            <span class="north-letter">N</span>
+            <span class="north-needle" aria-hidden="true"></span>
+            <span class="north-note">fixed bearing</span>
+        </div>
+
+        <section class="atlas-tools" aria-label="Atlas controls">
+            <div class="zoom-controls" role="group" aria-label="Zoom">
+                <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+                <button type="button" id="resetView">Whole world</button>
+                <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+            </div>
+            <button class="text-control" type="button" id="toggleLabels" aria-pressed="false">Place names</button>
+            <button class="text-control" type="button" id="toggleNotes" aria-expanded="false" aria-controls="atlasNotes">Read the terrain</button>
+        </section>
+
+        <aside class="atlas-notes" id="atlasNotes" hidden>
+            <button class="notes-close" type="button" id="closeNotes" aria-label="Close terrain notes">×</button>
+            <p class="notes-kicker">Reading the land</p>
+            <h2>Every climate leaves a different edge.</h2>
+            <dl class="terrain-key">
+                <div><dt><i class="swatch swatch-ice"></i>Cold north</dt><dd>Ice shelf, high snow and low tundra.</dd></div>
+                <div><dt><i class="swatch swatch-green"></i>Tended west</dt><dd>Vale, orchard and river cities.</dd></div>
+                <div><dt><i class="swatch swatch-desert"></i>Dry middle</dt><dd>Desert crossing into karst relief.</dd></div>
+                <div><dt><i class="swatch swatch-city"></i>Dense south</dt><dd>A packed metroplex around one bright spire.</dd></div>
+                <div><dt><i class="swatch swatch-coast"></i>Eastern water</dt><dd>Pale shore, open sea and a tropical isle.</dd></div>
+            </dl>
+            <p class="notes-gesture">Scroll or use the controls to draw closer. The bearing stays north-up.</p>
+        </aside>
+
+        <div class="atlas-status" role="status" aria-live="polite">
+            <span class="status-pulse" aria-hidden="true"></span>
+            <span id="statusText">Raising the continent…</span>
+        </div>
+
+        <div class="opening" id="opening" aria-hidden="true">
+            <p>Dawn over the whole continent.</p>
+            <span></span>
+        </div>
+
+        <section class="webgl-fallback" id="webglFallback" hidden role="alert">
+            <p class="fallback-kicker">Atlas unavailable</p>
+            <h2>This view needs WebGL.</h2>
+            <p>Turn on hardware acceleration or open the page in a current browser, then reload.</p>
+        </section>
+    </main>
+
+    <noscript>
+        <div class="noscript-note">Enable JavaScript to raise the world atlas.</div>
+    </noscript>
+</body>
+</html>
