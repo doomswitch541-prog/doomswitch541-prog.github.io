@@ -87,10 +87,14 @@ let waterBasePositions;
 let citadelCore;
 let citadelLight;
 let directionalLight;
+let cityLights;
+let oceanGlints;
+let shorelineWash;
+let cloudBanks = [];
 let labelEntries = [];
 let labelsVisible = !MOBILE_QUERY.matches;
 let desiredZoom = 1;
-let currentZoom = MOTION_QUERY.matches ? 1 : 0.78;
+let currentZoom = MOTION_QUERY.matches ? 1 : 0.88;
 let framingScale = 1;
 let pointerX = 0;
 let pointerY = 0;
@@ -99,11 +103,21 @@ let elapsed = 0;
 let frameCount = 0;
 let resizeFrame = 0;
 let hasStarted = false;
+let activePointerId = null;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartTarget = null;
+let hasDragged = false;
 
 const baseCameraPosition = new THREE.Vector3(0, 20.4, 17.4);
-const cameraTarget = new THREE.Vector3(0, 0.18, -0.4);
-const desiredTarget = cameraTarget.clone();
+const homeTarget = new THREE.Vector3(0, 0.18, -0.4);
+const cameraTarget = homeTarget.clone();
+const desiredTarget = homeTarget.clone();
+const parallaxTarget = new THREE.Vector3();
+const composedTarget = new THREE.Vector3();
 const temporaryVector = new THREE.Vector3();
+const raycaster = new THREE.Raycaster();
+const pointerNdc = new THREE.Vector2();
 const shoreColor = new THREE.Color(world.shoreColor).convertSRGBToLinear();
 const seaFloorColor = new THREE.Color(0x082d48).convertSRGBToLinear();
 const snowColor = new THREE.Color(0xf5f7f3).convertSRGBToLinear();
@@ -165,17 +179,17 @@ requestAnimationFrame(() => {
 
 function buildWorld() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x06131e);
-    scene.fog = new THREE.FogExp2(0x06131e, 0.016);
+    scene.background = new THREE.Color(0x071923);
+    scene.fog = new THREE.FogExp2(0x071923, 0.0115);
 
-    camera = new THREE.PerspectiveCamera(34, 1, 0.1, 90);
+    camera = new THREE.PerspectiveCamera(35, 1, 0.1, 90);
     camera.position.copy(baseCameraPosition).multiplyScalar(1 / currentZoom);
     camera.lookAt(cameraTarget);
 
-    const hemisphere = new THREE.HemisphereLight(0xb7d9e8, 0x172116, 1.7);
+    const hemisphere = new THREE.HemisphereLight(0xc8e5ec, 0x182313, 1.82);
     scene.add(hemisphere);
 
-    directionalLight = new THREE.DirectionalLight(0xffd5a4, 2.8);
+    directionalLight = new THREE.DirectionalLight(0xffd2a0, 3.05);
     directionalLight.position.set(-8.5, 15, 10.5);
     directionalLight.castShadow = true;
     directionalLight.shadow.mapSize.set(MOBILE_QUERY.matches ? 1024 : 2048, MOBILE_QUERY.matches ? 1024 : 2048);
@@ -194,15 +208,19 @@ function buildWorld() {
     water = createWater();
     scene.add(water);
 
+    createShorelineWash();
+    createOceanGlints();
     createRoutes();
     createUrbanMasses();
     createCanopyMasses();
+    createTerrainDetails();
     createLandmarks();
     createCitadel();
+    createCloudBanks();
     createLabels();
 
     const bloomRenderPass = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.82, 0.55, 1.35);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.9, 0.6, 1.42);
     bloomComposer = new EffectComposer(renderer);
     bloomComposer.renderToScreen = false;
     bloomComposer.addPass(bloomRenderPass);
@@ -240,8 +258,8 @@ function buildWorld() {
 }
 
 function createTerrain() {
-    const segmentX = MOBILE_QUERY.matches ? 144 : 224;
-    const segmentZ = MOBILE_QUERY.matches ? 88 : 136;
+    const segmentX = MOBILE_QUERY.matches ? 168 : 256;
+    const segmentZ = MOBILE_QUERY.matches ? 104 : 160;
     const geometry = new THREE.PlaneGeometry(WORLD_WIDTH, WORLD_DEPTH, segmentX, segmentZ);
     geometry.rotateX(-Math.PI / 2);
 
@@ -267,7 +285,9 @@ function createTerrain() {
             if (field.height > 0.93) {
                 color.lerp(snowColor, smoothstep(0.93, 1.42, field.height) * 0.64);
             }
-            color.multiplyScalar(0.88 + (noise2(u * 43, v * 43) - 0.5) * 0.08);
+            const mineral = noise2(u * 43, v * 43) - 0.5;
+            const sunward = smoothstep(0.12, 0.92, 1 - v) * 0.035;
+            color.multiplyScalar(0.92 + mineral * 0.11 + sunward);
         }
 
         colors[index * 3] = color.r;
@@ -280,8 +300,8 @@ function createTerrain() {
 
     const material = new THREE.MeshStandardMaterial({
         vertexColors: true,
-        roughness: 0.84,
-        metalness: 0.015,
+        roughness: 0.78,
+        metalness: 0.02,
         side: THREE.FrontSide
     });
 
@@ -292,18 +312,18 @@ function createTerrain() {
 }
 
 function createWater() {
-    const geometry = new THREE.PlaneGeometry(42, 29, MOBILE_QUERY.matches ? 32 : 54, MOBILE_QUERY.matches ? 22 : 36);
+    const geometry = new THREE.PlaneGeometry(48, 34, MOBILE_QUERY.matches ? 40 : 72, MOBILE_QUERY.matches ? 28 : 48);
     geometry.rotateX(-Math.PI / 2);
     waterBasePositions = new Float32Array(geometry.getAttribute('position').array);
 
     const material = new THREE.MeshPhysicalMaterial({
         color: world.seaColor,
-        roughness: 0.27,
-        metalness: 0.06,
-        clearcoat: 0.5,
-        clearcoatRoughness: 0.36,
+        roughness: 0.2,
+        metalness: 0.08,
+        clearcoat: 0.72,
+        clearcoatRoughness: 0.27,
         transparent: true,
-        opacity: 0.84,
+        opacity: 0.9,
         depthWrite: false
     });
 
@@ -312,6 +332,70 @@ function createWater() {
     mesh.receiveShadow = true;
     mesh.name = 'Atlas water';
     return mesh;
+}
+
+function createShorelineWash() {
+    const positions = [];
+    const samplesX = MOBILE_QUERY.matches ? 96 : 148;
+    const samplesY = MOBILE_QUERY.matches ? 62 : 96;
+
+    for (let row = 0; row < samplesY; row += 1) {
+        for (let column = 0; column < samplesX; column += 1) {
+            const seed = row * samplesX + column;
+            const u = (column + 0.18 + hash(seed * 3.17) * 0.64) / samplesX;
+            const v = (row + 0.18 + hash(seed * 7.91) * 0.64) / samplesY;
+            const land = landField(u, v);
+            if (Math.abs(land) > 0.024) continue;
+
+            const point = normalizedToWorld(u, v);
+            positions.push(point.x, SEA_LEVEL + 0.035, point.z);
+        }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+        color: 0xe9d7a9,
+        size: MOBILE_QUERY.matches ? 0.055 : 0.042,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.34,
+        depthWrite: false,
+        toneMapped: true
+    });
+
+    shorelineWash = new THREE.Points(geometry, material);
+    shorelineWash.name = 'Moving shoreline wash';
+    scene.add(shorelineWash);
+}
+
+function createOceanGlints() {
+    const positions = [];
+    const count = MOBILE_QUERY.matches ? 150 : 310;
+
+    for (let index = 0; index < count * 3 && positions.length < count * 3; index += 1) {
+        const u = 0.02 + hash(index * 8.27) * 0.96;
+        const v = 0.03 + hash(index * 14.63 + 2.8) * 0.94;
+        if (landField(u, v) > -0.055) continue;
+        const point = normalizedToWorld(u, v);
+        positions.push(point.x, SEA_LEVEL + 0.06, point.z);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+        color: 0xa8dce2,
+        size: MOBILE_QUERY.matches ? 0.035 : 0.026,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.14,
+        depthWrite: false,
+        toneMapped: true
+    });
+
+    oceanGlints = new THREE.Points(geometry, material);
+    oceanGlints.name = 'Ocean glints';
+    scene.add(oceanGlints);
 }
 
 function createRoutes() {
@@ -354,18 +438,22 @@ function createRoutes() {
 
 function createUrbanMasses() {
     const urbanRegions = world.regions.filter(region => ['urban', 'urban-river', 'oldtown'].includes(region.biome));
-    const instanceCount = urbanRegions.reduce((sum, region) => sum + (region.y > 0.67 ? 10 : 7), 0);
+    const countForRegion = region => MOBILE_QUERY.matches
+        ? (region.y > 0.67 ? 12 : 8)
+        : (region.y > 0.67 ? 22 : 14);
+    const instanceCount = urbanRegions.reduce((sum, region) => sum + countForRegion(region), 0);
     const geometry = new THREE.BoxGeometry(0.18, 1, 0.18);
-    const material = new THREE.MeshStandardMaterial({ color: 0x686a70, roughness: 0.72, metalness: 0.09 });
+    const material = new THREE.MeshStandardMaterial({ color: 0x656870, roughness: 0.68, metalness: 0.12 });
     const buildings = new THREE.InstancedMesh(geometry, material, instanceCount);
     const matrix = new THREE.Matrix4();
     const quaternion = new THREE.Quaternion();
     const position = new THREE.Vector3();
     const scale = new THREE.Vector3();
+    const practicalPositions = [];
     let instance = 0;
 
     urbanRegions.forEach((region, regionIndex) => {
-        const count = region.y > 0.67 ? 10 : 7;
+        const count = countForRegion(region);
         for (let index = 0; index < count; index += 1) {
             const angle = hash(regionIndex * 41 + index * 5.7) * Math.PI * 2;
             const radius = (0.06 + hash(regionIndex * 19 + index * 11.2) * 0.22) * (region.y > 0.67 ? 0.65 : 1);
@@ -378,6 +466,7 @@ function createUrbanMasses() {
             quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), hash(regionIndex + index * 13) * Math.PI);
             matrix.compose(position, quaternion, scale);
             buildings.setMatrixAt(instance, matrix);
+            if (index % 2 === 0) practicalPositions.push(position.clone().add(new THREE.Vector3(0, height * 0.34, 0)));
             instance += 1;
         }
     });
@@ -388,26 +477,24 @@ function createUrbanMasses() {
     buildings.name = 'Quiet city masses';
     scene.add(buildings);
 
-    const practicalPositions = urbanRegions.map(region => {
-        const point = mapPoint(region.x, region.y, 0.22);
-        return point;
-    });
     const practicalGeometry = new THREE.BufferGeometry().setFromPoints(practicalPositions);
     const practicalMaterial = new THREE.PointsMaterial({
-        color: 0xa97745,
-        size: 0.055,
+        color: 0xb67b42,
+        size: 0.038,
         sizeAttenuation: true,
         transparent: true,
-        opacity: 0.68,
+        opacity: 0.64,
         depthWrite: false,
         toneMapped: true
     });
-    scene.add(new THREE.Points(practicalGeometry, practicalMaterial));
+    cityLights = new THREE.Points(practicalGeometry, practicalMaterial);
+    cityLights.name = 'Practical city lights';
+    scene.add(cityLights);
 }
 
 function createCanopyMasses() {
     const greenRegions = world.regions.filter(region => ['orchard', 'forest', 'garden', 'tropical'].includes(region.biome));
-    const countPerRegion = 14;
+    const countPerRegion = MOBILE_QUERY.matches ? 22 : 42;
     const geometry = new THREE.IcosahedronGeometry(0.16, 1);
     const material = new THREE.MeshStandardMaterial({ color: 0x254f2c, roughness: 0.95 });
     const canopies = new THREE.InstancedMesh(geometry, material, greenRegions.length * countPerRegion);
@@ -437,6 +524,160 @@ function createCanopyMasses() {
     canopies.instanceMatrix.needsUpdate = true;
     canopies.name = 'Forest canopy masses';
     scene.add(canopies);
+}
+
+function createTerrainDetails() {
+    createRidgeFields();
+    createDuneFields();
+    createFarmStrips();
+}
+
+function createRidgeFields() {
+    const regions = world.regions.filter(region => ['snow', 'mountain', 'rock'].includes(region.biome));
+    const countPerRegion = MOBILE_QUERY.matches ? 8 : 15;
+    const geometry = new THREE.ConeGeometry(0.12, 0.5, 5);
+    const material = new THREE.MeshStandardMaterial({ color: 0x74766c, roughness: 0.92, metalness: 0.01 });
+    const ridges = new THREE.InstancedMesh(geometry, material, regions.length * countPerRegion);
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion();
+    const position = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+    let instance = 0;
+
+    regions.forEach((region, regionIndex) => {
+        const center = normalizedToWorld(region.x, region.y);
+        for (let index = 0; index < countPerRegion; index += 1) {
+            const angle = hash(regionIndex * 31 + index * 4.7) * Math.PI * 2;
+            const radius = 0.12 + hash(regionIndex * 73 + index * 9.2) * 0.72;
+            const height = 0.2 + hash(regionIndex * 43 + index * 6.1) * 0.48;
+            position.set(center.x + Math.cos(angle) * radius, 0, center.z + Math.sin(angle) * radius * 0.64);
+            position.y = terrainHeightAtWorld(position.x, position.z) + height * 0.5 - 0.02;
+            quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle * 0.5);
+            scale.set(0.58 + hash(index * 3.9) * 0.7, height, 0.72 + hash(index * 8.3) * 0.65);
+            matrix.compose(position, quaternion, scale);
+            ridges.setMatrixAt(instance, matrix);
+            instance += 1;
+        }
+    });
+
+    ridges.castShadow = true;
+    ridges.receiveShadow = true;
+    ridges.instanceMatrix.needsUpdate = true;
+    ridges.name = 'Mountain ridge fields';
+    scene.add(ridges);
+}
+
+function createDuneFields() {
+    const regions = world.regions.filter(region => ['desert', 'frontier'].includes(region.biome));
+    const countPerRegion = MOBILE_QUERY.matches ? 10 : 20;
+    const geometry = new THREE.IcosahedronGeometry(0.16, 1);
+    const material = new THREE.MeshStandardMaterial({ color: 0xb98855, roughness: 0.97, metalness: 0 });
+    const dunes = new THREE.InstancedMesh(geometry, material, regions.length * countPerRegion);
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion();
+    const position = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+    let instance = 0;
+
+    regions.forEach((region, regionIndex) => {
+        const center = normalizedToWorld(region.x, region.y);
+        for (let index = 0; index < countPerRegion; index += 1) {
+            const angle = hash(regionIndex * 51 + index * 5.4) * Math.PI * 2;
+            const radius = 0.1 + hash(regionIndex * 87 + index * 3.6) * 0.76;
+            position.set(center.x + Math.cos(angle) * radius, 0, center.z + Math.sin(angle) * radius * 0.58);
+            position.y = terrainHeightAtWorld(position.x, position.z) + 0.035;
+            quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+            const size = 0.55 + hash(index * 6.7) * 0.82;
+            scale.set(1.8 * size, 0.28 * size, 0.62 * size);
+            matrix.compose(position, quaternion, scale);
+            dunes.setMatrixAt(instance, matrix);
+            instance += 1;
+        }
+    });
+
+    dunes.castShadow = true;
+    dunes.receiveShadow = true;
+    dunes.instanceMatrix.needsUpdate = true;
+    dunes.name = 'Wind-shaped dune fields';
+    scene.add(dunes);
+}
+
+function createFarmStrips() {
+    const region = regionById.get('r_lowland_fields');
+    const center = normalizedToWorld(region.x, region.y);
+    const count = MOBILE_QUERY.matches ? 9 : 16;
+    const geometry = new THREE.BoxGeometry(0.52, 0.022, 0.024);
+    const material = new THREE.MeshStandardMaterial({ color: 0x9eb864, roughness: 0.94 });
+    const strips = new THREE.InstancedMesh(geometry, material, count);
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -0.34);
+    const position = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+
+    for (let index = 0; index < count; index += 1) {
+        const lane = index - (count - 1) * 0.5;
+        position.set(center.x + lane * 0.035, 0, center.z + lane * 0.018);
+        position.y = terrainHeightAtWorld(position.x, position.z) + 0.035;
+        scale.set(0.65 + hash(index * 9.1) * 0.65, 1, 1);
+        matrix.compose(position, quaternion, scale);
+        strips.setMatrixAt(index, matrix);
+    }
+
+    strips.receiveShadow = true;
+    strips.instanceMatrix.needsUpdate = true;
+    strips.name = 'Lowland field rows';
+    scene.add(strips);
+}
+
+function createCloudBanks() {
+    const textureCanvas = document.createElement('canvas');
+    textureCanvas.width = 256;
+    textureCanvas.height = 128;
+    const context = textureCanvas.getContext('2d');
+
+    for (let index = 0; index < 18; index += 1) {
+        const x = (0.08 + hash(index * 4.1) * 0.84) * textureCanvas.width;
+        const y = (0.15 + hash(index * 9.3) * 0.7) * textureCanvas.height;
+        const radius = (0.09 + hash(index * 13.7) * 0.16) * textureCanvas.width;
+        const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, 'rgba(255,255,255,0.72)');
+        gradient.addColorStop(0.55, 'rgba(255,255,255,0.28)');
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        context.fillStyle = gradient;
+        context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const geometry = new THREE.PlaneGeometry(10.5, 5.2);
+    const starts = [
+        [-14, 3.1, -4.4, 0.32],
+        [-5, 3.6, 4.8, 0.21],
+        [8, 3.25, -0.6, 0.27]
+    ];
+
+    starts.forEach(([x, y, z, speed], index) => {
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            color: 0x0b1a22,
+            transparent: true,
+            opacity: index === 1 ? 0.1 : 0.13,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+            toneMapped: false
+        });
+        const bank = new THREE.Mesh(geometry, material);
+        bank.position.set(x, y, z);
+        bank.rotation.x = -Math.PI / 2;
+        bank.rotation.z = (index - 1) * 0.12;
+        bank.renderOrder = 5;
+        bank.userData.speed = speed;
+        bank.userData.originZ = z;
+        bank.userData.phase = index * 2.4;
+        bank.name = `Cloud shadow ${index + 1}`;
+        cloudBanks.push(bank);
+        scene.add(bank);
+    });
 }
 
 function createLandmarks() {
@@ -572,10 +813,10 @@ function terrainField(u, v) {
     const rise = smoothstep(0.004, 0.14, land);
     const broadNoise = fbm(u * 5.2, v * 5.2) - 0.5;
     const detailNoise = fbm(u * 17.3 + 7.1, v * 17.3 + 3.8) - 0.5;
-    const relief = broadNoise * 0.2 + detailNoise * 0.09;
-    const height = 0.018 + rise * (0.08 + biome.elevation + relief);
+    const relief = broadNoise * 0.28 + detailNoise * 0.13;
+    const height = 0.022 + rise * (0.1 + biome.elevation * 1.18 + relief);
 
-    return { land, biome, height: Math.max(0.018, height) };
+    return { land, biome, height: Math.max(0.022, height) };
 }
 
 function landField(u, v) {
@@ -730,11 +971,16 @@ function bindInterface() {
         changeZoom(event.deltaY > 0 ? -0.08 : 0.08);
     }, { passive: false });
 
-    window.addEventListener('pointermove', event => {
-        if (MOTION_QUERY.matches) return;
-        pointerX = (event.clientX / window.innerWidth - 0.5) * 2;
-        pointerY = (event.clientY / window.innerHeight - 0.5) * 2;
-    }, { passive: true });
+    canvas.addEventListener('pointerdown', beginWorldDrag);
+    canvas.addEventListener('pointermove', moveAcrossWorld);
+    canvas.addEventListener('pointerup', finishWorldDrag);
+    canvas.addEventListener('pointercancel', cancelWorldDrag);
+    canvas.addEventListener('pointerleave', event => {
+        if (event.pointerType === 'mouse' && activePointerId === null) {
+            pointerX = 0;
+            pointerY = 0;
+        }
+    });
 
     window.addEventListener('keydown', event => {
         if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
@@ -744,6 +990,7 @@ function bindInterface() {
         if (event.key === '-' || event.key === '_') changeZoom(-0.14);
         if (event.key === '0') resetView();
         if (event.key.toLowerCase() === 'l') setLabelsVisible(!labelsVisible);
+        if (event.key === 'Enter' && event.target === canvas) focusOnRegion(regionById.get('r_citadel'));
         if (event.key === 'Escape' && !notes.hidden) closeNotes();
     });
 
@@ -753,6 +1000,117 @@ function bindInterface() {
     });
 
     MOTION_QUERY.addEventListener?.('change', () => window.location.reload());
+}
+
+function beginWorldDrag(event) {
+    if (event.button !== undefined && event.button !== 0) return;
+    activePointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    dragStartTarget = desiredTarget.clone();
+    hasDragged = false;
+    pointerX = 0;
+    pointerY = 0;
+    canvas.setPointerCapture?.(event.pointerId);
+    atlas.classList.add('is-travelling');
+}
+
+function moveAcrossWorld(event) {
+    const bounds = canvas.getBoundingClientRect();
+
+    if (event.pointerId !== activePointerId) {
+        if (!MOTION_QUERY.matches && event.pointerType === 'mouse') {
+            pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
+            pointerY = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
+        }
+        return;
+    }
+
+    const dx = event.clientX - dragStartX;
+    const dy = event.clientY - dragStartY;
+    if (Math.hypot(dx, dy) > 5) hasDragged = true;
+    if (!hasDragged) return;
+
+    const horizontalScale = 13.5 / Math.max(360, bounds.width) / currentZoom;
+    const verticalScale = 10 / Math.max(480, bounds.height) / currentZoom;
+    desiredTarget.set(
+        THREE.MathUtils.clamp(dragStartTarget.x - dx * horizontalScale, -6.4, 6.4),
+        0.18,
+        THREE.MathUtils.clamp(dragStartTarget.z - dy * verticalScale, -4.5, 4.5)
+    );
+    statusText.textContent = 'Crossing the world';
+
+    if (MOTION_QUERY.matches) {
+        cameraTarget.copy(desiredTarget);
+        renderScene();
+    }
+}
+
+function finishWorldDrag(event) {
+    if (event.pointerId !== activePointerId) return;
+    if (!hasDragged) focusAtPointer(event);
+    else statusText.textContent = 'North stays fixed · drag again to continue';
+    canvas.releasePointerCapture?.(event.pointerId);
+    activePointerId = null;
+    dragStartTarget = null;
+    atlas.classList.remove('is-travelling');
+}
+
+function cancelWorldDrag(event) {
+    if (event.pointerId !== activePointerId) return;
+    activePointerId = null;
+    dragStartTarget = null;
+    atlas.classList.remove('is-travelling');
+}
+
+function focusAtPointer(event) {
+    const bounds = canvas.getBoundingClientRect();
+    pointerNdc.set(
+        ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+        -((event.clientY - bounds.top) / bounds.height) * 2 + 1
+    );
+    raycaster.setFromCamera(pointerNdc, camera);
+    const hit = raycaster.intersectObject(terrain, false)[0];
+    if (!hit) return;
+
+    desiredTarget.set(
+        THREE.MathUtils.clamp(hit.point.x, -6.4, 6.4),
+        0.18,
+        THREE.MathUtils.clamp(hit.point.z, -4.5, 4.5)
+    );
+    desiredZoom = Math.max(desiredZoom, 1.2);
+
+    const u = hit.point.x / WORLD_WIDTH + 0.5;
+    const v = hit.point.z / WORLD_DEPTH + 0.5;
+    if (landField(u, v) > 0) {
+        const nearest = world.regions.reduce((best, region) => {
+            const dx = hit.point.x - (region.x - 0.5) * WORLD_WIDTH;
+            const dz = hit.point.z - (region.y - 0.5) * WORLD_DEPTH;
+            const distance = dx * dx + dz * dz;
+            return !best || distance < best.distance ? { region, distance } : best;
+        }, null);
+        statusText.textContent = `${nearest.region.label} · tap or drag onward`;
+    } else {
+        statusText.textContent = 'Open water · north up';
+    }
+
+    if (MOTION_QUERY.matches) {
+        currentZoom = desiredZoom;
+        cameraTarget.copy(desiredTarget);
+        renderScene();
+    }
+}
+
+function focusOnRegion(region) {
+    const point = normalizedToWorld(region.x, region.y);
+    desiredTarget.set(point.x, 0.18, point.z);
+    desiredZoom = Math.max(desiredZoom, 1.2);
+    statusText.textContent = `${region.label} · north up`;
+    if (MOTION_QUERY.matches) {
+        currentZoom = desiredZoom;
+        cameraTarget.copy(desiredTarget);
+        renderScene();
+    }
 }
 
 function changeZoom(amount) {
@@ -767,9 +1125,11 @@ function resetView() {
     desiredZoom = 1;
     pointerX = 0;
     pointerY = 0;
+    desiredTarget.copy(homeTarget);
+    statusText.textContent = 'Whole world · north up';
     if (MOTION_QUERY.matches) {
         currentZoom = 1;
-        cameraTarget.copy(desiredTarget);
+        cameraTarget.copy(homeTarget);
         renderScene(elapsed);
     }
 }
@@ -809,7 +1169,7 @@ function resize() {
     camera.aspect = width / height;
     camera.fov = width < 620 ? 50 : width / height > 1.7 ? 32 : 35;
     camera.updateProjectionMatrix();
-    const baseDistance = baseCameraPosition.distanceTo(cameraTarget);
+    const baseDistance = baseCameraPosition.distanceTo(homeTarget);
     const horizontalHalfView = baseDistance
         * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5))
         * camera.aspect;
@@ -828,13 +1188,26 @@ function animate(time) {
     frameCount += 1;
 
     currentZoom += (desiredZoom - currentZoom) * (1 - Math.pow(0.001, delta));
-    desiredTarget.set(pointerX * 0.28, 0.18, -0.4 + pointerY * 0.13);
-    cameraTarget.lerp(desiredTarget, 1 - Math.pow(0.002, delta));
+    parallaxTarget.set(pointerX * 0.18, 0, pointerY * 0.09);
+    composedTarget.copy(desiredTarget).add(parallaxTarget);
+    cameraTarget.lerp(composedTarget, 1 - Math.pow(0.002, delta));
 
     if (frameCount % 2 === 0) updateWater(elapsed);
+    updateAtmosphere(delta);
     citadelCore.material.emissiveIntensity = 6.55 + Math.sin(elapsed * 1.15) * 0.42;
     citadelLight.intensity = 15 + Math.sin(elapsed * 1.15) * 0.8;
     renderScene(elapsed);
+}
+
+function updateAtmosphere(delta) {
+    cloudBanks.forEach(bank => {
+        bank.position.x += delta * bank.userData.speed;
+        bank.position.z = bank.userData.originZ + Math.sin(elapsed * 0.08 + bank.userData.phase) * 0.32;
+        if (bank.position.x > 18) bank.position.x = -18;
+    });
+    if (oceanGlints) oceanGlints.material.opacity = 0.12 + Math.sin(elapsed * 0.42) * 0.025;
+    if (shorelineWash) shorelineWash.material.opacity = 0.3 + Math.sin(elapsed * 0.34) * 0.04;
+    if (cityLights) cityLights.material.opacity = 0.61 + Math.sin(elapsed * 0.73) * 0.045;
 }
 
 function updateWater(time) {
@@ -852,9 +1225,11 @@ function updateWater(time) {
 }
 
 function renderScene() {
-    temporaryVector.copy(baseCameraPosition).multiplyScalar(framingScale / currentZoom);
+    const breath = MOTION_QUERY.matches ? 1 : 1 + Math.sin(elapsed * 0.11) * 0.0045;
+    temporaryVector.copy(baseCameraPosition).multiplyScalar(framingScale / (currentZoom * breath));
     camera.position.copy(temporaryVector);
-    camera.position.x += cameraTarget.x * 0.35;
+    camera.position.x += cameraTarget.x;
+    camera.position.z += cameraTarget.z;
     camera.lookAt(cameraTarget);
     camera.layers.set(BLOOM_LAYER);
     bloomComposer.render();
@@ -880,7 +1255,7 @@ function updateLabels() {
 
 function markReady() {
     atlas.classList.add('is-ready');
-    statusText.textContent = `${world.regions.length} regions · north up · one world`;
+    statusText.textContent = 'Drag to cross · tap land to draw near';
 }
 
 function showFailure(message) {

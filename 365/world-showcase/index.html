@@ -39,16 +39,15 @@
     </nav>
 
     <main class="atlas" id="atlas">
-        <canvas id="worldCanvas" aria-label="A north-up, three-dimensional atlas of a continent with frozen northern highlands, western cities, a central desert, a dense southern metroplex, an eastern shore, and an offshore tropical isle.">
+        <canvas id="worldCanvas" tabindex="0" aria-label="Interactive north-up world. Drag to cross the continent, tap land to draw closer, or use the zoom controls.">
             This atlas requires a browser with WebGL.
         </canvas>
 
         <div class="atmosphere" aria-hidden="true"></div>
         <div class="labels" id="labels" aria-hidden="true"></div>
         <header class="atlas-heading">
-            <p class="atlas-kicker">Whole continent · North up</p>
-            <h1>World<br>Atlas</h1>
-            <p class="atlas-subtitle">One landmass held in a single frame.</p>
+            <p class="atlas-kicker">North 00° · Whole world</p>
+            <p class="atlas-subtitle">Drag to cross the land.<br>Tap anywhere to descend.</p>
         </header>
 
         <div class="north-mark" aria-label="North is up">
@@ -64,7 +63,7 @@
                 <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
             </div>
             <button class="text-control" type="button" id="toggleLabels" aria-pressed="false">Place names</button>
-            <button class="text-control" type="button" id="toggleNotes" aria-expanded="false" aria-controls="atlasNotes">Read the terrain</button>
+            <button class="text-control" type="button" id="toggleNotes" aria-expanded="false" aria-controls="atlasNotes">World key</button>
         </section>
 
         <aside class="atlas-notes" id="atlasNotes" hidden>
@@ -83,11 +82,10 @@
 
         <div class="atlas-status" role="status" aria-live="polite">
             <span class="status-pulse" aria-hidden="true"></span>
-            <span id="statusText">Raising the continent…</span>
+            <span id="statusText">Waking the world…</span>
         </div>
 
         <div class="opening" id="opening" aria-hidden="true">
-            <p>Dawn over the whole continent.</p>
             <span></span>
         </div>
 

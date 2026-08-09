@@ -37,19 +37,19 @@ button { font: inherit; }
 
 .atlas-topbar {
     position: fixed;
-    top: max(0.75rem, env(safe-area-inset-top));
-    right: max(0.75rem, env(safe-area-inset-right));
-    left: max(0.75rem, env(safe-area-inset-left));
+    top: max(0.55rem, env(safe-area-inset-top));
+    right: max(0.55rem, env(safe-area-inset-right));
+    left: max(0.55rem, env(safe-area-inset-left));
     z-index: 40;
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    min-height: 3.45rem;
-    padding: 0.35rem 0.8rem;
-    border: 1px solid rgba(238, 232, 217, 0.13);
-    border-radius: 15px;
-    background: rgba(4, 13, 20, 0.76);
-    box-shadow: 0 14px 42px rgba(0,0,0,0.24);
+    min-height: 3.1rem;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid rgba(224, 239, 235, 0.1);
+    border-radius: 12px;
+    background: rgba(3, 12, 17, 0.52);
+    box-shadow: 0 12px 38px rgba(0,0,0,0.18);
     -webkit-backdrop-filter: blur(18px) saturate(120%);
     backdrop-filter: blur(18px) saturate(120%);
 }
@@ -94,7 +94,14 @@ button { font: inherit; }
     width: 100%;
     height: 100%;
     outline: none;
-    touch-action: pan-y;
+    cursor: grab;
+    touch-action: none;
+}
+
+.atlas.is-travelling #worldCanvas { cursor: grabbing; }
+
+#worldCanvas:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(238, 232, 217, 0.72);
 }
 
 .atmosphere {
@@ -103,25 +110,26 @@ button { font: inherit; }
     z-index: 2;
     pointer-events: none;
     background:
-        linear-gradient(90deg, rgba(2,8,13,0.32), transparent 24%, transparent 78%, rgba(2,8,13,0.22)),
-        linear-gradient(180deg, rgba(4,13,20,0.2), transparent 25%, transparent 72%, rgba(2,7,11,0.5));
-    box-shadow: inset 0 0 12rem rgba(0,0,0,0.32);
+        linear-gradient(90deg, rgba(2,8,13,0.22), transparent 18%, transparent 82%, rgba(2,8,13,0.16)),
+        linear-gradient(180deg, rgba(4,13,20,0.12), transparent 21%, transparent 76%, rgba(2,7,11,0.42));
+    box-shadow: inset 0 0 14rem rgba(0,0,0,0.24);
 }
 
 .atlas-heading {
     position: absolute;
-    top: max(5.1rem, calc(env(safe-area-inset-top) + 4.6rem));
+    top: max(4.55rem, calc(env(safe-area-inset-top) + 4.1rem));
     left: max(1.35rem, env(safe-area-inset-left));
     z-index: 12;
-    width: min(23rem, calc(100vw - 2.7rem));
+    width: min(15rem, calc(100vw - 2.7rem));
     pointer-events: none;
     text-shadow: 0 2px 18px rgba(0,0,0,0.48);
+    transition: opacity 700ms ease;
 }
 
 .atlas-kicker,
 .notes-kicker,
 .fallback-kicker {
-    margin: 0 0 0.9rem;
+    margin: 0 0 0.55rem;
     color: var(--paper-dim);
     font-size: 0.63rem;
     font-weight: 600;
@@ -129,28 +137,23 @@ button { font: inherit; }
     text-transform: uppercase;
 }
 
-.atlas-heading h1 {
+.atlas-subtitle {
+    max-width: 14rem;
     margin: 0;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(3.25rem, 7.6vw, 7.8rem);
-    font-weight: 400;
-    line-height: 0.72;
-    letter-spacing: -0.075em;
+    color: rgba(238, 232, 217, 0.46);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.56rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.6;
+    text-transform: uppercase;
 }
 
-.atlas-subtitle {
-    max-width: 16rem;
-    margin: 1.2rem 0 0;
-    color: var(--paper-dim);
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 0.96rem;
-    font-style: italic;
-    line-height: 1.45;
-}
+.is-ready .atlas-heading { opacity: 0.72; }
 
 .north-mark {
     position: absolute;
-    top: max(1.15rem, env(safe-area-inset-top));
+    top: max(4.8rem, calc(env(safe-area-inset-top) + 4.35rem));
     right: max(1.25rem, env(safe-area-inset-right));
     z-index: 12;
     display: grid;
@@ -203,14 +206,22 @@ button { font: inherit; }
     z-index: 16;
     display: flex;
     align-items: center;
-    gap: 1.1rem;
+    gap: 1rem;
+    min-height: 3.25rem;
+    padding: 0.28rem 0.75rem;
+    border: 1px solid rgba(229, 238, 230, 0.12);
+    border-radius: 999px;
+    background: rgba(3, 11, 16, 0.58);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.2);
+    -webkit-backdrop-filter: blur(16px) saturate(116%);
+    backdrop-filter: blur(16px) saturate(116%);
 }
 
 .zoom-controls {
     display: grid;
     grid-template-columns: 2.4rem auto 2.4rem;
     align-items: center;
-    border-bottom: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
 }
 
 .zoom-controls button,
@@ -231,7 +242,7 @@ button { font: inherit; }
 
 .zoom-controls #resetView {
     padding-inline: 0.55rem;
-    font-size: 0.58rem;
+    font-size: 0.56rem;
     letter-spacing: 0.13em;
     text-transform: uppercase;
 }
@@ -293,7 +304,7 @@ button:focus-visible {
 
 .notes-close {
     position: absolute;
-    top: max(1.1rem, env(safe-area-inset-top));
+    top: max(4.65rem, calc(env(safe-area-inset-top) + 4.1rem));
     right: max(1.25rem, env(safe-area-inset-right));
     width: 2.7rem;
     padding: 0;
@@ -378,12 +389,19 @@ button:focus-visible {
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    color: var(--paper-faint);
+    color: rgba(238, 232, 217, 0.44);
     font-family: "SFMono-Regular", Consolas, monospace;
     font-size: 0.56rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     pointer-events: none;
+    max-width: calc(100vw - 2.7rem);
+    white-space: nowrap;
+}
+
+#statusText {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .status-pulse {
@@ -391,7 +409,7 @@ button:focus-visible {
     height: 0.35rem;
     border-radius: 50%;
     background: var(--ember);
-    box-shadow: 0 0 0.8rem rgba(255,155,53,0.7);
+    box-shadow: 0 0 0.8rem rgba(255,155,53,0.58);
 }
 
 .labels {
@@ -440,37 +458,20 @@ button:focus-visible {
     z-index: 50;
     display: grid;
     place-content: center;
-    gap: 1.1rem;
     padding: 2rem;
-    background: #030a10;
-    color: rgba(238,232,217,0.76);
+    background: #02080c;
     pointer-events: none;
-    transition: opacity 1.35s cubic-bezier(.2,.7,.2,1), visibility 1.35s;
-}
-
-.opening p {
-    margin: 0;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(1.15rem, 3vw, 1.75rem);
-    font-style: italic;
-    letter-spacing: 0.015em;
+    transition: opacity 1.05s cubic-bezier(.2,.7,.2,1), visibility 1.05s;
 }
 
 .opening span {
     display: block;
-    width: 100%;
-    height: 1px;
-    overflow: hidden;
-    background: rgba(255,255,255,0.08);
-}
-
-.opening span::after {
-    content: "";
-    display: block;
-    width: 45%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, var(--ember), transparent);
-    animation: opening-line 1.8s ease-in-out infinite;
+    width: min(32vw, 15rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 155, 53, 0.18), rgba(255, 155, 53, 0.035) 27%, transparent 68%);
+    filter: blur(8px);
+    animation: opening-glow 1.6s ease-in-out infinite alternate;
 }
 
 .is-ready .opening {
@@ -480,9 +481,9 @@ button:focus-visible {
 
 .opening[hidden] { display: none; }
 
-@keyframes opening-line {
-    from { transform: translateX(-110%); }
-    to { transform: translateX(245%); }
+@keyframes opening-glow {
+    from { opacity: 0.35; transform: scale(0.82); }
+    to { opacity: 0.92; transform: scale(1.08); }
 }
 
 .webgl-fallback {
@@ -529,15 +530,14 @@ button:focus-visible {
     .atlas-topbar time { display: none; }
 
     .atlas-heading {
-        top: max(4.8rem, calc(env(safe-area-inset-top) + 4.3rem));
+        top: max(4.45rem, calc(env(safe-area-inset-top) + 4rem));
         left: max(1rem, env(safe-area-inset-left));
     }
 
-    .atlas-heading h1 { font-size: clamp(3rem, 17vw, 4.6rem); }
-    .atlas-subtitle { display: none; }
+    .atlas-subtitle { max-width: 11rem; }
 
     .north-mark {
-        top: max(1rem, env(safe-area-inset-top));
+        top: max(4.55rem, calc(env(safe-area-inset-top) + 4.1rem));
         right: max(0.95rem, env(safe-area-inset-right));
     }
 
@@ -557,7 +557,7 @@ button:focus-visible {
 
     .atlas-status {
         top: auto;
-        bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 7.8rem);
+        bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 8.25rem);
         left: max(1rem, env(safe-area-inset-left));
         font-size: 0.49rem;
     }
@@ -570,10 +570,13 @@ button:focus-visible {
         border-top: 1px solid var(--rule);
         border-left: 0;
     }
+
+    .atlas-notes .notes-close { top: 0.7rem; }
 }
 
 @media (max-width: 430px) {
     .atlas-kicker { font-size: 0.53rem; }
+    .atlas-subtitle { font-size: 0.5rem; }
     .zoom-controls { grid-template-columns: 2.6rem auto 2.6rem; }
     .zoom-controls button { min-height: 2.75rem; }
     .zoom-controls #resetView { font-size: 0.52rem; }
