@@ -126,7 +126,8 @@
         { day: 187, file: 'fables-first-removal.html', accent: '#aeb8ff' },
         { day: 202, file: 'rg4o-about.html', accent: '#e0a26b' },
         { day: 213, href: '/deepseek-site/', accent: '#4D6BFE' },
-        { day: 219, file: 'after-hours-switchboard.html', accent: '#e3a64b' }
+        { day: 219, file: 'after-hours-switchboard.html', accent: '#e3a64b' },
+        { day: 220, href: '/365/world-showcase/', accent: '#ff9b35' }
     ];
 
     const nav = document.querySelector('[data-archive-day], [data-archive-key]');

@@ -35,6 +35,47 @@ a { -webkit-tap-highlight-color: transparent; }
 
 button { font: inherit; }
 
+.atlas-topbar {
+    position: fixed;
+    top: max(0.75rem, env(safe-area-inset-top));
+    right: max(0.75rem, env(safe-area-inset-right));
+    left: max(0.75rem, env(safe-area-inset-left));
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 3.45rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid rgba(238, 232, 217, 0.13);
+    border-radius: 15px;
+    background: rgba(4, 13, 20, 0.76);
+    box-shadow: 0 14px 42px rgba(0,0,0,0.24);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+    backdrop-filter: blur(18px) saturate(120%);
+}
+
+.atlas-brand {
+    color: rgba(238, 232, 217, 0.82);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.atlas-brand span { color: var(--ember); }
+
+.atlas-topbar time {
+    margin-left: auto;
+    color: var(--paper-faint);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
 .atlas {
     position: relative;
     width: 100%;
@@ -158,7 +199,7 @@ button { font: inherit; }
 .atlas-tools {
     position: absolute;
     right: max(1.25rem, env(safe-area-inset-right));
-    bottom: max(1.3rem, env(safe-area-inset-bottom));
+    bottom: calc(max(1.3rem, env(safe-area-inset-bottom)) + 4.55rem);
     z-index: 16;
     display: flex;
     align-items: center;
@@ -331,7 +372,7 @@ button:focus-visible {
 
 .atlas-status {
     position: absolute;
-    bottom: max(1.5rem, env(safe-area-inset-bottom));
+    bottom: calc(max(1.5rem, env(safe-area-inset-bottom)) + 4.55rem);
     left: max(1.35rem, env(safe-area-inset-left));
     z-index: 12;
     display: flex;
@@ -485,6 +526,8 @@ button:focus-visible {
 }
 
 @media (max-width: 760px) {
+    .atlas-topbar time { display: none; }
+
     .atlas-heading {
         top: max(4.8rem, calc(env(safe-area-inset-top) + 4.3rem));
         left: max(1rem, env(safe-area-inset-left));
@@ -503,7 +546,7 @@ button:focus-visible {
 
     .atlas-tools {
         right: max(0.9rem, env(safe-area-inset-right));
-        bottom: max(1rem, env(safe-area-inset-bottom));
+        bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4.35rem);
         left: max(0.9rem, env(safe-area-inset-left));
         justify-content: flex-end;
         gap: 0.85rem;
@@ -514,7 +557,7 @@ button:focus-visible {
 
     .atlas-status {
         top: auto;
-        bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 3.35rem);
+        bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 7.8rem);
         left: max(1rem, env(safe-area-inset-left));
         font-size: 0.49rem;
     }
