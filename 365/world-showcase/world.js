@@ -90,6 +90,7 @@ let directionalLight;
 let cityLights;
 let oceanGlints;
 let shorelineWash;
+let focusMarker;
 let cloudBanks = [];
 let labelEntries = [];
 let labelsVisible = !MOBILE_QUERY.matches;
@@ -108,6 +109,7 @@ let dragStartX = 0;
 let dragStartY = 0;
 let dragStartTarget = null;
 let hasDragged = false;
+let activePointerType = 'mouse';
 
 const baseCameraPosition = new THREE.Vector3(0, 20.4, 17.4);
 const homeTarget = new THREE.Vector3(0, 0.18, -0.4);
@@ -118,6 +120,8 @@ const composedTarget = new THREE.Vector3();
 const temporaryVector = new THREE.Vector3();
 const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
+const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const interactionPoint = new THREE.Vector3();
 const shoreColor = new THREE.Color(world.shoreColor).convertSRGBToLinear();
 const seaFloorColor = new THREE.Color(0x082d48).convertSRGBToLinear();
 const snowColor = new THREE.Color(0xf5f7f3).convertSRGBToLinear();
@@ -216,6 +220,7 @@ function buildWorld() {
     createTerrainDetails();
     createLandmarks();
     createCitadel();
+    createFocusMarker();
     createCloudBanks();
     createLabels();
 
@@ -785,6 +790,48 @@ function createCitadel() {
     scene.add(group);
 }
 
+function createFocusMarker() {
+    const outerMaterial = new THREE.MeshBasicMaterial({
+        color: 0xf1d7a0,
+        transparent: true,
+        opacity: 0.72,
+        depthWrite: false,
+        toneMapped: true
+    });
+    const innerMaterial = new THREE.MeshBasicMaterial({
+        color: 0xa9d7d4,
+        transparent: true,
+        opacity: 0.38,
+        depthWrite: false,
+        toneMapped: true
+    });
+    const washMaterial = new THREE.MeshBasicMaterial({
+        color: 0xe9d4a4,
+        transparent: true,
+        opacity: 0.055,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        toneMapped: true
+    });
+
+    const outerRing = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.018, 6, 48), outerMaterial);
+    const innerRing = new THREE.Mesh(new THREE.TorusGeometry(0.29, 0.009, 5, 40), innerMaterial);
+    const groundWash = new THREE.Mesh(new THREE.CircleGeometry(0.46, 48), washMaterial);
+    [outerRing, innerRing, groundWash].forEach(mesh => {
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.renderOrder = 7;
+    });
+
+    focusMarker = new THREE.Group();
+    focusMarker.add(groundWash, outerRing, innerRing);
+    focusMarker.userData.outerMaterial = outerMaterial;
+    focusMarker.userData.innerMaterial = innerMaterial;
+    focusMarker.userData.washMaterial = washMaterial;
+    focusMarker.visible = false;
+    focusMarker.name = 'Selected region landing ring';
+    scene.add(focusMarker);
+}
+
 function createLabels() {
     labelEntries = LABEL_IDS.map(id => {
         const region = regionById.get(id);
@@ -1004,7 +1051,9 @@ function bindInterface() {
 
 function beginWorldDrag(event) {
     if (event.button !== undefined && event.button !== 0) return;
+    event.preventDefault();
     activePointerId = event.pointerId;
+    activePointerType = event.pointerType || 'mouse';
     dragStartX = event.clientX;
     dragStartY = event.clientY;
     dragStartTarget = desiredTarget.clone();
@@ -1012,6 +1061,7 @@ function beginWorldDrag(event) {
     pointerX = 0;
     pointerY = 0;
     canvas.setPointerCapture?.(event.pointerId);
+    canvas.focus({ preventScroll: true });
     atlas.classList.add('is-travelling');
 }
 
@@ -1028,22 +1078,22 @@ function moveAcrossWorld(event) {
 
     const dx = event.clientX - dragStartX;
     const dy = event.clientY - dragStartY;
-    if (Math.hypot(dx, dy) > 5) hasDragged = true;
+    const dragThreshold = activePointerType === 'touch' ? 14 : 5;
+    if (Math.hypot(dx, dy) > dragThreshold) hasDragged = true;
     if (!hasDragged) return;
+    event.preventDefault();
 
-    const horizontalScale = 13.5 / Math.max(360, bounds.width) / currentZoom;
-    const verticalScale = 10 / Math.max(480, bounds.height) / currentZoom;
+    const horizontalScale = (WORLD_WIDTH * 0.82) / Math.max(320, bounds.width) / currentZoom;
+    const verticalScale = (WORLD_DEPTH * 0.78) / Math.max(420, bounds.height) / currentZoom;
     desiredTarget.set(
-        THREE.MathUtils.clamp(dragStartTarget.x - dx * horizontalScale, -6.4, 6.4),
+        THREE.MathUtils.clamp(dragStartTarget.x - dx * horizontalScale, -7.4, 7.4),
         0.18,
-        THREE.MathUtils.clamp(dragStartTarget.z - dy * verticalScale, -4.5, 4.5)
+        THREE.MathUtils.clamp(dragStartTarget.z - dy * verticalScale, -5.1, 5.1)
     );
-    statusText.textContent = 'Crossing the world';
+    statusText.textContent = 'The world follows your hand';
 
-    if (MOTION_QUERY.matches) {
-        cameraTarget.copy(desiredTarget);
-        renderScene();
-    }
+    cameraTarget.lerp(desiredTarget, MOTION_QUERY.matches ? 1 : 0.52);
+    renderScene();
 }
 
 function finishWorldDrag(event) {
@@ -1071,41 +1121,27 @@ function focusAtPointer(event) {
     );
     raycaster.setFromCamera(pointerNdc, camera);
     const hit = raycaster.intersectObject(terrain, false)[0];
-    if (!hit) return;
+    const point = hit?.point || raycaster.ray.intersectPlane(interactionPlane, interactionPoint);
+    if (!point) return;
 
-    desiredTarget.set(
-        THREE.MathUtils.clamp(hit.point.x, -6.4, 6.4),
-        0.18,
-        THREE.MathUtils.clamp(hit.point.z, -4.5, 4.5)
-    );
-    desiredZoom = Math.max(desiredZoom, 1.2);
-
-    const u = hit.point.x / WORLD_WIDTH + 0.5;
-    const v = hit.point.z / WORLD_DEPTH + 0.5;
-    if (landField(u, v) > 0) {
-        const nearest = world.regions.reduce((best, region) => {
-            const dx = hit.point.x - (region.x - 0.5) * WORLD_WIDTH;
-            const dz = hit.point.z - (region.y - 0.5) * WORLD_DEPTH;
-            const distance = dx * dx + dz * dz;
-            return !best || distance < best.distance ? { region, distance } : best;
-        }, null);
-        statusText.textContent = `${nearest.region.label} · tap or drag onward`;
-    } else {
-        statusText.textContent = 'Open water · north up';
-    }
-
-    if (MOTION_QUERY.matches) {
-        currentZoom = desiredZoom;
-        cameraTarget.copy(desiredTarget);
-        renderScene();
-    }
+    const nearest = world.regions.reduce((best, region) => {
+        const dx = point.x - (region.x - 0.5) * WORLD_WIDTH;
+        const dz = point.z - (region.y - 0.5) * WORLD_DEPTH;
+        const distance = dx * dx + dz * dz;
+        return !best || distance < best.distance ? { region, distance } : best;
+    }, null);
+    focusOnRegion(nearest.region);
 }
 
 function focusOnRegion(region) {
-    const point = normalizedToWorld(region.x, region.y);
+    const point = mapPoint(region.x, region.y, 0.1);
     desiredTarget.set(point.x, 0.18, point.z);
-    desiredZoom = Math.max(desiredZoom, 1.2);
-    statusText.textContent = `${region.label} · north up`;
+    desiredZoom = Math.max(desiredZoom, 1.54);
+    focusMarker.position.copy(point);
+    focusMarker.visible = true;
+    labelEntries.forEach(entry => entry.element.classList.toggle('is-focused', entry.region.id === region.id));
+    atlas.classList.add('has-focus');
+    statusText.textContent = `${region.label} · drag onward or return to the whole world`;
     if (MOTION_QUERY.matches) {
         currentZoom = desiredZoom;
         cameraTarget.copy(desiredTarget);
@@ -1114,7 +1150,7 @@ function focusOnRegion(region) {
 }
 
 function changeZoom(amount) {
-    desiredZoom = THREE.MathUtils.clamp(desiredZoom + amount, 0.78, 1.42);
+    desiredZoom = THREE.MathUtils.clamp(desiredZoom + amount, 0.78, 1.68);
     if (MOTION_QUERY.matches) {
         currentZoom = desiredZoom;
         renderScene(elapsed);
@@ -1126,6 +1162,9 @@ function resetView() {
     pointerX = 0;
     pointerY = 0;
     desiredTarget.copy(homeTarget);
+    focusMarker.visible = false;
+    labelEntries.forEach(entry => entry.element.classList.remove('is-focused'));
+    atlas.classList.remove('has-focus');
     statusText.textContent = 'Whole world · north up';
     if (MOTION_QUERY.matches) {
         currentZoom = 1;
@@ -1190,7 +1229,10 @@ function animate(time) {
     currentZoom += (desiredZoom - currentZoom) * (1 - Math.pow(0.001, delta));
     parallaxTarget.set(pointerX * 0.18, 0, pointerY * 0.09);
     composedTarget.copy(desiredTarget).add(parallaxTarget);
-    cameraTarget.lerp(composedTarget, 1 - Math.pow(0.002, delta));
+    const followAmount = activePointerId !== null && hasDragged
+        ? 0.52
+        : 1 - Math.pow(0.002, delta);
+    cameraTarget.lerp(composedTarget, followAmount);
 
     if (frameCount % 2 === 0) updateWater(elapsed);
     updateAtmosphere(delta);
@@ -1208,6 +1250,13 @@ function updateAtmosphere(delta) {
     if (oceanGlints) oceanGlints.material.opacity = 0.12 + Math.sin(elapsed * 0.42) * 0.025;
     if (shorelineWash) shorelineWash.material.opacity = 0.3 + Math.sin(elapsed * 0.34) * 0.04;
     if (cityLights) cityLights.material.opacity = 0.61 + Math.sin(elapsed * 0.73) * 0.045;
+    if (focusMarker?.visible) {
+        const pulse = MOTION_QUERY.matches ? 0 : Math.sin(elapsed * 1.8);
+        focusMarker.scale.setScalar(1 + pulse * 0.055);
+        focusMarker.userData.outerMaterial.opacity = 0.68 + pulse * 0.1;
+        focusMarker.userData.innerMaterial.opacity = 0.34 - pulse * 0.07;
+        focusMarker.userData.washMaterial.opacity = 0.05 + pulse * 0.014;
+    }
 }
 
 function updateWater(time) {
@@ -1255,7 +1304,7 @@ function updateLabels() {
 
 function markReady() {
     atlas.classList.add('is-ready');
-    statusText.textContent = 'Drag to cross · tap land to draw near';
+    statusText.textContent = 'Drag anywhere · tap a region to enter';
 }
 
 function showFailure(message) {

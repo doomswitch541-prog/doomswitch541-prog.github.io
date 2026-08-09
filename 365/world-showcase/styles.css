@@ -150,6 +150,8 @@ button { font: inherit; }
 }
 
 .is-ready .atlas-heading { opacity: 0.72; }
+.atlas.has-focus .atlas-heading,
+.atlas.is-travelling .atlas-heading { opacity: 0.28; }
 
 .north-mark {
     position: absolute;
@@ -446,6 +448,18 @@ button:focus-visible {
 }
 
 .labels.is-visible .place-label.is-onscreen { opacity: 1; }
+
+.place-label.is-focused.is-onscreen {
+    opacity: 1;
+    color: #f1d7a0;
+    font-size: clamp(0.56rem, 0.85vw, 0.68rem);
+    font-weight: 700;
+}
+
+.place-label.is-focused::before {
+    background: currentColor;
+    box-shadow: 0 0 0.75rem rgba(241, 215, 160, 0.48);
+}
 
 .place-label[data-id="r_citadel"] {
     color: #ffc16f;
