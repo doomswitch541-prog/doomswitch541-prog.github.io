@@ -35,7 +35,7 @@
         // opts into the unified glass-bar pattern: the hamburger lives *inside*
         // that frosted bar. Every other page keeps the floating top-left button
         // whose masthead insets to clear it.
-        const isMilestone = document.querySelector('[data-archive-day]');
+        const isMilestone = document.querySelector('[data-archive-day], [data-archive-key]');
         const bar = isMilestone && document.querySelector(
             '[data-archive-inbar], .about-masthead, .research-masthead, .masthead, .topbar, .rail, .navbar, .top-nav, .container > .header'
         );
@@ -96,7 +96,8 @@
         { day: 5, file: 'day5.html', accent: '#d7c7a4' },
         { day: 6, file: 'day6.html', accent: '#ffeaa7' },
         { day: 7, file: 'day7.html', accent: '#00f5ff' },
-        { day: 8, file: 'solarflare-about.html', accent: '#10b981' },
+        { key: 'static-run', file: 'static-run.html', accent: '#ff5a87', position: 'DAYS 1–7', aria: 'Opening Static Run showcase' },
+        { day: 8, file: 'solarflare-about.html', accent: '#10b981', position: 'DAYS 8–14', aria: 'SolarFlare planning and work arc' },
         { day: 15, file: 'knowledgebase-about.html', accent: '#a78bfa' },
         { day: 16, file: 'rginfv1-started.html', accent: '#4a9eff' },
         { day: 17, file: 'motionviz-about.html', accent: '#54f0b2' },
@@ -128,25 +129,27 @@
         { day: 219, file: 'after-hours-switchboard.html', accent: '#e3a64b' }
     ];
 
-    const nav = document.querySelector('[data-archive-day]');
+    const nav = document.querySelector('[data-archive-day], [data-archive-key]');
     if (!nav) return;
 
+    const archiveKey = nav.dataset.archiveKey;
     const day = Number(nav.dataset.archiveDay);
-    const currentIndex = pages.findIndex(page => page.day === day);
+    const currentIndex = pages.findIndex(page => archiveKey ? page.key === archiveKey : page.day === day);
     if (currentIndex < 0) return;
 
     const current = pages[currentIndex];
     const previous = pages[currentIndex - 1];
     const next = pages[currentIndex + 1];
+    const describe = page => page.aria || `Day ${page.day}`;
     const link = (page, direction, glyph) => page
-        ? `<a href="${page.href || `/365/${page.file}`}" rel="${direction}" aria-label="${direction === 'prev' ? 'Previous' : 'Next'} available page, Day ${page.day}">${glyph}</a>`
+        ? `<a href="${page.href || `/365/${page.file}`}" rel="${direction}" aria-label="${direction === 'prev' ? 'Previous' : 'Next'} available page, ${describe(page)}">${glyph}</a>`
         : `<a class="archive-boundary" aria-hidden="true" tabindex="-1">${glyph}</a>`;
 
     nav.className = 'archive-pagination';
     nav.style.setProperty('--archive-accent', current.accent);
     nav.innerHTML = `
         ${link(previous, 'prev', '←')}
-        <span class="archive-page-position">DAY ${current.day} / 365</span>
+        <span class="archive-page-position">${current.position || `DAY ${current.day} / 365`}</span>
         ${link(next, 'next', '→')}
         <a href="/365/" aria-label="View all 365 days">⊞</a>
     `;

@@ -438,6 +438,60 @@
             font-size: 3.35rem;
         }
 
+        .day-card.arc-card {
+            grid-column: span 2;
+            min-height: 17rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2.5rem;
+            isolation: isolate;
+        }
+
+        .day-card.arc-card::after {
+            content: 'ARC';
+            position: absolute;
+            top: 1rem;
+            right: 1.1rem;
+            color: var(--arc-accent, #00fff9);
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+        }
+
+        .day-card.arc-card .day-number {
+            font-size: clamp(2.35rem, 5vw, 4rem);
+            line-height: 0.95;
+        }
+
+        .day-card.arc-card .day-name {
+            max-width: 28rem;
+            font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+        }
+
+        .arc-summary {
+            max-width: 34rem;
+            margin-top: 0.55rem;
+            color: rgba(255,255,255,0.68);
+            font-size: 0.76rem;
+            line-height: 1.55;
+        }
+
+        .arc-runline {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 0.34rem;
+            width: min(100%, 28rem);
+            margin: 1.35rem 0 0.25rem;
+        }
+
+        .arc-runline span {
+            height: 0.28rem;
+            border-radius: 999px;
+            background: var(--beat, var(--arc-accent, #00fff9));
+            box-shadow: 0 0 12px color-mix(in srgb, var(--beat, #00fff9) 55%, transparent);
+        }
+
         .day-card.study-card:not(.milestone) {
             padding-top: 2.55rem;
             border-top-color: rgba(251, 146, 60, 0.72) !important;
@@ -593,6 +647,12 @@
 
             .day-card {
                 padding: 1.5rem;
+            }
+
+            .day-card.arc-card {
+                grid-column: 1 / -1;
+                min-height: 15rem;
+                padding: 1.65rem;
             }
 
             .day-number {
@@ -2043,6 +2103,43 @@
             // Future days will be added here
         ];
 
+        const arcGroups = [
+            {
+                start: 1,
+                end: 7,
+                name: 'The Opening Static Run',
+                file: 'static-run.html',
+                status: 'live',
+                statusLabel: '◆ 7-page arc',
+                description: 'Seven standalone pages gathered into the opening run: Paradise Motel through Raccoons of Chongqing.',
+                summary: 'Neon motel, purple future, scattered city, local tracker, machine document, weather sky, Chongqing river.',
+                timeline: { label: 'opening arc', entry: 'Jan 2–8, 2026', confidence: 'sequence' },
+                palette: ['#ff2a6d', '#8b5cf6', '#10b9ba', '#7dd3c0', '#d7c7a4', '#ffeaa7', '#00f5ff'],
+                theme: {
+                    primary: '#ff5a87', secondary: '#8ffcff',
+                    background: 'linear-gradient(135deg, rgba(255, 42, 109, 0.18), rgba(0, 245, 255, 0.12), rgba(139, 92, 246, 0.12))',
+                    glow: 'rgba(255, 42, 109, 0.28)', border: 'rgba(143, 252, 255, 0.42)'
+                }
+            },
+            {
+                start: 8,
+                end: 14,
+                name: 'SolarFlare — Planning + Work',
+                file: 'solarflare-about.html',
+                status: 'live',
+                statusLabel: '◆ 7-day arc',
+                description: 'Seven focused days of SolarFlare planning and active work, beginning the path into the local systems that followed.',
+                summary: 'The planning week holds together as one build arc instead of six repeated work-log cards after the milestone.',
+                timeline: { label: 'build arc', entry: 'Jan 9–15, 2026', confidence: 'sequence' },
+                palette: ['#10b981', '#18b77d', '#2ab477', '#52b36d', '#7caf5b', '#b2a846', '#f59e0b'],
+                theme: {
+                    primary: '#10b981', secondary: '#f59e0b',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.15))',
+                    glow: 'rgba(16, 185, 129, 0.32)', border: 'rgba(245, 158, 11, 0.42)'
+                }
+            }
+        ];
+
         // Generate stars
         const starsContainer = document.getElementById('stars');
         for (let i = 0; i < 100; i++) {
@@ -2063,7 +2160,8 @@
 
         // Create cards for all 365 days
         for (let i = 1; i <= 365; i++) {
-            const dayData = daysData.find(d => d.day === i);
+            const arcData = arcGroups.find(arc => arc.start === i);
+            const dayData = arcData || daysData.find(d => d.day === i);
             const card = document.createElement(dayData?.status === 'live' ? 'a' : 'article');
 
             if (dayData && (dayData.status === 'live' || dayData.status === 'complete')) {
@@ -2085,6 +2183,11 @@
                 if (dayData.milestone) {
                     card.classList.add('milestone');
                     card.style.setProperty('--milestone-accent', dayData.theme?.primary || '#00fff9');
+                }
+                if (arcData) {
+                    card.classList.add('arc-card');
+                    card.dataset.range = `${arcData.start}-${arcData.end}`;
+                    card.style.setProperty('--arc-accent', arcData.theme?.primary || '#00fff9');
                 }
 
                 // Apply custom theme styling
@@ -2127,7 +2230,14 @@
                     });
                 }
 
-                card.innerHTML = `
+                card.innerHTML = arcData ? `
+                    <div class="day-number" style="color: ${dayData.theme?.primary || '#ff2a6d'}; text-shadow: 0 0 20px ${dayData.theme?.glow || 'rgba(255, 42, 109, 0.5)'}">Days ${arcData.start}–${arcData.end}</div>
+                    <div class="day-name">${dayData.name}</div>
+                    <div class="day-status" style="color: ${dayData.theme?.secondary || 'rgba(255, 255, 255, 0.7)'}">${dayData.statusLabel}</div>
+                    <p class="arc-summary">${dayData.summary}</p>
+                    <div class="arc-runline" aria-hidden="true">${dayData.palette.map(color => `<span style="--beat:${color}"></span>`).join('')}</div>
+                    <div class="day-date"><span>${dayData.timeline.label}</span>${dayData.timeline.entry}</div>
+                ` : `
                     <div class="day-number" style="color: ${dayData.theme?.primary || '#ff2a6d'}; text-shadow: 0 0 20px ${dayData.theme?.glow || 'rgba(255, 42, 109, 0.5)'}">Day ${i}</div>
                     <div class="day-name">${dayData.name}</div>
                     <div class="day-status" style="color: ${dayData.theme?.secondary || 'rgba(255, 255, 255, 0.7)'}">${dayData.statusLabel || (dayData.timeline?.entry?.includes('Jan') ? '● Complete' : dayData.status === 'live' ? '● Live' : '● Complete')}</div>
@@ -2146,6 +2256,7 @@
             }
 
             grid.appendChild(card);
+            if (arcData) i = arcData.end;
         }
 
         // Update stats
