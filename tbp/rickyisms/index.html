@@ -22,7 +22,6 @@
             --duct: #a4a69f;
             --blue-pen: #244a73;
             --dash: #10120f;
-            --words: 62;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
@@ -220,16 +219,15 @@
 
         .work-order {
             position: relative;
-            padding: clamp(1rem, 3vw, 1.6rem);
-            background:
-                linear-gradient(rgba(42,74,115,.1) 1px, transparent 1px) 0 2.25rem / 100% 1.55rem,
-                var(--paper);
+            z-index: 2;
+            padding: clamp(1rem, 3vw, 1.4rem);
+            background: var(--paper);
             box-shadow: .45rem .55rem 0 rgba(0,0,0,.22);
             transform: rotate(-.45deg);
         }
 
         .work-order::before {
-            content: 'WORK ORDER 00420';
+            content: 'WHAT I FUCKIN’ MEANT';
             position: absolute;
             top: .45rem;
             right: .7rem;
@@ -239,7 +237,7 @@
         }
 
         .work-order label,
-        .damage-row label {
+        .work-order-note {
             display: block;
             color: rgba(23,23,17,.7);
             font: 900 .62rem/1.2 "Courier New", monospace;
@@ -262,67 +260,11 @@
 
         .saying-input:focus { border-bottom-color: var(--plaid); }
 
-        .damage-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 1rem;
-            align-items: center;
-            margin-top: 1.2rem;
-        }
-
-        .damage-control { margin-top: .5rem; }
-
-        .damage-control input {
-            width: 100%;
-            accent-color: var(--plaid);
-        }
-
-        .damage-scale {
-            display: flex;
-            justify-content: space-between;
-            color: rgba(23,23,17,.48);
-            font: 700 .52rem/1 "Courier New", monospace;
-            text-transform: uppercase;
-        }
-
-        .damage-output {
-            display: grid;
-            place-items: center;
-            width: 3.2rem;
-            aspect-ratio: 1;
-            border: 3px solid var(--plaid);
-            border-radius: 50%;
-            color: var(--plaid);
-            font: 900 1rem/1 "Courier New", monospace;
-            transform: rotate(-8deg);
-        }
-
-        .word-tray {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .42rem;
-            min-height: 4.2rem;
-            margin: 1.2rem 0 0;
-            padding: .75rem;
-            border: .45rem solid #4a4d47;
-            background:
-                radial-gradient(circle at 15% 20%, rgba(255,255,255,.07), transparent 15rem),
-                #1b1d1a;
-            box-shadow: inset 0 .4rem 1.2rem rgba(0,0,0,.6);
-        }
-
-        .magnet {
-            display: inline-flex;
-            align-items: center;
-            min-height: 1.85rem;
-            padding: .2rem .45rem;
-            border: 1px solid rgba(0,0,0,.2);
-            color: #111;
-            background: var(--magnet, #eee5cc);
-            box-shadow: .13rem .16rem 0 rgba(0,0,0,.35);
-            font: 900 .72rem/1 "Arial Narrow", Arial, sans-serif;
-            text-transform: uppercase;
-            transform: rotate(var(--tilt, 0deg));
+        .work-order-note {
+            margin: .7rem 0 0;
+            color: rgba(23,23,17,.54);
+            font-size: .58rem;
+            line-height: 1.45;
         }
 
         .bench-actions {
@@ -352,30 +294,42 @@
 
         .receipt {
             position: relative;
-            width: min(94%, 40rem);
-            margin: clamp(1.4rem, 4vw, 2.5rem) auto -3.2rem;
-            padding: 2rem 1.6rem 2.3rem;
+            z-index: 1;
+            width: min(96%, 44rem);
+            min-height: clamp(17rem, 31vw, 21rem);
+            margin: clamp(1.2rem, 3vw, 1.8rem) auto -3.2rem;
+            padding: clamp(1.5rem, 4vw, 2.2rem);
             background:
-                repeating-linear-gradient(0deg, rgba(0,0,0,.018) 0 1px, transparent 1px 4px),
-                #f6edcf;
+                linear-gradient(rgba(42,74,115,.075) 1px, transparent 1px) 0 3.2rem / 100% 1.8rem,
+                var(--paper);
             box-shadow: .6rem .75rem 0 rgba(0,0,0,.26);
-            transform: rotate(-1.1deg);
-            clip-path: polygon(0 0, 100% 0, 100% 96%, 96% 98%, 91% 96%, 86% 99%, 80% 96%, 74% 99%, 68% 96%, 62% 99%, 56% 96%, 50% 99%, 44% 96%, 38% 99%, 32% 96%, 26% 99%, 20% 96%, 14% 99%, 8% 96%, 3% 99%, 0 96%);
+            transform: rotate(.35deg);
+        }
+
+        .receipt::before {
+            content: '';
+            position: absolute;
+            top: -.55rem;
+            left: 50%;
+            width: 5.5rem;
+            height: 1.2rem;
+            background: rgba(181,181,171,.82);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.24);
+            transform: translateX(-50%) rotate(2deg);
         }
 
         .receipt.bump { animation: receipt-bump 420ms cubic-bezier(.2,.8,.2,1); }
 
         @keyframes receipt-bump {
-            0% { transform: translateY(-1.5rem) rotate(-3deg); opacity: .2; }
-            100% { transform: translateY(0) rotate(-1.1deg); opacity: 1; }
+            0% { transform: translateY(-1rem) rotate(-1.5deg); opacity: .25; }
+            100% { transform: translateY(0) rotate(.35deg); opacity: 1; }
         }
 
         .receipt-kicker {
             display: flex;
             justify-content: space-between;
             gap: 1rem;
-            padding-bottom: .7rem;
-            border-bottom: 1px dashed rgba(23,23,17,.42);
+            padding-bottom: .8rem;
             color: rgba(23,23,17,.58);
             font: 700 .58rem/1.2 "Courier New", monospace;
             letter-spacing: .08em;
@@ -383,9 +337,9 @@
         }
 
         .receipt h2 {
-            margin: 1.3rem 0 1rem;
+            margin: clamp(1.4rem, 3vw, 2rem) 0 1.2rem;
             color: var(--blue-pen);
-            font: 700 clamp(1.45rem, 3.5vw, 2.15rem)/1.14 "Marker Felt", "Comic Sans MS", cursive;
+            font: 700 clamp(1.45rem, 3.8vw, 2.35rem)/1.12 "Marker Felt", "Comic Sans MS", cursive;
             letter-spacing: -.02em;
         }
 
@@ -405,6 +359,7 @@
 
         .receipt-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: .55rem;
             margin-top: 1.2rem;
         }
@@ -605,23 +560,72 @@
         .saved-list {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: .65rem;
-            padding: 0 1rem 1rem;
+            gap: 1rem;
+            padding: .35rem 1rem 1.2rem;
         }
 
-        .saved-item,
+        .saved-item {
+            position: relative;
+            min-height: 11rem;
+            padding: 1.25rem 1rem 1rem;
+            border: 0;
+            color: var(--ink);
+            background: var(--paper);
+            box-shadow: .3rem .38rem 0 rgba(0,0,0,.3);
+            cursor: pointer;
+            text-align: left;
+            transform: rotate(-.45deg);
+        }
+
+        .saved-item:nth-child(even) { transform: rotate(.55deg); }
+        .saved-item::before {
+            content: '';
+            position: absolute;
+            top: -.35rem;
+            left: 50%;
+            width: 3.4rem;
+            height: .75rem;
+            background: rgba(181,181,171,.8);
+            transform: translateX(-50%) rotate(-2deg);
+        }
+
+        .saved-item:hover,
+        .saved-item:focus-visible {
+            outline: 3px solid var(--cheese);
+            outline-offset: 3px;
+            transform: rotate(0) translateY(-.15rem);
+        }
+
+        .saved-case-number {
+            display: block;
+            color: rgba(23,23,17,.48);
+            font: 900 .54rem/1 "Courier New", monospace;
+            letter-spacing: .08em;
+        }
+
+        .saved-item strong {
+            display: block;
+            margin-top: .9rem;
+            color: var(--blue-pen);
+            font: 700 clamp(1.05rem, 2.4vw, 1.35rem)/1.18 "Marker Felt", "Comic Sans MS", cursive;
+        }
+
+        .saved-item small {
+            display: block;
+            margin-top: .8rem;
+            color: rgba(23,23,17,.58);
+            font: 700 .62rem/1.4 "Courier New", monospace;
+        }
+
         .empty-glove {
+            grid-column: 1 / -1;
             min-height: 4.7rem;
             padding: .9rem 1rem;
             border: 1px solid rgba(239,225,184,.15);
-            color: rgba(239,225,184,.78);
+            color: rgba(239,225,184,.38);
             background: rgba(255,255,255,.025);
             font: 700 .78rem/1.45 "Courier New", monospace;
         }
-
-        .saved-item { cursor: pointer; text-align: left; }
-        .saved-item:hover, .saved-item:focus-visible { color: var(--cheese); border-color: var(--cheese); outline: 1px solid var(--cheese); }
-        .empty-glove { grid-column: 1 / -1; color: rgba(239,225,184,.38); }
 
         .share-dialog {
             width: min(42rem, calc(100% - 1.5rem));
@@ -799,7 +803,6 @@
             .evidence-card strong { font-size: clamp(1.3rem, 5.8vw, 1.9rem); }
             .case-toolbar { margin-inline: 0; align-items: flex-start; flex-wrap: wrap; }
             .saved-list { grid-template-columns: 1fr; }
-            .damage-row { grid-template-columns: 1fr auto; }
             .share-intents { grid-template-columns: 1fr; }
             .share-intent { min-height: 3.25rem; }
             .share-card-tools { align-items: flex-start; }
@@ -828,34 +831,24 @@
             <div class="bench-wrap">
                 <div class="bench">
                     <div class="bench-head">
-                        <div><strong>Say the thing</strong>If you don't get it, that's your problem</div>
-                        <span class="shop-tag">R.S. · PROP.</span>
+                        <div><strong>Find the Rickyism</strong>Tell me what you meant</div>
+                        <span class="shop-tag">GRADE 10</span>
                     </div>
 
                     <div class="work-order">
                         <label for="saying">What were you trying to say?</label>
                         <input class="saying-input" id="saying" type="text" maxlength="220" value="We'll deal with that when the time comes." autocomplete="off" spellcheck="true">
-
-                        <div class="damage-row">
-                            <div class="damage-control">
-                                <label for="word-damage">How fucked are the words?</label>
-                                <input id="word-damage" type="range" min="10" max="100" value="62">
-                                <div class="damage-scale" aria-hidden="true"><span>A little</span><span>Grade ten</span><span>Court</span></div>
-                            </div>
-                            <output class="damage-output" id="damage-output" for="word-damage">62</output>
-                        </div>
-
-                        <div class="word-tray" id="word-tray" aria-label="Loose sentence parts"></div>
+                        <p class="work-order-note">I already said it better somewhere. This finds the card.</p>
 
                         <div class="bench-actions">
-                            <button class="action primary" id="fix-words" type="button">Fix the words</button>
-                            <button class="action" id="surprise-me" type="button">Grab another saying</button>
+                            <button class="action primary" id="fix-words" type="button">Find the Rickyism</button>
+                            <button class="action" id="surprise-me" type="button">Stuff I already said</button>
                         </div>
                     </div>
 
                     <article class="receipt" id="receipt" aria-live="polite">
-                        <div class="receipt-kicker"><span>What I said</span><span id="repair-number">No. 0001</span></div>
-                        <h2 id="ricky-output">We'll burn that fridge when we get to it. You can't rush a good fridge burning because the smoke gets all premature.</h2>
+                        <div class="receipt-kicker"><span id="bench-case-number">CASE 0290 · SCHEDULING</span><span>WHAT I SAID</span></div>
+                        <h2 id="ricky-output">We'll burn that bridge when we get to it.</h2>
                         <dl class="meaning">
                             <dt>Means</dt>
                             <dd id="plain-output">We'll deal with that when the time comes.</dd>
@@ -940,13 +933,10 @@
     <script>
         (() => {
             const sayingInput = document.getElementById('saying');
-            const damageInput = document.getElementById('word-damage');
-            const damageOutput = document.getElementById('damage-output');
-            const tray = document.getElementById('word-tray');
             const rickyOutput = document.getElementById('ricky-output');
             const plainOutput = document.getElementById('plain-output');
             const receipt = document.getElementById('receipt');
-            const repairNumber = document.getElementById('repair-number');
+            const benchCaseNumber = document.getElementById('bench-case-number');
             const fixButton = document.getElementById('fix-words');
             const surpriseButton = document.getElementById('surprise-me');
             const keepButton = document.getElementById('keep-it');
@@ -963,7 +953,6 @@
             const shareCaseLabel = document.getElementById('share-case-label');
             const shareStatus = document.getElementById('share-status');
             const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const magnetColors = ['#eee5cc', '#d6e2d4', '#efcf8e', '#d8c6bd', '#cad8df'];
 
             const RICKYISM_CASES = [
                 { number: '0027', category: 'Geography', saying: 'Worst case Ontario, the whole plan gets fucked and we go back to the trailer, which is still better than living in regular fuckin’ Ontario.', meaning: 'Worst-case scenario.', match: /worst.case scenario/i },
@@ -990,7 +979,7 @@
                 { number: '0248', category: 'Education', saying: "Get learnt, boys. Books aren't magic, but sometimes they tell you which wire not to fuckin' cut.", meaning: 'Learn something.', match: /learn something|get educated/i },
                 { number: '0261', category: 'Quality Control', saying: "Do it twice for to make sure. If both times are wrong, that's consistency, and courts like consistency.", meaning: 'To make sure.', match: /to make sure/i },
                 { number: '0274', category: 'Machinery', saying: "Refuckulate the carbonator. Don't hit it too hard until after you unplug it, because electricity remembers who fucked with it.", meaning: 'Fix the machinery.', match: /fix the machinery|repair the machine/i },
-                { number: '0290', category: 'Scheduling', saying: "We'll burn that fridge when we get to it. You can't rush a good fridge burning because the smoke gets all premature.", meaning: "We'll deal with that when the time comes.", match: /deal with that when the time comes/i },
+                { number: '0290', category: 'Scheduling', saying: "We'll burn that bridge when we get to it.", meaning: "We'll deal with that when the time comes.", match: /deal with that when the time comes/i },
                 { number: '0308', category: 'Self Education', saying: "I self-smarted myself. Teachers kept trying to put other people's learning in my brain, so I told them to fuck off and installed my own.", meaning: 'I taught myself.', match: /taught myself|self.taught/i },
                 { number: '0319', category: 'Certainty', saying: "Does a bear shit on the pope? Exactly. You know what I mean, so don't stand there fuckin' up the wildlife mathematics.", meaning: 'Obviously yes.', match: /obviously yes|of course it does|obviously/i },
                 { number: '0332', category: 'Cooking', saying: "It's a peach of cake. You slice the problem up, eat the easy parts, and Bubbles deals with whatever's left on the plate.", meaning: "It's a piece of cake.", match: /piece of cake/i },
@@ -1009,40 +998,11 @@
             ];
 
             const starters = RICKYISM_CASES.map(item => item.meaning);
-            const exactRepairs = RICKYISM_CASES.map(item => ({ match: item.match, say: item.saying }));
-
-            const looseRepairs = [
-                ['scenario', 'Ontario'],
-                ['science', 'appliances'],
-                ['bridge', 'fridge'],
-                ['demand', 'command'],
-                ['trial', 'denial'],
-                ['benefits', 'Benedicts'],
-                ['colors', 'carpets'],
-                ['disguise', 'the skies'],
-                ['salt', 'assault'],
-                ['denominator', 'dominator'],
-                ['scapegoat', 'escape goat']
-            ];
-
-            const endings = [
-                " That's just how the cookie parts, and if you don't like the cookie, fuck off and eat something else.",
-                " Everybody knows that. It's basic brain departments, boys, not rocket appliances.",
-                " You don't need a book to figure that one around. Bubbles gets it, so that's good enough.",
-                " It's common denominator stuff. The bottom number does the thinking and the top one stays out of jail.",
-                " Case closed, open and shut at the same time. Fuck off, I know what I meant.",
-                " That's the whole point of the situation. If there wasn't a point, it wouldn't be a fuckin' situation.",
-                " You gotta look at the big pitcher. The little pitcher is usually empty because Julian drank it."
-            ];
-
-            let repairsMade = 1;
+            const stopWords = new Set(['about', 'after', 'again', 'because', 'before', 'could', 'from', 'have', 'into', 'just', 'that', 'their', 'there', 'they', 'this', 'what', 'when', 'where', 'which', 'with', 'would', 'your']);
             let surpriseIndex = 0;
             let caseIndex = 0;
             let shareItem = null;
-            let current = {
-                saying: "We'll burn that fridge when we get to it. You can't rush a good fridge burning because the smoke gets all premature.",
-                meaning: "We'll deal with that when the time comes."
-            };
+            let current = { ...RICKYISM_CASES[24] };
 
             const cleanSentence = (value) => {
                 const text = value.trim().replace(/\s+/g, ' ');
@@ -1052,8 +1012,15 @@
 
             const hash = (text) => [...text].reduce((total, char) => ((total << 5) - total + char.charCodeAt(0)) | 0, 0);
 
+            const wordsIn = text => new Set(
+                text.toLowerCase()
+                    .replace(/[^a-z0-9’']+/g, ' ')
+                    .split(/\s+/)
+                    .filter(word => word.length > 3 && !stopWords.has(word))
+            );
+
             function caseForRepair(item = current) {
-                return RICKYISM_CASES.find(entry => entry.saying === item.saying) || {
+                return RICKYISM_CASES.find(entry => entry.number === item.number || entry.saying === item.saying) || {
                     number: 'WALK-IN',
                     category: 'Unscheduled',
                     saying: item.saying,
@@ -1105,87 +1072,72 @@
                 context.fillStyle = '#20211c';
                 context.fillRect(0, 0, width, height);
 
+                context.fillStyle = 'rgba(0,0,0,.34)';
+                context.fillRect(108, 72, 1020, 520);
+                context.fillStyle = '#f2e5bd';
+                context.fillRect(88, 48, 1020, 520);
+
                 context.save();
-                context.globalAlpha = .17;
-                context.strokeStyle = '#8f2b27';
-                context.lineWidth = 14;
-                for (let x = -height; x < width + height; x += 68) {
+                context.globalAlpha = .08;
+                context.strokeStyle = '#244a73';
+                context.lineWidth = 2;
+                for (let y = 138; y < 520; y += 48) {
                     context.beginPath();
-                    context.moveTo(x, 0);
-                    context.lineTo(x + height, height);
+                    context.moveTo(88, y);
+                    context.lineTo(1108, y);
                     context.stroke();
                 }
                 context.restore();
 
-                context.fillStyle = 'rgba(0,0,0,.34)';
-                context.fillRect(126, 82, 980, 500);
-                context.fillStyle = '#f2e5bd';
-                context.fillRect(108, 64, 980, 500);
-                context.strokeStyle = '#bdab7c';
-                context.lineWidth = 3;
-                context.strokeRect(108, 64, 980, 500);
+                context.fillStyle = 'rgba(181,181,171,.88)';
+                context.save();
+                context.translate(598, 48);
+                context.rotate(-.025);
+                context.fillRect(-90, -16, 180, 38);
+                context.restore();
 
-                context.fillStyle = '#e4aa32';
-                context.fillRect(108, 64, 980, 60);
-                context.fillStyle = '#171711';
-                context.font = '900 26px "Courier New", monospace';
-                context.fillText('RICKY SAID THE WORDS FINE', 142, 103);
-                context.textAlign = 'right';
-                context.fillText(`CASE ${item.number}`, 1054, 103);
-                context.textAlign = 'left';
-
-                context.fillStyle = '#8a3029';
+                context.fillStyle = 'rgba(23,23,17,.52)';
                 context.font = '900 22px "Courier New", monospace';
-                context.fillText(item.category.toUpperCase(), 142, 163);
+                context.fillText(`CASE ${item.number} · ${item.category.toUpperCase()}`, 132, 108);
+                context.textAlign = 'right';
+                context.fillStyle = '#8a3029';
+                context.fillText('STUFF I ALREADY SAID', 1064, 108);
+                context.textAlign = 'left';
 
                 let fontSize = 64;
                 let lines = [];
                 do {
                     context.font = `700 ${fontSize}px "Comic Sans MS", "Segoe Print", cursive`;
-                    lines = wrapCanvasText(context, item.saying, 850);
-                    if (lines.length > 6) fontSize -= 4;
-                } while (lines.length > 6 && fontSize > 30);
+                    lines = wrapCanvasText(context, item.saying, 930);
+                    if (lines.length > 5) fontSize -= 4;
+                } while (lines.length > 5 && fontSize > 34);
 
                 context.fillStyle = '#244a73';
                 context.font = `700 ${fontSize}px "Comic Sans MS", "Segoe Print", cursive`;
                 const lineHeight = fontSize + 7;
-                lines.slice(0, 6).forEach((line, index) => context.fillText(line, 142, 210 + index * lineHeight));
+                lines.slice(0, 5).forEach((line, index) => context.fillText(line, 132, 184 + index * lineHeight));
 
                 context.setLineDash([10, 9]);
                 context.strokeStyle = 'rgba(23,23,17,.35)';
                 context.lineWidth = 2;
                 context.beginPath();
-                context.moveTo(142, 448);
-                context.lineTo(1054, 448);
+                context.moveTo(132, 456);
+                context.lineTo(1064, 456);
                 context.stroke();
                 context.setLineDash([]);
 
                 context.fillStyle = '#8a3029';
-                context.font = '900 21px "Courier New", monospace';
-                context.fillText('WHAT I FUCKIN’ MEANT:', 142, 488);
+                context.font = '900 20px "Courier New", monospace';
+                context.fillText('MEANS', 132, 498);
                 context.fillStyle = '#25231d';
                 context.font = '700 22px "Courier New", monospace';
-                const meaningLines = wrapCanvasText(context, item.meaning, 620);
-                meaningLines.slice(0, 2).forEach((line, index) => context.fillText(line, 420, 488 + index * 28));
+                const meaningLines = wrapCanvasText(context, item.meaning, 760);
+                meaningLines.slice(0, 2).forEach((line, index) => context.fillText(line, 244, 498 + index * 28));
 
-                context.save();
-                context.translate(902, 520);
-                context.rotate(-.055);
-                context.strokeStyle = '#9f2d27';
-                context.lineWidth = 5;
-                context.strokeRect(-142, -34, 284, 55);
-                context.fillStyle = '#9f2d27';
-                context.font = '900 20px "Courier New", monospace';
-                context.textAlign = 'center';
-                context.fillText('MAKES FUCKIN’ SENSE', 0, 2);
-                context.restore();
-
-                context.fillStyle = '#efe1b8';
-                context.font = '900 19px "Courier New", monospace';
-                context.fillText('IF YOU DON’T GET IT, FUCK OFF', 42, 605);
                 context.textAlign = 'right';
-                context.fillStyle = '#e4aa32';
-                context.fillText('RICKYISMS', 1158, 605);
+                context.fillStyle = '#8a3029';
+                context.font = '900 20px "Courier New", monospace';
+                context.fillText('RICKYISMS · SUNNYVALE', 1064, 542);
                 context.textAlign = 'left';
 
                 shareCaseLabel.textContent = `Case ${item.number} · ${item.category}`;
@@ -1282,65 +1234,32 @@
                 }
             }
 
-            function repair(text, amount) {
+            function repair(text) {
                 const meaning = cleanSentence(text);
-                const exact = exactRepairs.find(item => item.match.test(meaning));
-                let saying = exact ? exact.say : meaning;
+                const exact = RICKYISM_CASES.find(item => item.match.test(meaning));
+                if (exact) return { ...exact };
 
-                if (!exact) {
-                    let swaps = amount < 38 ? 1 : amount < 74 ? 2 : 3;
-                    const start = Math.abs(hash(meaning)) % looseRepairs.length;
-                    for (let index = 0; index < looseRepairs.length && swaps > 0; index += 1) {
-                        const [from, to] = looseRepairs[(start + index) % looseRepairs.length];
-                        const pattern = new RegExp(`\\b${from}\\b`, 'i');
-                        if (pattern.test(saying)) {
-                            saying = saying.replace(pattern, to);
-                            swaps -= 1;
-                        }
-                    }
+                const wanted = wordsIn(meaning);
+                let bestScore = 0;
+                let best = null;
 
-                    if (saying === meaning) {
-                        const base = meaning.replace(/[.!?]+$/, '');
-                        saying = amount < 38
-                            ? `${base}, more or less. The important part is I said it and everybody heard the fuckin' idea.`
-                            : `${base}. That's the whole situation right there. You can move the words around if you want, but they're not gonna get any more correcter.`;
-                    }
-                }
-
-                if (amount > 78 && !endings.some(ending => saying.includes(ending.trim()))) {
-                    saying = `${saying.replace(/[.!?]+$/, '')}.${endings[Math.abs(hash(meaning + amount)) % endings.length]}`;
-                }
-
-                return { saying, meaning };
-            }
-
-            function paintMagnets(text, animate = false) {
-                tray.replaceChildren();
-                text.split(/\s+/).slice(0, 32).forEach((word, index) => {
-                    const magnet = document.createElement('span');
-                    magnet.className = 'magnet';
-                    magnet.textContent = word;
-                    magnet.style.setProperty('--magnet', magnetColors[index % magnetColors.length]);
-                    magnet.style.setProperty('--tilt', `${((index * 7) % 9) - 4}deg`);
-                    tray.append(magnet);
-
-                    if (animate && !reduceMotion) {
-                        const direction = index % 2 ? 1 : -1;
-                        magnet.animate([
-                            { opacity: 0, transform: `translate(${direction * (35 + index * 2)}px, ${-22 + (index % 4) * 13}px) rotate(${direction * 24}deg) scale(.76)` },
-                            { opacity: 1, transform: `translate(0, 0) rotate(${((index * 7) % 9) - 4}deg) scale(1)` }
-                        ], { duration: 430 + index * 25, easing: 'cubic-bezier(.2,.8,.2,1)' });
+                RICKYISM_CASES.forEach(item => {
+                    const available = wordsIn(`${item.meaning} ${item.category}`);
+                    const score = [...wanted].reduce((total, word) => total + (available.has(word) ? 1 : 0), 0);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        best = item;
                     }
                 });
+
+                return { ...(best || RICKYISM_CASES[Math.abs(hash(meaning)) % RICKYISM_CASES.length]) };
             }
 
             function showRepair(next, animate = true) {
-                current = next;
+                current = { ...caseForRepair(next) };
+                benchCaseNumber.textContent = `CASE ${current.number} · ${current.category.toUpperCase()}`;
                 rickyOutput.textContent = current.saying;
                 plainOutput.textContent = current.meaning;
-                repairsMade += 1;
-                repairNumber.textContent = `No. ${String(repairsMade).padStart(4, '0')}`;
-                paintMagnets(current.saying, animate);
 
                 if (shareDialog.open) {
                     shareItem = caseForRepair();
@@ -1355,14 +1274,8 @@
             }
 
             function makeRepair() {
-                showRepair(repair(sayingInput.value, Number(damageInput.value)));
+                showRepair(repair(sayingInput.value));
             }
-
-            damageInput.addEventListener('input', () => {
-                damageOutput.value = damageInput.value;
-                damageOutput.textContent = damageInput.value;
-                document.documentElement.style.setProperty('--words', damageInput.value);
-            });
 
             fixButton.addEventListener('click', makeRepair);
             sayingInput.addEventListener('keydown', event => {
@@ -1374,8 +1287,9 @@
 
             surpriseButton.addEventListener('click', () => {
                 surpriseIndex = (surpriseIndex + 1 + Math.floor(Math.random() * (starters.length - 1))) % starters.length;
-                sayingInput.value = starters[surpriseIndex];
-                makeRepair();
+                const item = RICKYISM_CASES[surpriseIndex];
+                sayingInput.value = item.meaning;
+                showRepair(item);
             });
 
             document.getElementById('case-prev').addEventListener('click', () => renderCase(caseIndex - 1));
@@ -1405,7 +1319,7 @@
             function renderSaved() {
                 const items = readSaved();
                 savedList.replaceChildren();
-                savedCount.textContent = `Saved on this phone · ${items.length} receipt${items.length === 1 ? '' : 's'}`;
+                savedCount.textContent = `Saved on this phone · ${items.length} card${items.length === 1 ? '' : 's'}`;
                 if (!items.length) {
                     const empty = document.createElement('div');
                     empty.className = 'empty-glove';
@@ -1415,13 +1329,21 @@
                 }
 
                 items.forEach(item => {
+                    const savedCase = caseForRepair(item);
                     const button = document.createElement('button');
                     button.className = 'saved-item';
                     button.type = 'button';
-                    button.textContent = item.saying;
+                    const number = document.createElement('span');
+                    number.className = 'saved-case-number';
+                    number.textContent = `CASE ${savedCase.number} · ${savedCase.category.toUpperCase()}`;
+                    const saying = document.createElement('strong');
+                    saying.textContent = savedCase.saying;
+                    const meaning = document.createElement('small');
+                    meaning.textContent = `Means: ${savedCase.meaning}`;
+                    button.append(number, saying, meaning);
                     button.addEventListener('click', () => {
-                        sayingInput.value = item.meaning;
-                        showRepair(item);
+                        sayingInput.value = savedCase.meaning;
+                        showRepair(savedCase);
                         receipt.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
                     });
                     savedList.append(button);
@@ -1430,7 +1352,7 @@
 
             keepButton.addEventListener('click', () => {
                 const items = readSaved().filter(item => item.saying !== current.saying);
-                items.unshift(current);
+                items.unshift(caseForRepair(current));
                 writeSaved(items.slice(0, 6));
                 renderSaved();
                 keepButton.textContent = 'In the glove box';
@@ -1454,8 +1376,7 @@
             document.getElementById('share-no-context').addEventListener('click', () => deliverShare('no-context'));
 
             document.getElementById('shop-time').textContent = `Filed ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-            damageOutput.value = damageInput.value;
-            paintMagnets(current.saying);
+            showRepair(current, false);
             renderCase(0, false);
             renderSaved();
 
