@@ -164,6 +164,25 @@
             letter-spacing: 0.12em;
         }
 
+        .mode-badge {
+            display: none;
+            width: fit-content;
+            margin-top: 0.28rem;
+            padding: 0.16rem 0.35rem;
+            border: 1px solid #76834a;
+            color: #c7d878;
+            background: #19200f;
+            font-size: 0.55rem;
+            letter-spacing: 0.1em;
+            box-shadow: 0 0 0.7rem rgba(181,207,91,0.12);
+        }
+
+        .board.is-clerk-mode .mode-badge { display: block; }
+        .board.is-clerk-mode .board-head {
+            border-color: #526034;
+            box-shadow: inset 0 1px rgba(228,239,164,0.04), inset 0 -0.7rem 1.4rem rgba(74,94,32,0.08);
+        }
+
         .shift-counter {
             margin-left: auto;
             color: #95836a;
@@ -479,6 +498,80 @@
             line-height: 1.58;
         }
 
+        .speech-rail {
+            position: relative;
+            z-index: 4;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 0.8rem;
+            align-items: center;
+            margin-top: 0.72rem;
+            padding: 0.62rem 0.7rem;
+            border: 1px solid #3e3024;
+            border-radius: 0.42rem;
+            background: #100d0b;
+            box-shadow: inset 0 0.55rem 1rem rgba(0,0,0,0.24);
+        }
+
+        .speech-state {
+            min-width: 0;
+            margin: 0;
+            color: #9c8a70;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            line-height: 1.4;
+            text-transform: uppercase;
+        }
+
+        .speech-state::before {
+            content: '';
+            display: inline-block;
+            width: 0.48rem;
+            height: 0.48rem;
+            margin-right: 0.5rem;
+            border: 1px solid #584631;
+            border-radius: 50%;
+            background: #231a14;
+            vertical-align: 0.02rem;
+        }
+
+        .speech-rail[data-speech-state="queued"] .speech-state::before,
+        .speech-rail[data-speech-state="speaking"] .speech-state::before {
+            border-color: #d29b48;
+            background: var(--amber-hot);
+            box-shadow: 0 0 0.7rem rgba(255,196,94,0.58);
+        }
+
+        .speech-rail[data-speech-state="cut"] .speech-state::before {
+            border-color: #7a342b;
+            background: #9e4134;
+        }
+
+        .speech-keys { display: flex; gap: 0.5rem; }
+
+        .speech-key {
+            min-height: 2.75rem;
+            padding: 0.48rem 0.72rem;
+            border: 1px solid #654d32;
+            border-radius: 0.28rem;
+            color: #c7b38e;
+            background: linear-gradient(#241b15, #15110e);
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: inset 0 1px rgba(255,255,255,0.035), 0 2px 0 #070504;
+        }
+
+        .speech-key.is-cut { border-color: #7a3c30; color: #e1b1a4; }
+        .speech-key:hover,
+        .speech-key:focus-visible { border-color: var(--amber); color: var(--amber-hot); outline: 2px solid var(--amber); outline-offset: 2px; }
+        .speech-key:active { transform: translateY(1px); box-shadow: inset 0 1px rgba(255,255,255,0.025); }
+        .speech-key:disabled { opacity: 0.38; cursor: not-allowed; }
+
         .shift-ending {
             position: relative;
             z-index: 4;
@@ -642,6 +735,22 @@
             box-shadow: inset 0 0 0.7rem rgba(227,166,75,0.12);
         }
 
+        .voice-select {
+            width: min(13rem, 42vw);
+            min-height: 2.75rem;
+            padding: 0.5rem 2rem 0.5rem 0.65rem;
+            border: 1px solid #604a2f;
+            border-radius: 0.28rem;
+            color: #d6c19b;
+            background: #0e0b09;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .voice-select:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+        .voice-select:disabled { opacity: 0.45; cursor: not-allowed; }
+
         details.inside {
             margin-top: 1rem;
             border: 1px solid #3c2e22;
@@ -724,6 +833,9 @@
             .destinations-panel { min-height: 0; }
             .destination { min-height: 5.75rem; }
             .cord-layer { z-index: 6; }
+            .speech-rail { grid-template-columns: 1fr; }
+            .speech-keys { display: grid; grid-template-columns: 1fr 1fr; }
+            .speech-key { width: 100%; }
         }
 
         @media (max-width: 480px) {
@@ -752,6 +864,9 @@
             .destination-name { font-size: 0.84rem; letter-spacing: 0.06em; }
             .destination-extension { font-size: 0.7rem; letter-spacing: 0.06em; }
             .response-tray { padding-inline: 0.85rem 0.7rem; }
+            .control-row { grid-template-columns: 1fr; gap: 0.6rem; }
+            .control-row .toggle,
+            .voice-select { width: 100%; }
         }
 
         @media (max-width: 340px) {
@@ -786,6 +901,7 @@
             <div class="board-head">
                 <div class="exchange-mark">Mythic Exchange 04
                     <small>Long-distance, below-ground &amp; lunar</small>
+                    <span class="mode-badge" id="modeBadge">24H clerk circuit · till 04</span>
                 </div>
                 <div class="shift-counter" id="shiftCounter">Call 0 of 5</div>
                 <button class="controls-button" id="controlsButton" type="button" aria-label="Open switchboard controls" aria-haspopup="dialog">
@@ -850,6 +966,14 @@
                 <p class="response-text" id="responseText">Answer the lit line, then patch it to one department. The exchange accepts intuition and clerical accidents.</p>
             </section>
 
+            <div class="speech-rail" id="speechRail" data-speech-state="idle" aria-label="Spoken line controls">
+                <p class="speech-state" id="speechStatus" aria-live="polite">Voice line off</p>
+                <div class="speech-keys">
+                    <button class="speech-key is-cut" id="cutVoiceButton" type="button" disabled>Cut voice</button>
+                    <button class="speech-key" id="replayVoiceButton" type="button" disabled>Replay line</button>
+                </div>
+            </div>
+
             <section class="shift-ending" id="shiftEnding" aria-live="polite">
                 <small>Five calls cleared · exchange closed</small>
                 <h2 id="endingTitle">Shift complete</h2>
@@ -877,6 +1001,16 @@
                 <button class="toggle" id="voiceToggle" type="button" aria-pressed="false">Off</button>
             </div>
             <div class="control-row">
+                <span><strong>Voice reel</strong><small>Choose any speech voice this browser marks as installed on this device.</small></span>
+                <select class="voice-select" id="voiceSelect" aria-label="Installed device voice" aria-describedby="voiceDescription" disabled>
+                    <option>Checking local voices…</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <span><strong>Kwik-E-Mart mode</strong><small id="clerkModeDescription">An original bright, quick late-night clerk cadence. It does not copy a character or actor.</small></span>
+                <button class="toggle" id="clerkModeToggle" type="button" aria-pressed="false">Exchange</button>
+            </div>
+            <div class="control-row">
                 <span><strong>Pace</strong><small>Changes the interval chosen after the next line is cleared.</small></span>
                 <button class="toggle" id="paceToggle" type="button" aria-pressed="false">Normal</button>
             </div>
@@ -890,7 +1024,8 @@
                 <div class="inside-copy">
                     <p>Every caller, destination response, and shift closing is written into this page. Nothing is generated, fetched, or assembled from phrase pieces. The board makes no network requests.</p>
                     <p>Four complete five-call decks rotate over eight nights. Each deck stays on duty for two local calendar nights. Normal calls arrive about every 9–26 seconds; Quick uses about 3–9 seconds. The first call arrives sooner.</p>
-                    <p>Optional Voice uses only speech voices the browser marks as installed on this device. It needs no microphone, account, key, or speech-service request. When no local voice is available, the board stays text-only.</p>
+                    <p>Optional Voice uses only speech voices the browser marks as installed on this device. Voice Reel lets you choose among those local voices. It needs no microphone, account, key, or speech-service request. When no local voice is available, the board stays text-only.</p>
+                    <p>Cut Voice stops a queued or speaking line immediately; Replay Line starts the last complete caller or operator note again. Kwik-E-Mart mode is an original faster, brighter clerk preset applied to the selected local voice. It does not copy a character or performer.</p>
                     <p>Settings and this five-call shift stay in local browser storage when it is available. Leaving the tab pauses an unanswered timer; returning schedules a fresh interval.</p>
                     <p><strong id="windowDescription">Loading the night ledger…</strong></p>
                 </div>
@@ -1236,6 +1371,13 @@
             const soundToggle = document.getElementById('soundToggle');
             const voiceToggle = document.getElementById('voiceToggle');
             const voiceDescription = document.getElementById('voiceDescription');
+            const voiceSelect = document.getElementById('voiceSelect');
+            const clerkModeToggle = document.getElementById('clerkModeToggle');
+            const modeBadge = document.getElementById('modeBadge');
+            const speechRail = document.getElementById('speechRail');
+            const speechStatus = document.getElementById('speechStatus');
+            const cutVoiceButton = document.getElementById('cutVoiceButton');
+            const replayVoiceButton = document.getElementById('replayVoiceButton');
             const paceToggle = document.getElementById('paceToggle');
             const motionToggle = document.getElementById('motionToggle');
             const windowDescription = document.getElementById('windowDescription');
@@ -1250,7 +1392,11 @@
             let humGain = null;
             let speechTimer = 0;
             let localVoice = null;
+            let localVoices = [];
             let voiceStatus = speechAvailable ? 'checking' : 'unavailable';
+            let speechState = 'idle';
+            let activeUtterance = null;
+            let lastSpeech = null;
 
             function safeRead(key) {
                 try {
@@ -1295,6 +1441,8 @@
             const settings = {
                 sound: storedSettings.sound === true,
                 voice: storedSettings.voice === true,
+                voiceId: typeof storedSettings.voiceId === 'string' ? storedSettings.voiceId : '',
+                voiceMode: storedSettings.voiceMode === 'clerk' ? 'clerk' : 'exchange',
                 pace: storedSettings.pace === 'quick' ? 'quick' : 'normal',
                 motion: typeof storedSettings.motion === 'boolean' ? storedSettings.motion : defaultMotion
             };
@@ -1341,18 +1489,48 @@
                 } else {
                     voiceDescription.textContent = 'No device-local voice is available here. The board remains text-only.';
                 }
+                clerkModeToggle.setAttribute('aria-pressed', String(settings.voiceMode === 'clerk'));
+                clerkModeToggle.textContent = settings.voiceMode === 'clerk' ? 'Clerk' : 'Exchange';
                 paceToggle.setAttribute('aria-pressed', String(settings.pace === 'quick'));
                 paceToggle.textContent = settings.pace === 'quick' ? 'Quick' : 'Normal';
                 motionToggle.setAttribute('aria-pressed', String(settings.motion));
                 motionToggle.textContent = settings.motion ? 'Full' : 'Reduced';
                 board.classList.toggle('motion-full', settings.motion);
+                board.classList.toggle('is-clerk-mode', settings.voiceMode === 'clerk');
+                modeBadge.setAttribute('aria-hidden', String(settings.voiceMode !== 'clerk'));
+                updateSpeechControls();
+            }
+
+            function voiceId(voice) {
+                return voice ? (voice.voiceURI || `${voice.name}::${voice.lang}`) : '';
+            }
+
+            function renderVoiceOptions() {
+                voiceSelect.replaceChildren();
+                if (!localVoices.length) {
+                    const option = document.createElement('option');
+                    option.textContent = voiceStatus === 'checking' ? 'Checking local voices…' : 'No local voices';
+                    voiceSelect.append(option);
+                    voiceSelect.disabled = true;
+                    return;
+                }
+                localVoices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.value = voiceId(voice);
+                    option.textContent = `${voice.name} · ${voice.lang || 'language unknown'}`;
+                    option.selected = voice === localVoice;
+                    voiceSelect.append(option);
+                });
+                voiceSelect.disabled = false;
             }
 
             function refreshLocalVoice(finalCheck = false) {
                 if (!speechAvailable) {
                     localVoice = null;
+                    localVoices = [];
                     voiceStatus = 'unavailable';
                     settings.voice = false;
+                    renderVoiceOptions();
                     return null;
                 }
                 let voices = [];
@@ -1361,10 +1539,17 @@
                 } catch (error) {
                     voices = [];
                 }
-                const englishVoices = voices.filter(voice => /^en(?:-|_)/i.test(voice.lang || ''));
-                localVoice = englishVoices[0] || voices[0] || null;
+                localVoices = voices;
+                const storedVoice = localVoices.find(voice => voiceId(voice) === settings.voiceId);
+                const englishVoices = localVoices.filter(voice => /^en(?:-|_)/i.test(voice.lang || ''));
+                localVoice = storedVoice || englishVoices[0] || localVoices[0] || null;
                 voiceStatus = localVoice ? 'ready' : finalCheck ? 'unavailable' : 'checking';
-                if (!localVoice && finalCheck) settings.voice = false;
+                if (localVoice) settings.voiceId = voiceId(localVoice);
+                if (!localVoice && finalCheck) {
+                    settings.voice = false;
+                    settings.voiceId = '';
+                }
+                renderVoiceOptions();
                 return localVoice;
             }
 
@@ -1377,44 +1562,113 @@
                 if (humGain) humGain.gain.value = 0.0035;
             }
 
-            function cancelSpeech() {
+            function updateSpeechControls() {
+                const voiceReady = settings.voice && voiceStatus === 'ready' && localVoice;
+                const interruptible = voiceReady && (speechState === 'queued' || speechState === 'speaking');
+                cutVoiceButton.disabled = !interruptible;
+                replayVoiceButton.disabled = !voiceReady || !lastSpeech;
+                speechRail.dataset.speechState = speechState;
+
+                if (voiceStatus === 'unavailable') speechStatus.textContent = 'Voice line unavailable';
+                else if (!settings.voice) speechStatus.textContent = 'Voice line off';
+                else if (speechState === 'queued') speechStatus.textContent = settings.voiceMode === 'clerk' ? 'Clerk line queued' : 'Voice line queued';
+                else if (speechState === 'speaking') speechStatus.textContent = settings.voiceMode === 'clerk' ? 'Clerk line speaking' : 'Voice line speaking';
+                else if (speechState === 'cut') speechStatus.textContent = 'Voice cut · text remains on board';
+                else if (lastSpeech) speechStatus.textContent = 'Voice line ready · replay available';
+                else speechStatus.textContent = 'Voice line silent';
+            }
+
+            function cancelSpeech(nextState = 'idle') {
                 clearSpeechTimer();
                 if (speechAvailable) {
                     try { window.speechSynthesis.cancel(); } catch (error) {}
                 }
+                activeUtterance = null;
+                speechState = nextState;
                 restoreHumAfterSpeech();
+                updateSpeechControls();
             }
 
-            function speakText(text, kind = 'caller') {
+            function speechProfile(kind) {
+                if (settings.voiceMode === 'clerk') {
+                    return kind === 'response'
+                        ? { rate: 1.12, pitch: 1.14 }
+                        : { rate: 1.07, pitch: 1.11 };
+                }
+                return kind === 'response'
+                    ? { rate: 0.96, pitch: 0.98 }
+                    : { rate: 0.9, pitch: 0.9 };
+            }
+
+            function clerkCopy(text, kind) {
+                if (settings.voiceMode !== 'clerk') return text;
+                return kind === 'response'
+                    ? `Thank you for holding. ${text}`
+                    : `Night counter. ${text}`;
+            }
+
+            function speakText(text, kind = 'caller', remember = true) {
                 if (!settings.voice || voiceStatus !== 'ready' || !localVoice || !text) return false;
                 cancelSpeech();
+                if (remember) lastSpeech = { text, kind };
                 try {
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.voice = localVoice;
                     utterance.lang = localVoice.lang || 'en-US';
-                    utterance.rate = kind === 'response' ? 0.96 : 0.9;
-                    utterance.pitch = kind === 'response' ? 0.98 : 0.9;
+                    const profile = speechProfile(kind);
+                    utterance.rate = profile.rate;
+                    utterance.pitch = profile.pitch;
                     utterance.volume = 0.9;
                     utterance.onstart = () => {
+                        if (activeUtterance !== utterance) return;
+                        speechState = 'speaking';
+                        updateSpeechControls();
                         if (humGain) humGain.gain.value = 0.0006;
                     };
-                    utterance.onend = restoreHumAfterSpeech;
-                    utterance.onerror = restoreHumAfterSpeech;
+                    utterance.onend = () => {
+                        if (activeUtterance !== utterance) return;
+                        activeUtterance = null;
+                        speechState = 'idle';
+                        restoreHumAfterSpeech();
+                        updateSpeechControls();
+                    };
+                    utterance.onerror = () => {
+                        if (activeUtterance !== utterance) return;
+                        activeUtterance = null;
+                        speechState = 'idle';
+                        restoreHumAfterSpeech();
+                        updateSpeechControls();
+                    };
+                    activeUtterance = utterance;
+                    speechState = 'speaking';
+                    updateSpeechControls();
                     window.speechSynthesis.speak(utterance);
                     return true;
                 } catch (error) {
+                    activeUtterance = null;
+                    speechState = 'idle';
                     restoreHumAfterSpeech();
+                    updateSpeechControls();
                     return false;
                 }
             }
 
-            function queueSpeech(text, kind, delay = 0) {
+            function queueSpeech(text, kind, delay = 0, remember = true) {
                 cancelSpeech();
                 if (!settings.voice || voiceStatus !== 'ready') return;
+                if (remember) lastSpeech = { text, kind };
+                speechState = 'queued';
+                updateSpeechControls();
                 speechTimer = window.setTimeout(() => {
                     speechTimer = 0;
-                    speakText(text, kind);
+                    speakText(clerkCopy(text, kind), kind, false);
                 }, delay);
+            }
+
+            function replayLastSpeech() {
+                if (!lastSpeech || !settings.voice || voiceStatus !== 'ready') return;
+                armAudioFromGesture();
+                queueSpeech(lastSpeech.text, lastSpeech.kind, 0, true);
             }
 
             function currentCall() {
@@ -1581,6 +1835,7 @@
 
             function restartShift() {
                 clearRingTimer();
+                lastSpeech = null;
                 cancelSpeech();
                 progress.callIndex = 0;
                 progress.log = [];
@@ -1689,6 +1944,7 @@
             if (speechAvailable && typeof window.speechSynthesis.addEventListener === 'function') {
                 window.speechSynthesis.addEventListener('voiceschanged', () => {
                     refreshLocalVoice(true);
+                    if (voiceStatus !== 'ready') cancelSpeech();
                     persistSettings();
                     updateControlLabels();
                 });
@@ -1733,8 +1989,32 @@
                 settings.voice = !settings.voice;
                 persistSettings();
                 updateControlLabels();
-                if (settings.voice) speakText('Local voice line ready.', 'caller');
+                if (settings.voice) speakText(clerkCopy('Local voice line ready.', 'caller'), 'caller', false);
                 else cancelSpeech();
+            });
+
+            voiceSelect.addEventListener('change', () => {
+                const selected = localVoices.find(voice => voiceId(voice) === voiceSelect.value);
+                if (!selected) return;
+                cancelSpeech();
+                localVoice = selected;
+                settings.voiceId = voiceId(selected);
+                persistSettings();
+                updateControlLabels();
+                if (settings.voice) speakText(clerkCopy('Selected voice line ready.', 'caller'), 'caller', false);
+            });
+
+            clerkModeToggle.addEventListener('click', () => {
+                cancelSpeech();
+                settings.voiceMode = settings.voiceMode === 'exchange' ? 'clerk' : 'exchange';
+                persistSettings();
+                updateControlLabels();
+                if (settings.voice && voiceStatus === 'ready') {
+                    const preview = settings.voiceMode === 'clerk'
+                        ? 'Night counter connected. Thank you for holding.'
+                        : 'Mythic exchange voice restored.';
+                    speakText(preview, 'caller', false);
+                }
             });
 
             paceToggle.addEventListener('click', () => {
@@ -1760,6 +2040,8 @@
                 renderLog();
                 openDialog(logDialog);
             });
+            cutVoiceButton.addEventListener('click', () => cancelSpeech('cut'));
+            replayVoiceButton.addEventListener('click', replayLastSpeech);
 
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
@@ -1800,8 +2082,13 @@
                 voice: () => ({
                     supported: speechAvailable,
                     status: voiceStatus,
-                    selected: localVoice ? { name: localVoice.name, lang: localVoice.lang, localService: localVoice.localService } : null
+                    mode: settings.voiceMode,
+                    selected: localVoice ? { id: voiceId(localVoice), name: localVoice.name, lang: localVoice.lang, localService: localVoice.localService } : null,
+                    available: localVoices.map(voice => ({ id: voiceId(voice), name: voice.name, lang: voice.lang, localService: voice.localService }))
                 }),
+                speech: () => ({ state: speechState, last: lastSpeech ? { ...lastSpeech } : null }),
+                cutSpeech: () => cancelSpeech('cut'),
+                replaySpeech: replayLastSpeech,
                 state: () => ({ ...progress, log: progress.log.map(entry => ({ ...entry })) })
             });
         })();
