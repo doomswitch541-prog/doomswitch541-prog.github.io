@@ -87,10 +87,18 @@ let waterBasePositions;
 let citadelCore;
 let citadelLight;
 let directionalLight;
+let hemisphereLight;
 let cityLights;
 let oceanGlints;
 let shorelineWash;
 let focusMarker;
+let traveler;
+let travelerFigure;
+let travelerJourney = null;
+let regionStage = null;
+let regionParticles = null;
+let journeyPath = null;
+let focusedRegion = null;
 let cloudBanks = [];
 let labelEntries = [];
 let labelsVisible = !MOBILE_QUERY.matches;
@@ -110,14 +118,22 @@ let dragStartY = 0;
 let dragStartTarget = null;
 let hasDragged = false;
 let activePointerType = 'mouse';
+let focusBlend = 0;
+let desiredFocusBlend = 0;
+let keyLightIntensityTarget = 3.05;
 
 const baseCameraPosition = new THREE.Vector3(0, 20.4, 17.4);
+const localCameraPosition = new THREE.Vector3(0, 6.6, 7.8);
 const homeTarget = new THREE.Vector3(0, 0.18, -0.4);
 const cameraTarget = homeTarget.clone();
 const desiredTarget = homeTarget.clone();
 const parallaxTarget = new THREE.Vector3();
 const composedTarget = new THREE.Vector3();
 const temporaryVector = new THREE.Vector3();
+const cameraOffset = new THREE.Vector3();
+const localCameraOffset = new THREE.Vector3();
+const travelerFrom = new THREE.Vector3();
+const travelerTo = new THREE.Vector3();
 const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
 const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -125,6 +141,11 @@ const interactionPoint = new THREE.Vector3();
 const shoreColor = new THREE.Color(world.shoreColor).convertSRGBToLinear();
 const seaFloorColor = new THREE.Color(0x082d48).convertSRGBToLinear();
 const snowColor = new THREE.Color(0xf5f7f3).convertSRGBToLinear();
+const backgroundTarget = new THREE.Color(0x071923);
+const fogTarget = new THREE.Color(0x071923);
+const hemisphereSkyTarget = new THREE.Color(0xc8e5ec);
+const hemisphereGroundTarget = new THREE.Color(0x182313);
+const keyLightColorTarget = new THREE.Color(0xffd2a0);
 
 const regionLooks = world.regions.map(region => ({
     region,
@@ -190,8 +211,8 @@ function buildWorld() {
     camera.position.copy(baseCameraPosition).multiplyScalar(1 / currentZoom);
     camera.lookAt(cameraTarget);
 
-    const hemisphere = new THREE.HemisphereLight(0xc8e5ec, 0x182313, 1.82);
-    scene.add(hemisphere);
+    hemisphereLight = new THREE.HemisphereLight(0xc8e5ec, 0x182313, 1.82);
+    scene.add(hemisphereLight);
 
     directionalLight = new THREE.DirectionalLight(0xffd2a0, 3.05);
     directionalLight.position.set(-8.5, 15, 10.5);
@@ -221,6 +242,7 @@ function buildWorld() {
     createLandmarks();
     createCitadel();
     createFocusMarker();
+    createTraveler();
     createCloudBanks();
     createLabels();
 
@@ -610,7 +632,9 @@ function createDuneFields() {
 function createFarmStrips() {
     const region = regionById.get('r_lowland_fields');
     const center = normalizedToWorld(region.x, region.y);
-    const count = MOBILE_QUERY.matches ? 9 : 16;
+    const count = region.biome === 'tropical'
+        ? (MOBILE_QUERY.matches ? 10 : 18)
+        : (MOBILE_QUERY.matches ? 5 : 8);
     const geometry = new THREE.BoxGeometry(0.52, 0.022, 0.024);
     const material = new THREE.MeshStandardMaterial({ color: 0x9eb864, roughness: 0.94 });
     const strips = new THREE.InstancedMesh(geometry, material, count);
@@ -832,11 +856,576 @@ function createFocusMarker() {
     scene.add(focusMarker);
 }
 
+function createTraveler() {
+    const cloak = new THREE.MeshStandardMaterial({ color: 0x8d4938, roughness: 0.88, metalness: 0.01 });
+    const cloth = new THREE.MeshStandardMaterial({ color: 0xd8c9a8, roughness: 0.92, metalness: 0 });
+    const shadow = new THREE.MeshBasicMaterial({ color: 0x071015, transparent: true, opacity: 0.24, depthWrite: false });
+
+    traveler = new THREE.Group();
+    travelerFigure = new THREE.Group();
+
+    const groundShadow = new THREE.Mesh(new THREE.CircleGeometry(0.12, 18), shadow);
+    groundShadow.rotation.x = -Math.PI / 2;
+    groundShadow.position.y = 0.008;
+
+    const body = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.25, 7), cloak);
+    body.position.y = 0.145;
+    const shoulders = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.082, 0.11, 7), cloth);
+    shoulders.position.y = 0.27;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.052, 10, 8), cloth);
+    head.position.y = 0.37;
+
+    travelerFigure.add(body, shoulders, head);
+    traveler.add(groundShadow, travelerFigure);
+    traveler.traverse(child => {
+        if (child.isMesh && child !== groundShadow) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+        }
+    });
+
+    const startingRegion = regionById.get('r_citadel');
+    traveler.position.copy(mapPoint(startingRegion.x, startingRegion.y, 0.09));
+    traveler.name = 'World traveler';
+    scene.add(traveler);
+}
+
+function beginJourney(region) {
+    const destination = mapPoint(region.x, region.y, 0.09);
+    travelerFrom.copy(traveler.position);
+    travelerTo.copy(destination);
+    const distance = travelerFrom.distanceTo(travelerTo);
+    if (distance < 0.08) {
+        traveler.position.copy(destination);
+        travelerJourney = null;
+        desiredTarget.set(destination.x, destination.y + 0.12, destination.z);
+        desiredZoom = 1.54;
+        desiredFocusBlend = 1;
+        regionStage.scale.setScalar(1);
+        statusText.textContent = `${region.label} · drag around or return to the whole world`;
+        atlas.classList.add('is-local');
+        return;
+    }
+    const startingRegion = nearestRegionToPoint(travelerFrom);
+    const itinerary = findRegionRoute(startingRegion.id, region.id);
+    const waypoints = itinerary && itinerary.length > 1
+        ? [travelerFrom.clone(), ...itinerary.slice(1).map(stop => mapPoint(stop.x, stop.y, 0.09))]
+        : [travelerFrom.clone(), travelerTo.clone()];
+    const points = [];
+
+    for (let segment = 0; segment < waypoints.length - 1; segment += 1) {
+        const start = waypoints[segment];
+        const end = waypoints[segment + 1];
+        const dx = end.x - start.x;
+        const dz = end.z - start.z;
+        const length = Math.hypot(dx, dz) || 1;
+        const bend = (hash(segment * 17.2 + world.regions.indexOf(region) * 3.7) - 0.5) * Math.min(0.42, length * 0.055);
+        for (let step = segment === 0 ? 0 : 1; step <= 8; step += 1) {
+            const amount = step / 8;
+            const arc = Math.sin(amount * Math.PI) * bend;
+            const x = mix(start.x, end.x, amount) + (-dz / length) * arc;
+            const z = mix(start.z, end.z, amount) + (dx / length) * arc;
+            const y = Math.max(SEA_LEVEL + 0.09, terrainHeightAtWorld(x, z) + 0.09);
+            points.push(new THREE.Vector3(x, y, z));
+        }
+    }
+
+    const curve = new THREE.CatmullRomCurve3(points);
+    travelerJourney = {
+        region,
+        curve,
+        elapsed: 0,
+        duration: THREE.MathUtils.clamp(0.72 + curve.getLength() * 0.105, 0.78, 3.4)
+    };
+    createJourneyPath(curve);
+    desiredZoom = Math.max(1.16, Math.min(desiredZoom, 1.28));
+    desiredFocusBlend = 0.42;
+    statusText.textContent = `${itinerary && itinerary.length > 1 ? 'Following the old routes' : 'Crossing open country'} toward ${region.label}`;
+}
+
+function nearestRegionToPoint(point) {
+    return world.regions.reduce((best, region) => {
+        const dx = point.x - (region.x - 0.5) * WORLD_WIDTH;
+        const dz = point.z - (region.y - 0.5) * WORLD_DEPTH;
+        const distance = dx * dx + dz * dz;
+        return !best || distance < best.distance ? { region, distance } : best;
+    }, null).region;
+}
+
+function findRegionRoute(startId, endId) {
+    if (startId === endId) return [regionById.get(startId)];
+    const adjacency = new Map(world.regions.map(region => [region.id, []]));
+    routePairs.forEach(route => {
+        adjacency.get(route.start.id).push(route.end.id);
+        adjacency.get(route.end.id).push(route.start.id);
+    });
+
+    const queue = [[startId]];
+    const visited = new Set([startId]);
+    while (queue.length) {
+        const path = queue.shift();
+        const current = path[path.length - 1];
+        for (const neighbor of adjacency.get(current)) {
+            if (visited.has(neighbor)) continue;
+            const nextPath = [...path, neighbor];
+            if (neighbor === endId) return nextPath.map(id => regionById.get(id));
+            visited.add(neighbor);
+            queue.push(nextPath);
+        }
+    }
+    return null;
+}
+
+function createJourneyPath(curve) {
+    disposeObject(journeyPath);
+    if (journeyPath) scene.remove(journeyPath);
+
+    const geometry = new THREE.TubeGeometry(curve, 48, 0.012, 4, false);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xc4a677,
+        roughness: 0.92,
+        transparent: true,
+        opacity: 0.38,
+        depthWrite: false
+    });
+    journeyPath = new THREE.Mesh(geometry, material);
+    journeyPath.name = 'Current journey';
+    scene.add(journeyPath);
+}
+
+function updateTraveler(delta) {
+    if (!travelerJourney) {
+        travelerFigure.position.y = MOTION_QUERY.matches ? 0 : Math.sin(elapsed * 2.2) * 0.008;
+        return;
+    }
+
+    travelerJourney.elapsed += delta;
+    const rawAmount = Math.min(1, travelerJourney.elapsed / travelerJourney.duration);
+    const amount = rawAmount * rawAmount * (3 - 2 * rawAmount);
+    const point = travelerJourney.curve.getPointAt(amount);
+    const tangent = travelerJourney.curve.getTangentAt(Math.min(0.999, amount));
+    traveler.position.copy(point);
+    traveler.rotation.y = Math.atan2(tangent.x, tangent.z);
+    travelerFigure.position.y = MOTION_QUERY.matches ? 0 : Math.abs(Math.sin(rawAmount * Math.PI * 12)) * 0.045;
+    desiredTarget.set(point.x, point.y + 0.12, point.z);
+    if (regionStage) regionStage.scale.setScalar(0.72 + amount * 0.28);
+
+    if (rawAmount < 1) return;
+
+    focusedRegion = travelerJourney.region;
+    travelerJourney = null;
+    desiredZoom = 1.54;
+    desiredFocusBlend = 1;
+    focusMarker.visible = true;
+    statusText.textContent = `${focusedRegion.label} · tap another region or return to the whole world`;
+    atlas.classList.add('is-local');
+}
+
+function disposeObject(object) {
+    if (!object) return;
+    const geometries = new Set();
+    const materials = new Set();
+    object.traverse(child => {
+        if (child.geometry) geometries.add(child.geometry);
+        if (Array.isArray(child.material)) child.material.forEach(material => materials.add(material));
+        else if (child.material) materials.add(child.material);
+    });
+    geometries.forEach(geometry => geometry.dispose());
+    materials.forEach(material => material.dispose());
+}
+
+function regionFamily(region) {
+    if (region.biome === 'citadel') return 'citadel';
+    if (['snow', 'ice', 'tundra'].includes(region.biome)) return 'cold';
+    if (region.biome === 'wetland') return 'wetland';
+    if (['urban', 'urban-river', 'oldtown'].includes(region.biome)) return 'urban';
+    if (['orchard', 'village', 'farmland', 'garden', 'forest'].includes(region.biome)) return 'green';
+    if (['mountain', 'rock'].includes(region.biome)) return 'ridge';
+    if (['desert', 'frontier'].includes(region.biome)) return 'dry';
+    if (['coast', 'tropical'].includes(region.biome)) return 'coast';
+    return 'green';
+}
+
+function createRegionStage(region) {
+    disposeObject(regionStage);
+    if (regionStage) scene.remove(regionStage);
+
+    const family = regionFamily(region);
+    const point = mapPoint(region.x, region.y, 0.035);
+    regionStage = new THREE.Group();
+    regionStage.position.copy(point);
+    regionStage.scale.setScalar(MOTION_QUERY.matches ? 1 : 0.72);
+    regionStage.name = `${region.label} local landscape`;
+    scene.add(regionStage);
+
+    if (family === 'cold') buildColdStage(region);
+    else if (family === 'wetland') buildWetlandStage(region);
+    else if (family === 'urban') buildUrbanStage(region, false);
+    else if (family === 'citadel') buildUrbanStage(region, true);
+    else if (family === 'green') buildGreenStage(region);
+    else if (family === 'ridge') buildRidgeStage(region);
+    else if (family === 'dry') buildDryStage(region);
+    else buildCoastStage(region);
+
+    createRegionParticles(region, family);
+    applyRegionMood(family);
+}
+
+function stagePoint(seed, index, inner = 0.28, outer = 1.35) {
+    const angle = hash(seed * 17.3 + index * 5.91) * Math.PI * 2;
+    const radius = inner + hash(seed * 31.7 + index * 11.43) * (outer - inner);
+    return { angle, radius, x: Math.cos(angle) * radius, z: Math.sin(angle) * radius * 0.72 };
+}
+
+function addStageMesh(mesh) {
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    regionStage.add(mesh);
+    return mesh;
+}
+
+function buildColdStage(region) {
+    const seed = world.regions.indexOf(region) + 1;
+    const isTundra = region.biome === 'tundra';
+    const geometry = isTundra
+        ? new THREE.IcosahedronGeometry(0.14, 1)
+        : new THREE.ConeGeometry(0.13, 0.72, 5);
+    const material = new THREE.MeshPhysicalMaterial({
+        color: region.color,
+        roughness: region.biome === 'ice' ? 0.34 : 0.66,
+        metalness: 0.02,
+        clearcoat: region.biome === 'ice' ? 0.42 : 0.12,
+        clearcoatRoughness: 0.3
+    });
+
+    for (let index = 0; index < (MOBILE_QUERY.matches ? 12 : 20); index += 1) {
+        const spot = stagePoint(seed, index, 0.24, 1.5);
+        const height = isTundra
+            ? 0.32 + hash(seed * 53 + index * 7.1) * 0.34
+            : 0.45 + hash(seed * 53 + index * 7.1) * 1.15;
+        const shard = new THREE.Mesh(geometry, material);
+        shard.position.set(spot.x, isTundra ? height * 0.14 : height * 0.36, spot.z);
+        shard.rotation.y = spot.angle;
+        shard.rotation.z = (hash(index * 9.7) - 0.5) * 0.16;
+        shard.scale.set(
+            (isTundra ? 1.35 : 0.62) + hash(index * 3.4) * 0.8,
+            isTundra ? height * 0.42 : height,
+            (isTundra ? 0.9 : 0.62) + hash(index * 6.8) * 0.7
+        );
+        addStageMesh(shard);
+    }
+}
+
+function buildWetlandStage(region) {
+    const seed = world.regions.indexOf(region) + 1;
+    const waterMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x286775,
+        roughness: 0.18,
+        clearcoat: 0.64,
+        transparent: true,
+        opacity: 0.76,
+        depthWrite: false
+    });
+    const reedMaterial = new THREE.MeshStandardMaterial({ color: 0x68805a, roughness: 0.96 });
+    const reedGeometry = new THREE.CylinderGeometry(0.012, 0.018, 0.42, 5);
+
+    for (let index = 0; index < 4; index += 1) {
+        const pool = new THREE.Mesh(new THREE.CircleGeometry(0.34 + index * 0.045, 28), waterMaterial);
+        const spot = stagePoint(seed, index, 0.28, 0.92);
+        pool.position.set(spot.x, 0.018, spot.z);
+        pool.rotation.x = -Math.PI / 2;
+        pool.scale.set(1.45, 0.72, 1);
+        regionStage.add(pool);
+    }
+    for (let index = 0; index < (MOBILE_QUERY.matches ? 18 : 32); index += 1) {
+        const spot = stagePoint(seed, index + 8, 0.32, 1.48);
+        const reed = new THREE.Mesh(reedGeometry, reedMaterial);
+        const height = 0.55 + hash(index * 4.9) * 0.75;
+        reed.position.set(spot.x, height * 0.2, spot.z);
+        reed.scale.y = height;
+        reed.rotation.z = (hash(index * 8.1) - 0.5) * 0.12;
+        addStageMesh(reed);
+    }
+}
+
+function buildUrbanStage(region, isCitadel) {
+    const seed = world.regions.indexOf(region) + 1;
+    const geometry = new THREE.BoxGeometry(0.16, 1, 0.16);
+    const material = new THREE.MeshStandardMaterial({
+        color: region.biome === 'oldtown' ? 0x62556d : 0x747882,
+        roughness: 0.62,
+        metalness: 0.14
+    });
+    const lightPositions = [];
+    const count = MOBILE_QUERY.matches ? 18 : 34;
+
+    for (let index = 0; index < count; index += 1) {
+        const spot = stagePoint(seed, index, isCitadel ? 0.48 : 0.22, isCitadel ? 1.5 : 1.32);
+        const height = 0.24 + hash(seed * 61 + index * 7.7) * (isCitadel ? 0.9 : 0.72);
+        const building = new THREE.Mesh(geometry, material);
+        building.position.set(spot.x, height * 0.5, spot.z);
+        building.scale.set(0.6 + hash(index * 4.3) * 0.9, height, 0.6 + hash(index * 9.1) * 0.85);
+        building.rotation.y = spot.angle * 0.5;
+        addStageMesh(building);
+        if (region.biome === 'oldtown' && index % 3 === 0) {
+            const roof = new THREE.Mesh(
+                new THREE.ConeGeometry(0.13, 0.14, 4),
+                new THREE.MeshStandardMaterial({ color: 0x76504d, roughness: 0.88 })
+            );
+            roof.position.set(spot.x, height + 0.07, spot.z);
+            roof.rotation.y = Math.PI / 4 + spot.angle * 0.5;
+            addStageMesh(roof);
+        }
+        if (index % 3 === 0) lightPositions.push(new THREE.Vector3(spot.x, height * 0.72, spot.z));
+    }
+
+    if (region.biome === 'urban-river') {
+        const riverCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(-1.5, 0.035, -0.6),
+            new THREE.Vector3(-0.45, 0.045, 0.16),
+            new THREE.Vector3(0.42, 0.04, -0.12),
+            new THREE.Vector3(1.5, 0.035, 0.62)
+        ]);
+        const river = new THREE.Mesh(
+            new THREE.TubeGeometry(riverCurve, 32, 0.055, 6, false),
+            new THREE.MeshPhysicalMaterial({ color: 0x4e8c9b, roughness: 0.2, clearcoat: 0.62, transparent: true, opacity: 0.76, depthWrite: false })
+        );
+        regionStage.add(river);
+    }
+
+    const lightGeometry = new THREE.BufferGeometry().setFromPoints(lightPositions);
+    const lightMaterial = new THREE.PointsMaterial({
+        color: 0xc68b55,
+        size: 0.032,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.72,
+        depthWrite: false,
+        toneMapped: true
+    });
+    regionStage.add(new THREE.Points(lightGeometry, lightMaterial));
+
+    if (isCitadel) {
+        const gardenMaterial = new THREE.MeshStandardMaterial({ color: 0x47764f, roughness: 0.95 });
+        for (let index = 0; index < 12; index += 1) {
+            const angle = index / 12 * Math.PI * 2;
+            const garden = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 1), gardenMaterial);
+            garden.position.set(Math.cos(angle) * 0.38, 0.08, Math.sin(angle) * 0.38);
+            addStageMesh(garden);
+        }
+    }
+}
+
+function buildGreenStage(region) {
+    const seed = world.regions.indexOf(region) + 1;
+    const isFarmland = region.biome === 'farmland';
+    const isVillage = region.biome === 'village';
+    const isOrchard = region.biome === 'orchard';
+    const trunkGeometry = new THREE.CylinderGeometry(0.025, 0.04, 0.34, 6);
+    const crownGeometry = new THREE.IcosahedronGeometry(region.biome === 'forest' ? 0.2 : 0.16, 1);
+    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x4b3521, roughness: 1 });
+    const crownMaterial = new THREE.MeshStandardMaterial({ color: region.color, roughness: 0.92 });
+
+    if (isFarmland) {
+        const rowMaterial = new THREE.MeshStandardMaterial({ color: 0xa6bd68, roughness: 0.95 });
+        for (let index = -8; index <= 8; index += 1) {
+            const row = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.018, 0.026), rowMaterial);
+            row.position.set(0, 0.025, index * 0.09);
+            row.rotation.y = -0.28;
+            addStageMesh(row);
+        }
+    }
+
+    const count = MOBILE_QUERY.matches ? 14 : (isFarmland ? 12 : 26);
+    for (let index = 0; index < count; index += 1) {
+        const spot = isOrchard
+            ? {
+                angle: 0,
+                x: ((index % 6) - 2.5) * 0.27,
+                z: (Math.floor(index / 6) - 1.7) * 0.26
+            }
+            : stagePoint(seed, index, isVillage ? 0.52 : 0.24, 1.48);
+        const size = 0.72 + hash(seed * 43 + index * 7.2) * 0.78;
+        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+        trunk.position.set(spot.x, 0.17 * size, spot.z);
+        trunk.scale.set(size, size, size);
+        addStageMesh(trunk);
+        const crown = new THREE.Mesh(crownGeometry, crownMaterial);
+        crown.position.set(spot.x, 0.43 * size, spot.z);
+        crown.scale.set(size, 0.78 * size, size);
+        addStageMesh(crown);
+    }
+
+    if (isVillage) {
+        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xb8a77d, roughness: 0.9 });
+        const roofMaterial = new THREE.MeshStandardMaterial({ color: 0x765044, roughness: 0.9 });
+        for (let index = 0; index < 5; index += 1) {
+            const angle = index / 5 * Math.PI * 2;
+            const x = Math.cos(angle) * 0.34;
+            const z = Math.sin(angle) * 0.25;
+            const cottage = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.18, 0.18), wallMaterial);
+            cottage.position.set(x, 0.09, z);
+            addStageMesh(cottage);
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.13, 4), roofMaterial);
+            roof.position.set(x, 0.245, z);
+            roof.rotation.y = Math.PI / 4;
+            addStageMesh(roof);
+        }
+    }
+}
+
+function buildRidgeStage(region) {
+    const seed = world.regions.indexOf(region) + 1;
+    const geometry = new THREE.ConeGeometry(0.19, 0.92, region.biome === 'rock' ? 6 : 7);
+    const material = new THREE.MeshStandardMaterial({ color: region.color, roughness: 0.9, metalness: 0.015 });
+    const count = MOBILE_QUERY.matches ? 13 : 24;
+
+    for (let index = 0; index < count; index += 1) {
+        const spot = stagePoint(seed, index, 0.2, 1.62);
+        const height = 0.5 + hash(seed * 71 + index * 5.8) * 1.3;
+        const peak = new THREE.Mesh(geometry, material);
+        peak.position.set(spot.x, height * 0.42, spot.z);
+        peak.scale.set(0.58 + hash(index * 4.7) * 0.8, height, 0.62 + hash(index * 8.9) * 0.74);
+        peak.rotation.y = spot.angle;
+        addStageMesh(peak);
+    }
+}
+
+function buildDryStage(region) {
+    const seed = world.regions.indexOf(region) + 1;
+    const isFrontier = region.biome === 'frontier';
+    const duneGeometry = isFrontier
+        ? new THREE.ConeGeometry(0.05, 0.32, 5)
+        : new THREE.IcosahedronGeometry(0.2, 1);
+    const duneMaterial = new THREE.MeshStandardMaterial({ color: region.color, roughness: 0.98, metalness: 0 });
+    const count = MOBILE_QUERY.matches ? 14 : 28;
+
+    for (let index = 0; index < count; index += 1) {
+        const spot = stagePoint(seed, index, 0.18, 1.58);
+        const dune = new THREE.Mesh(duneGeometry, duneMaterial);
+        const size = 0.58 + hash(seed * 39 + index * 5.2) * 0.9;
+        dune.position.set(spot.x, (isFrontier ? 0.14 : 0.075) * size, spot.z);
+        dune.scale.set(
+            (isFrontier ? 0.72 : 1.9) * size,
+            (isFrontier ? 0.85 : 0.32) * size,
+            (isFrontier ? 0.72 : 0.66) * size
+        );
+        dune.rotation.y = spot.angle;
+        addStageMesh(dune);
+    }
+}
+
+function buildCoastStage(region) {
+    const seed = world.regions.indexOf(region) + 1;
+    const shoreMaterial = new THREE.MeshStandardMaterial({ color: 0xe4c88d, roughness: 0.88 });
+    const shore = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.032, 6, 48, Math.PI * 1.45), shoreMaterial);
+    shore.rotation.x = -Math.PI / 2;
+    shore.rotation.z = -0.65;
+    shore.position.y = 0.035;
+    regionStage.add(shore);
+
+    const trunkGeometry = new THREE.CylinderGeometry(0.022, 0.04, 0.52, 7);
+    const crownGeometry = new THREE.ConeGeometry(0.18, 0.34, 7);
+    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x6e4c2d, roughness: 0.94 });
+    const crownMaterial = new THREE.MeshStandardMaterial({ color: region.biome === 'tropical' ? 0x2f8f5a : 0x64825d, roughness: 0.9 });
+    const count = MOBILE_QUERY.matches ? 9 : 16;
+
+    for (let index = 0; index < count; index += 1) {
+        const spot = stagePoint(seed, index, 0.34, 1.42);
+        const size = 0.7 + hash(index * 6.3) * 0.75;
+        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+        trunk.position.set(spot.x, 0.26 * size, spot.z);
+        trunk.scale.set(size, size, size);
+        trunk.rotation.z = (hash(index * 11.4) - 0.5) * 0.2;
+        addStageMesh(trunk);
+        const crown = new THREE.Mesh(crownGeometry, crownMaterial);
+        crown.position.set(spot.x, 0.58 * size, spot.z);
+        crown.rotation.x = Math.PI;
+        crown.scale.set(size, 0.52 * size, size);
+        addStageMesh(crown);
+    }
+}
+
+function createRegionParticles(region, family) {
+    const count = MOBILE_QUERY.matches ? 26 : 48;
+    const positions = new Float32Array(count * 3);
+    const seed = world.regions.indexOf(region) + 1;
+    for (let index = 0; index < count; index += 1) {
+        const spot = stagePoint(seed, index + 40, 0.12, 1.7);
+        positions[index * 3] = spot.x;
+        positions[index * 3 + 1] = 0.18 + hash(seed * 71 + index * 3.8) * 1.35;
+        positions[index * 3 + 2] = spot.z;
+    }
+
+    const colors = {
+        cold: 0xe2f2f3,
+        wetland: 0x91b8a1,
+        urban: 0xb6a3c2,
+        citadel: 0xc5b08a,
+        green: 0xb8c982,
+        ridge: 0xc7c1ae,
+        dry: 0xd8b47c,
+        coast: 0xa6d9d6
+    };
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+        color: colors[family],
+        size: family === 'cold' ? 0.038 : 0.026,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: family === 'urban' ? 0.18 : 0.34,
+        depthWrite: false,
+        toneMapped: true
+    });
+    regionParticles = new THREE.Points(geometry, material);
+    regionParticles.userData.family = family;
+    regionParticles.name = `${region.label} atmosphere`;
+    regionStage.add(regionParticles);
+}
+
+function applyRegionMood(family) {
+    const moods = {
+        cold: [0x0b202b, 0x173542, 0xdceef1, 0x233039, 0xe9f3ef, 2.78],
+        wetland: [0x071d1d, 0x17342f, 0xbadbd0, 0x17251b, 0xffd0a0, 2.72],
+        urban: [0x111522, 0x292638, 0xc8c9da, 0x201b24, 0xffc58f, 2.92],
+        citadel: [0x101724, 0x2a2424, 0xd5d6dc, 0x211a17, 0xffbd78, 3.18],
+        green: [0x081d19, 0x17352a, 0xc9e1cf, 0x182516, 0xffd0a0, 2.86],
+        ridge: [0x111d24, 0x343b3a, 0xd2dce0, 0x282921, 0xffd0a0, 3.02],
+        dry: [0x261a12, 0x49301e, 0xf0d7bb, 0x322219, 0xffc079, 3.32],
+        coast: [0x06232d, 0x124152, 0xc7e8e5, 0x17332f, 0xffd4a0, 2.94]
+    };
+    const [background, fog, sky, ground, key, intensity] = moods[family];
+    backgroundTarget.setHex(background);
+    fogTarget.setHex(fog);
+    hemisphereSkyTarget.setHex(sky);
+    hemisphereGroundTarget.setHex(ground);
+    keyLightColorTarget.setHex(key);
+    keyLightIntensityTarget = intensity;
+}
+
+function resetMood() {
+    backgroundTarget.setHex(0x071923);
+    fogTarget.setHex(0x071923);
+    hemisphereSkyTarget.setHex(0xc8e5ec);
+    hemisphereGroundTarget.setHex(0x182313);
+    keyLightColorTarget.setHex(0xffd2a0);
+    keyLightIntensityTarget = 3.05;
+}
+
+function snapMood() {
+    scene.background.copy(backgroundTarget);
+    scene.fog.color.copy(fogTarget);
+    hemisphereLight.color.copy(hemisphereSkyTarget);
+    hemisphereLight.groundColor.copy(hemisphereGroundTarget);
+    directionalLight.color.copy(keyLightColorTarget);
+    directionalLight.intensity = keyLightIntensityTarget;
+}
+
 function createLabels() {
-    labelEntries = LABEL_IDS.map(id => {
-        const region = regionById.get(id);
+    labelEntries = world.regions.map(region => {
         const element = document.createElement('span');
-        element.className = 'place-label';
+        element.className = `place-label${LABEL_IDS.includes(region.id) ? ' is-major' : ''}`;
         element.dataset.id = region.id;
         element.textContent = region.label;
         labelsLayer.appendChild(element);
@@ -1079,7 +1668,14 @@ function moveAcrossWorld(event) {
     const dx = event.clientX - dragStartX;
     const dy = event.clientY - dragStartY;
     const dragThreshold = activePointerType === 'touch' ? 14 : 5;
-    if (Math.hypot(dx, dy) > dragThreshold) hasDragged = true;
+    if (!hasDragged && Math.hypot(dx, dy) > dragThreshold) {
+        hasDragged = true;
+        if (travelerJourney) {
+            travelerJourney = null;
+            desiredZoom = currentZoom;
+            desiredFocusBlend = Math.max(0.42, focusBlend);
+        }
+    }
     if (!hasDragged) return;
     event.preventDefault();
 
@@ -1087,7 +1683,7 @@ function moveAcrossWorld(event) {
     const verticalScale = (WORLD_DEPTH * 0.78) / Math.max(420, bounds.height) / currentZoom;
     desiredTarget.set(
         THREE.MathUtils.clamp(dragStartTarget.x - dx * horizontalScale, -7.4, 7.4),
-        0.18,
+        dragStartTarget.y,
         THREE.MathUtils.clamp(dragStartTarget.z - dy * verticalScale, -5.1, 5.1)
     );
     statusText.textContent = 'The world follows your hand';
@@ -1135,17 +1731,30 @@ function focusAtPointer(event) {
 
 function focusOnRegion(region) {
     const point = mapPoint(region.x, region.y, 0.1);
-    desiredTarget.set(point.x, 0.18, point.z);
-    desiredZoom = Math.max(desiredZoom, 1.54);
+    focusedRegion = region;
+    createRegionStage(region);
     focusMarker.position.copy(point);
     focusMarker.visible = true;
     labelEntries.forEach(entry => entry.element.classList.toggle('is-focused', entry.region.id === region.id));
     atlas.classList.add('has-focus');
-    statusText.textContent = `${region.label} · drag onward or return to the whole world`;
+    atlas.classList.remove('is-local');
+
     if (MOTION_QUERY.matches) {
-        currentZoom = desiredZoom;
+        traveler.position.copy(point);
+        travelerJourney = null;
+        desiredTarget.set(point.x, point.y + 0.12, point.z);
+        desiredZoom = 1.54;
+        currentZoom = 1.54;
+        desiredFocusBlend = 1;
+        focusBlend = 1;
+        regionStage.scale.setScalar(1);
         cameraTarget.copy(desiredTarget);
+        statusText.textContent = `${region.label} · tap another region or return to the whole world`;
+        atlas.classList.add('is-local');
+        snapMood();
         renderScene();
+    } else {
+        beginJourney(region);
     }
 }
 
@@ -1158,17 +1767,30 @@ function changeZoom(amount) {
 }
 
 function resetView() {
+    travelerJourney = null;
     desiredZoom = 1;
+    desiredFocusBlend = 0;
     pointerX = 0;
     pointerY = 0;
     desiredTarget.copy(homeTarget);
     focusMarker.visible = false;
+    disposeObject(regionStage);
+    if (regionStage) scene.remove(regionStage);
+    regionStage = null;
+    regionParticles = null;
+    disposeObject(journeyPath);
+    if (journeyPath) scene.remove(journeyPath);
+    journeyPath = null;
+    focusedRegion = null;
     labelEntries.forEach(entry => entry.element.classList.remove('is-focused'));
-    atlas.classList.remove('has-focus');
+    atlas.classList.remove('has-focus', 'is-local');
+    resetMood();
     statusText.textContent = 'Whole world · north up';
     if (MOTION_QUERY.matches) {
         currentZoom = 1;
+        focusBlend = 0;
         cameraTarget.copy(homeTarget);
+        snapMood();
         renderScene(elapsed);
     }
 }
@@ -1227,6 +1849,8 @@ function animate(time) {
     frameCount += 1;
 
     currentZoom += (desiredZoom - currentZoom) * (1 - Math.pow(0.001, delta));
+    focusBlend += (desiredFocusBlend - focusBlend) * (1 - Math.pow(0.004, delta));
+    updateTraveler(delta);
     parallaxTarget.set(pointerX * 0.18, 0, pointerY * 0.09);
     composedTarget.copy(desiredTarget).add(parallaxTarget);
     const followAmount = activePointerId !== null && hasDragged
@@ -1250,6 +1874,14 @@ function updateAtmosphere(delta) {
     if (oceanGlints) oceanGlints.material.opacity = 0.12 + Math.sin(elapsed * 0.42) * 0.025;
     if (shorelineWash) shorelineWash.material.opacity = 0.3 + Math.sin(elapsed * 0.34) * 0.04;
     if (cityLights) cityLights.material.opacity = 0.61 + Math.sin(elapsed * 0.73) * 0.045;
+    updateRegionParticles(delta);
+    const moodAmount = 1 - Math.pow(0.018, delta);
+    scene.background.lerp(backgroundTarget, moodAmount);
+    scene.fog.color.lerp(fogTarget, moodAmount);
+    hemisphereLight.color.lerp(hemisphereSkyTarget, moodAmount);
+    hemisphereLight.groundColor.lerp(hemisphereGroundTarget, moodAmount);
+    directionalLight.color.lerp(keyLightColorTarget, moodAmount);
+    directionalLight.intensity += (keyLightIntensityTarget - directionalLight.intensity) * moodAmount;
     if (focusMarker?.visible) {
         const pulse = MOTION_QUERY.matches ? 0 : Math.sin(elapsed * 1.8);
         focusMarker.scale.setScalar(1 + pulse * 0.055);
@@ -1257,6 +1889,36 @@ function updateAtmosphere(delta) {
         focusMarker.userData.innerMaterial.opacity = 0.34 - pulse * 0.07;
         focusMarker.userData.washMaterial.opacity = 0.05 + pulse * 0.014;
     }
+}
+
+function updateRegionParticles(delta) {
+    if (!regionParticles) return;
+    const position = regionParticles.geometry.getAttribute('position');
+    const family = regionParticles.userData.family;
+
+    for (let index = 0; index < position.count; index += 1) {
+        let x = position.getX(index);
+        let y = position.getY(index);
+        let z = position.getZ(index);
+        if (family === 'cold') {
+            y -= delta * 0.18;
+            x += Math.sin(elapsed * 0.7 + index) * delta * 0.025;
+            if (y < 0.08) y = 1.5;
+        } else if (family === 'dry') {
+            x += delta * 0.07;
+            y += Math.sin(elapsed + index) * delta * 0.012;
+            if (x > 1.75) x = -1.75;
+        } else if (family === 'coast') {
+            y += delta * 0.045;
+            z += Math.sin(elapsed * 0.8 + index) * delta * 0.025;
+            if (y > 1.58) y = 0.14;
+        } else {
+            y += Math.sin(elapsed * 0.65 + index * 0.7) * delta * 0.018;
+            x += Math.cos(elapsed * 0.28 + index) * delta * 0.006;
+        }
+        position.setXYZ(index, x, y, z);
+    }
+    position.needsUpdate = true;
 }
 
 function updateWater(time) {
@@ -1276,8 +1938,12 @@ function updateWater(time) {
 function renderScene() {
     const breath = MOTION_QUERY.matches ? 1 : 1 + Math.sin(elapsed * 0.11) * 0.0045;
     temporaryVector.copy(baseCameraPosition).multiplyScalar(framingScale / (currentZoom * breath));
-    camera.position.copy(temporaryVector);
+    const localScale = (MOBILE_QUERY.matches ? 1.14 : 1) * 1.54 / currentZoom;
+    localCameraOffset.copy(localCameraPosition).multiplyScalar(localScale);
+    cameraOffset.copy(temporaryVector).lerp(localCameraOffset, focusBlend);
+    camera.position.copy(cameraOffset);
     camera.position.x += cameraTarget.x;
+    camera.position.y += cameraTarget.y;
     camera.position.z += cameraTarget.z;
     camera.lookAt(cameraTarget);
     camera.layers.set(BLOOM_LAYER);
@@ -1304,7 +1970,7 @@ function updateLabels() {
 
 function markReady() {
     atlas.classList.add('is-ready');
-    statusText.textContent = 'Drag anywhere · tap a region to enter';
+    statusText.textContent = 'Drag anywhere · tap a region and the traveler will cross';
 }
 
 function showFailure(message) {

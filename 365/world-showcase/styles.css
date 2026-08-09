@@ -152,6 +152,7 @@ button { font: inherit; }
 .is-ready .atlas-heading { opacity: 0.72; }
 .atlas.has-focus .atlas-heading,
 .atlas.is-travelling .atlas-heading { opacity: 0.28; }
+.atlas.is-local .atlas-heading { opacity: 0; }
 
 .north-mark {
     position: absolute;
@@ -414,6 +415,11 @@ button:focus-visible {
     box-shadow: 0 0 0.8rem rgba(255,155,53,0.58);
 }
 
+.atlas.has-focus .status-pulse {
+    background: var(--coast);
+    box-shadow: 0 0 0.75rem rgba(227, 201, 138, 0.48);
+}
+
 .labels {
     position: absolute;
     inset: 0;
@@ -447,7 +453,7 @@ button:focus-visible {
     border-radius: 50%;
 }
 
-.labels.is-visible .place-label.is-onscreen { opacity: 1; }
+.labels.is-visible .place-label.is-major.is-onscreen { opacity: 1; }
 
 .place-label.is-focused.is-onscreen {
     opacity: 1;
