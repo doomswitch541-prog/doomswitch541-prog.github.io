@@ -412,7 +412,16 @@
             background: linear-gradient(135deg, #19130f, #0d0b09);
         }
 
-        .destination:last-child { grid-column: 1 / -1; }
+        .destination.sundries-trunk {
+            border-color: #4b5130;
+            background:
+                linear-gradient(90deg, rgba(156, 169, 76, 0.08), transparent 42%),
+                linear-gradient(135deg, #19160e, #0d0b09);
+            box-shadow: inset 0 0 0 1px rgba(203, 190, 103, 0.035);
+        }
+
+        .sundries-trunk .destination-name { color: #c8c17c; }
+        .sundries-trunk .destination-extension { color: #747654; }
 
         .destination .jack {
             width: 3.45rem;
@@ -840,7 +849,6 @@
 
         @media (max-width: 480px) {
             .destination-grid { grid-template-columns: 1fr; }
-            .destination:last-child { grid-column: auto; }
         }
 
         @media (min-width: 701px) {
@@ -951,6 +959,10 @@
                             <button class="jack destination-jack" type="button" data-route="relay" disabled aria-label="Connect to Message Relay"></button>
                             <span class="destination-copy"><span class="destination-name">Message Relay</span><span class="destination-extension">Ext. 88 · gods, mortals, undeliverable</span></span>
                         </div>
+                        <div class="destination sundries-trunk">
+                            <button class="jack destination-jack" type="button" data-route="sundries" disabled aria-label="Connect to Nectar and Sundries"></button>
+                            <span class="destination-copy"><span class="destination-name">Nectar &amp; Sundries</span><span class="destination-extension">Ext. 24 · open always · exact obols</span></span>
+                        </div>
                     </div>
                 </section>
 
@@ -1007,8 +1019,12 @@
                 </select>
             </div>
             <div class="control-row">
-                <span><strong>Kwik-E-Mart mode</strong><small id="clerkModeDescription">An original bright, quick late-night clerk cadence. It does not copy a character or actor.</small></span>
+                <span><strong>Kwik-E-Mart mode</strong><small id="clerkModeDescription">A high, quick, hyper-polite all-night counter delivery using the device voice you choose.</small></span>
                 <button class="toggle" id="clerkModeToggle" type="button" aria-pressed="false">Exchange</button>
+            </div>
+            <div class="control-row">
+                <span><strong>Narration</strong><small id="narrationDescription">Calls reads each caller and connection. Full shift also reads the briefing, closing, and reviewed log.</small></span>
+                <button class="toggle" id="narrationToggle" type="button" aria-pressed="false">Calls</button>
             </div>
             <div class="control-row">
                 <span><strong>Pace</strong><small>Changes the interval chosen after the next line is cleared.</small></span>
@@ -1025,7 +1041,7 @@
                     <p>Every caller, destination response, and shift closing is written into this page. Nothing is generated, fetched, or assembled from phrase pieces. The board makes no network requests.</p>
                     <p>Four complete five-call decks rotate over eight nights. Each deck stays on duty for two local calendar nights. Normal calls arrive about every 9–26 seconds; Quick uses about 3–9 seconds. The first call arrives sooner.</p>
                     <p>Optional Voice uses only speech voices the browser marks as installed on this device. Voice Reel lets you choose among those local voices. It needs no microphone, account, key, or speech-service request. When no local voice is available, the board stays text-only.</p>
-                    <p>Cut Voice stops a queued or speaking line immediately; Replay Line starts the last complete caller or operator note again. Kwik-E-Mart mode is an original faster, brighter clerk preset applied to the selected local voice. It does not copy a character or performer.</p>
+                    <p>Cut Voice stops a queued or speaking line immediately; Replay Line starts the last complete caller or operator note again. Calls narration reads callers and connections; Full shift also reads the board briefing, complete closing, and five-line log. Kwik-E-Mart mode makes the selected device voice faster, higher, and musically over-courteous: its own all-night switchboard clerk.</p>
                     <p>Settings and this five-call shift stay in local browser storage when it is available. Leaving the tab pauses an unanswered timer; returning schedules a fresh interval.</p>
                     <p><strong id="windowDescription">Loading the night ledger…</strong></p>
                 </div>
@@ -1058,7 +1074,8 @@
                 transit: 'Night Transit',
                 omens: 'Omens & Appeals',
                 tides: 'Tides & Orbits',
-                relay: 'Message Relay'
+                relay: 'Message Relay',
+                sundries: 'Nectar & Sundries'
             };
 
             const CALL_DECKS = [
@@ -1074,7 +1091,8 @@
                                 transit: 'Night Transit validates the laundromat token for one crossing and adds a note: NO SPIN CYCLE. Charon grunts approval and the dead form a tidier queue.',
                                 omens: 'Omens & Appeals reads the token as a sign that someone is avoiding a difficult wash. Charon says that may be everyone and hangs on thoughtfully.',
                                 tides: 'Tides & Orbits redirects the boat into a soft lunar current. Three shades arrive early and one returns with a sock that vanished in 1998.',
-                                relay: 'Message Relay sends the token’s serial number to every mint, temple, and corner shop. A laundromat in Thessaly replies, “Tell the ferryman he still owes us a quarter.”'
+                                relay: 'Message Relay sends the token’s serial number to every mint, temple, and corner shop. A laundromat in Thessaly replies, “Tell the ferryman he still owes us a quarter.”',
+                                sundries: 'Nectar & Sundries tests the token in the coin tray. It buys one dryer sheet and twelve minutes of parking beside the Styx. Charon takes both; the boat smells briefly of mountain rain.'
                             }
                         },
                         {
@@ -1086,7 +1104,8 @@
                                 transit: 'Night Transit assigns the thread a platform number. It departs into the labyrinth and comes back with six commuters and a very apologetic minotaur.',
                                 omens: 'Omens & Appeals declares the knot favorable for picnics, disastrous for architecture. Ariadne writes this down beside a sketch of an exit.',
                                 tides: 'Tides & Orbits dips the thread in moonlight. It now points toward the sea at high tide and toward the nearest pastry at low tide.',
-                                relay: 'Message Relay puts the humming through to Crete. A bull calf answers, listens for a moment, and says, “That is my mother’s song.”'
+                                relay: 'Message Relay puts the humming through to Crete. A bull calf answers, listens for a moment, and says, “That is my mother’s song.”',
+                                sundries: 'Nectar & Sundries sells Ariadne a brass knot pick and a paper sack of clover marked CALVES / AFTER MIDNIGHT. The humming stops to chew.'
                             }
                         },
                         {
@@ -1098,7 +1117,8 @@
                                 transit: 'Night Transit puts the warning on the express route. It arrives yesterday, where everyone agrees to deal with it tomorrow.',
                                 omens: 'Omens & Appeals removes Cassandra from the promotional list and stamps every future warning CERTIFIED INCONVENIENT. Troy’s inbox begins to smoke politely.',
                                 tides: 'Tides & Orbits schedules the next prophecy for an eclipse, when open rates are strongest. Cassandra hates the strategy and admits it may work.',
-                                relay: 'Message Relay reads the warning aloud to the city. The line goes quiet, then one gatekeeper whispers, “Could you resend with a shorter subject?”'
+                                relay: 'Message Relay reads the warning aloud to the city. The line goes quiet, then one gatekeeper whispers, “Could you resend with a shorter subject?”',
+                                sundries: 'The receipt printer at Nectar & Sundries has already produced TROY: FINAL SALE. “Promotional?” says the clerk, lifting the smoking paper. “Madam, this is plainly emergency correspondence.” Cassandra buys a coffee and stays until it cools, enjoying the unfamiliar sensation of being believed on the first telling.'
                             }
                         },
                         {
@@ -1110,19 +1130,21 @@
                                 transit: 'Night Transit offers a quieter route over the mountains. The moon takes it once and wakes every owl in Lydia.',
                                 omens: 'Omens & Appeals classifies the squeak as a minor portent: expect shy confessions and one loose garden gate before dawn.',
                                 tides: 'Tides & Orbits sends a mechanic up the next beam with a brass oilcan. The squeak stops; the sea settles by half an inch.',
-                                relay: 'Message Relay calls Endymion. He wakes, says “I heard nothing,” and immediately falls asleep with the receiver on his chest.'
+                                relay: 'Message Relay calls Endymion. He wakes, says “I heard nothing,” and immediately falls asleep with the receiver on his chest.',
+                                sundries: 'Nectar & Sundries finds a thumb-sized oilcan between the eclipse glasses and batteries. The moon glides silently; Endymion sleeps through the receipt.'
                             }
                         },
                         {
                             caller: 'Hermes, moving rapidly',
                             line: 'I have an undeliverable message addressed to myself, sent tomorrow, signature required. This feels personal.',
-                            correct: 'relay',
+                            correct: 'sundries',
                             routes: {
                                 lost: 'Lost & Found checks the return address and discovers it belongs to a road that disappears whenever named. Hermes smiles as if introduced to a rival.',
                                 transit: 'Night Transit gives the envelope its own pair of sandals. It overtakes Hermes at the next crossroads and waits there looking smug.',
                                 omens: 'Omens & Appeals opens a case under SELF-DELIVERY / PARADOX. The ruling says Hermes must surprise himself before sunrise.',
                                 tides: 'Tides & Orbits holds the message until Mercury is visible. Roman Hermes signs for Greek Hermes; both dispute the mileage.',
-                                relay: 'Message Relay loops the call through tomorrow. Hermes hears his own voice say, “Leave it under the stone.” He knows exactly which stone and sounds annoyed.'
+                                relay: 'Message Relay loops the call through tomorrow. Hermes hears his own voice say, “Leave it under the stone.” He knows exactly which stone and sounds annoyed.',
+                                sundries: 'Nectar & Sundries opens parcel locker 24 before Hermes enters the code. Tomorrow’s envelope is inside, already signed by a clerk whose shift begins next week. “Do you want a receipt?” asks tonight’s clerk. Hermes says he would prefer an alibi. The register prints NO REFUNDS ON CAUSALITY.'
                             }
                         }
                     ],
@@ -1144,7 +1166,8 @@
                                 transit: 'Night Transit closes the mirrors, wraps the spoons, and issues a route marked EYES FRONT / HEART ALLOWED. The stairwell begins counting upward.',
                                 omens: 'Omens & Appeals says the path is favorable if no lyre string breaks. One string immediately breaks, then ties itself back together out of embarrassment.',
                                 tides: 'Tides & Orbits lends him the dark side of the moon as a blindfold. It smells faintly of dust and cold iron.',
-                                relay: 'Message Relay places Eurydice on the line. Neither speaks. The silence between them makes it one landing farther than last time.'
+                                relay: 'Message Relay places Eurydice on the line. Neither speaks. The silence between them makes it one landing farther than last time.',
+                                sundries: 'Nectar & Sundries sells Orpheus a black cloth and a waxed-paper cup of fierce coffee. The counter sign reads NO RETURNS BEYOND THIS POINT. He appreciates the clarity.'
                             }
                         },
                         {
@@ -1156,19 +1179,21 @@
                                 transit: 'Night Transit sends the sentence around the mountain. It returns longer, carrying two hikers, a goat bell, and somebody else’s goodbye.',
                                 omens: 'Omens & Appeals declares the missing ending an auspicious blank. Echo replies, “Blank,” with magnificent contempt.',
                                 tides: 'Tides & Orbits lets the sea finish the sentence. The answer arrives in foam and refuses to repeat itself.',
-                                relay: 'Message Relay disconnects the return channel for three seconds. Echo uses them to say her own name without anybody giving it back.'
+                                relay: 'Message Relay disconnects the return channel for three seconds. Echo uses them to say her own name without anybody giving it back.',
+                                sundries: 'Nectar & Sundries keeps loose sentence endings in a jar by the till. The clerk unscrews the lid and politely looks away while Echo tries three. She chooses “and I meant it.” It costs one quiet minute; the ravine pays.'
                             }
                         },
                         {
                             caller: 'Tiresias, private number',
                             line: 'The birds delivered two omens, one tragic and one about soup. I suspect their envelopes were switched.',
-                            correct: 'omens',
+                            correct: 'sundries',
                             routes: {
                                 lost: 'Lost & Found searches the rookery and retrieves a tragic recipe plus a lentil-stained warning. Tiresias says the handwriting explains everything.',
                                 transit: 'Night Transit gives both omens return tickets. The soup arrives in Thebes; the tragedy continues to Argos, where it already has relatives.',
                                 omens: 'Omens & Appeals swaps the envelopes and waives the divination fee. Dinner is saved. The dynasty remains complicated.',
                                 tides: 'Tides & Orbits asks whether the birds flew clockwise. Tiresias says they flew toward lunch, which the department logs as variable wind.',
-                                relay: 'Message Relay calls the birds. A crow admits the mix-up and offers a voucher for one clear sign, weekdays before dusk.'
+                                relay: 'Message Relay calls the birds. A crow admits the mix-up and offers a voucher for one clear sign, weekdays before dusk.',
+                                sundries: 'Nectar & Sundries heats the soup while reading the tragic omen. The microwave chimes. “This one is definitely soup,” says the clerk. He points to aisle seven, where tragedy is marked two for one and nobody has touched it. Tiresias buys crackers and reroutes the birds.'
                             }
                         },
                         {
@@ -1180,7 +1205,8 @@
                                 transit: 'Night Transit opens a cloud tunnel toward morning. Máni gains seven minutes and sends the toll collector a grateful silver coin.',
                                 omens: 'Omens & Appeals rules that the chase signifies persistence, appetite, and poor boundary management. Máni requests the ruling be served directly to the wolf.',
                                 tides: 'Tides & Orbits widens the northern arc and trims a troublesome current. The wolf falls back; three fjords rise to applaud.',
-                                relay: 'Message Relay patches Máni to the wolf. There is heavy breathing, then the wolf says, almost shyly, “I only know this game.”'
+                                relay: 'Message Relay patches Máni to the wolf. There is heavy breathing, then the wolf says, almost shyly, “I only know this game.”',
+                                sundries: 'Nectar & Sundries supplies a road coffee and a reflective decoy moon from the seasonal rack. The wolf follows the half-price sticker until morning.'
                             }
                         },
                         {
@@ -1192,7 +1218,8 @@
                                 transit: 'Night Transit lays it across the evening commute. Everyone gets home nine minutes late and forgives the road.',
                                 omens: 'Omens & Appeals reads seven separate forecasts from it. The violet one says somebody will finally make the call.',
                                 tides: 'Tides & Orbits bends the rainbow over the western sea. Whales surface beneath it with the solemnity of witnesses.',
-                                relay: 'Message Relay marks the address VALID and sends it everywhere rain has just stopped. Receipts arrive as open windows.'
+                                relay: 'Message Relay marks the address VALID and sends it everywhere rain has just stopped. Receipts arrive as open windows.',
+                                sundries: 'Nectar & Sundries strings the rainbow above the freezer cases as an OPEN sign. Even the ghosts look up; the ice cream improves under violet.'
                             }
                         }
                     ],
@@ -1214,7 +1241,8 @@
                                 transit: 'Night Transit cancels the duplicate mark and adds SEASONAL RETURN / NO PENALTY. Persephone catches the next pomegranate-red carriage.',
                                 omens: 'Omens & Appeals confirms the double stamp predicts an early thaw and a difficult family dinner. Persephone says only one of those is news.',
                                 tides: 'Tides & Orbits aligns the pass with the equinox. It becomes valid twice a year and glows whenever Demeter starts worrying.',
-                                relay: 'Message Relay calls Demeter before rumor can. She says, “Put my daughter on,” with enough force to ripen grain beside the receiver.'
+                                relay: 'Message Relay calls Demeter before rumor can. She says, “Put my daughter on,” with enough force to ripen grain beside the receiver.',
+                                sundries: 'Nectar & Sundries scans the pass twice, voids DEPARTED, and circles the return date in pomegranate ink. Demeter calls before the receipt finishes.'
                             }
                         },
                         {
@@ -1226,7 +1254,8 @@
                                 transit: 'Night Transit routes the eye home by raven. It circles twice, sees the entire road, and chooses to remain a weekend longer.',
                                 omens: 'Omens & Appeals asks the eye what it saw. The answer fills nine pages; Odin pays extra to seal the last one.',
                                 tides: 'Tides & Orbits floats the eye to the surface at moonrise. It refuses retrieval until someone says please in Old Norse.',
-                                relay: 'Message Relay connects Odin to Mímir. “It is safe,” says the head. “It has been correcting my memory all evening.”'
+                                relay: 'Message Relay connects Odin to Mímir. “It is safe,” says the head. “It has been correcting my memory all evening.”',
+                                sundries: 'Nectar & Sundries has a stern grey glass eye in a jar marked READING GLASSES / OTHER. It remembers only snacks. Odin finds this restful.'
                             }
                         },
                         {
@@ -1238,19 +1267,21 @@
                                 transit: 'Night Transit sends the leaves home in chronological order. A gust at the transfer station promotes the baker to consul.',
                                 omens: 'Omens & Appeals restores the authorized sequence and stamps the lunch ending APOCRYPHAL. Rome receives the revision and ignores it on schedule.',
                                 tides: 'Tides & Orbits grants the baker a small ceremonial bay instead of the whole sea. He names it after his best loaf.',
-                                relay: 'Message Relay dictates the leaves to a patient clerk. On page eighty, the clerk asks whether Rome could simply have a quiet year.'
+                                relay: 'Message Relay dictates the leaves to a patient clerk. On page eighty, the clerk asks whether Rome could simply have a quiet year.',
+                                sundries: 'Nectar & Sundries gives every leaf a deli-counter number. The prophecies queue themselves; the baker receives a coupon for one free gulf with purchase of bread.'
                             }
                         },
                         {
                             caller: 'Chang’e, Palace of the Moon',
                             line: 'The jade hare stirred the elixir counterclockwise during high tide. He looks innocent in a very organized way.',
-                            correct: 'tides',
+                            correct: 'sundries',
                             routes: {
                                 lost: 'Lost & Found locates the missing clockwise turn under the mortar. The hare puts it back and pretends the department has insulted him.',
                                 transit: 'Night Transit ships the elixir around Earth once to correct its direction. It returns with a customs seal and a taste of rain.',
                                 omens: 'Omens & Appeals interprets the mistake as a promise of long life with one afternoon of irresistible mischief.',
                                 tides: 'Tides & Orbits reverses a narrow lunar current for nine breaths. The elixir clears; the hare receives a written warning and eats the corner.',
-                                relay: 'Message Relay calls the hare’s supervisor. Chang’e points out that she is the supervisor. The line records a dignified silence.'
+                                relay: 'Message Relay calls the hare’s supervisor. Chang’e points out that she is the supervisor. The line records a dignified silence.',
+                                sundries: 'Nectar & Sundries replaces the spoon with one stamped CLOCKWISE and sells the jade hare a carrot on credit. The hare eats the receipt first.'
                             }
                         },
                         {
@@ -1262,7 +1293,8 @@
                                 transit: 'Night Transit gives the message eight tiny boots. It marches across the web, complaining about the tolls.',
                                 omens: 'Omens & Appeals reads the vibration and rules that the sender will offer exposure instead of payment. Anansi cuts that strand neatly.',
                                 tides: 'Tides & Orbits lowers the moon one inch, loosening the web. Every spider notices; none files the required incident report.',
-                                relay: 'Message Relay opens the message. It is from a child asking how the leopard got its spots. Anansi sighs warmly and begins, “First, agree on my fee.”'
+                                relay: 'Message Relay opens the message. It is from a child asking how the leopard got its spots. Anansi sighs warmly and begins, “First, agree on my fee.”',
+                                sundries: 'Nectar & Sundries sells Anansi a prepaid message card with exactly one story left. The child answers; Anansi settles on two leopard spots and begins.'
                             }
                         }
                     ],
@@ -1284,7 +1316,8 @@
                                 transit: 'Night Transit dispatches a silent mechanic with a long wrench and perfect manners. The gate opens exactly one person wide, as specified.',
                                 omens: 'Omens & Appeals calls the rust a sign that old vows require oiling. Izanami asks for the practical department’s number.',
                                 tides: 'Tides & Orbits sends warm rain against the hinge. The rust loosens; the threshold smells briefly of summer earth.',
-                                relay: 'Message Relay reaches Izanagi. He offers to help. Izanami says, “Put the mechanic back on,” and the connection improves.'
+                                relay: 'Message Relay reaches Izanagi. He offers to help. Izanami says, “Put the mechanic back on,” and the connection improves.',
+                                sundries: 'Nectar & Sundries bags a long wrench, hinge oil, and yellow boundary tape. The clerk carries it only as far as the threshold, sets it down on her side, and steps back. “I can wait here until you have it,” he says. Izanami takes the bag. The gate gives one relieved metallic sigh.'
                             }
                         },
                         {
@@ -1296,19 +1329,21 @@
                                 transit: 'Night Transit issues tomorrow a temporary plate. Dawn must remain in the right lane and avoid ceremonial roads.',
                                 omens: 'Omens & Appeals declares an unlicensed tomorrow highly favorable for improvisers and terrible for appointment books.',
                                 tides: 'Tides & Orbits reconstructs the page from wave records. The numbers balance, though the sea adds a small doodle of an ibis.',
-                                relay: 'Message Relay asks every scribe on duty to check under their tablets. Seshat answers first and says, “Tell him to check his other hand.”'
+                                relay: 'Message Relay asks every scribe on duty to check under their tablets. Seshat answers first and says, “Tell him to check his other hand.”',
+                                sundries: 'Nectar & Sundries photocopies the ledger page and laminates tomorrow against weather. The barcode refuses to scan until an ibis pecks it.'
                             }
                         },
                         {
                             caller: 'Pythia, basement tripod',
                             line: 'The smoke alarm keeps interrupting the oracle. The last vision ended with “beware the—” and then a very responsible bell.',
-                            correct: 'omens',
+                            correct: 'sundries',
                             routes: {
                                 lost: 'Lost & Found searches the fumes and returns the missing noun: “goose.” Delphi updates the warning and locks the courtyard gate.',
                                 transit: 'Night Transit moves the prophecy to a smoke-free platform. The next vision concerns train delays and a goose carrying exact change.',
                                 omens: 'Omens & Appeals grants the alarm a ceremonial pause button and logs the full warning. The goose is already on site.',
                                 tides: 'Tides & Orbits clears the chamber with a sea breeze. Everyone hears distant gulls and becomes briefly uncertain about Apollo.',
-                                relay: 'Message Relay calls the alarm manufacturer. A calm voice says prophecies count as particulates and recommends opening a window.'
+                                relay: 'Message Relay calls the alarm manufacturer. A calm voice says prophecies count as particulates and recommends opening a window.',
+                                sundries: 'Nectar & Sundries sends a nine-volt battery and a tabletop fan. The alarm quiets. The receipt prints BEWARE THE GOOSE without being asked. The clerk reads it twice, looks toward the freezer aisle, and adds a wet-floor sign. Pythia resumes exactly where the bell interrupted her.'
                             }
                         },
                         {
@@ -1320,7 +1355,8 @@
                                 transit: 'Night Transit gives each piece the same circular route. They move together, and the coast stops changing its mind.',
                                 omens: 'Omens & Appeals says the divided tide predicts five difficult meetings and a reunion nobody dressed for.',
                                 tides: 'Tides & Orbits gathers the pulls into one silver rhythm. The coast exhales; Coyolxauhqui rests between two clouds.',
-                                relay: 'Message Relay connects all the pieces to a conference line. They speak at once for eleven minutes, then agree the left shoulder will coordinate.'
+                                relay: 'Message Relay connects all the pieces to a conference line. They speak at once for eleven minutes, then agree the left shoulder will coordinate.',
+                                sundries: 'Nectar & Sundries issues six numbered baskets and one family roll of silver tape. The pieces regroup by snack preference; the coast receives one steady pull.'
                             }
                         },
                         {
@@ -1332,7 +1368,8 @@
                                 transit: 'Night Transit gives each snake its own lane around the staff. Productivity rises; hissing becomes strictly procedural.',
                                 omens: 'Omens & Appeals calls the silence favorable for thieves, physicians, and anyone avoiding a meeting.',
                                 tides: 'Tides & Orbits places the staff under Gemini. Both snakes begin talking at once and request separate representatives.',
-                                relay: 'Message Relay repairs the split and adds a private channel. The first message through reads, “Lunch?” The second snake answers immediately.'
+                                relay: 'Message Relay repairs the split and adds a private channel. The first message through reads, “Lunch?” The second snake answers immediately.',
+                                sundries: 'Nectar & Sundries activates two prepaid plans, one per snake, plus a shared lunch coupon. Both snakes speak at once to dispute the chips.'
                             }
                         }
                     ],
@@ -1373,6 +1410,7 @@
             const voiceDescription = document.getElementById('voiceDescription');
             const voiceSelect = document.getElementById('voiceSelect');
             const clerkModeToggle = document.getElementById('clerkModeToggle');
+            const narrationToggle = document.getElementById('narrationToggle');
             const modeBadge = document.getElementById('modeBadge');
             const speechRail = document.getElementById('speechRail');
             const speechStatus = document.getElementById('speechStatus');
@@ -1397,6 +1435,7 @@
             let speechState = 'idle';
             let activeUtterance = null;
             let lastSpeech = null;
+            let speechCompletion = null;
 
             function safeRead(key) {
                 try {
@@ -1443,6 +1482,7 @@
                 voice: storedSettings.voice === true,
                 voiceId: typeof storedSettings.voiceId === 'string' ? storedSettings.voiceId : '',
                 voiceMode: storedSettings.voiceMode === 'clerk' ? 'clerk' : 'exchange',
+                narration: storedSettings.narration === 'full' ? 'full' : 'calls',
                 pace: storedSettings.pace === 'quick' ? 'quick' : 'normal',
                 motion: typeof storedSettings.motion === 'boolean' ? storedSettings.motion : defaultMotion
             };
@@ -1491,6 +1531,8 @@
                 }
                 clerkModeToggle.setAttribute('aria-pressed', String(settings.voiceMode === 'clerk'));
                 clerkModeToggle.textContent = settings.voiceMode === 'clerk' ? 'Clerk' : 'Exchange';
+                narrationToggle.setAttribute('aria-pressed', String(settings.narration === 'full'));
+                narrationToggle.textContent = settings.narration === 'full' ? 'Full shift' : 'Calls';
                 paceToggle.setAttribute('aria-pressed', String(settings.pace === 'quick'));
                 paceToggle.textContent = settings.pace === 'quick' ? 'Quick' : 'Normal';
                 motionToggle.setAttribute('aria-pressed', String(settings.motion));
@@ -1578,39 +1620,55 @@
                 else speechStatus.textContent = 'Voice line silent';
             }
 
+            function finishSpeech(nextState = 'idle') {
+                const completion = speechCompletion;
+                speechCompletion = null;
+                activeUtterance = null;
+                speechState = nextState;
+                restoreHumAfterSpeech();
+                updateSpeechControls();
+                if (typeof completion === 'function') completion();
+            }
+
             function cancelSpeech(nextState = 'idle') {
                 clearSpeechTimer();
                 if (speechAvailable) {
                     try { window.speechSynthesis.cancel(); } catch (error) {}
                 }
-                activeUtterance = null;
-                speechState = nextState;
-                restoreHumAfterSpeech();
-                updateSpeechControls();
+                finishSpeech(nextState);
             }
 
             function speechProfile(kind) {
                 if (settings.voiceMode === 'clerk') {
+                    if (kind === 'narration') return { rate: 1.08, pitch: 1.16 };
+                    if (kind === 'closing') return { rate: 1.12, pitch: 1.2 };
                     return kind === 'response'
-                        ? { rate: 1.12, pitch: 1.14 }
-                        : { rate: 1.07, pitch: 1.11 };
+                        ? { rate: 1.18, pitch: 1.28 }
+                        : { rate: 1.12, pitch: 1.22 };
                 }
+                if (kind === 'narration') return { rate: 0.92, pitch: 0.96 };
+                if (kind === 'closing') return { rate: 0.94, pitch: 0.98 };
                 return kind === 'response'
                     ? { rate: 0.96, pitch: 0.98 }
                     : { rate: 0.9, pitch: 0.9 };
             }
 
             function clerkCopy(text, kind) {
-                if (settings.voiceMode !== 'clerk') return text;
+                if (settings.voiceMode !== 'clerk' || kind === 'narration') return text;
+                if (kind === 'closing') return `Yes! Thank you very much for holding. ${text} There we are. The night ledger is closed.`;
                 return kind === 'response'
-                    ? `Thank you for holding. ${text}`
-                    : `Night counter. ${text}`;
+                    ? `Yes! Thank you very much for holding. ${text} There we are. Next line, please.`
+                    : `Good evening! Yes, night counter speaking. ${text} Please, go ahead.`;
             }
 
-            function speakText(text, kind = 'caller', remember = true) {
-                if (!settings.voice || voiceStatus !== 'ready' || !localVoice || !text) return false;
+            function speakText(text, kind = 'caller', remember = true, onComplete = null) {
+                if (!settings.voice || voiceStatus !== 'ready' || !localVoice || !text) {
+                    if (typeof onComplete === 'function') onComplete();
+                    return false;
+                }
                 cancelSpeech();
                 if (remember) lastSpeech = { text, kind };
+                speechCompletion = onComplete;
                 try {
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.voice = localVoice;
@@ -1627,17 +1685,11 @@
                     };
                     utterance.onend = () => {
                         if (activeUtterance !== utterance) return;
-                        activeUtterance = null;
-                        speechState = 'idle';
-                        restoreHumAfterSpeech();
-                        updateSpeechControls();
+                        finishSpeech();
                     };
                     utterance.onerror = () => {
                         if (activeUtterance !== utterance) return;
-                        activeUtterance = null;
-                        speechState = 'idle';
-                        restoreHumAfterSpeech();
-                        updateSpeechControls();
+                        finishSpeech();
                     };
                     activeUtterance = utterance;
                     speechState = 'speaking';
@@ -1645,23 +1697,26 @@
                     window.speechSynthesis.speak(utterance);
                     return true;
                 } catch (error) {
-                    activeUtterance = null;
-                    speechState = 'idle';
-                    restoreHumAfterSpeech();
-                    updateSpeechControls();
+                    finishSpeech();
                     return false;
                 }
             }
 
-            function queueSpeech(text, kind, delay = 0, remember = true) {
+            function queueSpeech(text, kind, delay = 0, remember = true, onComplete = null) {
                 cancelSpeech();
-                if (!settings.voice || voiceStatus !== 'ready') return;
+                if (!settings.voice || voiceStatus !== 'ready') {
+                    if (typeof onComplete === 'function') onComplete();
+                    return;
+                }
                 if (remember) lastSpeech = { text, kind };
+                speechCompletion = onComplete;
                 speechState = 'queued';
                 updateSpeechControls();
                 speechTimer = window.setTimeout(() => {
                     speechTimer = 0;
-                    speakText(clerkCopy(text, kind), kind, false);
+                    const completion = speechCompletion;
+                    speechCompletion = null;
+                    speakText(clerkCopy(text, kind), kind, false, completion);
                 }, delay);
             }
 
@@ -1673,6 +1728,38 @@
 
             function currentCall() {
                 return deck.calls[progress.callIndex] || null;
+            }
+
+            function boardBriefingText() {
+                if (progress.completed) {
+                    const ending = deck.closings[outcomeKey()];
+                    return `Shift complete. ${ending.title}. ${ending.text}`;
+                }
+                if (activeCall && currentCall()) {
+                    const call = currentCall();
+                    return `Incoming call ${progress.callIndex + 1} of ${deck.calls.length}. ${call.caller}. ${call.line}`;
+                }
+                const cleared = progress.callIndex ? `${progress.callIndex} calls are clear.` : 'No calls are logged yet.';
+                return `After-hours switchboard. ${deck.name} is on duty. ${cleared} Answer the ringing input, then choose one department trunk.`;
+            }
+
+            function logNarrationText() {
+                if (!progress.log.length) return 'The shift ledger is empty.';
+                const entries = progress.log.map((entry, index) => {
+                    const action = entry.correct ? 'connected to' : 'crossed to';
+                    return `Line ${index + 1}. ${entry.caller}, ${action} ${DESTINATIONS[entry.route]}.`;
+                });
+                const ending = deck.closings[outcomeKey()];
+                return `Five-line shift ledger. ${entries.join(' ')} Closing: ${ending.title}. ${ending.text}`;
+            }
+
+            function speakPreview(text, kind = 'caller') {
+                let resumeRinging = null;
+                if (!activeCall && !progress.completed) {
+                    clearRingTimer();
+                    resumeRinging = scheduleRing;
+                }
+                speakText(clerkCopy(text, kind), kind, false, resumeRinging);
             }
 
             function intervalFor(first, pace = settings.pace, randomValue = Math.random()) {
@@ -1743,7 +1830,6 @@
                 drawCable(jack);
                 playPlug(correct);
                 responseText.textContent = call.routes[route];
-                queueSpeech(call.routes[route], 'response', settings.sound ? 280 : 60);
                 responseTray.classList.remove('is-new');
                 void responseTray.offsetWidth;
                 responseTray.classList.add('is-new');
@@ -1756,13 +1842,26 @@
                 callSlip.classList.add('is-idle');
                 lineStateText.textContent = correct ? 'Connection complete · line clear' : 'Cross-connection complete · line clear';
                 shiftCounter.textContent = `Call ${progress.callIndex} of ${deck.calls.length}`;
-                if (progress.callIndex >= deck.calls.length) {
+                const completed = progress.callIndex >= deck.calls.length;
+                let spokenResponse = call.routes[route];
+                let spokenKind = 'response';
+                if (completed) {
                     progress.completed = true;
                     showEnding();
-                } else {
-                    scheduleRing();
+                    if (settings.narration === 'full') {
+                        const ending = deck.closings[outcomeKey()];
+                        spokenResponse = `${spokenResponse} Shift complete. ${ending.title}. ${ending.text}`;
+                        spokenKind = 'closing';
+                    }
                 }
                 persistProgress();
+                queueSpeech(
+                    spokenResponse,
+                    spokenKind,
+                    settings.sound ? 280 : 60,
+                    true,
+                    completed ? null : scheduleRing
+                );
             }
 
             function clearCable() {
@@ -1857,7 +1956,11 @@
                 persistProgress();
                 closeDialog(controlsDialog);
                 closeDialog(logDialog);
-                scheduleRing();
+                if (settings.voice && voiceStatus === 'ready' && settings.narration === 'full') {
+                    queueSpeech(boardBriefingText(), 'narration', 80, false, scheduleRing);
+                } else {
+                    scheduleRing();
+                }
             }
 
             function ensureAudio() {
@@ -1989,7 +2092,11 @@
                 settings.voice = !settings.voice;
                 persistSettings();
                 updateControlLabels();
-                if (settings.voice) speakText(clerkCopy('Local voice line ready.', 'caller'), 'caller', false);
+                if (settings.voice) {
+                    const kind = settings.narration === 'full' ? 'narration' : 'caller';
+                    const preview = settings.narration === 'full' ? boardBriefingText() : 'Local voice line ready.';
+                    speakPreview(preview, kind);
+                }
                 else cancelSpeech();
             });
 
@@ -2001,7 +2108,13 @@
                 settings.voiceId = voiceId(selected);
                 persistSettings();
                 updateControlLabels();
-                if (settings.voice) speakText(clerkCopy('Selected voice line ready.', 'caller'), 'caller', false);
+                if (settings.voice) {
+                    const kind = settings.narration === 'full' ? 'narration' : 'caller';
+                    const preview = settings.narration === 'full'
+                        ? `Selected voice ready. ${boardBriefingText()}`
+                        : 'Selected voice line ready.';
+                    speakPreview(preview, kind);
+                }
             });
 
             clerkModeToggle.addEventListener('click', () => {
@@ -2011,9 +2124,23 @@
                 updateControlLabels();
                 if (settings.voice && voiceStatus === 'ready') {
                     const preview = settings.voiceMode === 'clerk'
-                        ? 'Night counter connected. Thank you for holding.'
+                        ? 'The night counter is connected and entirely ready.'
                         : 'Mythic exchange voice restored.';
-                    speakText(preview, 'caller', false);
+                    speakPreview(preview, 'caller');
+                }
+            });
+
+            narrationToggle.addEventListener('click', () => {
+                cancelSpeech();
+                settings.narration = settings.narration === 'calls' ? 'full' : 'calls';
+                persistSettings();
+                updateControlLabels();
+                if (settings.voice && voiceStatus === 'ready') {
+                    const kind = settings.narration === 'full' ? 'narration' : 'caller';
+                    const preview = settings.narration === 'full'
+                        ? boardBriefingText()
+                        : 'Caller and connection narration ready.';
+                    speakPreview(preview, kind);
                 }
             });
 
@@ -2039,6 +2166,7 @@
             document.getElementById('reviewLogButton').addEventListener('click', () => {
                 renderLog();
                 openDialog(logDialog);
+                if (settings.narration === 'full') queueSpeech(logNarrationText(), 'narration', 0, true);
             });
             cutVoiceButton.addEventListener('click', () => cancelSpeech('cut'));
             replayVoiceButton.addEventListener('click', replayLastSpeech);
