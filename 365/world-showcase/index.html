@@ -20,7 +20,17 @@
             }
         }
     </script>
-    <script type="module" src="./world.js"></script>
+    <script type="module">
+        import('./world.js').catch(() => {
+            const opening = document.getElementById('opening');
+            const fallback = document.getElementById('webglFallback');
+            const status = document.getElementById('statusText');
+
+            if (opening) opening.hidden = true;
+            if (fallback) fallback.hidden = false;
+            if (status) status.textContent = 'The atlas could not start.';
+        });
+    </script>
 </head>
 <body>
     <nav class="atlas-topbar" data-archive-inbar>
