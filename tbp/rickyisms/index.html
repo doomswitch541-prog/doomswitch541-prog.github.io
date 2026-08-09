@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#25231d">
-    <meta name="description" content="Ricky's sentence repair bench. Put in a normal saying and get the words fixed enough.">
+    <meta name="description" content="Ricky's sentence repair bench and evidence drawer. Put in a normal saying and get the words fixed enough.">
     <title>Rickyisms — Word Repair</title>
     <style>
         :root {
@@ -38,9 +38,7 @@
             overflow-x: hidden;
             color: var(--paper);
             background:
-                radial-gradient(circle at 82% 8%, rgba(228, 170, 50, 0.11), transparent 22rem),
-                radial-gradient(circle at 10% 68%, rgba(159, 45, 39, 0.1), transparent 30rem),
-                repeating-linear-gradient(117deg, transparent 0 48px, rgba(255,255,255,.018) 49px, transparent 50px 96px),
+                radial-gradient(circle at 80% 4%, rgba(228, 170, 50, 0.075), transparent 25rem),
                 linear-gradient(145deg, var(--asphalt-warm), var(--asphalt) 72%);
             font-family: "Trebuchet MS", Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -53,35 +51,13 @@
             z-index: 30;
             inset: 0;
             pointer-events: none;
-            opacity: 0.16;
+            opacity: 0.07;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
             mix-blend-mode: soft-light;
         }
 
         button, input { font: inherit; }
         button { -webkit-tap-highlight-color: transparent; }
-
-        .smoke {
-            position: fixed;
-            z-index: 0;
-            top: -16rem;
-            right: -14rem;
-            width: 42rem;
-            aspect-ratio: 1;
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0.18;
-            filter: blur(44px);
-            background:
-                radial-gradient(circle at 35% 40%, rgba(235, 230, 211, .5), transparent 20%),
-                radial-gradient(circle at 58% 58%, rgba(235, 230, 211, .32), transparent 24%),
-                radial-gradient(circle at 68% 28%, rgba(235, 230, 211, .2), transparent 18%);
-            animation: smoke-wander 15s ease-in-out infinite alternate;
-        }
-
-        @keyframes smoke-wander {
-            to { transform: translate(-3rem, 4rem) rotate(12deg) scale(1.1); }
-        }
 
         .lot-strip {
             position: relative;
@@ -90,7 +66,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            width: min(92rem, calc(100% - 2rem));
+            width: min(72rem, calc(100% - 2rem));
             margin: max(1rem, env(safe-area-inset-top)) auto 0;
             padding: 0.7rem 0.9rem;
             border: 1px solid rgba(239,225,184,.22);
@@ -110,27 +86,35 @@
         .yard {
             position: relative;
             z-index: 1;
-            width: min(92rem, 100%);
+            width: min(72rem, 100%);
             margin: 0 auto;
-            padding: clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 3.5rem) max(8rem, calc(env(safe-area-inset-bottom) + 7rem));
+            padding: clamp(1.5rem, 3.5vw, 3rem) clamp(1rem, 4vw, 3rem) max(8rem, calc(env(safe-area-inset-bottom) + 7rem));
         }
 
         .hero {
             display: grid;
-            grid-template-columns: minmax(17rem, .72fr) minmax(32rem, 1.28fr);
-            gap: clamp(2rem, 6vw, 6rem);
-            align-items: center;
-            min-height: 78dvh;
+            grid-template-columns: 1fr;
+            gap: clamp(1.35rem, 3vw, 2.4rem);
+            min-height: auto;
         }
 
         .hero-copy {
             position: relative;
-            padding: 2rem 0 4rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(19rem, 29rem);
+            grid-template-areas:
+                "sticker line"
+                "title line";
+            gap: .45rem clamp(2rem, 6vw, 5rem);
+            align-items: end;
+            padding: clamp(1.3rem, 3vw, 2.2rem) 0 .5rem;
         }
 
         .grade-sticker {
+            grid-area: sticker;
+            justify-self: start;
             display: inline-block;
-            margin: 0 0 1.3rem 1rem;
+            margin: 0 0 .55rem .4rem;
             padding: 0.45rem 0.8rem 0.38rem;
             color: var(--ink);
             background: var(--cheese);
@@ -142,10 +126,11 @@
         }
 
         h1 {
+            grid-area: title;
             position: relative;
             margin: 0;
             color: var(--paper);
-            font: 900 clamp(6rem, 16vw, 13rem)/0.67 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+            font: 900 clamp(4.8rem, 11vw, 8.2rem)/0.7 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
             letter-spacing: -0.045em;
             text-transform: uppercase;
             text-shadow: 0.07em 0.06em 0 var(--plaid-dark), 0.11em 0.1em 0 rgba(0,0,0,.36);
@@ -154,14 +139,15 @@
 
         h1 span {
             display: block;
-            margin-left: clamp(1.2rem, 5vw, 4rem);
+            margin-left: clamp(1rem, 4vw, 2.8rem);
             color: var(--cheese);
             transform: rotate(1.7deg);
         }
 
         .hero-line {
-            max-width: 31rem;
-            margin: clamp(2rem, 5vw, 3.5rem) 0 0 clamp(.4rem, 3vw, 2rem);
+            grid-area: line;
+            max-width: 29rem;
+            margin: 0 0 .7rem;
             padding: 1rem 1.2rem;
             border-left: 0.55rem solid var(--duct);
             color: rgba(239,225,184,.82);
@@ -175,6 +161,8 @@
         .bench-wrap {
             position: relative;
             isolation: isolate;
+            width: min(100%, 59rem);
+            margin: 0 auto;
         }
 
         .bench-wrap::before,
@@ -182,14 +170,14 @@
             content: '';
             position: absolute;
             z-index: 3;
-            width: 7.5rem;
-            height: 1.75rem;
+            width: 6.5rem;
+            height: 1.5rem;
             background: rgba(181, 181, 171, .78);
             box-shadow: inset 0 0 0 1px rgba(255,255,255,.22);
         }
 
         .bench-wrap::before { top: -.6rem; left: 14%; transform: rotate(-7deg); }
-        .bench-wrap::after { right: 11%; bottom: -.6rem; transform: rotate(5deg); }
+        .bench-wrap::after { display: none; }
 
         .bench {
             position: relative;
@@ -201,8 +189,8 @@
                 linear-gradient(90deg, transparent 31%, rgba(72,39,19,.25) 31.3%, transparent 31.8% 68%, rgba(72,39,19,.28) 68.3%, transparent 68.8%),
                 repeating-linear-gradient(2deg, rgba(255,255,255,.06) 0 2px, transparent 2px 15px),
                 linear-gradient(112deg, #79502c, #9a6738 44%, #704523);
-            box-shadow: 1.2rem 1.3rem 0 rgba(0,0,0,.28), 0 2.4rem 6rem rgba(0,0,0,.34);
-            transform: rotate(.35deg);
+            box-shadow: .8rem .9rem 0 rgba(0,0,0,.25), 0 2rem 5rem rgba(0,0,0,.28);
+            transform: rotate(.18deg);
         }
 
         .bench-head {
@@ -313,7 +301,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: .42rem;
-            min-height: 5.1rem;
+            min-height: 4.2rem;
             margin: 1.2rem 0 0;
             padding: .75rem;
             border: .45rem solid #4a4d47;
@@ -436,17 +424,18 @@
         .receipt-button:hover, .receipt-button:focus-visible { color: var(--plaid); border-color: var(--plaid); outline: 2px solid var(--plaid); outline-offset: 2px; }
 
         .evidence {
-            margin-top: clamp(8rem, 14vw, 13rem);
-            padding-top: clamp(3rem, 7vw, 6rem);
-            border-top: .7rem solid var(--duct);
+            width: min(100%, 59rem);
+            margin: clamp(6rem, 10vw, 8rem) auto 0;
+            padding-top: clamp(2rem, 4vw, 3.5rem);
+            border-top: .32rem solid rgba(164,166,159,.72);
         }
 
         .section-head {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(15rem, 26rem);
-            gap: 2rem;
+            grid-template-columns: minmax(0, 1fr) minmax(15rem, 23rem);
+            gap: 1.5rem;
             align-items: end;
-            margin-bottom: clamp(2rem, 5vw, 4rem);
+            margin-bottom: clamp(1.5rem, 3vw, 2.2rem);
         }
 
         .section-label {
@@ -460,7 +449,7 @@
         .section-head h2 {
             margin: 0;
             color: var(--paper);
-            font: 900 clamp(3.3rem, 9vw, 7rem)/.8 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+            font: 900 clamp(2.8rem, 7vw, 5.2rem)/.82 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
             letter-spacing: -.035em;
             text-transform: uppercase;
             transform: rotate(-.5deg);
@@ -472,51 +461,48 @@
             font: 700 1rem/1.6 "Marker Felt", "Comic Sans MS", cursive;
         }
 
-        .evidence-grid {
+        .evidence-stage {
             display: grid;
-            grid-template-columns: repeat(12, minmax(0, 1fr));
-            gap: clamp(.8rem, 2vw, 1.4rem);
+            grid-template-columns: 3rem minmax(0, 1fr) 3rem;
+            gap: clamp(.7rem, 2vw, 1rem);
+            align-items: center;
         }
 
         .evidence-card {
-            grid-column: span 4;
             position: relative;
-            min-height: 13rem;
-            padding: 1.3rem 1.2rem 1.1rem;
+            min-height: clamp(13rem, 25vw, 17rem);
+            padding: clamp(1.35rem, 4vw, 2.2rem);
             border: 0;
             color: var(--ink);
             background: var(--paper);
             cursor: pointer;
             text-align: left;
-            box-shadow: .45rem .55rem 0 rgba(0,0,0,.26);
-            transform: rotate(var(--turn, 0deg));
+            box-shadow: .55rem .65rem 0 rgba(0,0,0,.26);
+            transform: rotate(-.35deg);
             transition: transform 180ms ease, box-shadow 180ms ease;
         }
 
-        .evidence-card:nth-child(3n+2) { background: #d8e0d2; }
-        .evidence-card:nth-child(3n) { background: #e0cfbd; }
         .evidence-card::before {
             content: '';
             position: absolute;
             top: -.5rem;
             left: 50%;
-            width: 4.5rem;
+            width: 5.5rem;
             height: 1.2rem;
             background: rgba(170,170,162,.72);
             transform: translateX(-50%) rotate(-2deg);
         }
 
         .evidence-card:hover, .evidence-card:focus-visible {
-            z-index: 2;
             outline: 3px solid var(--cheese);
             outline-offset: 3px;
             box-shadow: .8rem .9rem 0 rgba(0,0,0,.34);
-            transform: rotate(0) translateY(-.3rem);
+            transform: rotate(0) translateY(-.18rem);
         }
 
         .case-number {
             display: block;
-            margin-bottom: 1.4rem;
+            margin-bottom: clamp(1.2rem, 3vw, 2rem);
             color: rgba(23,23,17,.48);
             font: 900 .58rem/1 "Courier New", monospace;
             letter-spacing: .08em;
@@ -525,47 +511,94 @@
         .evidence-card strong {
             display: block;
             color: var(--blue-pen);
-            font: 700 clamp(1.35rem, 3vw, 2rem)/1.05 "Marker Felt", "Comic Sans MS", cursive;
+            font: 700 clamp(1.8rem, 5vw, 3rem)/1.05 "Marker Felt", "Comic Sans MS", cursive;
         }
 
         .evidence-card small {
             display: block;
-            margin-top: 1rem;
+            margin-top: 1.2rem;
             color: rgba(23,23,17,.62);
-            font: 700 .68rem/1.4 "Courier New", monospace;
+            font: 700 .76rem/1.5 "Courier New", monospace;
         }
 
-        .glove-box {
-            margin-top: clamp(5rem, 10vw, 9rem);
-            padding: clamp(1.2rem, 4vw, 2.4rem);
-            border: .35rem solid #383c36;
-            border-radius: .25rem 2rem .5rem .4rem;
-            background:
-                linear-gradient(105deg, rgba(255,255,255,.03), transparent 26%),
-                var(--dash);
-            box-shadow: inset 0 1rem 2rem rgba(0,0,0,.45), 0 1rem 3rem rgba(0,0,0,.22);
+        .case-arrow,
+        .case-tool {
+            min-width: 2.75rem;
+            min-height: 2.75rem;
+            border: 1px solid rgba(239,225,184,.24);
+            color: var(--paper);
+            background: rgba(0,0,0,.2);
+            cursor: pointer;
+            font: 900 .78rem/1 "Courier New", monospace;
         }
 
-        .glove-box-head {
+        .case-arrow:hover,
+        .case-arrow:focus-visible,
+        .case-tool:hover,
+        .case-tool:focus-visible {
+            color: var(--ink);
+            background: var(--cheese);
+            outline: 2px solid var(--cheese);
+            outline-offset: 2px;
+        }
+
+        .case-toolbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(239,225,184,.15);
+            margin: 1rem 3.95rem 0;
+            color: rgba(239,225,184,.52);
+            font: 700 .65rem/1.35 "Courier New", monospace;
+            letter-spacing: .05em;
+            text-transform: uppercase;
         }
+
+        .case-tool { padding: .65rem .8rem; }
+
+        .glove-box {
+            width: min(100%, 59rem);
+            margin: clamp(2.5rem, 6vw, 4.5rem) auto 0;
+            border: .22rem solid #383c36;
+            border-radius: .25rem 1.2rem .4rem .35rem;
+            background: var(--dash);
+            box-shadow: inset 0 .7rem 1.5rem rgba(0,0,0,.36), 0 .8rem 2rem rgba(0,0,0,.18);
+        }
+
+        .glove-box summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            min-height: 4.5rem;
+            padding: 1rem 1.2rem;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .glove-box summary::-webkit-details-marker { display: none; }
+        .glove-box summary::after {
+            content: 'OPEN';
+            color: var(--cheese);
+            font: 900 .62rem/1 "Courier New", monospace;
+            letter-spacing: .08em;
+        }
+        .glove-box[open] summary::after { content: 'CLOSE'; }
+        .glove-box summary:focus-visible { outline: 2px solid var(--cheese); outline-offset: 3px; }
 
         .glove-box h2 {
             margin: 0;
             color: var(--paper);
-            font: 900 clamp(2rem, 5vw, 3.5rem)/1 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+            font: 900 clamp(1.7rem, 4vw, 2.5rem)/1 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
             letter-spacing: .01em;
             text-transform: uppercase;
         }
 
-        .glove-box-head span {
+        .glove-box summary small {
+            display: block;
+            margin-top: .25rem;
             color: rgba(239,225,184,.42);
-            font: 700 .6rem/1 "Courier New", monospace;
+            font: 700 .58rem/1 "Courier New", monospace;
             text-transform: uppercase;
         }
 
@@ -573,7 +606,7 @@
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: .65rem;
-            margin-top: 1rem;
+            padding: 0 1rem 1rem;
         }
 
         .saved-item,
@@ -589,6 +622,118 @@
         .saved-item { cursor: pointer; text-align: left; }
         .saved-item:hover, .saved-item:focus-visible { color: var(--cheese); border-color: var(--cheese); outline: 1px solid var(--cheese); }
         .empty-glove { grid-column: 1 / -1; color: rgba(239,225,184,.38); }
+
+        .share-dialog {
+            width: min(42rem, calc(100% - 1.5rem));
+            max-height: min(92dvh, 49rem);
+            margin: auto;
+            padding: 0;
+            overflow: auto;
+            border: 1px solid rgba(239,225,184,.25);
+            border-radius: .3rem;
+            color: var(--paper);
+            background: #171914;
+            box-shadow: 0 2rem 6rem rgba(0,0,0,.72);
+        }
+
+        .share-dialog::backdrop { background: rgba(5,6,4,.78); backdrop-filter: blur(4px); }
+
+        .share-head {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1rem .85rem;
+            border-bottom: 1px solid rgba(239,225,184,.13);
+        }
+
+        .share-head div { min-width: 0; }
+        .share-kicker {
+            display: block;
+            margin-bottom: .25rem;
+            color: var(--cheese);
+            font: 900 .58rem/1 "Courier New", monospace;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        .share-head h2 {
+            margin: 0;
+            font: 900 clamp(1.8rem, 5vw, 2.8rem)/.95 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+            letter-spacing: .01em;
+            text-transform: uppercase;
+        }
+
+        .dialog-close {
+            flex: none;
+            width: 2.75rem;
+            height: 2.75rem;
+            margin-left: auto;
+            border: 1px solid rgba(239,225,184,.25);
+            color: var(--paper);
+            background: transparent;
+            cursor: pointer;
+            font: 900 1.2rem/1 Arial, sans-serif;
+        }
+
+        .dialog-close:hover,
+        .dialog-close:focus-visible { color: var(--ink); background: var(--cheese); outline: 2px solid var(--cheese); outline-offset: 2px; }
+
+        .share-body { padding: 1rem; }
+
+        .share-card-wrap {
+            padding: .55rem;
+            border: 1px solid rgba(239,225,184,.16);
+            background: #0f100d;
+            transform: rotate(-.2deg);
+        }
+
+        .share-canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1200 / 630;
+            background: #20211c;
+        }
+
+        .share-card-tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: .75rem;
+            color: rgba(239,225,184,.52);
+            font: 700 .63rem/1.35 "Courier New", monospace;
+            text-transform: uppercase;
+        }
+
+        .share-intents {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: .6rem;
+            margin-top: 1rem;
+        }
+
+        .share-intent {
+            min-height: 4.2rem;
+            padding: .75rem .65rem;
+            border: 1px solid rgba(239,225,184,.22);
+            color: var(--paper);
+            background: #24261f;
+            cursor: pointer;
+            font: 900 .66rem/1.25 "Courier New", monospace;
+            text-transform: uppercase;
+        }
+
+        .share-intent.primary { color: var(--ink); background: var(--cheese); border-color: #f0bf58; }
+        .share-intent:hover,
+        .share-intent:focus-visible { outline: 2px solid var(--cheese); outline-offset: 2px; transform: translateY(-1px); }
+
+        .share-status {
+            min-height: 1.3rem;
+            margin: .85rem 0 0;
+            color: rgba(239,225,184,.58);
+            font: 700 .65rem/1.4 "Courier New", monospace;
+        }
 
         .sitenav {
             position: fixed;
@@ -629,16 +774,18 @@
         .navlink:hover, .navlink:focus-visible, .navlink[aria-current="page"] { color: var(--cheese); outline: 1px solid var(--cheese); }
 
         @media (max-width: 900px) {
-            .hero { grid-template-columns: 1fr; min-height: auto; }
-            .hero-copy { padding-bottom: 1rem; }
-            .bench-wrap { margin-top: 1rem; }
-            .evidence-card { grid-column: span 6; }
+            .hero-copy {
+                grid-template-columns: 1fr;
+                grid-template-areas: "sticker" "title" "line";
+                gap: .45rem;
+            }
+            .hero-line { max-width: 34rem; margin-top: 1.2rem; }
         }
 
         @media (max-width: 620px) {
             .lot-strip span:nth-child(2) { display: none; }
             .yard { padding-top: 1.5rem; }
-            h1 { font-size: clamp(5.2rem, 29vw, 8rem); }
+            h1 { font-size: clamp(4.5rem, 25vw, 7rem); }
             .hero-line { margin-left: 0; }
             .bench { padding: .8rem; box-shadow: .65rem .75rem 0 rgba(0,0,0,.28); }
             .work-order { padding: 1rem .85rem; }
@@ -646,20 +793,24 @@
             .bench-actions { grid-template-columns: 1fr; }
             .receipt { width: 96%; padding-inline: 1.1rem; }
             .section-head { grid-template-columns: 1fr; }
-            .evidence-card { grid-column: 1 / -1; min-height: 10.5rem; }
+            .evidence-stage { grid-template-columns: 1fr 1fr; gap: .65rem; }
+            .evidence-card { grid-column: 1 / -1; grid-row: 1; min-height: 12.5rem; padding: 1.25rem 1rem; }
+            .case-arrow { width: 100%; }
+            .evidence-card strong { font-size: clamp(1.55rem, 7vw, 2.2rem); }
+            .case-toolbar { margin-inline: 0; align-items: flex-start; flex-wrap: wrap; }
             .saved-list { grid-template-columns: 1fr; }
             .damage-row { grid-template-columns: 1fr auto; }
+            .share-intents { grid-template-columns: 1fr; }
+            .share-intent { min-height: 3.25rem; }
+            .share-card-tools { align-items: flex-start; }
         }
 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
-            .smoke { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="smoke" aria-hidden="true"></div>
-
     <header class="lot-strip">
         <span><strong>Sunnyvale word repair</strong> · walk-ins welcome</span>
         <span>Grade Ten English Department</span>
@@ -711,7 +862,7 @@
                         </dl>
                         <div class="receipt-actions">
                             <button class="receipt-button" id="keep-it" type="button">Glove box</button>
-                            <button class="receipt-button" id="share-it" type="button">Share this one</button>
+                            <button class="receipt-button" id="share-it" type="button">Make share card</button>
                         </div>
                     </article>
                 </div>
@@ -724,48 +875,60 @@
                     <div class="section-label">Previously repaired</div>
                     <h2 id="evidence-title">Evidence drawer</h2>
                 </div>
-                <p>These ones already went through the shop. Tap a sheet and it goes back on the bench.</p>
+                <p>Twenty-five perfectly usable sentences. One file on the desk at a time, because this department has standards.</p>
             </header>
 
-            <div class="evidence-grid" id="evidence-grid">
-                <button class="evidence-card" type="button" style="--turn:-1.4deg" data-saying="Worst case Ontario." data-meaning="Worst-case scenario.">
-                    <span class="case-number">CASE 0027 · GEOGRAPHY</span><strong>Worst case Ontario.</strong><small>Worst-case scenario.</small>
+            <div class="evidence-stage">
+                <button class="case-arrow" id="case-prev" type="button" aria-label="Previous evidence file">←</button>
+                <button class="evidence-card" id="evidence-card" type="button" aria-describedby="case-help">
+                    <span class="case-number" id="case-number">CASE 0027 · GEOGRAPHY</span>
+                    <strong id="case-saying">Worst case Ontario.</strong>
+                    <small id="case-meaning">Worst-case scenario.</small>
                 </button>
-                <button class="evidence-card" type="button" style="--turn:1deg" data-saying="It's not rocket appliances." data-meaning="It's not rocket science.">
-                    <span class="case-number">CASE 0031 · SCIENCE</span><strong>It's not rocket appliances.</strong><small>It's not rocket science.</small>
-                </button>
-                <button class="evidence-card" type="button" style="--turn:-.5deg" data-saying="Get two birds stoned at once." data-meaning="Solve two problems at once.">
-                    <span class="case-number">CASE 0042 · EFFICIENCY</span><strong>Get two birds stoned at once.</strong><small>Solve two problems at once.</small>
-                </button>
-                <button class="evidence-card" type="button" style="--turn:.8deg" data-saying="Water under the fridge." data-meaning="The old problem is behind us.">
-                    <span class="case-number">CASE 0058 · PLUMBING</span><strong>Water under the fridge.</strong><small>The old problem is behind us.</small>
-                </button>
-                <button class="evidence-card" type="button" style="--turn:-1deg" data-saying="Supply and command." data-meaning="Supply and demand.">
-                    <span class="case-number">CASE 0064 · BUSINESS</span><strong>Supply and command.</strong><small>Supply and demand.</small>
-                </button>
-                <button class="evidence-card" type="button" style="--turn:1.3deg" data-saying="What comes around is all around." data-meaning="What goes around comes around.">
-                    <span class="case-number">CASE 0071 · KARMA</span><strong>What comes around is all around.</strong><small>What goes around comes around.</small>
-                </button>
-                <button class="evidence-card" type="button" style="--turn:-.6deg" data-saying="Denial and error." data-meaning="Trial and error.">
-                    <span class="case-number">CASE 0086 · COURT</span><strong>Denial and error.</strong><small>Trial and error.</small>
-                </button>
-                <button class="evidence-card" type="button" style="--turn:.5deg" data-saying="Friends with Benedicts." data-meaning="Friends with benefits.">
-                    <span class="case-number">CASE 0093 · RELATIONS</span><strong>Friends with Benedicts.</strong><small>Friends with benefits.</small>
-                </button>
-                <button class="evidence-card" type="button" style="--turn:-1.2deg" data-saying="Passed with flying carpets." data-meaning="Passed with flying colors.">
-                    <span class="case-number">CASE 0104 · SCHOOL</span><strong>Passed with flying carpets.</strong><small>Passed with flying colors.</small>
-                </button>
+                <button class="case-arrow" id="case-next" type="button" aria-label="Next evidence file">→</button>
+            </div>
+            <div class="case-toolbar">
+                <span id="case-count">File 1 of 25</span>
+                <span id="case-help">Tap the file to put it on the bench.</span>
+                <button class="case-tool" id="case-random" type="button">Random file</button>
             </div>
         </section>
 
-        <section class="glove-box" aria-labelledby="glove-title">
-            <div class="glove-box-head">
+        <details class="glove-box">
+            <summary>
+                <span>
                 <h2 id="glove-title">The glove box</h2>
-                <span>Saved on this phone</span>
-            </div>
+                    <small id="saved-count">Saved on this phone · 0 receipts</small>
+                </span>
+            </summary>
             <div class="saved-list" id="saved-list"></div>
-        </section>
+        </details>
     </main>
+
+    <dialog class="share-dialog" id="share-dialog" aria-labelledby="share-title">
+        <div class="share-head">
+            <div>
+                <span class="share-kicker">Sunnyvale evidence transfer</span>
+                <h2 id="share-title">Share a perfectly good sentence</h2>
+            </div>
+            <button class="dialog-close" id="share-close" type="button" aria-label="Close share card">×</button>
+        </div>
+        <div class="share-body">
+            <div class="share-card-wrap">
+                <canvas class="share-canvas" id="share-canvas" width="1200" height="630" role="img" aria-label="Rickyism evidence card preview"></canvas>
+            </div>
+            <div class="share-card-tools">
+                <span id="share-case-label">Case 0027 · geography</span>
+                <button class="case-tool" id="share-another" type="button">Different Rickyism</button>
+            </div>
+            <div class="share-intents" aria-label="Share styles">
+                <button class="share-intent primary" id="share-evidence" type="button">Share the evidence</button>
+                <button class="share-intent" id="share-advice" type="button">Send as legal advice</button>
+                <button class="share-intent" id="share-no-context" type="button">No context whatsoever</button>
+            </div>
+            <p class="share-status" id="share-status" aria-live="polite"></p>
+        </div>
+    </dialog>
 
     <nav class="sitenav" aria-label="Site">
         <a class="navlink" href="/">HOME</a>
@@ -789,38 +952,49 @@
             const keepButton = document.getElementById('keep-it');
             const shareButton = document.getElementById('share-it');
             const savedList = document.getElementById('saved-list');
+            const savedCount = document.getElementById('saved-count');
+            const evidenceCard = document.getElementById('evidence-card');
+            const caseNumber = document.getElementById('case-number');
+            const caseSaying = document.getElementById('case-saying');
+            const caseMeaning = document.getElementById('case-meaning');
+            const caseCount = document.getElementById('case-count');
+            const shareDialog = document.getElementById('share-dialog');
+            const shareCanvas = document.getElementById('share-canvas');
+            const shareCaseLabel = document.getElementById('share-case-label');
+            const shareStatus = document.getElementById('share-status');
             const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
             const magnetColors = ['#eee5cc', '#d6e2d4', '#efcf8e', '#d8c6bd', '#cad8df'];
 
-            const starters = [
-                'We will deal with that when the time comes.',
-                'You cannot judge a book by its cover.',
-                'We should take it with a grain of salt.',
-                'That is a blessing in disguise.',
-                'The early bird gets the worm.',
-                'You have to learn through trial and error.',
-                'We need to understand supply and demand.',
-                'It is water under the bridge now.',
-                'That is not rocket science.',
-                'What goes around comes around.'
+            const RICKYISM_CASES = [
+                { number: '0027', category: 'Geography', saying: 'Worst case Ontario.', meaning: 'Worst-case scenario.', match: /worst.case scenario/i },
+                { number: '0031', category: 'Science', saying: "It's not rocket appliances.", meaning: "It's not rocket science.", match: /rocket science/i },
+                { number: '0042', category: 'Efficiency', saying: 'Get two birds stoned at once.', meaning: 'Solve two problems at once.', match: /two birds|two problems/i },
+                { number: '0058', category: 'Plumbing', saying: 'Water under the fridge.', meaning: 'The old problem is behind us.', match: /water under the bridge|old problem is behind/i },
+                { number: '0064', category: 'Business', saying: 'Supply and command.', meaning: 'Supply and demand.', match: /supply and demand/i },
+                { number: '0071', category: 'Karma', saying: 'What comes around is all around.', meaning: 'What goes around comes around.', match: /what goes around comes around/i },
+                { number: '0086', category: 'Court', saying: 'Denial and error.', meaning: 'Learn through trial and error.', match: /trial and error/i },
+                { number: '0093', category: 'Relations', saying: 'Friends with Benedicts.', meaning: 'Friends with benefits.', match: /friends with benefits/i },
+                { number: '0104', category: 'School', saying: 'Passed with flying carpets.', meaning: 'Passed with flying colors.', match: /flying colors/i },
+                { number: '0112', category: 'Testimony', saying: 'A toad a so.', meaning: 'I told you so.', match: /told you so/i },
+                { number: '0120', category: 'Weather', saying: "It's a blessing in the skies.", meaning: "It's a blessing in disguise.", match: /blessing in disguise/i },
+                { number: '0133', category: 'Seasoning', saying: 'Take it with a grain assault.', meaning: 'Take it with a grain of salt.', match: /grain of salt/i },
+                { number: '0141', category: 'Nature', saying: 'Survival of the fitness, boys.', meaning: 'Survival of the fittest.', match: /survival of the fittest/i },
+                { number: '0156', category: 'Patience', saying: 'Good things come to those at the gate.', meaning: 'Good things come to those who wait.', match: /good things come to those who wait/i },
+                { number: '0164', category: 'Security', saying: 'Keep your friends close and your enemies toaster.', meaning: 'Keep your friends close and your enemies closer.', match: /friends close.*enemies closer/i },
+                { number: '0173', category: 'Paperwork', saying: "It's a catch-23 situation.", meaning: "It's a catch-22 situation.", match: /catch.?22/i },
+                { number: '0188', category: 'Recycling', saying: "One man's garbage is another man person's good ungarbage.", meaning: "One person's trash is another person's treasure.", match: /trash.*treasure|garbage.*treasure/i },
+                { number: '0199', category: 'Engineering', saying: 'A link is only as long as your longest strong chain.', meaning: 'A chain is only as strong as its weakest link.', match: /chain.*weakest link/i },
+                { number: '0210', category: 'Romance', saying: 'Beauty is in the eye when you hold her.', meaning: 'Beauty is in the eye of the beholder.', match: /beauty.*eye.*beholder/i },
+                { number: '0221', category: 'Medicine', saying: "I'm not a pessimist, I'm an optometrist.", meaning: "I'm not being pessimistic.", match: /not.*pessimist|not.*pessimistic/i },
+                { number: '0236', category: 'Warnings', saying: 'Make my words.', meaning: 'Mark my words.', match: /mark my words/i },
+                { number: '0248', category: 'Education', saying: 'Get learnt.', meaning: 'Learn something.', match: /learn something|get educated/i },
+                { number: '0261', category: 'Quality Control', saying: 'For to make sure.', meaning: 'To make sure.', match: /to make sure/i },
+                { number: '0274', category: 'Machinery', saying: 'Refuckulate the carbonator.', meaning: 'Fix the machinery.', match: /fix the machinery|repair the machine/i },
+                { number: '0290', category: 'Scheduling', saying: "We'll burn that fridge when we get to it.", meaning: "We'll deal with that when the time comes.", match: /deal with that when the time comes/i }
             ];
 
-            const exactRepairs = [
-                { match: /deal with that when the time comes/i, say: "We'll burn that fridge when we get to it." },
-                { match: /judge a book by its cover/i, say: "You can't judge the cover of a book by looking at it." },
-                { match: /grain of salt/i, say: 'Take it with a grain assault.' },
-                { match: /blessing in disguise/i, say: "It's a blessing in the skies." },
-                { match: /early bird gets the worm/i, say: 'The first bird gets whatever worms are left.' },
-                { match: /trial and error/i, say: 'Denial and error.' },
-                { match: /supply and demand/i, say: 'Supply and command.' },
-                { match: /water under the bridge/i, say: 'Water under the fridge.' },
-                { match: /rocket science/i, say: "It's not rocket appliances." },
-                { match: /what goes around comes around/i, say: 'What comes around is all around.' },
-                { match: /worst.case scenario/i, say: 'Worst case Ontario.' },
-                { match: /two birds/i, say: 'Get two birds stoned at once.' },
-                { match: /friends with benefits/i, say: 'Friends with Benedicts.' },
-                { match: /flying colors/i, say: 'Flying carpets.' }
-            ];
+            const starters = RICKYISM_CASES.map(item => item.meaning);
+            const exactRepairs = RICKYISM_CASES.map(item => ({ match: item.match, say: item.saying }));
 
             const looseRepairs = [
                 ['scenario', 'Ontario'],
@@ -833,7 +1007,7 @@
                 ['disguise', 'the skies'],
                 ['salt', 'assault'],
                 ['denominator', 'dominator'],
-                ['escape goat', 'scapegoat']
+                ['scapegoat', 'escape goat']
             ];
 
             const endings = [
@@ -846,6 +1020,8 @@
 
             let repairsMade = 1;
             let surpriseIndex = 0;
+            let caseIndex = 0;
+            let shareItem = null;
             let current = {
                 saying: "We'll burn that fridge when we get to it.",
                 meaning: "We'll deal with that when the time comes."
@@ -858,6 +1034,236 @@
             };
 
             const hash = (text) => [...text].reduce((total, char) => ((total << 5) - total + char.charCodeAt(0)) | 0, 0);
+
+            function caseForRepair(item = current) {
+                return RICKYISM_CASES.find(entry => entry.saying === item.saying) || {
+                    number: 'WALK-IN',
+                    category: 'Unscheduled',
+                    saying: item.saying,
+                    meaning: item.meaning
+                };
+            }
+
+            function renderCase(nextIndex, animate = true) {
+                caseIndex = (nextIndex + RICKYISM_CASES.length) % RICKYISM_CASES.length;
+                const item = RICKYISM_CASES[caseIndex];
+                caseNumber.textContent = `CASE ${item.number} · ${item.category.toUpperCase()}`;
+                caseSaying.textContent = item.saying;
+                caseMeaning.textContent = item.meaning;
+                caseCount.textContent = `File ${caseIndex + 1} of ${RICKYISM_CASES.length}`;
+                evidenceCard.dataset.index = String(caseIndex);
+
+                if (animate && !reduceMotion) {
+                    evidenceCard.animate([
+                        { opacity: .35, transform: 'translateX(1rem) rotate(1deg)' },
+                        { opacity: 1, transform: 'translateX(0) rotate(-.35deg)' }
+                    ], { duration: 220, easing: 'ease-out' });
+                }
+            }
+
+            function wrapCanvasText(context, text, maxWidth) {
+                const words = text.split(/\s+/);
+                const lines = [];
+                let line = '';
+                words.forEach(word => {
+                    const test = line ? `${line} ${word}` : word;
+                    if (line && context.measureText(test).width > maxWidth) {
+                        lines.push(line);
+                        line = word;
+                    } else {
+                        line = test;
+                    }
+                });
+                if (line) lines.push(line);
+                return lines;
+            }
+
+            function drawShareCard(item = shareItem) {
+                if (!item) return;
+                const context = shareCanvas.getContext('2d');
+                const width = shareCanvas.width;
+                const height = shareCanvas.height;
+
+                context.clearRect(0, 0, width, height);
+                context.fillStyle = '#20211c';
+                context.fillRect(0, 0, width, height);
+
+                context.save();
+                context.globalAlpha = .17;
+                context.strokeStyle = '#8f2b27';
+                context.lineWidth = 14;
+                for (let x = -height; x < width + height; x += 68) {
+                    context.beginPath();
+                    context.moveTo(x, 0);
+                    context.lineTo(x + height, height);
+                    context.stroke();
+                }
+                context.restore();
+
+                context.fillStyle = 'rgba(0,0,0,.34)';
+                context.fillRect(126, 82, 980, 500);
+                context.fillStyle = '#f2e5bd';
+                context.fillRect(108, 64, 980, 500);
+                context.strokeStyle = '#bdab7c';
+                context.lineWidth = 3;
+                context.strokeRect(108, 64, 980, 500);
+
+                context.fillStyle = '#e4aa32';
+                context.fillRect(108, 64, 980, 60);
+                context.fillStyle = '#171711';
+                context.font = '900 26px "Courier New", monospace';
+                context.fillText('SUNNYVALE DEPARTMENT OF ENGLISH', 142, 103);
+                context.textAlign = 'right';
+                context.fillText(`CASE ${item.number}`, 1054, 103);
+                context.textAlign = 'left';
+
+                context.fillStyle = '#8a3029';
+                context.font = '900 22px "Courier New", monospace';
+                context.fillText(item.category.toUpperCase(), 142, 163);
+
+                let fontSize = 76;
+                let lines = [];
+                do {
+                    context.font = `700 ${fontSize}px "Comic Sans MS", "Segoe Print", cursive`;
+                    lines = wrapCanvasText(context, item.saying, 850);
+                    fontSize -= 4;
+                } while (lines.length > 3 && fontSize > 43);
+
+                context.fillStyle = '#244a73';
+                context.font = `700 ${fontSize + 4}px "Comic Sans MS", "Segoe Print", cursive`;
+                const lineHeight = fontSize + 17;
+                lines.slice(0, 4).forEach((line, index) => context.fillText(line, 142, 226 + index * lineHeight));
+
+                context.setLineDash([10, 9]);
+                context.strokeStyle = 'rgba(23,23,17,.35)';
+                context.lineWidth = 2;
+                context.beginPath();
+                context.moveTo(142, 470);
+                context.lineTo(1054, 470);
+                context.stroke();
+                context.setLineDash([]);
+
+                context.fillStyle = '#8a3029';
+                context.font = '900 21px "Courier New", monospace';
+                context.fillText('MEANS, PROBABLY:', 142, 510);
+                context.fillStyle = '#25231d';
+                context.font = '700 22px "Courier New", monospace';
+                const meaningLines = wrapCanvasText(context, item.meaning, 620);
+                meaningLines.slice(0, 2).forEach((line, index) => context.fillText(line, 350, 510 + index * 28));
+
+                context.save();
+                context.translate(902, 520);
+                context.rotate(-.055);
+                context.strokeStyle = '#9f2d27';
+                context.lineWidth = 5;
+                context.strokeRect(-142, -34, 284, 55);
+                context.fillStyle = '#9f2d27';
+                context.font = '900 20px "Courier New", monospace';
+                context.textAlign = 'center';
+                context.fillText('WORDS FIXED ENOUGH', 0, 2);
+                context.restore();
+
+                context.fillStyle = '#efe1b8';
+                context.font = '900 19px "Courier New", monospace';
+                context.fillText('FILED WITH NO ADULT SUPERVISION', 42, 605);
+                context.textAlign = 'right';
+                context.fillStyle = '#e4aa32';
+                context.fillText('RICKYISMS', 1158, 605);
+                context.textAlign = 'left';
+
+                shareCaseLabel.textContent = `Case ${item.number} · ${item.category}`;
+                shareCanvas.setAttribute('aria-label', `Share card reading: ${item.saying} Means: ${item.meaning}`);
+            }
+
+            function openShareCard() {
+                shareItem = caseForRepair();
+                shareStatus.textContent = '';
+                drawShareCard();
+                if (typeof shareDialog.showModal === 'function') shareDialog.showModal();
+                else shareDialog.setAttribute('open', '');
+            }
+
+            function canvasBlob() {
+                return new Promise(resolve => shareCanvas.toBlob(resolve, 'image/png'));
+            }
+
+            async function copyShareText(text) {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+                const field = document.createElement('textarea');
+                field.value = text;
+                field.setAttribute('readonly', '');
+                field.style.position = 'fixed';
+                field.style.opacity = '0';
+                document.body.append(field);
+                field.select();
+                const copied = document.execCommand('copy');
+                field.remove();
+                return copied;
+            }
+
+            function shareTextFor(kind, item) {
+                if (kind === 'advice') {
+                    return `Please govern yourself around accordingly:\n“${item.saying}”\nThis has been legal advice from the Sunnyvale Department of English.`;
+                }
+                if (kind === 'no-context') {
+                    return `“${item.saying}”\n— filed with no further information`;
+                }
+                return `Evidence from the Sunnyvale Department of English:\n“${item.saying}”\nMeaning, allegedly: ${item.meaning}`;
+            }
+
+            async function deliverShare(kind) {
+                const item = shareItem;
+                const text = shareTextFor(kind, item);
+                const payload = { title: `Rickyisms · Case ${item.number}`, text, url: location.href };
+                let attachedCard = false;
+
+                if (kind === 'evidence' && typeof File === 'function') {
+                    const blob = await canvasBlob();
+                    if (blob) {
+                        const file = new File([blob], `rickyisms-case-${item.number.toLowerCase()}.png`, { type: 'image/png' });
+                        const filePayload = { ...payload, files: [file] };
+                        if (navigator.canShare && navigator.canShare(filePayload)) {
+                            Object.assign(payload, filePayload);
+                            attachedCard = true;
+                        } else if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            payload.files = [file];
+                            payload.text = `${text}\n${location.href}`;
+                            delete payload.url;
+                            attachedCard = true;
+                        }
+                    }
+                }
+
+                try {
+                    if (navigator.share) {
+                        await navigator.share(payload);
+                        shareStatus.textContent = kind === 'evidence'
+                            ? attachedCard ? 'Evidence card handed over.' : 'Words handed over. This browser kept the picture.'
+                            : 'Words handed over. Nobody asked follow-up questions.';
+                        return;
+                    }
+                    await copyShareText(`${text}\n${location.href}`);
+                    if (kind === 'evidence') {
+                        const blob = await canvasBlob();
+                        if (blob) {
+                            const link = document.createElement('a');
+                            link.download = `rickyisms-case-${item.number.toLowerCase()}.png`;
+                            link.href = URL.createObjectURL(blob);
+                            link.click();
+                            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+                            shareStatus.textContent = 'Card downloaded. Caption copied. Basically evidence twice.';
+                            return;
+                        }
+                    }
+                    shareStatus.textContent = 'Copied. The sentence is now somebody else’s problem.';
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return;
+                    shareStatus.textContent = 'Sharing got jammed. The sentence is still perfectly good.';
+                }
+            }
 
             function repair(text, amount) {
                 const meaning = cleanSentence(text);
@@ -919,6 +1325,11 @@
                 repairNumber.textContent = `No. ${String(repairsMade).padStart(4, '0')}`;
                 paintMagnets(current.saying, animate);
 
+                if (shareDialog.open) {
+                    shareItem = caseForRepair();
+                    drawShareCard();
+                }
+
                 if (animate && !reduceMotion) {
                     receipt.classList.remove('bump');
                     void receipt.offsetWidth;
@@ -950,11 +1361,17 @@
                 makeRepair();
             });
 
-            document.getElementById('evidence-grid').addEventListener('click', event => {
-                const card = event.target.closest('.evidence-card');
-                if (!card) return;
-                sayingInput.value = card.dataset.meaning;
-                showRepair({ saying: card.dataset.saying, meaning: card.dataset.meaning });
+            document.getElementById('case-prev').addEventListener('click', () => renderCase(caseIndex - 1));
+            document.getElementById('case-next').addEventListener('click', () => renderCase(caseIndex + 1));
+            document.getElementById('case-random').addEventListener('click', () => {
+                const offset = 1 + Math.floor(Math.random() * (RICKYISM_CASES.length - 1));
+                renderCase(caseIndex + offset);
+            });
+
+            evidenceCard.addEventListener('click', () => {
+                const item = RICKYISM_CASES[caseIndex];
+                sayingInput.value = item.meaning;
+                showRepair({ saying: item.saying, meaning: item.meaning });
                 receipt.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
             });
 
@@ -971,6 +1388,7 @@
             function renderSaved() {
                 const items = readSaved();
                 savedList.replaceChildren();
+                savedCount.textContent = `Saved on this phone · ${items.length} receipt${items.length === 1 ? '' : 's'}`;
                 if (!items.length) {
                     const empty = document.createElement('div');
                     empty.className = 'empty-glove';
@@ -1002,23 +1420,37 @@
                 setTimeout(() => { keepButton.textContent = 'Glove box'; }, 1500);
             });
 
-            shareButton.addEventListener('click', async () => {
-                const text = `Ricky said: “${current.saying}”\nWhat he meant: ${current.meaning}`;
-                try {
-                    if (navigator.share) {
-                        await navigator.share({ title: 'Rickyisms', text, url: location.href });
-                        return;
-                    }
-                    await navigator.clipboard.writeText(`${text}\n${location.href}`);
-                    shareButton.textContent = 'Copied';
-                    setTimeout(() => { shareButton.textContent = 'Share this one'; }, 1500);
-                } catch (_) {}
+            shareButton.addEventListener('click', openShareCard);
+            document.getElementById('share-close').addEventListener('click', () => shareDialog.close());
+            shareDialog.addEventListener('click', event => {
+                if (event.target === shareDialog) shareDialog.close();
             });
+            document.getElementById('share-another').addEventListener('click', () => {
+                const currentIndex = Math.max(0, RICKYISM_CASES.findIndex(item => item.saying === shareItem.saying));
+                const offset = 1 + Math.floor(Math.random() * (RICKYISM_CASES.length - 1));
+                shareItem = RICKYISM_CASES[(currentIndex + offset) % RICKYISM_CASES.length];
+                shareStatus.textContent = '';
+                drawShareCard();
+            });
+            document.getElementById('share-evidence').addEventListener('click', () => deliverShare('evidence'));
+            document.getElementById('share-advice').addEventListener('click', () => deliverShare('advice'));
+            document.getElementById('share-no-context').addEventListener('click', () => deliverShare('no-context'));
 
             document.getElementById('shop-time').textContent = `Filed ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
             damageOutput.value = damageInput.value;
             paintMagnets(current.saying);
+            renderCase(0, false);
             renderSaved();
+
+            window.__rickyismsTest = Object.freeze({
+                cases: RICKYISM_CASES,
+                repair,
+                current: () => ({ ...current }),
+                evidence: () => ({ index: caseIndex, ...RICKYISM_CASES[caseIndex] }),
+                share: () => shareItem ? ({ ...shareItem }) : null,
+                openShareCard,
+                renderCase
+            });
         })();
     </script>
 </body>
