@@ -1039,9 +1039,9 @@
                 <summary>Inside the Board</summary>
                 <div class="inside-copy">
                     <p>Every caller, destination response, and shift closing is written into this page. Nothing is generated, fetched, or assembled from phrase pieces. The board makes no network requests.</p>
-                    <p>Four complete five-call decks rotate over eight nights. Each deck stays on duty for two local calendar nights. Normal calls arrive about every 9–26 seconds; Quick uses about 3–9 seconds. The first call arrives sooner.</p>
+                    <p>Four complete five-call decks rotate over eight nights. Each deck stays on duty for two local calendar nights. Exchange calls use about 9–26 seconds on Normal or 3–9 seconds on Quick. Clerk mode tightens that to about 3–7 seconds and fills the gap with a spoken hold line when Voice is on. The first call arrives sooner.</p>
                     <p>Optional Voice uses only speech voices the browser marks as installed on this device. Voice Reel lets you choose among those local voices. It needs no microphone, account, key, or speech-service request. When no local voice is available, the board stays text-only.</p>
-                    <p>Cut Voice stops a queued or speaking line immediately; Replay Line starts the last complete caller or operator note again. Calls narration reads callers and connections; Full shift also reads the board briefing, complete closing, and five-line log. Kwik-E-Mart mode makes the selected device voice faster, higher, and musically over-courteous: its own all-night switchboard clerk.</p>
+                    <p>Cut Voice stops a queued or speaking line immediately; Replay Line starts the last complete caller or operator note again. Calls narration reads callers and connections; Full shift also reads the board briefing, complete closing, and five-line log. Kwik-E-Mart mode makes the selected device voice faster, higher, and musically over-courteous. While the next caller approaches, the clerk keeps the counter talking instead of leaving dead air.</p>
                     <p>Settings and this five-call shift stay in local browser storage when it is available. Leaving the tab pauses an unanswered timer; returning schedules a fresh interval.</p>
                     <p><strong id="windowDescription">Loading the night ledger…</strong></p>
                 </div>
@@ -1077,6 +1077,14 @@
                 relay: 'Messages & Parcels',
                 sundries: 'Nectar & Sundries'
             };
+
+            const CLERK_HOLD_LINES = [
+                'Sir, let me tell you something. Please hold. I am watching every lamp, and your caller is already moving toward the counter.',
+                'Please hold one moment, sir. The line is warming up. I have the plug in my hand, the coffee beside me, and everything is proceeding correctly.',
+                'Sir, stay with me. I am checking the number, the receipt, and the little red lamp. Your caller is almost here.',
+                'One moment, please. The trunk is open, the coffee is hot, and somebody unusual is asking very firmly for the operator.',
+                'Sir, let me tell you. Please hold. I have one more line to clear, and then this caller belongs entirely to you.'
+            ];
 
             const CALL_DECKS = [
                 {
@@ -1641,6 +1649,7 @@
             function speechProfile(kind) {
                 if (settings.voiceMode === 'clerk') {
                     if (kind === 'narration') return { rate: 1.08, pitch: 1.16 };
+                    if (kind === 'hold') return { rate: 1.1, pitch: 1.2 };
                     if (kind === 'closing') return { rate: 1.12, pitch: 1.2 };
                     return kind === 'response'
                         ? { rate: 1.18, pitch: 1.28 }
@@ -1654,11 +1663,11 @@
             }
 
             function clerkCopy(text, kind) {
-                if (settings.voiceMode !== 'clerk' || kind === 'narration') return text;
-                if (kind === 'closing') return `Thank you, thank you, thank you. Let me tell you something. ${text} There we are. The night ledger is closed.`;
+                if (settings.voiceMode !== 'clerk' || kind === 'narration' || kind === 'hold') return text;
+                if (kind === 'closing') return `${text} Thank you. There we are. The night ledger is closed.`;
                 return kind === 'response'
-                    ? `Yes! Thank you, thank you, thank you for holding. Let me tell you something. ${text} There we are. Next line, please.`
-                    : `Good evening! Yes, night counter speaking. Let me tell you something. ${text} Thank you, thank you, thank you. Please, go ahead.`;
+                    ? `Yes. ${text} Thank you. Next line, please.`
+                    : `Good evening. Night counter speaking. ${text} Thank you. Please, go ahead.`;
             }
 
             function speakText(text, kind = 'caller', remember = true, onComplete = null) {
@@ -1769,6 +1778,13 @@
                 return Math.round(range[0] + randomValue * (range[1] - range[0]));
             }
 
+            function clerkIntervalFor(first, pace = settings.pace, randomValue = Math.random()) {
+                const range = first
+                    ? (pace === 'quick' ? [3000, 3800] : [3800, 5000])
+                    : (pace === 'quick' ? [3200, 4600] : [4500, 6500]);
+                return Math.round(range[0] + randomValue * (range[1] - range[0]));
+            }
+
             function clearRingTimer() {
                 if (ringTimer) window.clearTimeout(ringTimer);
                 ringTimer = 0;
@@ -1778,8 +1794,15 @@
                 clearRingTimer();
                 if (document.hidden || activeCall || progress.completed || !currentCall()) return;
                 const first = progress.callIndex === 0 && progress.log.length === 0;
-                lineStateText.textContent = first ? 'Night line open · first call pending' : 'Line clear · next call pending';
-                ringTimer = window.setTimeout(beginCall, intervalFor(first));
+                const clerkWaiting = settings.voiceMode === 'clerk';
+                lineStateText.textContent = clerkWaiting
+                    ? 'Clerk holding · caller approaching'
+                    : (first ? 'Night line open · first call pending' : 'Line clear · next call pending');
+                ringTimer = window.setTimeout(beginCall, clerkWaiting ? clerkIntervalFor(first) : intervalFor(first));
+                if (clerkWaiting && settings.voice && voiceStatus === 'ready' && localVoice) {
+                    const holdLine = CLERK_HOLD_LINES[progress.callIndex % CLERK_HOLD_LINES.length];
+                    queueSpeech(holdLine, 'hold', 40, false);
+                }
             }
 
             function beginCall() {
@@ -2203,6 +2226,8 @@
             window.__switchboardTest = Object.freeze({
                 deckForDate,
                 intervalFor,
+                clerkIntervalFor,
+                holdLines: [...CLERK_HOLD_LINES],
                 decks: CALL_DECKS,
                 destinations: DESTINATIONS,
                 selection: () => ({ ...selection }),
