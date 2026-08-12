@@ -19,13 +19,25 @@
     <div class="bg-layer day" id="bg-day"></div>
 
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar directory-navbar">
         <div class="nav-left">
             <a href="/" class="btn">RG</a>
         </div>
         <div class="nav-center"></div>
         <div class="nav-right">
+            <button type="button" class="btn directory-type-button" id="type-size-toggle" aria-label="Text size: Default" aria-expanded="false" aria-haspopup="true" aria-controls="type-size-menu">Aa</button>
             <button id="theme-switch" class="btn">Auto</button>
+        </div>
+        <div class="directory-settings-menu" id="type-size-menu" hidden>
+            <div class="directory-settings-head">
+                <span>Text size</span>
+                <strong id="type-size-current">Default</strong>
+            </div>
+            <div class="type-size-options" role="group" aria-label="Directory text size">
+                <button type="button" class="type-size-option" data-size="compact" aria-pressed="false">Compact</button>
+                <button type="button" class="type-size-option" data-size="default" aria-pressed="true">Default</button>
+                <button type="button" class="type-size-option" data-size="large" aria-pressed="false">Large</button>
+            </div>
         </div>
     </nav>
 
@@ -87,23 +99,6 @@
                         <span class="link-icon">◎</span>
                         <span class="link-text">Weather</span>
                     </a>
-                    <div class="type-size-control">
-                        <button type="button" class="link-card type-size-toggle" id="type-size-toggle" aria-expanded="false" aria-controls="type-size-menu">
-                            <span class="link-icon type-size-icon" aria-hidden="true">Aa</span>
-                            <span class="link-copy">
-                                <span class="link-text">Text size</span>
-                                <span class="link-detail" id="type-size-current">Default</span>
-                            </span>
-                            <span class="type-size-chevron" aria-hidden="true">&rsaquo;</span>
-                        </button>
-                        <div class="type-size-menu" id="type-size-menu" hidden>
-                            <div class="type-size-options" role="group" aria-label="Directory text size">
-                                <button type="button" class="type-size-option" data-size="compact" aria-pressed="false">Compact</button>
-                                <button type="button" class="type-size-option" data-size="default" aria-pressed="true">Default</button>
-                                <button type="button" class="type-size-option" data-size="large" aria-pressed="false">Large</button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </section>
 

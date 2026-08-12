@@ -52,8 +52,20 @@ if (sizeToggle && sizeMenu) {
         setSizeMenu(sizeToggle.getAttribute('aria-expanded') !== 'true');
     });
 
+    sizeToggle.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowDown') return;
+        event.preventDefault();
+        setSizeMenu(true);
+        const selected = sizeOptions.find(option => option.getAttribute('aria-pressed') === 'true');
+        (selected || sizeOptions[0])?.focus();
+    });
+
     sizeOptions.forEach((option, index) => {
-        option.addEventListener('click', () => applySize(option.dataset.size, true));
+        option.addEventListener('click', () => {
+            applySize(option.dataset.size, true);
+            setSizeMenu(false);
+            sizeToggle.focus();
+        });
         option.addEventListener('keydown', event => {
             const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
             if (!keys.includes(event.key)) return;
@@ -75,6 +87,11 @@ if (sizeToggle && sizeMenu) {
         setSizeMenu(false);
         sizeToggle.focus();
     });
+
+    document.addEventListener('click', event => {
+        if (sizeMenu.hidden || sizeToggle.contains(event.target) || sizeMenu.contains(event.target)) return;
+        setSizeMenu(false);
+    }, true);
 }
 
 if (page && !reducedMotion) {
