@@ -5,8 +5,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-const WORLD_WIDTH = 26;
-const WORLD_DEPTH = 16;
+const WORLD_WIDTH = 34;
+const WORLD_DEPTH = 24;
 const SEA_LEVEL = 0;
 const EXPECTED_REGION_COUNT = 26;
 const BASE_LAYER = 0;
@@ -14,8 +14,8 @@ const BLOOM_LAYER = 1;
 const MOTION_QUERY = window.matchMedia('(prefers-reduced-motion: reduce)');
 const MOBILE_QUERY = window.matchMedia('(max-width: 760px)');
 const VISIT_STORAGE_KEY = 'rg-world-atlas-visits-v2';
-const LOCAL_RADIUS_X = MOBILE_QUERY.matches ? 7.2 : 9.2;
-const LOCAL_RADIUS_Z = MOBILE_QUERY.matches ? 5.8 : 7.1;
+const LOCAL_RADIUS_X = MOBILE_QUERY.matches ? 9.4 : 12.4;
+const LOCAL_RADIUS_Z = MOBILE_QUERY.matches ? 7.4 : 9.3;
 const LABEL_IDS = [
     'r_north_cap',
     'r_west_metro',
@@ -53,6 +53,7 @@ const ELEVATION = {
 const canvas = document.getElementById('worldCanvas');
 const atlas = document.getElementById('atlas');
 const labelsLayer = document.getElementById('labels');
+const exitLabelsLayer = document.getElementById('exitLabels');
 const statusText = document.getElementById('statusText');
 const fallback = document.getElementById('webglFallback');
 const opening = document.getElementById('opening');
@@ -91,10 +92,13 @@ let waterBasePositions;
 let citadelCore;
 let citadelLight;
 let directionalLight;
+let rimLight;
 let hemisphereLight;
 let cityLights;
 let oceanGlints;
 let shorelineWash;
+let skyDome;
+let skyMaterial;
 let focusMarker;
 let traveler;
 let travelerFigure;
@@ -103,11 +107,18 @@ let regionStage = null;
 let regionParticles = null;
 let localGround = null;
 let localMoveTarget = null;
+let localPortals = [];
+let localPortalLabels = [];
+let localOccluders = [];
+let reflectiveWaterMaterials = [];
+let portalTransitioning = false;
+let portalCrossTimer = 0;
+let portalFinishTimer = 0;
 let journeyPath = null;
 let focusedRegion = null;
 let cloudBanks = [];
 let labelEntries = [];
-let labelsVisible = !MOBILE_QUERY.matches;
+let labelsVisible = true;
 let desiredZoom = 1;
 let currentZoom = MOTION_QUERY.matches ? 1 : 0.88;
 let framingScale = 1;
@@ -124,10 +135,14 @@ let dragStartY = 0;
 let dragStartTarget = null;
 let hasDragged = false;
 let activePointerType = 'mouse';
+let isPinching = false;
+let pinchStartDistance = 0;
+let pinchStartZoom = 1;
+const touchPoints = new Map();
 let focusBlend = 0;
 let desiredFocusBlend = 0;
 let keyLightIntensityTarget = 3.05;
-let fogDensityTarget = 0.0115;
+let fogDensityTarget = 0.0088;
 const visitedRegionIds = loadVisitedRegionIds();
 
 const baseCameraPosition = new THREE.Vector3(0, 20.4, 17.4);
@@ -142,6 +157,7 @@ const cameraOffset = new THREE.Vector3();
 const localCameraOffset = new THREE.Vector3();
 const travelerFrom = new THREE.Vector3();
 const travelerTo = new THREE.Vector3();
+const occlusionDirection = new THREE.Vector3();
 const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
 const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -154,6 +170,9 @@ const fogTarget = new THREE.Color(0x071923);
 const hemisphereSkyTarget = new THREE.Color(0xc8e5ec);
 const hemisphereGroundTarget = new THREE.Color(0x182313);
 const keyLightColorTarget = new THREE.Color(0xffd2a0);
+const skyTopTarget = new THREE.Color(0x102b3d);
+const skyHorizonTarget = new THREE.Color(0x31515b);
+const skyBottomTarget = new THREE.Color(0x06131e);
 
 const regionLooks = world.regions.map(region => ({
     region,
@@ -162,8 +181,8 @@ const regionLooks = world.regions.map(region => ({
 }));
 
 try {
-    const context = canvas.getContext('webgl2', { alpha: true, antialias: false })
-        || canvas.getContext('webgl', { alpha: true, antialias: false });
+    const context = canvas.getContext('webgl2', { alpha: true, antialias: true })
+        || canvas.getContext('webgl', { alpha: true, antialias: true });
 
     if (!context) throw new Error('WebGL is unavailable.');
 
@@ -171,12 +190,12 @@ try {
         canvas,
         context,
         alpha: true,
-        antialias: false,
+        antialias: true,
         powerPreference: 'high-performance'
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.02;
+    renderer.toneMappingExposure = 1.1;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setClearColor(0x06131e, 1);
@@ -197,6 +216,9 @@ window.__WORLD_SHOWCASE_DIAGNOSTICS__ = Object.freeze({
     bloomSourceCount: 1,
     externalAssetCount: 0,
     playableLocalScenes: true,
+    connectedLocalTravel: true,
+    pinchZoom: true,
+    cameraOcclusionFade: true,
     localSceneDiameter: LOCAL_RADIUS_X * 2,
     savedVisitCount: visitedRegionIds.size,
     rendererRevision: THREE.REVISION
@@ -216,9 +238,9 @@ requestAnimationFrame(() => {
 function buildWorld() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x071923);
-    scene.fog = new THREE.FogExp2(0x071923, 0.0115);
+    scene.fog = new THREE.FogExp2(0x071923, 0.0088);
 
-    camera = new THREE.PerspectiveCamera(35, 1, 0.1, 90);
+    camera = new THREE.PerspectiveCamera(35, 1, 0.1, 240);
     camera.position.copy(baseCameraPosition).multiplyScalar(1 / currentZoom);
     camera.lookAt(cameraTarget);
 
@@ -226,7 +248,7 @@ function buildWorld() {
     scene.add(hemisphereLight);
 
     directionalLight = new THREE.DirectionalLight(0xffd2a0, 3.05);
-    directionalLight.position.set(-8.5, 15, 10.5);
+    directionalLight.position.set(-8.5, 15, -10.5);
     directionalLight.castShadow = true;
     directionalLight.shadow.mapSize.set(MOBILE_QUERY.matches ? 1024 : 2048, MOBILE_QUERY.matches ? 1024 : 2048);
     directionalLight.shadow.camera.left = -14;
@@ -237,6 +259,14 @@ function buildWorld() {
     directionalLight.shadow.camera.far = 38;
     directionalLight.shadow.bias = -0.00025;
     scene.add(directionalLight);
+    scene.add(directionalLight.target);
+
+    rimLight = new THREE.DirectionalLight(0x8eb8d2, 0.82);
+    rimLight.position.set(9, 8, 10);
+    scene.add(rimLight);
+    scene.add(rimLight.target);
+
+    createSkyDome();
 
     terrain = createTerrain();
     scene.add(terrain);
@@ -258,7 +288,7 @@ function buildWorld() {
     createLabels();
 
     const bloomRenderPass = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.9, 0.6, 1.42);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.52, 0.38, 1.12);
     bloomComposer = new EffectComposer(renderer);
     bloomComposer.renderToScreen = false;
     bloomComposer.addPass(bloomRenderPass);
@@ -293,6 +323,48 @@ function buildWorld() {
     finalComposer.addPass(finalRenderPass);
     finalComposer.addPass(combinePass);
     finalComposer.addPass(outputPass);
+}
+
+function createSkyDome() {
+    skyMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            topColor: { value: skyTopTarget.clone() },
+            horizonColor: { value: skyHorizonTarget.clone() },
+            bottomColor: { value: skyBottomTarget.clone() },
+            sunDirection: { value: new THREE.Vector3(-0.18, 0.62, -0.76).normalize() },
+            sunColor: { value: new THREE.Color(0xffd7aa).convertSRGBToLinear() }
+        },
+        vertexShader: `
+            varying vec3 vDirection;
+            void main() {
+                vDirection = normalize(position);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 topColor;
+            uniform vec3 horizonColor;
+            uniform vec3 bottomColor;
+            uniform vec3 sunDirection;
+            uniform vec3 sunColor;
+            varying vec3 vDirection;
+            void main() {
+                float height = vDirection.y * 0.5 + 0.5;
+                vec3 lowSky = mix(bottomColor, horizonColor, smoothstep(0.12, 0.48, height));
+                vec3 sky = mix(lowSky, topColor, smoothstep(0.43, 0.92, height));
+                float sun = pow(max(dot(normalize(vDirection), sunDirection), 0.0), 180.0);
+                float haze = pow(1.0 - abs(vDirection.y), 5.0) * 0.1;
+                gl_FragColor = vec4(sky + sunColor * sun * 0.72 + horizonColor * haze, 1.0);
+            }
+        `,
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false
+    });
+    skyDome = new THREE.Mesh(new THREE.SphereGeometry(68, 40, 20), skyMaterial);
+    skyDome.renderOrder = -100;
+    skyDome.name = 'Atmospheric sky';
+    scene.add(skyDome);
 }
 
 function createTerrain() {
@@ -350,26 +422,74 @@ function createTerrain() {
 }
 
 function createWater() {
-    const geometry = new THREE.PlaneGeometry(48, 34, MOBILE_QUERY.matches ? 40 : 72, MOBILE_QUERY.matches ? 28 : 48);
+    const geometry = new THREE.PlaneGeometry(58, 42, MOBILE_QUERY.matches ? 48 : 82, MOBILE_QUERY.matches ? 34 : 58);
     geometry.rotateX(-Math.PI / 2);
     waterBasePositions = new Float32Array(geometry.getAttribute('position').array);
 
-    const material = new THREE.MeshPhysicalMaterial({
-        color: world.seaColor,
-        roughness: 0.2,
-        metalness: 0.08,
-        clearcoat: 0.72,
-        clearcoatRoughness: 0.27,
-        transparent: true,
-        opacity: 0.9,
-        depthWrite: false
-    });
+    const material = createReflectiveWaterMaterial(world.seaColor, 0.9);
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.y = SEA_LEVEL;
     mesh.receiveShadow = true;
     mesh.name = 'Atlas water';
     return mesh;
+}
+
+function createReflectiveWaterMaterial(color, opacity = 0.9) {
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 0 },
+            waterColor: { value: new THREE.Color(color).convertSRGBToLinear() },
+            sunColor: { value: new THREE.Color(0xffd7a4).convertSRGBToLinear() },
+            opacity: { value: opacity },
+            fogColor: { value: new THREE.Color(0x071923) },
+            fogDensity: { value: 0.0088 },
+            fogNear: { value: 1 },
+            fogFar: { value: 240 }
+        },
+        vertexShader: `
+            #include <fog_pars_vertex>
+            varying vec3 vWorldPosition;
+            void main() {
+                vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                vWorldPosition = worldPosition.xyz;
+                vec4 mvPosition = viewMatrix * worldPosition;
+                gl_Position = projectionMatrix * mvPosition;
+                #include <fog_vertex>
+            }
+        `,
+        fragmentShader: `
+            #include <fog_pars_fragment>
+            uniform float time;
+            uniform vec3 waterColor;
+            uniform vec3 sunColor;
+            uniform float opacity;
+            varying vec3 vWorldPosition;
+            void main() {
+                vec2 p = vWorldPosition.xz;
+                float waveX = sin(p.x * 0.48 + time * 0.42) * 0.055 + sin(p.z * 0.81 - time * 0.28) * 0.028;
+                float waveZ = cos(p.z * 0.55 - time * 0.34) * 0.052 + cos(p.x * 0.72 + time * 0.31) * 0.026;
+                vec3 normal = normalize(vec3(waveX, 1.0, waveZ));
+                vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
+                vec3 sunDirection = normalize(vec3(-0.18, 0.62, -0.76));
+                vec3 reflection = reflect(-sunDirection, normal);
+                float sunPath = pow(max(dot(reflection, viewDirection), 0.0), 128.0);
+                float warmSpread = pow(max(dot(reflection, viewDirection), 0.0), 18.0);
+                float fresnel = pow(1.0 - max(dot(normal, viewDirection), 0.0), 3.0);
+                float fineGlint = pow(max(0.0, sin((p.x + p.y) * 5.4 + time * 1.6)), 18.0) * warmSpread;
+                vec3 deep = waterColor * (0.58 + fresnel * 0.44);
+                vec3 color = deep + sunColor * (sunPath * 2.25 + warmSpread * 0.17 + fineGlint * 0.2);
+                gl_FragColor = vec4(color, opacity);
+                #include <fog_fragment>
+            }
+        `,
+        transparent: true,
+        depthWrite: false,
+        fog: true,
+        side: THREE.DoubleSide
+    });
+    reflectiveWaterMaterials.push(material);
+    return material;
 }
 
 function createShorelineWash() {
@@ -467,7 +587,7 @@ function createRoutes() {
             : terrainHeightAtWorld(midpoint.x, midpoint.z) + 0.045;
 
         const curve = new THREE.CatmullRomCurve3([start, midpoint, end]);
-        const geometry = new THREE.TubeGeometry(curve, 20, route.land === false ? 0.011 : 0.016, 3, false);
+        const geometry = new THREE.TubeGeometry(curve, 28, route.land === false ? 0.022 : 0.034, 4, false);
         const mesh = new THREE.Mesh(geometry, route.land === false ? waterMaterial : earthMaterial);
         mesh.name = `Route ${route.from} to ${route.to}`;
         scene.add(mesh);
@@ -480,7 +600,7 @@ function createUrbanMasses() {
         ? (region.y > 0.67 ? 12 : 8)
         : (region.y > 0.67 ? 22 : 14);
     const instanceCount = urbanRegions.reduce((sum, region) => sum + countForRegion(region), 0);
-    const geometry = new THREE.BoxGeometry(0.18, 1, 0.18);
+    const geometry = new THREE.BoxGeometry(0.28, 1, 0.28);
     const material = new THREE.MeshStandardMaterial({ color: 0x656870, roughness: 0.68, metalness: 0.12 });
     const buildings = new THREE.InstancedMesh(geometry, material, instanceCount);
     const matrix = new THREE.Matrix4();
@@ -494,11 +614,11 @@ function createUrbanMasses() {
         const count = countForRegion(region);
         for (let index = 0; index < count; index += 1) {
             const angle = hash(regionIndex * 41 + index * 5.7) * Math.PI * 2;
-            const radius = (0.06 + hash(regionIndex * 19 + index * 11.2) * 0.22) * (region.y > 0.67 ? 0.65 : 1);
+            const radius = (0.28 + hash(regionIndex * 19 + index * 11.2) * 0.88) * (region.y > 0.67 ? 0.82 : 1);
             const center = normalizedToWorld(region.x, region.y);
             position.set(center.x + Math.cos(angle) * radius, 0, center.z + Math.sin(angle) * radius);
             const ground = terrainHeightAtWorld(position.x, position.z);
-            const height = 0.13 + hash(regionIndex * 83 + index * 2.9) * (region.y > 0.67 ? 0.46 : 0.34);
+            const height = 0.32 + hash(regionIndex * 83 + index * 2.9) * (region.y > 0.67 ? 1.08 : 0.78);
             position.y = ground + height * 0.5;
             scale.set(0.48 + hash(index * 31.7) * 0.65, height, 0.48 + hash(index * 17.3) * 0.65);
             quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), hash(regionIndex + index * 13) * Math.PI);
@@ -533,7 +653,7 @@ function createUrbanMasses() {
 function createCanopyMasses() {
     const greenRegions = world.regions.filter(region => ['orchard', 'forest', 'garden', 'tropical'].includes(region.biome));
     const countPerRegion = MOBILE_QUERY.matches ? 22 : 42;
-    const geometry = new THREE.IcosahedronGeometry(0.16, 1);
+    const geometry = new THREE.IcosahedronGeometry(0.24, 1);
     const material = new THREE.MeshStandardMaterial({ color: 0x254f2c, roughness: 0.95 });
     const canopies = new THREE.InstancedMesh(geometry, material, greenRegions.length * countPerRegion);
     const matrix = new THREE.Matrix4();
@@ -546,7 +666,7 @@ function createCanopyMasses() {
         const center = normalizedToWorld(region.x, region.y);
         for (let index = 0; index < countPerRegion; index += 1) {
             const angle = hash(regionIndex * 23 + index * 8.1) * Math.PI * 2;
-            const radius = 0.07 + hash(regionIndex * 91 + index * 4.3) * (region.biome === 'tropical' ? 0.5 : 0.36);
+            const radius = 0.25 + hash(regionIndex * 91 + index * 4.3) * (region.biome === 'tropical' ? 1.85 : 1.32);
             position.set(center.x + Math.cos(angle) * radius, 0, center.z + Math.sin(angle) * radius);
             const size = 0.52 + hash(regionIndex * 43 + index * 5.9) * 0.72;
             position.y = terrainHeightAtWorld(position.x, position.z) + 0.08 * size;
@@ -573,7 +693,7 @@ function createTerrainDetails() {
 function createRidgeFields() {
     const regions = world.regions.filter(region => ['snow', 'mountain', 'rock'].includes(region.biome));
     const countPerRegion = MOBILE_QUERY.matches ? 8 : 15;
-    const geometry = new THREE.ConeGeometry(0.12, 0.5, 5);
+    const geometry = new THREE.ConeGeometry(0.2, 0.78, 5);
     const material = new THREE.MeshStandardMaterial({ color: 0x74766c, roughness: 0.92, metalness: 0.01 });
     const ridges = new THREE.InstancedMesh(geometry, material, regions.length * countPerRegion);
     const matrix = new THREE.Matrix4();
@@ -586,8 +706,8 @@ function createRidgeFields() {
         const center = normalizedToWorld(region.x, region.y);
         for (let index = 0; index < countPerRegion; index += 1) {
             const angle = hash(regionIndex * 31 + index * 4.7) * Math.PI * 2;
-            const radius = 0.12 + hash(regionIndex * 73 + index * 9.2) * 0.72;
-            const height = 0.2 + hash(regionIndex * 43 + index * 6.1) * 0.48;
+            const radius = 0.38 + hash(regionIndex * 73 + index * 9.2) * 1.6;
+            const height = 0.48 + hash(regionIndex * 43 + index * 6.1) * 1.24;
             position.set(center.x + Math.cos(angle) * radius, 0, center.z + Math.sin(angle) * radius * 0.64);
             position.y = terrainHeightAtWorld(position.x, position.z) + height * 0.5 - 0.02;
             quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle * 0.5);
@@ -608,7 +728,7 @@ function createRidgeFields() {
 function createDuneFields() {
     const regions = world.regions.filter(region => ['desert', 'frontier'].includes(region.biome));
     const countPerRegion = MOBILE_QUERY.matches ? 10 : 20;
-    const geometry = new THREE.IcosahedronGeometry(0.16, 1);
+    const geometry = new THREE.IcosahedronGeometry(0.28, 1);
     const material = new THREE.MeshStandardMaterial({ color: 0xb98855, roughness: 0.97, metalness: 0 });
     const dunes = new THREE.InstancedMesh(geometry, material, regions.length * countPerRegion);
     const matrix = new THREE.Matrix4();
@@ -621,7 +741,7 @@ function createDuneFields() {
         const center = normalizedToWorld(region.x, region.y);
         for (let index = 0; index < countPerRegion; index += 1) {
             const angle = hash(regionIndex * 51 + index * 5.4) * Math.PI * 2;
-            const radius = 0.1 + hash(regionIndex * 87 + index * 3.6) * 0.76;
+            const radius = 0.35 + hash(regionIndex * 87 + index * 3.6) * 1.72;
             position.set(center.x + Math.cos(angle) * radius, 0, center.z + Math.sin(angle) * radius * 0.58);
             position.y = terrainHeightAtWorld(position.x, position.z) + 0.035;
             quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
@@ -646,7 +766,7 @@ function createFarmStrips() {
     const count = region.biome === 'tropical'
         ? (MOBILE_QUERY.matches ? 10 : 18)
         : (MOBILE_QUERY.matches ? 5 : 8);
-    const geometry = new THREE.BoxGeometry(0.52, 0.022, 0.024);
+    const geometry = new THREE.BoxGeometry(2.4, 0.028, 0.07);
     const material = new THREE.MeshStandardMaterial({ color: 0x9eb864, roughness: 0.94 });
     const strips = new THREE.InstancedMesh(geometry, material, count);
     const matrix = new THREE.Matrix4();
@@ -656,7 +776,7 @@ function createFarmStrips() {
 
     for (let index = 0; index < count; index += 1) {
         const lane = index - (count - 1) * 0.5;
-        position.set(center.x + lane * 0.035, 0, center.z + lane * 0.018);
+        position.set(center.x + lane * 0.18, 0, center.z + lane * 0.11);
         position.y = terrainHeightAtWorld(position.x, position.z) + 0.035;
         scale.set(0.65 + hash(index * 9.1) * 0.65, 1, 1);
         matrix.compose(position, quaternion, scale);
@@ -892,11 +1012,13 @@ function createTraveler() {
         if (child.isMesh && child !== groundShadow) {
             child.castShadow = true;
             child.receiveShadow = true;
+            child.renderOrder = 8;
         }
     });
 
     const startingRegion = regionById.get('r_citadel');
     traveler.position.copy(mapPoint(startingRegion.x, startingRegion.y, 0.09));
+    traveler.scale.setScalar(2.2);
     traveler.name = 'World traveler';
     scene.add(traveler);
 }
@@ -1014,12 +1136,14 @@ function updateTraveler(delta) {
             traveler.position.y = regionStage.position.y + localHeightAt(localX, localZ) + 0.055;
             travelerFigure.position.y = MOTION_QUERY.matches ? 0 : Math.abs(Math.sin(elapsed * 9.4)) * 0.055;
             desiredTarget.set(traveler.position.x, traveler.position.y + 0.32, traveler.position.z);
+            if (checkLocalPortal(localX, localZ)) return;
             return;
         }
         traveler.position.copy(localMoveTarget);
         localMoveTarget = null;
         travelerFigure.position.y = 0;
         focusMarker.visible = false;
+        if (checkLocalPortal(traveler.position.x - regionStage.position.x, traveler.position.z - regionStage.position.z)) return;
         statusText.textContent = `${focusedRegion.label} · tap the ground to keep walking`;
     }
 
@@ -1046,24 +1170,78 @@ function updateTraveler(delta) {
     enterLocalRegion(focusedRegion);
 }
 
-function enterLocalRegion(region) {
+function enterLocalRegion(region, arrivalFromId = null) {
     focusedRegion = region;
     regionStage.visible = true;
     regionStage.scale.setScalar(1);
-    const localY = localHeightAt(0, 0);
-    traveler.position.set(regionStage.position.x, regionStage.position.y + localY + 0.055, regionStage.position.z);
-    traveler.scale.setScalar(1.58);
+    regionStage.updateMatrixWorld(true);
+    const arrivalPortal = arrivalFromId
+        ? localPortals.find(portal => portal.region.id === arrivalFromId)
+        : null;
+    const startX = arrivalPortal ? arrivalPortal.localPosition.x * 0.68 : 0;
+    const startZ = arrivalPortal ? arrivalPortal.localPosition.z * 0.68 : 0;
+    const localY = localHeightAt(startX, startZ);
+    traveler.position.set(regionStage.position.x + startX, regionStage.position.y + localY + 0.055, regionStage.position.z + startZ);
+    if (arrivalPortal) traveler.rotation.y = Math.atan2(-startX, -startZ);
+    traveler.scale.setScalar(1.85);
     travelerFigure.position.y = 0;
     localMoveTarget = null;
     desiredTarget.set(traveler.position.x, traveler.position.y + 0.32, traveler.position.z);
-    desiredZoom = 1.18;
+    desiredZoom = arrivalFromId ? THREE.MathUtils.clamp(desiredZoom, 0.82, 1.72) : 1.18;
     desiredFocusBlend = 1;
     fogDensityTarget = regionFamily(region) === 'dry' ? 0.045 : 0.055;
     focusMarker.visible = false;
     resetViewButton.textContent = 'World map';
     markRegionVisited(region.id);
-    statusText.textContent = `${region.label} · tap the ground to walk`;
+    statusText.textContent = `${region.label} · marked ways lead onward`;
     atlas.classList.add('is-local');
+}
+
+function checkLocalPortal(localX, localZ) {
+    if (portalTransitioning || !atlas.classList.contains('is-local')) return false;
+    const portal = localPortals.find(entry => {
+        const dx = localX - entry.localPosition.x;
+        const dz = localZ - entry.localPosition.z;
+        return Math.hypot(dx, dz) < 0.72;
+    });
+    if (!portal) return false;
+    beginPortalTransition(portal);
+    return true;
+}
+
+function beginPortalTransition(portal) {
+    if (portalTransitioning || !focusedRegion) return;
+    portalTransitioning = true;
+    localMoveTarget = null;
+    focusMarker.visible = false;
+    const previousId = focusedRegion.id;
+    const destination = portal.region;
+    statusText.textContent = `Crossing to ${destination.label}`;
+    atlas.classList.add('is-crossing');
+
+    const cross = () => {
+        if (!portalTransitioning) return;
+        focusedRegion = destination;
+        createRegionStage(destination);
+        labelEntries.forEach(entry => entry.element.classList.toggle('is-focused', entry.region.id === destination.id));
+        enterLocalRegion(destination, previousId);
+        if (MOTION_QUERY.matches) {
+            snapMood();
+            cameraTarget.copy(desiredTarget);
+            renderScene(elapsed);
+        }
+        portalFinishTimer = window.setTimeout(() => {
+            portalTransitioning = false;
+            portalFinishTimer = 0;
+            atlas.classList.remove('is-crossing');
+            statusText.textContent = `${destination.label} · marked ways lead onward`;
+        }, MOTION_QUERY.matches ? 0 : 260);
+    };
+
+    portalCrossTimer = window.setTimeout(() => {
+        portalCrossTimer = 0;
+        cross();
+    }, MOTION_QUERY.matches ? 0 : 190);
 }
 
 function disposeObject(object) {
@@ -1076,7 +1254,11 @@ function disposeObject(object) {
         else if (child.material) materials.add(child.material);
     });
     geometries.forEach(geometry => geometry.dispose());
-    materials.forEach(material => material.dispose());
+    materials.forEach(material => {
+        material.dispose();
+        const waterIndex = reflectiveWaterMaterials.indexOf(material);
+        if (waterIndex >= 0) reflectiveWaterMaterials.splice(waterIndex, 1);
+    });
 }
 
 function regionFamily(region) {
@@ -1092,8 +1274,11 @@ function regionFamily(region) {
 }
 
 function createRegionStage(region) {
+    clearLocalPortalLabels();
     disposeObject(regionStage);
     if (regionStage) scene.remove(regionStage);
+    localPortals = [];
+    localOccluders = [];
 
     const family = regionFamily(region);
     const point = mapPoint(region.x, region.y, 0.035);
@@ -1120,6 +1305,7 @@ function createRegionStage(region) {
     else buildCoastStage(region);
 
     createRegionSignature(region);
+    createLocalPortals(region);
     createLocalHorizon(region, family);
     createRegionParticles(region, family);
     applyRegionMood(family);
@@ -1245,6 +1431,120 @@ function createLocalWays(region, family) {
     }
 }
 
+function connectedRegions(region) {
+    const found = [];
+    const seen = new Set();
+    routePairs.forEach(route => {
+        const neighbor = route.start.id === region.id
+            ? route.end
+            : route.end.id === region.id
+                ? route.start
+                : null;
+        if (!neighbor || seen.has(neighbor.id)) return;
+        seen.add(neighbor.id);
+        found.push(neighbor);
+    });
+    return found;
+}
+
+function createLocalPortals(region) {
+    const neighbors = connectedRegions(region)
+        .map(neighbor => ({
+            region: neighbor,
+            angle: Math.atan2(neighbor.y - region.y, neighbor.x - region.x)
+        }))
+        .sort((a, b) => a.angle - b.angle);
+
+    const minimumGap = 0.48;
+    for (let pass = 0; pass < 3; pass += 1) {
+        for (let index = 1; index < neighbors.length; index += 1) {
+            if (neighbors[index].angle - neighbors[index - 1].angle < minimumGap) {
+                neighbors[index - 1].angle -= 0.12;
+                neighbors[index].angle += 0.12;
+            }
+        }
+    }
+
+    neighbors.forEach((entry, index) => {
+        const x = Math.cos(entry.angle) * LOCAL_RADIUS_X * 0.76;
+        const z = Math.sin(entry.angle) * LOCAL_RADIUS_Z * 0.76;
+        const y = localHeightAt(x, z);
+        const color = new THREE.Color(entry.region.color).lerp(new THREE.Color(0xd9c493), 0.28);
+        const gateMaterial = new THREE.MeshStandardMaterial({
+            color,
+            emissive: color.clone().multiplyScalar(0.18),
+            emissiveIntensity: 0.72,
+            roughness: 0.68,
+            metalness: 0.08
+        });
+        const thresholdMaterial = new THREE.MeshBasicMaterial({
+            color,
+            transparent: true,
+            opacity: 0.2,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+        const group = new THREE.Group();
+        group.position.set(x, y, z);
+        group.rotation.y = Math.PI * 0.5 - entry.angle;
+
+        const arch = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.105, 8, 42, Math.PI), gateMaterial);
+        arch.rotation.z = Math.PI;
+        arch.position.y = 0.96;
+        const leftPost = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.16, 1.85, 7), gateMaterial);
+        leftPost.position.set(-0.92, 0.52, 0);
+        const rightPost = leftPost.clone();
+        rightPost.position.x = 0.92;
+        const threshold = new THREE.Mesh(new THREE.CircleGeometry(0.82, 28), thresholdMaterial);
+        threshold.rotation.x = -Math.PI / 2;
+        threshold.position.y = 0.035;
+        threshold.scale.y = 0.42;
+        group.add(arch, leftPost, rightPost, threshold);
+        group.traverse(child => {
+            if (child.isMesh && child !== threshold) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+        group.name = `Way to ${entry.region.label}`;
+        regionStage.add(group);
+
+        const label = document.createElement('span');
+        label.className = 'exit-label';
+        label.textContent = entry.region.label;
+        exitLabelsLayer.appendChild(label);
+        localPortalLabels.push(label);
+        localPortals.push({
+            region: entry.region,
+            group,
+            label,
+            localPosition: new THREE.Vector3(x, y + 1.25, z),
+            index
+        });
+    });
+}
+
+function clearLocalPortalLabels() {
+    localPortalLabels.forEach(label => label.remove());
+    localPortalLabels = [];
+}
+
+function makeOccluder(mesh) {
+    if (!mesh?.material) return mesh;
+    mesh.material = Array.isArray(mesh.material)
+        ? mesh.material.map(material => material.clone())
+        : mesh.material.clone();
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    materials.forEach(material => {
+        material.transparent = true;
+        material.opacity = 1;
+        material.depthWrite = true;
+    });
+    mesh.userData.occluderOpacity = 1;
+    localOccluders.push(mesh);
+    return mesh;
+}
+
 function stagePoint(seed, index, inner = 1.35, outer = 6.8) {
     if (outer < 2) {
         inner *= 3.2;
@@ -1319,7 +1619,8 @@ function createRegionSignature(region) {
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
         mesh.position.set(x, localHeightAt(x, z) + height * 0.5, z);
         mesh.rotation.y = rotation;
-        return addStageMesh(mesh);
+        const added = addStageMesh(mesh);
+        return height > 1.05 ? makeOccluder(added) : added;
     };
     const ring = (radius, tube, material = stone, x = 0, z = 0) => {
         const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 7, 64), material);
@@ -1398,18 +1699,72 @@ function createRegionSignature(region) {
     } else if (region.id === 'r_commons') {
         ring(3.9, 0.2, paleStone);
         ring(2.7, 0.08, green);
+        for (let index = 0; index < 12; index += 1) {
+            const angle = index / 12 * Math.PI * 2;
+            block(Math.cos(angle) * 4.8, Math.sin(angle) * 3.45, 0.34, 1.65, 0.34, paleStone, angle);
+        }
     } else if (region.id === 'r_spire_dist') {
         [-2.2, 0, 2.2].forEach((x, index) => block(x, -0.6 + Math.abs(index - 1) * 0.8, 0.72, 4.4 + index * 0.8, 0.72, darkStone));
     } else if (region.id === 'r_gardens') {
-        [1.45, 2.7, 4.1].forEach((radius, index) => ring(radius, index === 2 ? 0.14 : 0.075, index === 1 ? paleStone : green));
+        [2.05, 4.15, 6.25].forEach((radius, index) => ring(radius, index === 2 ? 0.18 : 0.09, index === 1 ? paleStone : green));
+        const waterRing = new THREE.Mesh(
+            new THREE.TorusGeometry(3.15, 0.34, 8, 72),
+            createReflectiveWaterMaterial(0x2b7782, 0.88)
+        );
+        waterRing.rotation.x = -Math.PI / 2;
+        waterRing.position.y = localHeightAt(3.15, 0) + 0.055;
+        regionStage.add(waterRing);
+
+        const columnMaterial = new THREE.MeshStandardMaterial({ color: 0xc0b9a6, roughness: 0.66, metalness: 0.055 });
+        for (let index = 0; index < 18; index += 1) {
+            const angle = index / 18 * Math.PI * 2;
+            const x = Math.cos(angle) * 4.15;
+            const z = Math.sin(angle) * 3.05;
+            const column = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.17, 2.25, 8), columnMaterial);
+            column.position.set(x, localHeightAt(x, z) + 1.13, z);
+            addStageMesh(column);
+        }
+        const roofRing = new THREE.Mesh(new THREE.TorusGeometry(4.15, 0.25, 8, 72), paleStone);
+        roofRing.rotation.x = -Math.PI / 2;
+        roofRing.scale.z = 0.735;
+        roofRing.position.y = 2.25;
+        addStageMesh(roofRing);
+
+        for (let index = 0; index < 4; index += 1) {
+            const angle = index / 4 * Math.PI * 2;
+            const x = Math.cos(angle) * 6.35;
+            const z = Math.sin(angle) * 4.7;
+            const height = index === 3 ? 4.8 : 1.8;
+            block(x, z, index === 3 ? 2.1 : 2.65, height, 2.15, paleStone, -angle);
+            if (index === 3) {
+                const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.82, 1.25, 10), darkStone);
+                crown.position.set(x, localHeightAt(x, z) + height + 0.62, z);
+                makeOccluder(addStageMesh(crown));
+            }
+        }
+        const glass = new THREE.MeshPhysicalMaterial({
+            color: 0x9fd5d0,
+            roughness: 0.08,
+            transmission: 0.72,
+            thickness: 0.12,
+            transparent: true,
+            opacity: 0.3,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(2.15, 28, 14, 0, Math.PI * 2, 0, Math.PI * 0.5), glass);
+        dome.position.y = localHeightAt(0, 0) + 0.06;
+        dome.scale.z = 0.78;
+        dome.renderOrder = 4;
+        regionStage.add(dome);
     } else if (region.id === 'r_south_wilds') {
         const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.92, 4.8, 9), timber);
         trunk.position.y = 2.4;
-        addStageMesh(trunk);
+        makeOccluder(addStageMesh(trunk));
         const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(2.25, 2), green);
         crown.position.y = 5.15;
         crown.scale.y = 0.72;
-        addStageMesh(crown);
+        makeOccluder(addStageMesh(crown));
     } else if (region.id === 'r_east_shore') {
         for (let index = -5; index <= 5; index += 1) block(index * 1.15, -2.8, 1.3, 0.14, 0.72, paleStone);
     } else if (region.id === 'r_tropic_isle') {
@@ -1503,7 +1858,7 @@ function buildUrbanStage(region, isCitadel) {
         building.position.set(spot.x, spot.y + height * 0.5, spot.z);
         building.scale.set(0.6 + hash(index * 4.3) * 0.9, height, 0.6 + hash(index * 9.1) * 0.85);
         building.rotation.y = spot.angle * 0.5;
-        addStageMesh(building);
+        makeOccluder(addStageMesh(building));
         if (region.biome === 'oldtown' && index % 3 === 0) {
             const roof = new THREE.Mesh(
                 new THREE.ConeGeometry(0.38, 0.3, 4),
@@ -1563,6 +1918,7 @@ function buildUrbanStage(region, isCitadel) {
         tower.position.y = 3.25;
         tower.castShadow = true;
         crown.add(tower);
+        makeOccluder(tower);
         regionStage.add(crown);
     }
 }
@@ -1674,7 +2030,7 @@ function buildCoastStage(region) {
     const shoreMaterial = new THREE.MeshStandardMaterial({ color: 0xe4c88d, roughness: 0.88 });
     const localSea = new THREE.Mesh(
         new THREE.PlaneGeometry(LOCAL_RADIUS_X * 2.4, LOCAL_RADIUS_Z * 0.92, 16, 8),
-        new THREE.MeshPhysicalMaterial({ color: 0x1f6677, roughness: 0.24, clearcoat: 0.62, transparent: true, opacity: 0.82, depthWrite: false })
+        createReflectiveWaterMaterial(0x1f6677, 0.82)
     );
     localSea.rotation.x = -Math.PI / 2;
     localSea.position.set(0, 0.015, -LOCAL_RADIUS_Z * 0.68);
@@ -1763,6 +2119,9 @@ function applyRegionMood(family) {
     hemisphereGroundTarget.setHex(ground);
     keyLightColorTarget.setHex(key);
     keyLightIntensityTarget = intensity;
+    skyTopTarget.setHex(background).lerp(new THREE.Color(sky), 0.14);
+    skyHorizonTarget.setHex(fog).lerp(new THREE.Color(key), family === 'coast' ? 0.24 : 0.12);
+    skyBottomTarget.setHex(background).multiplyScalar(0.62);
 }
 
 function resetMood() {
@@ -1772,6 +2131,9 @@ function resetMood() {
     hemisphereGroundTarget.setHex(0x182313);
     keyLightColorTarget.setHex(0xffd2a0);
     keyLightIntensityTarget = 3.05;
+    skyTopTarget.setHex(0x102b3d);
+    skyHorizonTarget.setHex(0x31515b);
+    skyBottomTarget.setHex(0x06131e);
 }
 
 function snapMood() {
@@ -1782,6 +2144,11 @@ function snapMood() {
     hemisphereLight.groundColor.copy(hemisphereGroundTarget);
     directionalLight.color.copy(keyLightColorTarget);
     directionalLight.intensity = keyLightIntensityTarget;
+    if (skyMaterial) {
+        skyMaterial.uniforms.topColor.value.copy(skyTopTarget);
+        skyMaterial.uniforms.horizonColor.value.copy(skyHorizonTarget);
+        skyMaterial.uniforms.bottomColor.value.copy(skyBottomTarget);
+    }
 }
 
 function createLabels() {
@@ -2041,7 +2408,25 @@ function nudgeLocalTraveler(dx, dz) {
 
 function beginWorldDrag(event) {
     if (event.button !== undefined && event.button !== 0) return;
+    if (portalTransitioning) return;
     event.preventDefault();
+    if (event.pointerType === 'touch') {
+        touchPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        canvas.setPointerCapture?.(event.pointerId);
+        if (touchPoints.size >= 2) {
+            const [first, second] = [...touchPoints.values()];
+            isPinching = true;
+            pinchStartDistance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+            pinchStartZoom = desiredZoom;
+            activePointerId = null;
+            hasDragged = true;
+            localMoveTarget = null;
+            focusMarker.visible = false;
+            atlas.classList.add('is-travelling');
+            statusText.textContent = 'Pinch to change the distance';
+            return;
+        }
+    }
     activePointerId = event.pointerId;
     activePointerType = event.pointerType || 'mouse';
     dragStartX = event.clientX;
@@ -2057,6 +2442,21 @@ function beginWorldDrag(event) {
 
 function moveAcrossWorld(event) {
     const bounds = canvas.getBoundingClientRect();
+
+    if (event.pointerType === 'touch' && touchPoints.has(event.pointerId)) {
+        touchPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+    if (isPinching && touchPoints.size >= 2) {
+        const [first, second] = [...touchPoints.values()];
+        const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+        desiredZoom = THREE.MathUtils.clamp(pinchStartZoom * distance / pinchStartDistance, 0.62, 2.12);
+        currentZoom = desiredZoom;
+        pointerX = 0;
+        pointerY = 0;
+        statusText.textContent = desiredZoom < 0.94 ? 'Drawing back' : desiredZoom > 1.42 ? 'Drawing close' : 'Pinch to change the distance';
+        renderScene(elapsed);
+        return;
+    }
 
     if (event.pointerId !== activePointerId) {
         if (!MOTION_QUERY.matches && event.pointerType === 'mouse') {
@@ -2088,9 +2488,9 @@ function moveAcrossWorld(event) {
     const horizontalScale = (WORLD_WIDTH * 0.82) / Math.max(320, bounds.width) / currentZoom;
     const verticalScale = (WORLD_DEPTH * 0.78) / Math.max(420, bounds.height) / currentZoom;
     desiredTarget.set(
-        THREE.MathUtils.clamp(dragStartTarget.x - dx * horizontalScale, -7.4, 7.4),
+        THREE.MathUtils.clamp(dragStartTarget.x - dx * horizontalScale, -WORLD_WIDTH * 0.34, WORLD_WIDTH * 0.34),
         dragStartTarget.y,
-        THREE.MathUtils.clamp(dragStartTarget.z - dy * verticalScale, -5.1, 5.1)
+        THREE.MathUtils.clamp(dragStartTarget.z - dy * verticalScale, -WORLD_DEPTH * 0.34, WORLD_DEPTH * 0.34)
     );
     statusText.textContent = 'The world follows your hand';
 
@@ -2099,6 +2499,21 @@ function moveAcrossWorld(event) {
 }
 
 function finishWorldDrag(event) {
+    if (event.pointerType === 'touch') touchPoints.delete(event.pointerId);
+    if (isPinching) {
+        canvas.releasePointerCapture?.(event.pointerId);
+        if (touchPoints.size < 2) {
+            isPinching = false;
+            touchPoints.clear();
+            activePointerId = null;
+            dragStartTarget = null;
+            atlas.classList.remove('is-travelling');
+            statusText.textContent = atlas.classList.contains('is-local')
+                ? `${focusedRegion.label} · marked ways lead onward`
+                : 'North stays fixed · tap a place to enter';
+        }
+        return;
+    }
     if (event.pointerId !== activePointerId) return;
     if (atlas.classList.contains('is-local')) focusAtPointer(event);
     else if (!hasDragged) focusAtPointer(event);
@@ -2110,6 +2525,15 @@ function finishWorldDrag(event) {
 }
 
 function cancelWorldDrag(event) {
+    if (event.pointerType === 'touch') touchPoints.delete(event.pointerId);
+    if (isPinching) {
+        isPinching = false;
+        touchPoints.clear();
+        activePointerId = null;
+        dragStartTarget = null;
+        atlas.classList.remove('is-travelling');
+        return;
+    }
     if (event.pointerId !== activePointerId) return;
     activePointerId = null;
     dragStartTarget = null;
@@ -2182,7 +2606,7 @@ function focusOnRegion(region) {
 }
 
 function changeZoom(amount) {
-    desiredZoom = THREE.MathUtils.clamp(desiredZoom + amount, 0.78, 1.68);
+    desiredZoom = THREE.MathUtils.clamp(desiredZoom + amount, 0.62, 2.12);
     if (MOTION_QUERY.matches) {
         currentZoom = desiredZoom;
         renderScene(elapsed);
@@ -2190,8 +2614,14 @@ function changeZoom(amount) {
 }
 
 function resetView() {
+    window.clearTimeout(portalCrossTimer);
+    window.clearTimeout(portalFinishTimer);
+    portalCrossTimer = 0;
+    portalFinishTimer = 0;
     travelerJourney = null;
     localMoveTarget = null;
+    isPinching = false;
+    touchPoints.clear();
     desiredZoom = 1;
     desiredFocusBlend = 0;
     pointerX = 0;
@@ -2203,15 +2633,20 @@ function resetView() {
     regionStage = null;
     regionParticles = null;
     localGround = null;
+    clearLocalPortalLabels();
+    localPortals = [];
+    localOccluders = [];
+    portalTransitioning = false;
+    atlas.classList.remove('is-crossing');
     disposeObject(journeyPath);
     if (journeyPath) scene.remove(journeyPath);
     journeyPath = null;
     focusedRegion = null;
-    traveler.scale.setScalar(1);
+    traveler.scale.setScalar(2.2);
     labelEntries.forEach(entry => entry.element.classList.remove('is-focused'));
     atlas.classList.remove('has-focus', 'is-local');
     resetMood();
-    fogDensityTarget = 0.0115;
+    fogDensityTarget = 0.0088;
     resetViewButton.textContent = 'Whole world';
     statusText.textContent = 'Whole world · north up';
     if (MOTION_QUERY.matches) {
@@ -2311,13 +2746,54 @@ function updateAtmosphere(delta) {
     hemisphereLight.groundColor.lerp(hemisphereGroundTarget, moodAmount);
     directionalLight.color.lerp(keyLightColorTarget, moodAmount);
     directionalLight.intensity += (keyLightIntensityTarget - directionalLight.intensity) * moodAmount;
+    if (skyMaterial) {
+        skyMaterial.uniforms.topColor.value.lerp(skyTopTarget, moodAmount);
+        skyMaterial.uniforms.horizonColor.value.lerp(skyHorizonTarget, moodAmount);
+        skyMaterial.uniforms.bottomColor.value.lerp(skyBottomTarget, moodAmount);
+    }
     if (focusMarker?.visible) {
         const pulse = MOTION_QUERY.matches ? 0 : Math.sin(elapsed * 1.8);
-        focusMarker.scale.setScalar(1 + pulse * 0.055);
+        const markerScale = atlas.classList.contains('is-local') ? 0.92 : 1.82;
+        focusMarker.scale.setScalar(markerScale * (1 + pulse * 0.055));
         focusMarker.userData.outerMaterial.opacity = 0.68 + pulse * 0.1;
         focusMarker.userData.innerMaterial.opacity = 0.34 - pulse * 0.07;
         focusMarker.userData.washMaterial.opacity = 0.05 + pulse * 0.014;
     }
+}
+
+function updateOcclusion(delta = 0.016) {
+    if (!localOccluders.length) return;
+    const shouldFade = atlas.classList.contains('is-local') && !portalTransitioning;
+    const faded = new Set();
+
+    if (shouldFade) {
+        occlusionDirection.subVectors(traveler.position, camera.position);
+        const travelerDistance = occlusionDirection.length();
+        if (travelerDistance > 0.01) {
+            raycaster.set(camera.position, occlusionDirection.normalize());
+            raycaster.far = travelerDistance - 0.08;
+            raycaster.intersectObjects(localOccluders, false).forEach(hit => faded.add(hit.object));
+            raycaster.far = Infinity;
+        }
+    }
+
+    const amount = MOTION_QUERY.matches ? 1 : 1 - Math.pow(0.0008, delta);
+    localOccluders.forEach(mesh => {
+        const target = faded.has(mesh) ? 0.2 : 1;
+        const previous = mesh.userData.occluderOpacity ?? 1;
+        const opacity = previous + (target - previous) * amount;
+        mesh.userData.occluderOpacity = opacity;
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        materials.forEach(material => {
+            const depthWrite = opacity > 0.96;
+            if (material.depthWrite !== depthWrite) {
+                material.depthWrite = depthWrite;
+                material.needsUpdate = true;
+            }
+            material.opacity = opacity;
+        });
+        mesh.renderOrder = opacity < 0.96 ? 5 : 0;
+    });
 }
 
 function updateRegionParticles(delta) {
@@ -2351,6 +2827,9 @@ function updateRegionParticles(delta) {
 }
 
 function updateWater(time) {
+    reflectiveWaterMaterials.forEach(material => {
+        material.uniforms.time.value = time;
+    });
     const position = water.geometry.getAttribute('position');
     for (let index = 0; index < position.count; index += 1) {
         const offset = index * 3;
@@ -2365,6 +2844,7 @@ function updateWater(time) {
 }
 
 function renderScene() {
+    atlas.classList.toggle('has-map-detail', !atlas.classList.contains('is-local') && currentZoom > 1.12);
     const breath = MOTION_QUERY.matches ? 1 : 1 + Math.sin(elapsed * 0.11) * 0.0045;
     temporaryVector.copy(baseCameraPosition).multiplyScalar(framingScale / (currentZoom * breath));
     const localScale = (MOBILE_QUERY.matches ? 1.14 : 1) * 1.54 / currentZoom;
@@ -2375,11 +2855,20 @@ function renderScene() {
     camera.position.y += cameraTarget.y;
     camera.position.z += cameraTarget.z;
     camera.lookAt(cameraTarget);
+    directionalLight.position.set(cameraTarget.x - 8.5, cameraTarget.y + 15, cameraTarget.z - 10.5);
+    directionalLight.target.position.copy(cameraTarget);
+    directionalLight.target.updateMatrixWorld();
+    rimLight.position.set(cameraTarget.x + 9, cameraTarget.y + 8, cameraTarget.z + 10);
+    rimLight.target.position.copy(cameraTarget);
+    rimLight.target.updateMatrixWorld();
+    if (skyDome) skyDome.position.copy(camera.position);
+    updateOcclusion(lastTime ? 0.016 : 1);
     camera.layers.set(BLOOM_LAYER);
     bloomComposer.render();
     camera.layers.set(BASE_LAYER);
     finalComposer.render();
     updateLabels();
+    updateExitLabels();
 }
 
 function updateLabels() {
@@ -2397,9 +2886,27 @@ function updateLabels() {
     });
 }
 
+function updateExitLabels() {
+    if (!regionStage || !atlas.classList.contains('is-local')) {
+        localPortalLabels.forEach(label => label.classList.remove('is-onscreen'));
+        return;
+    }
+    const width = atlas.clientWidth;
+    const height = atlas.clientHeight;
+    localPortals.forEach(portal => {
+        temporaryVector.copy(portal.localPosition).add(regionStage.position).project(camera);
+        const x = (temporaryVector.x * 0.5 + 0.5) * width;
+        const y = (-temporaryVector.y * 0.5 + 0.5) * height;
+        const onscreen = temporaryVector.z > -1 && temporaryVector.z < 1
+            && x > 18 && x < width - 18 && y > 70 && y < height - 120;
+        portal.label.classList.toggle('is-onscreen', onscreen);
+        portal.label.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(-50%, -100%)`;
+    });
+}
+
 function markReady() {
     atlas.classList.add('is-ready');
-    statusText.textContent = 'Drag anywhere · tap a region and the traveler will cross';
+    statusText.textContent = 'Drag or pinch · tap a place to enter';
 }
 
 function showFailure(message) {
