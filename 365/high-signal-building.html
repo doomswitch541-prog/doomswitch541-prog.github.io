@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#08100d">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <title>High-Signal Building · Days 86–93</title>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+    <style>
+        :root {
+            --night: #08100d;
+            --panel: #0d1713;
+            --paper: #edf5ef;
+            --muted: #8e9e94;
+            --green: #4ade80;
+            --copper: #cd804c;
+            --cream: #e8c49c;
+            --line: rgba(198, 226, 207, 0.14);
+            --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            --sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            min-width: 320px;
+            background: var(--night);
+        }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            color: var(--paper);
+            background:
+                radial-gradient(circle at 78% 14%, rgba(74, 222, 128, 0.1), transparent 31rem),
+                radial-gradient(circle at 12% 47%, rgba(205, 128, 76, 0.08), transparent 28rem),
+                linear-gradient(155deg, #08100d, #080d0b 62%, #0b120f);
+            font-family: var(--sans);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.2;
+            background-image: radial-gradient(rgba(205, 232, 213, 0.3) 0.55px, transparent 0.65px);
+            background-size: 13px 13px;
+            mask-image: linear-gradient(black, transparent 88%);
+        }
+
+        a { color: inherit; }
+
+        a:focus-visible {
+            outline: 2px solid var(--green);
+            outline-offset: 6px;
+        }
+
+        main {
+            width: min(1120px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: calc(7rem + env(safe-area-inset-top)) 0 calc(9rem + env(safe-area-inset-bottom));
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: clamp(2.5rem, 8vw, 8rem);
+            align-items: end;
+            min-height: min(40rem, 74vh);
+            padding: clamp(2rem, 6vw, 5rem) 0 clamp(4rem, 8vw, 7rem);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .eyebrow,
+        .ledger-label,
+        .entry-date,
+        .entry-link,
+        .door-day,
+        .door-link {
+            font-family: var(--mono);
+            text-transform: uppercase;
+        }
+
+        .eyebrow {
+            margin: 0 0 1rem;
+            color: var(--green);
+            font-size: 0.67rem;
+            letter-spacing: 0.18em;
+        }
+
+        h1 {
+            max-width: 52rem;
+            margin: 0;
+            font-size: clamp(4.3rem, 11vw, 9.3rem);
+            font-weight: 700;
+            line-height: 0.78;
+            letter-spacing: -0.075em;
+        }
+
+        h1 span {
+            display: block;
+            color: var(--green);
+        }
+
+        .hero-copy {
+            max-width: 40rem;
+            margin: 1.8rem 0 0;
+            color: var(--muted);
+            font-size: clamp(1rem, 1.8vw, 1.16rem);
+            line-height: 1.72;
+        }
+
+        .hero-copy strong { color: var(--paper); font-weight: 550; }
+
+        .shift-count {
+            display: grid;
+            place-items: center;
+            width: clamp(9rem, 18vw, 13rem);
+            aspect-ratio: 1;
+            border: 1px solid rgba(74, 222, 128, 0.28);
+            border-radius: 50%;
+            background: rgba(8, 16, 13, 0.68);
+            box-shadow: inset 0 0 0 0.65rem var(--night), inset 0 0 0 calc(0.65rem + 1px) rgba(74, 222, 128, 0.1), 0 0 3rem rgba(74, 222, 128, 0.08);
+            transform: rotate(4deg);
+        }
+
+        .shift-count strong {
+            display: block;
+            color: var(--green);
+            font: clamp(3rem, 7vw, 5rem) var(--mono);
+            letter-spacing: -0.09em;
+        }
+
+        .shift-count small {
+            display: block;
+            margin-top: -0.5rem;
+            color: var(--muted);
+            font: 0.54rem var(--mono);
+            letter-spacing: 0.15em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .ledger {
+            position: relative;
+            padding: clamp(4rem, 9vw, 8rem) 0;
+        }
+
+        .ledger::before {
+            content: "";
+            position: absolute;
+            top: 8.5rem;
+            bottom: 7rem;
+            left: 2.35rem;
+            width: 1px;
+            background: linear-gradient(var(--green), var(--copper) 45%, var(--green));
+            box-shadow: 0 0 1rem rgba(74, 222, 128, 0.28);
+        }
+
+        .ledger-label {
+            margin: 0 0 2.2rem 5.5rem;
+            color: var(--muted);
+            font-size: 0.65rem;
+            letter-spacing: 0.18em;
+        }
+
+        .entry {
+            position: relative;
+            display: grid;
+            grid-template-columns: 4.7rem minmax(0, 1fr) auto;
+            gap: clamp(1.2rem, 4vw, 3.2rem);
+            align-items: center;
+            min-height: 9rem;
+            padding: 1rem 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .entry:last-child { border-bottom: 1px solid var(--line); }
+
+        .entry::before {
+            content: attr(data-day);
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            width: 4.7rem;
+            height: 4.7rem;
+            border: 1px solid rgba(74, 222, 128, 0.34);
+            border-radius: 50%;
+            color: var(--green);
+            background: var(--night);
+            box-shadow: 0 0 0 0.42rem var(--night), 0 0 1.5rem rgba(74, 222, 128, 0.12);
+            font: 0.72rem var(--mono);
+            letter-spacing: 0.07em;
+        }
+
+        .entry-copper::before {
+            border-color: rgba(205, 128, 76, 0.5);
+            color: var(--copper);
+            box-shadow: 0 0 0 0.42rem var(--night), 0 0 1.5rem rgba(205, 128, 76, 0.15);
+        }
+
+        .entry-date {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--muted);
+            font-size: 0.59rem;
+            letter-spacing: 0.13em;
+        }
+
+        .entry h2 {
+            margin: 0;
+            font-size: clamp(1.45rem, 3vw, 2.3rem);
+            letter-spacing: -0.035em;
+        }
+
+        .entry p {
+            max-width: 43rem;
+            margin: 0.65rem 0 0;
+            color: var(--muted);
+            line-height: 1.62;
+        }
+
+        .entry-link {
+            color: var(--green);
+            font-size: 0.59rem;
+            letter-spacing: 0.12em;
+            text-decoration: none;
+        }
+
+        .entry-copper .entry-link { color: var(--copper); }
+
+        .entry-link:hover,
+        .entry-link:focus-visible { color: var(--paper); }
+
+        .signal-strip {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 0.45rem;
+            margin: 0 0 clamp(4rem, 8vw, 7rem) 5.5rem;
+        }
+
+        .signal-strip span {
+            height: 0.32rem;
+            border-radius: 999px;
+            background: var(--green);
+            box-shadow: 0 0 0.9rem rgba(74, 222, 128, 0.35);
+        }
+
+        .signal-strip span:nth-child(4) { background: var(--copper); box-shadow: 0 0 0.9rem rgba(205,128,76,0.4); }
+
+        .doors {
+            padding: clamp(4rem, 8vw, 7rem) 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .doors-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            align-items: end;
+            margin-bottom: 2rem;
+        }
+
+        .doors-head h2 {
+            margin: 0;
+            font-size: clamp(2.2rem, 5vw, 4.5rem);
+            letter-spacing: -0.055em;
+        }
+
+        .doors-head p {
+            max-width: 28rem;
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+            text-align: right;
+        }
+
+        .door-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .door {
+            min-height: 24rem;
+            padding: clamp(1.5rem, 4vw, 3rem);
+            border: 1px solid var(--line);
+            color: inherit;
+            text-decoration: none;
+            transition: transform 180ms ease, border-color 180ms ease;
+        }
+
+        .door:hover,
+        .door:focus-visible { transform: translateY(-0.25rem); }
+
+        .door-music {
+            border-color: rgba(205, 128, 76, 0.34);
+            background:
+                linear-gradient(90deg, rgba(205,128,76,0.08) 1px, transparent 1px),
+                linear-gradient(rgba(205,128,76,0.06) 1px, transparent 1px),
+                rgba(20, 14, 11, 0.64);
+            background-size: 2rem 2rem;
+        }
+
+        .door-guardian {
+            border-color: rgba(74, 222, 128, 0.34);
+            background: linear-gradient(145deg, rgba(74,222,128,0.09), rgba(5,13,9,0.72));
+        }
+
+        .door-day {
+            color: var(--muted);
+            font-size: 0.6rem;
+            letter-spacing: 0.14em;
+        }
+
+        .door h3 {
+            max-width: 28rem;
+            margin: 5rem 0 0;
+            font-size: clamp(2.3rem, 5vw, 4.4rem);
+            line-height: 0.9;
+            letter-spacing: -0.055em;
+        }
+
+        .door p {
+            max-width: 34rem;
+            margin: 1.2rem 0 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .door-link {
+            display: inline-block;
+            margin-top: 3rem;
+            color: var(--copper);
+            font-size: 0.6rem;
+            letter-spacing: 0.13em;
+        }
+
+        .door-guardian .door-link { color: var(--green); }
+
+        @media (max-width: 760px) {
+            main { width: min(100% - 1.2rem, 1120px); }
+
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: 0;
+                padding-top: 3rem;
+            }
+
+            .shift-count { width: 9rem; }
+            .entry { grid-template-columns: 4.7rem minmax(0, 1fr); }
+            .entry-link { grid-column: 2; }
+            .door-grid { grid-template-columns: 1fr; }
+            .doors-head { display: block; }
+            .doors-head p { margin-top: 1rem; text-align: left; }
+        }
+
+        @media (max-width: 430px) {
+            h1 { font-size: clamp(3.8rem, 19vw, 5.3rem); }
+            .ledger::before { left: 1.65rem; }
+            .ledger-label, .signal-strip { margin-left: 4rem; }
+            .entry { grid-template-columns: 3.3rem minmax(0, 1fr); gap: 0.9rem; }
+            .entry::before { width: 3.3rem; height: 3.3rem; font-size: 0.62rem; box-shadow: 0 0 0 0.3rem var(--night); }
+            .door { min-height: 21rem; padding: 1.35rem; }
+            .door h3 { margin-top: 4rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .door { transition: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="archive-topbar" data-archive-inbar style="--archive-accent:#4ade80" aria-label="Archive">
+        <a class="brand" href="/365/"><span>RG</span> / HIGH-SIGNAL BUILDING</a>
+        <time class="archive-topbar-date" datetime="2026-03-28">Days 86–93 · Mar 28–Apr 4, 2026</time>
+    </nav>
+
+    <main>
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Eight consecutive build days</p>
+                <h1>High-signal<span>building.</span></h1>
+                <p class="hero-copy"><strong>Keep the run together.</strong> First light on the desktop, the Music Room terminal deck, the days of work between, and the finished guardian all belong to the same sustained stretch.</p>
+            </div>
+            <div class="shift-count" aria-label="Eight day build arc"><div><strong>08</strong><small>day run</small></div></div>
+        </header>
+
+        <section class="ledger" aria-labelledby="ledger-title">
+            <p class="ledger-label" id="ledger-title">Build ledger · Mar 28–Apr 4</p>
+
+            <article class="entry" data-day="86">
+                <div><span class="entry-date">Mar 28</span><h2>RG Claude — first light</h2><p>The desktop pet appears on the machine: the first visible shape of the guardian completed at the far end of the run.</p></div>
+            </article>
+
+            <article class="entry" data-day="87–88">
+                <div><span class="entry-date">Mar 29–30</span><h2>Build days</h2><p>Two focused build days keep the run moving between first light and the terminal deck.</p></div>
+            </article>
+
+            <article class="entry entry-copper" data-day="89">
+                <div><span class="entry-date">Mar 31</span><h2>The Music Room</h2><p>A local server console opens into an ANSI card deck for music, news, scheduled work, logs, and Situation intelligence.</p></div>
+                <a class="entry-link" href="/365/music-room-about.html">Open Day 89 →</a>
+            </article>
+
+            <article class="entry" data-day="90–92">
+                <div><span class="entry-date">Apr 1–3</span><h2>Build days</h2><p>Three more focused days carry the work toward the finished desktop guardian.</p></div>
+            </article>
+
+            <article class="entry" data-day="93">
+                <div><span class="entry-date">Apr 4</span><h2>RG Claude</h2><p>The pixel-raccoon desktop buddy arrives with machine watch modes, session logging, and a visible work state, fully local.</p></div>
+                <a class="entry-link" href="/365/rg-claude-about.html">Open Day 93 →</a>
+            </article>
+        </section>
+
+        <div class="signal-strip" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+        <section class="doors" aria-labelledby="doors-title">
+            <div class="doors-head">
+                <h2 id="doors-title">Two live doors.</h2>
+                <p>The run has two finished pages, and both remain one tap away.</p>
+            </div>
+            <div class="door-grid">
+                <a class="door door-music" href="/365/music-room-about.html">
+                    <span class="door-day">Day 89 · terminal deck</span>
+                    <h3>The Music Room</h3>
+                    <p>The console face of a larger local web-backend system, organized as a deck you can enter from the keyboard.</p>
+                    <span class="door-link">Enter the deck →</span>
+                </a>
+                <a class="door door-guardian" href="/365/rg-claude-about.html">
+                    <span class="door-day">Day 93 · desktop guardian</span>
+                    <h3>RG Claude</h3>
+                    <p>A local pixel companion that watches the box, records sessions, and visibly comes alive while work is underway.</p>
+                    <span class="door-link">Meet the guardian →</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <nav data-archive-key="high-signal-building" aria-label="365 Days navigation"></nav>
+</body>
+</html>
