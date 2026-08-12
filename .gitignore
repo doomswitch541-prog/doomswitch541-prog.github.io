@@ -4,5 +4,8 @@
 # Private local asset intake; never publish
 /local-assets/
 
+# Private design-language research; never publish
+/assets/design-languages/
+
 # Private working chronology; never publish
 /365-CALENDAR.local.md

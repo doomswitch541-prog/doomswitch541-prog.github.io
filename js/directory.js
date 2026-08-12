@@ -2,6 +2,80 @@ import { animate, stagger } from '/echofield/vendor/animejs/anime.esm.min.js';
 
 const page = document.querySelector('.directory-page');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sizeKey = 'rg-directory-text-size';
+const sizeLabels = {
+    compact: 'Compact',
+    default: 'Default',
+    large: 'Large',
+};
+const sizeToggle = document.getElementById('type-size-toggle');
+const sizeMenu = document.getElementById('type-size-menu');
+const sizeCurrent = document.getElementById('type-size-current');
+const sizeOptions = [...document.querySelectorAll('.type-size-option')];
+
+function readSize() {
+    try {
+        const value = localStorage.getItem(sizeKey);
+        return Object.hasOwn(sizeLabels, value) ? value : 'default';
+    } catch {
+        return 'default';
+    }
+}
+
+function applySize(size, persist = false) {
+    const next = Object.hasOwn(sizeLabels, size) ? size : 'default';
+    document.documentElement.dataset.directorySize = next;
+    if (sizeCurrent) sizeCurrent.textContent = sizeLabels[next];
+    if (sizeToggle) sizeToggle.setAttribute('aria-label', `Text size: ${sizeLabels[next]}`);
+    sizeOptions.forEach(option => {
+        option.setAttribute('aria-pressed', String(option.dataset.size === next));
+    });
+    if (persist) {
+        try {
+            localStorage.setItem(sizeKey, next);
+        } catch {
+            // The setting is optional; the control still works for this visit.
+        }
+    }
+}
+
+function setSizeMenu(open) {
+    if (!sizeToggle || !sizeMenu) return;
+    sizeToggle.setAttribute('aria-expanded', String(open));
+    sizeMenu.hidden = !open;
+}
+
+applySize(readSize());
+
+if (sizeToggle && sizeMenu) {
+    sizeToggle.addEventListener('click', () => {
+        setSizeMenu(sizeToggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    sizeOptions.forEach((option, index) => {
+        option.addEventListener('click', () => applySize(option.dataset.size, true));
+        option.addEventListener('keydown', event => {
+            const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+            if (!keys.includes(event.key)) return;
+            event.preventDefault();
+            let nextIndex = index;
+            if (event.key === 'Home') nextIndex = 0;
+            else if (event.key === 'End') nextIndex = sizeOptions.length - 1;
+            else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                nextIndex = (index - 1 + sizeOptions.length) % sizeOptions.length;
+            } else {
+                nextIndex = (index + 1) % sizeOptions.length;
+            }
+            sizeOptions[nextIndex].focus();
+        });
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || sizeMenu.hidden) return;
+        setSizeMenu(false);
+        sizeToggle.focus();
+    });
+}
 
 if (page && !reducedMotion) {
     const headerItems = page.querySelectorAll('.page-header > *');
