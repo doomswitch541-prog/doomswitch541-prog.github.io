@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#080b12">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <title>RGInfV1 — Chat into Memory · Days 18–29</title>
+    <link rel="stylesheet" href="/365/archive-nav.css">
+    <script src="/365/archive-nav.js" defer></script>
+    <style>
+        :root {
+            --night: #080b12;
+            --deep: #0c1120;
+            --panel: #111827;
+            --ink: #f2f4f8;
+            --muted: #9aa4b4;
+            --quiet: #616b7c;
+            --line: rgba(255, 255, 255, 0.12);
+            --coral: #e94560;
+            --blue: #4a9eff;
+            --violet: #a78bfa;
+            --green: #4ade80;
+            --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            min-width: 320px;
+            background: var(--night);
+        }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 73% 11%, rgba(74, 158, 255, 0.14), transparent 31rem),
+                radial-gradient(circle at 9% 45%, rgba(233, 69, 96, 0.1), transparent 28rem),
+                linear-gradient(145deg, var(--night), var(--deep) 56%, #0a1221);
+            font-family: var(--sans);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.18;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+            background-size: 4rem 4rem;
+            mask-image: linear-gradient(to bottom, black, transparent 88%);
+        }
+
+        a { color: inherit; }
+
+        a:focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 5px;
+        }
+
+        main {
+            width: min(1160px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: calc(7rem + env(safe-area-inset-top)) 0 calc(8.5rem + env(safe-area-inset-bottom));
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.14fr) minmax(18rem, 0.86fr);
+            gap: clamp(2.5rem, 7vw, 7rem);
+            align-items: end;
+            min-height: min(44rem, 78vh);
+            padding: clamp(2rem, 5vw, 5rem) 0 clamp(4rem, 8vw, 7rem);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .eyebrow,
+        .arc-label,
+        .beat-day,
+        .beat-link,
+        .bookend-kicker,
+        .socket-label {
+            font-family: var(--mono);
+            text-transform: uppercase;
+        }
+
+        .eyebrow {
+            margin: 0 0 1.1rem;
+            color: var(--blue);
+            font-size: 0.68rem;
+            letter-spacing: 0.18em;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(4.7rem, 12vw, 10.6rem);
+            font-weight: 750;
+            line-height: 0.74;
+            letter-spacing: -0.085em;
+        }
+
+        h1 span {
+            display: block;
+            margin-left: 0.48em;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(242, 244, 248, 0.72);
+        }
+
+        h1 em {
+            color: var(--coral);
+            font-style: normal;
+        }
+
+        .hero-copy {
+            max-width: 37rem;
+            margin: 2rem 0 0;
+            color: var(--muted);
+            font-size: clamp(1rem, 1.8vw, 1.18rem);
+            line-height: 1.75;
+        }
+
+        .hero-copy strong {
+            color: var(--ink);
+            font-weight: 560;
+        }
+
+        .signal-console {
+            position: relative;
+            overflow: hidden;
+            min-height: 27rem;
+            padding: 1.15rem;
+            border: 1px solid rgba(74, 158, 255, 0.27);
+            border-radius: 1.1rem;
+            background: rgba(6, 10, 18, 0.72);
+            box-shadow: 0 2rem 6rem rgba(0, 0, 0, 0.34), inset 0 0 3rem rgba(74, 158, 255, 0.045);
+        }
+
+        .console-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.15rem 0.2rem 0.95rem;
+            border-bottom: 1px solid var(--line);
+            color: var(--quiet);
+            font: 0.58rem var(--mono);
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .console-lights {
+            display: flex;
+            gap: 0.42rem;
+        }
+
+        .console-lights i {
+            display: block;
+            width: 0.42rem;
+            height: 0.42rem;
+            border-radius: 50%;
+            background: var(--quiet);
+        }
+
+        .console-lights i:first-child { background: var(--coral); box-shadow: 0 0 0.8rem rgba(233,69,96,0.72); }
+        .console-lights i:nth-child(2) { background: var(--blue); box-shadow: 0 0 0.8rem rgba(74,158,255,0.62); }
+        .console-lights i:last-child { background: var(--green); box-shadow: 0 0 0.8rem rgba(74,222,128,0.5); }
+
+        .socket-field {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem 1rem;
+            padding: 2.4rem 0.7rem 1.5rem;
+        }
+
+        .socket-field::before {
+            content: "";
+            position: absolute;
+            top: 3.2rem;
+            bottom: 2.4rem;
+            left: 50%;
+            width: 2px;
+            background: linear-gradient(var(--coral), var(--blue) 43%, var(--violet) 68%, var(--green));
+            box-shadow: 0 0 1.2rem rgba(74,158,255,0.5);
+            transform: translateX(-50%);
+        }
+
+        .socket {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            min-height: 3.3rem;
+            color: var(--quiet);
+            font: 0.6rem var(--mono);
+        }
+
+        .socket::before {
+            content: "";
+            display: block;
+            width: 0.66rem;
+            height: 0.66rem;
+            margin-bottom: 0.45rem;
+            border: 1px solid #727b89;
+            border-radius: 50%;
+            background: #090d16;
+            box-shadow: inset 0 0 0 0.18rem #090d16;
+        }
+
+        .socket.hot { color: var(--ink); }
+        .socket.hot::before { border-color: var(--blue); background: var(--blue); box-shadow: 0 0 1rem rgba(74,158,255,0.72), inset 0 0 0 0.18rem #0b1321; }
+        .socket.memory::before { border-color: var(--violet); background: var(--violet); box-shadow: 0 0 1rem rgba(167,139,250,0.72), inset 0 0 0 0.18rem #111023; }
+
+        .console-readout {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            margin-top: 0.6rem;
+            background: var(--line);
+        }
+
+        .console-readout div {
+            padding: 0.85rem 0.55rem;
+            background: #090d16;
+            text-align: center;
+        }
+
+        .console-readout strong {
+            display: block;
+            color: var(--ink);
+            font: 1.4rem var(--mono);
+        }
+
+        .console-readout span {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--quiet);
+            font: 0.49rem var(--mono);
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        .arc {
+            display: grid;
+            grid-template-columns: minmax(8rem, 0.28fr) minmax(0, 1fr);
+            gap: clamp(2rem, 6vw, 6.5rem);
+            padding: clamp(4rem, 9vw, 8rem) 0;
+        }
+
+        .arc-aside {
+            position: sticky;
+            top: 7rem;
+            align-self: start;
+        }
+
+        .arc-label {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 0.62rem;
+            letter-spacing: 0.17em;
+        }
+
+        .arc-number {
+            display: block;
+            margin-top: 1rem;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(74,158,255,0.5);
+            font-size: clamp(5rem, 10vw, 8.6rem);
+            font-weight: 750;
+            line-height: 0.8;
+            letter-spacing: -0.08em;
+            writing-mode: vertical-rl;
+        }
+
+        .beats {
+            position: relative;
+        }
+
+        .beats::before {
+            content: "";
+            position: absolute;
+            top: 1.2rem;
+            bottom: 2.2rem;
+            left: 0.48rem;
+            width: 1px;
+            background: linear-gradient(var(--coral), var(--blue) 43%, var(--violet) 70%, var(--green));
+            box-shadow: 0 0 0.9rem rgba(74,158,255,0.44);
+        }
+
+        .beat {
+            position: relative;
+            padding: 0 0 clamp(3.5rem, 8vw, 6rem) 3.4rem;
+        }
+
+        .beat:last-child { padding-bottom: 0; }
+
+        .beat::before {
+            content: "";
+            position: absolute;
+            top: 0.52rem;
+            left: 0;
+            width: 0.94rem;
+            height: 0.94rem;
+            border: 1px solid var(--beat, var(--blue));
+            border-radius: 50%;
+            background: var(--night);
+            box-shadow: 0 0 1.1rem color-mix(in srgb, var(--beat, var(--blue)) 52%, transparent), inset 0 0 0 0.24rem var(--night);
+        }
+
+        .beat.hot::before { background: var(--beat, var(--blue)); }
+
+        .beat-day {
+            display: block;
+            color: var(--beat, var(--blue));
+            font-size: 0.66rem;
+            letter-spacing: 0.15em;
+        }
+
+        .beat h2 {
+            max-width: 46rem;
+            margin: 0.7rem 0 0;
+            font-size: clamp(2rem, 5vw, 4.4rem);
+            font-weight: 650;
+            line-height: 0.98;
+            letter-spacing: -0.055em;
+        }
+
+        .beat p {
+            max-width: 41rem;
+            margin: 1.1rem 0 0;
+            color: var(--muted);
+            font-size: clamp(0.95rem, 1.6vw, 1.08rem);
+            line-height: 1.75;
+        }
+
+        .beat-link {
+            display: inline-block;
+            margin-top: 1.35rem;
+            padding-bottom: 0.28rem;
+            border-bottom: 1px solid currentColor;
+            color: var(--ink);
+            font-size: 0.63rem;
+            letter-spacing: 0.14em;
+            text-decoration: none;
+        }
+
+        .beat-link::after { content: "  →"; color: var(--beat, var(--blue)); }
+
+        .bookends {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .bookend {
+            min-height: 15rem;
+            padding: clamp(1.5rem, 4vw, 3rem);
+            text-decoration: none;
+        }
+
+        .bookend + .bookend { border-left: 1px solid var(--line); }
+        .bookend:hover h2 { color: var(--bookend-color, var(--blue)); }
+
+        .bookend-kicker {
+            display: block;
+            color: var(--bookend-color, var(--blue));
+            font-size: 0.63rem;
+            letter-spacing: 0.14em;
+        }
+
+        .bookend h2 {
+            margin: 2.4rem 0 0;
+            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            line-height: 1;
+            letter-spacing: -0.045em;
+            transition: color 160ms ease;
+        }
+
+        .bookend p {
+            max-width: 31rem;
+            margin: 0.9rem 0 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        @media (max-width: 760px) {
+            .archive-topbar-date { display: none; }
+
+            main {
+                width: min(100% - 1.25rem, 42rem);
+                padding-top: calc(6rem + env(safe-area-inset-top));
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: 0;
+                padding-top: 2rem;
+            }
+
+            h1 { font-size: clamp(4.6rem, 25vw, 7.8rem); }
+
+            .signal-console { min-height: 0; }
+
+            .arc {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .arc-aside {
+                position: static;
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                border-bottom: 1px solid var(--line);
+                padding-bottom: 1.2rem;
+            }
+
+            .arc-number {
+                margin: 0;
+                font-size: 3.7rem;
+                writing-mode: horizontal-tb;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .bookends { grid-template-columns: 1fr; }
+            .bookend + .bookend { border-top: 1px solid var(--line); border-left: 0; }
+            .bookend { min-height: 13rem; }
+            .beat { padding-left: 2.55rem; }
+            .console-readout span { letter-spacing: 0.04em; }
+        }
+
+        @media (max-width: 370px) {
+            .console-head span:last-child { display: none; }
+            .socket-field { gap: 1.15rem 0.6rem; padding-inline: 0.2rem; }
+            .console-readout strong { font-size: 1.12rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="archive-topbar" data-archive-inbar style="--archive-accent:#4a9eff" aria-label="Archive">
+        <a class="brand" href="/365/"><span>RG</span> / INF / V1 / ARC</a>
+        <time class="archive-topbar-date" datetime="2026-01-19">Days 18–29 · Jan 19–30</time>
+    </nav>
+
+    <main>
+        <header class="hero">
+            <div>
+                <p class="eyebrow">January 19–30, 2026 · Twelve days on the room</p>
+                <h1>RG<span><em>INF</em>V1</span></h1>
+                <p class="hero-copy"><strong>The conversation room became a system.</strong> Streaming, saved threads, model controls, visible inference, and deliberate memory moved together through one sustained run of work.</p>
+            </div>
+
+            <div class="signal-console" aria-label="Twelve-day RGInfV1 work signal">
+                <div class="console-head">
+                    <div class="console-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+                    <span>Local room / work signal</span>
+                </div>
+                <div class="socket-field" aria-hidden="true">
+                    <span class="socket">18</span><span class="socket">19</span><span class="socket hot">20</span>
+                    <span class="socket">21</span><span class="socket">22</span><span class="socket memory">23</span>
+                    <span class="socket">24</span><span class="socket">25</span><span class="socket">26</span>
+                    <span class="socket">27</span><span class="socket">28</span><span class="socket">29</span>
+                </div>
+                <div class="console-readout">
+                    <div><strong>12</strong><span>work days</span></div>
+                    <div><strong>02</strong><span>live notes</span></div>
+                    <div><strong>01</strong><span>local room</span></div>
+                </div>
+            </div>
+        </header>
+
+        <section class="arc" aria-labelledby="arc-heading">
+            <div class="arc-aside">
+                <p class="arc-label" id="arc-heading">The build sequence</p>
+                <span class="arc-number" aria-hidden="true">18—29</span>
+            </div>
+
+            <div class="beats">
+                <article class="beat" style="--beat:#e94560">
+                    <span class="beat-day">Days 18–19 · Jan 19–20</span>
+                    <h2>The room stays in motion.</h2>
+                    <p>Work continues on the local-model chat surface: selecting what runs, carrying generated text back as a stream, saving conversations, and keeping the state of the machine close to the conversation.</p>
+                </article>
+
+                <article class="beat hot" style="--beat:#4a9eff">
+                    <span class="beat-day">Day 20 · Jan 21</span>
+                    <h2>Local conversation becomes legible.</h2>
+                    <p>The milestone gathers the browser room, Express bridge, Ollama model, and live response path into one visible system. The interface is no longer only a chat box; it shows what is running and where the answer comes from.</p>
+                    <a class="beat-link" href="/365/rginfv1-about.html">Open the Day 20 milestone</a>
+                </article>
+
+                <article class="beat" style="--beat:#5b8fff">
+                    <span class="beat-day">Days 21–22 · Jan 22–23</span>
+                    <h2>The interface keeps its thread.</h2>
+                    <p>Streaming, persistence, model controls, and system visibility receive another pass. A conversation can be left and returned to without hiding the machinery that makes it possible.</p>
+                </article>
+
+                <article class="beat hot" style="--beat:#a78bfa">
+                    <span class="beat-day">Day 23 · Jan 24</span>
+                    <h2>Memory enters the loop.</h2>
+                    <p>Saved history and durable facts become separate, inspectable things. Capture, storage, keyword ranking, enabled state, and a strict top-three limit make continuity a mechanism the operator can see and change.</p>
+                    <a class="beat-link" href="/365/rginfv1-memory.html">Open the Day 23 system note</a>
+                </article>
+
+                <article class="beat" style="--beat:#4ade80">
+                    <span class="beat-day">Days 24–29 · Jan 25–30</span>
+                    <h2>The room gets another six days.</h2>
+                    <p>The interface keeps developing around the same center: a selected local model, a response arriving in real time, conversations that remain, and enough system detail to understand the exchange while it happens.</p>
+                </article>
+            </div>
+        </section>
+
+        <nav class="bookends" aria-label="RGInfV1 sequence bookends">
+            <a class="bookend" href="/365/rginfv1-started.html" style="--bookend-color:#4a9eff">
+                <span class="bookend-kicker">Before the arc · Day 16</span>
+                <h2>RGInfV1 started</h2>
+                <p>The first browser room, local bridge, selected model, and streaming response.</p>
+            </a>
+            <a class="bookend" href="/365/long-context-research.html" style="--bookend-color:#f6c453">
+                <span class="bookend-kicker">After the arc · Day 30</span>
+                <h2>Long context research</h2>
+                <p>The work turns toward what belongs in the window, what it costs, and how it should be assembled.</p>
+            </a>
+        </nav>
+    </main>
+
+    <nav data-archive-key="rginfv1-arc" aria-label="365 Days navigation"></nav>
+</body>
+</html>
