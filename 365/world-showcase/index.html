@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#06131e">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'self'; form-action 'none'">
     <title>World Atlas — North Up</title>
-    <meta name="description" content="A sculpted, north-up atlas view of an entire continent, rendered locally in the browser.">
+    <meta name="description" content="Cross a sculpted continent, enter its landscapes, and walk them beneath a fixed northern bearing.">
     <link rel="stylesheet" href="/365/archive-nav.css">
     <link rel="stylesheet" href="./styles.css">
     <script src="/365/archive-nav.js" defer></script>
@@ -39,7 +39,7 @@
     </nav>
 
     <main class="atlas" id="atlas">
-        <canvas id="worldCanvas" tabindex="0" aria-label="Interactive north-up world. Drag anywhere to cross the continent, tap a region to send the traveler there, or use the zoom controls.">
+        <canvas id="worldCanvas" tabindex="0" role="application" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Enter" aria-label="Interactive north-up world. Drag across the continent, tap a place to enter it, then tap the ground or use arrow keys to walk.">
             This atlas requires a browser with WebGL.
         </canvas>
 
@@ -47,7 +47,7 @@
         <div class="labels" id="labels" aria-hidden="true"></div>
         <header class="atlas-heading">
             <p class="atlas-kicker">North 00° · Whole world</p>
-            <p class="atlas-subtitle">Drag anywhere to cross.<br>Tap a region to travel.</p>
+            <p class="atlas-subtitle">Drag across the world.<br>Tap a place to enter.</p>
         </header>
 
         <div class="north-mark" aria-label="North is up">
@@ -77,7 +77,7 @@
                 <div><dt><i class="swatch swatch-city"></i>Dense south</dt><dd>A packed metroplex around one bright spire.</dd></div>
                 <div><dt><i class="swatch swatch-coast"></i>Eastern water</dt><dd>Pale shore, open sea and a tropical isle.</dd></div>
             </dl>
-            <p class="notes-gesture">Scroll or use the controls to draw closer. The bearing stays north-up.</p>
+            <p class="notes-gesture">Scroll or use the controls to draw closer. Inside a place, tap the ground or use the arrow keys to walk. The bearing stays north-up.</p>
         </aside>
 
         <div class="atlas-status" role="status" aria-live="polite">

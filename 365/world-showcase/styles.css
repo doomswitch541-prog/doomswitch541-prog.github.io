@@ -99,6 +99,7 @@ button { font: inherit; }
 }
 
 .atlas.is-travelling #worldCanvas { cursor: grabbing; }
+.atlas.is-local #worldCanvas { cursor: crosshair; }
 
 #worldCanvas:focus-visible {
     box-shadow: inset 0 0 0 2px rgba(238, 232, 217, 0.72);
@@ -113,6 +114,14 @@ button { font: inherit; }
         linear-gradient(90deg, rgba(2,8,13,0.22), transparent 18%, transparent 82%, rgba(2,8,13,0.16)),
         linear-gradient(180deg, rgba(4,13,20,0.12), transparent 21%, transparent 76%, rgba(2,7,11,0.42));
     box-shadow: inset 0 0 14rem rgba(0,0,0,0.24);
+    transition: box-shadow 1.2s ease, background 1.2s ease;
+}
+
+.atlas.is-local .atmosphere {
+    background:
+        linear-gradient(90deg, rgba(2,8,13,0.31), transparent 21%, transparent 79%, rgba(2,8,13,0.26)),
+        linear-gradient(180deg, rgba(4,13,20,0.08), transparent 18%, transparent 68%, rgba(2,7,11,0.5));
+    box-shadow: inset 0 0 18rem rgba(0,0,0,0.34);
 }
 
 .atlas-heading {
@@ -420,6 +429,13 @@ button:focus-visible {
     box-shadow: 0 0 0.75rem rgba(227, 201, 138, 0.48);
 }
 
+.atlas.is-local .status-pulse {
+    background: var(--paper);
+    box-shadow: 0 0 0.65rem rgba(238, 232, 217, 0.32);
+}
+
+.atlas.is-local #toggleLabels { opacity: 0.38; }
+
 .labels {
     position: absolute;
     inset: 0;
@@ -568,18 +584,78 @@ button:focus-visible {
         right: max(0.9rem, env(safe-area-inset-right));
         bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4.35rem);
         left: max(0.9rem, env(safe-area-inset-left));
-        justify-content: flex-end;
-        gap: 0.85rem;
+        justify-content: space-between;
+        gap: 0.75rem;
+        min-height: 3rem;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        pointer-events: none;
     }
 
-    .text-control { font-size: 0.55rem; }
+    .zoom-controls {
+        display: block;
+        border: 0;
+        pointer-events: auto;
+    }
+
+    #zoomIn,
+    #zoomOut { display: none; }
+
+    .zoom-controls #resetView {
+        min-height: 2.9rem;
+        padding: 0 1rem;
+        border: 1px solid rgba(238, 232, 217, 0.19);
+        border-radius: 999px;
+        background: rgba(3, 11, 16, 0.72);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.24);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(0.35rem);
+        transition: opacity 240ms ease, transform 240ms ease;
+        -webkit-backdrop-filter: blur(14px) saturate(112%);
+        backdrop-filter: blur(14px) saturate(112%);
+    }
+
+    .atlas.has-focus .zoom-controls #resetView {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
+    .text-control {
+        min-width: 3.1rem;
+        min-height: 3.1rem;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid rgba(238, 232, 217, 0.15);
+        border-radius: 999px;
+        background: rgba(3, 11, 16, 0.56);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+        font-size: 0.5rem;
+        pointer-events: auto;
+        -webkit-backdrop-filter: blur(14px) saturate(112%);
+        backdrop-filter: blur(14px) saturate(112%);
+    }
+
+    .text-control::after { display: none; }
     #toggleNotes { display: none; }
 
     .atlas-status {
         top: auto;
-        bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 8.25rem);
+        bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 8.75rem);
         left: max(1rem, env(safe-area-inset-left));
         font-size: 0.49rem;
+    }
+
+    .atlas.is-local .atlas-status {
+        right: max(1rem, env(safe-area-inset-right));
+        justify-content: center;
+        opacity: 0.72;
+        text-align: center;
     }
 
     .atlas-notes {
@@ -597,8 +673,6 @@ button:focus-visible {
 @media (max-width: 430px) {
     .atlas-kicker { font-size: 0.53rem; }
     .atlas-subtitle { font-size: 0.5rem; }
-    .zoom-controls { grid-template-columns: 2.6rem auto 2.6rem; }
-    .zoom-controls button { min-height: 2.75rem; }
     .zoom-controls #resetView { font-size: 0.52rem; }
     .text-control { min-height: 2.75rem; }
     .place-label { font-size: 0.45rem; }

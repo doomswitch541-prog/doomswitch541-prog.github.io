@@ -13,6 +13,9 @@ const BASE_LAYER = 0;
 const BLOOM_LAYER = 1;
 const MOTION_QUERY = window.matchMedia('(prefers-reduced-motion: reduce)');
 const MOBILE_QUERY = window.matchMedia('(max-width: 760px)');
+const VISIT_STORAGE_KEY = 'rg-world-atlas-visits-v2';
+const LOCAL_RADIUS_X = MOBILE_QUERY.matches ? 7.2 : 9.2;
+const LOCAL_RADIUS_Z = MOBILE_QUERY.matches ? 5.8 : 7.1;
 const LABEL_IDS = [
     'r_north_cap',
     'r_west_metro',
@@ -57,6 +60,7 @@ const toggleLabelsButton = document.getElementById('toggleLabels');
 const toggleNotesButton = document.getElementById('toggleNotes');
 const notes = document.getElementById('atlasNotes');
 const closeNotesButton = document.getElementById('closeNotes');
+const resetViewButton = document.getElementById('resetView');
 
 const world = window.WORLD;
 if (!world || !Array.isArray(world.regions) || world.regions.length !== EXPECTED_REGION_COUNT) {
@@ -97,6 +101,8 @@ let travelerFigure;
 let travelerJourney = null;
 let regionStage = null;
 let regionParticles = null;
+let localGround = null;
+let localMoveTarget = null;
 let journeyPath = null;
 let focusedRegion = null;
 let cloudBanks = [];
@@ -121,9 +127,11 @@ let activePointerType = 'mouse';
 let focusBlend = 0;
 let desiredFocusBlend = 0;
 let keyLightIntensityTarget = 3.05;
+let fogDensityTarget = 0.0115;
+const visitedRegionIds = loadVisitedRegionIds();
 
 const baseCameraPosition = new THREE.Vector3(0, 20.4, 17.4);
-const localCameraPosition = new THREE.Vector3(0, 6.6, 7.8);
+const localCameraPosition = new THREE.Vector3(0, 4.9, 6.9);
 const homeTarget = new THREE.Vector3(0, 0.18, -0.4);
 const cameraTarget = homeTarget.clone();
 const desiredTarget = homeTarget.clone();
@@ -188,6 +196,9 @@ window.__WORLD_SHOWCASE_DIAGNOSTICS__ = Object.freeze({
     northUp: true,
     bloomSourceCount: 1,
     externalAssetCount: 0,
+    playableLocalScenes: true,
+    localSceneDiameter: LOCAL_RADIUS_X * 2,
+    savedVisitCount: visitedRegionIds.size,
     rendererRevision: THREE.REVISION
 });
 
@@ -898,12 +909,7 @@ function beginJourney(region) {
     if (distance < 0.08) {
         traveler.position.copy(destination);
         travelerJourney = null;
-        desiredTarget.set(destination.x, destination.y + 0.12, destination.z);
-        desiredZoom = 1.54;
-        desiredFocusBlend = 1;
-        regionStage.scale.setScalar(1);
-        statusText.textContent = `${region.label} · drag around or return to the whole world`;
-        atlas.classList.add('is-local');
+        enterLocalRegion(region);
         return;
     }
     const startingRegion = nearestRegionToPoint(travelerFrom);
@@ -994,8 +1000,31 @@ function createJourneyPath(curve) {
 }
 
 function updateTraveler(delta) {
+    if (localMoveTarget && regionStage?.visible) {
+        const dx = localMoveTarget.x - traveler.position.x;
+        const dz = localMoveTarget.z - traveler.position.z;
+        const distance = Math.hypot(dx, dz);
+        const step = Math.min(distance, delta * 3.35);
+        if (distance > 0.035) {
+            traveler.position.x += dx / distance * step;
+            traveler.position.z += dz / distance * step;
+            traveler.rotation.y = Math.atan2(dx, dz);
+            const localX = traveler.position.x - regionStage.position.x;
+            const localZ = traveler.position.z - regionStage.position.z;
+            traveler.position.y = regionStage.position.y + localHeightAt(localX, localZ) + 0.055;
+            travelerFigure.position.y = MOTION_QUERY.matches ? 0 : Math.abs(Math.sin(elapsed * 9.4)) * 0.055;
+            desiredTarget.set(traveler.position.x, traveler.position.y + 0.32, traveler.position.z);
+            return;
+        }
+        traveler.position.copy(localMoveTarget);
+        localMoveTarget = null;
+        travelerFigure.position.y = 0;
+        focusMarker.visible = false;
+        statusText.textContent = `${focusedRegion.label} · tap the ground to keep walking`;
+    }
+
     if (!travelerJourney) {
-        travelerFigure.position.y = MOTION_QUERY.matches ? 0 : Math.sin(elapsed * 2.2) * 0.008;
+        travelerFigure.position.y = MOTION_QUERY.matches ? 0 : Math.sin(elapsed * 2.2) * 0.006;
         return;
     }
 
@@ -1014,10 +1043,26 @@ function updateTraveler(delta) {
 
     focusedRegion = travelerJourney.region;
     travelerJourney = null;
-    desiredZoom = 1.54;
+    enterLocalRegion(focusedRegion);
+}
+
+function enterLocalRegion(region) {
+    focusedRegion = region;
+    regionStage.visible = true;
+    regionStage.scale.setScalar(1);
+    const localY = localHeightAt(0, 0);
+    traveler.position.set(regionStage.position.x, regionStage.position.y + localY + 0.055, regionStage.position.z);
+    traveler.scale.setScalar(1.58);
+    travelerFigure.position.y = 0;
+    localMoveTarget = null;
+    desiredTarget.set(traveler.position.x, traveler.position.y + 0.32, traveler.position.z);
+    desiredZoom = 1.18;
     desiredFocusBlend = 1;
-    focusMarker.visible = true;
-    statusText.textContent = `${focusedRegion.label} · tap another region or return to the whole world`;
+    fogDensityTarget = regionFamily(region) === 'dry' ? 0.045 : 0.055;
+    focusMarker.visible = false;
+    resetViewButton.textContent = 'World map';
+    markRegionVisited(region.id);
+    statusText.textContent = `${region.label} · tap the ground to walk`;
     atlas.classList.add('is-local');
 }
 
@@ -1054,9 +1099,16 @@ function createRegionStage(region) {
     const point = mapPoint(region.x, region.y, 0.035);
     regionStage = new THREE.Group();
     regionStage.position.copy(point);
-    regionStage.scale.setScalar(MOTION_QUERY.matches ? 1 : 0.72);
+    regionStage.scale.setScalar(1);
+    regionStage.visible = false;
+    regionStage.userData.family = family;
+    regionStage.userData.seed = world.regions.indexOf(region) + 1;
+    regionStage.userData.returning = visitedRegionIds.has(region.id);
     regionStage.name = `${region.label} local landscape`;
     scene.add(regionStage);
+
+    createComposedGround(region, family);
+    createLocalWays(region, family);
 
     if (family === 'cold') buildColdStage(region);
     else if (family === 'wetland') buildWetlandStage(region);
@@ -1067,14 +1119,142 @@ function createRegionStage(region) {
     else if (family === 'dry') buildDryStage(region);
     else buildCoastStage(region);
 
+    createRegionSignature(region);
+    createLocalHorizon(region, family);
     createRegionParticles(region, family);
     applyRegionMood(family);
 }
 
-function stagePoint(seed, index, inner = 0.28, outer = 1.35) {
+function localHeightAt(x, z) {
+    if (!regionStage) return 0;
+    const family = regionStage.userData.family;
+    const seed = regionStage.userData.seed;
+    const radial = Math.hypot(x / LOCAL_RADIUS_X, z / LOCAL_RADIUS_Z);
+    const grain = (fbm((x + seed * 0.71) * 0.19, (z - seed * 0.43) * 0.19) - 0.5) * 0.24;
+
+    if (family === 'citadel' || family === 'urban') {
+        const terrace = Math.floor(Math.max(0, 1 - radial) * 5) * 0.115;
+        return terrace + grain * 0.38;
+    }
+    if (family === 'ridge') {
+        const rise = (-z / LOCAL_RADIUS_Z + 0.9) * 0.55;
+        const ribs = Math.sin(x * 0.72 + seed) * 0.14 * smoothstep(0.25, 1, radial);
+        return rise + ribs + grain * 0.72 - 0.28;
+    }
+    if (family === 'green') {
+        const bowl = radial * radial * 0.46 - 0.27;
+        return bowl + grain * 0.68;
+    }
+    if (family === 'cold') {
+        const shelf = Math.floor((grain + 0.24) * 5) * 0.055;
+        return shelf + radial * 0.16 - 0.12;
+    }
+    if (family === 'wetland') {
+        return grain * 0.2 + Math.max(0, Math.cos(x * 0.55 + seed) * 0.035);
+    }
+    if (family === 'dry') {
+        return Math.sin(x * 0.48 + z * 0.18 + seed) * 0.16 + grain * 0.74;
+    }
+    return z * 0.035 + grain * 0.45;
+}
+
+function createComposedGround(region, family) {
+    const segmentsX = MOBILE_QUERY.matches ? 34 : 54;
+    const segmentsZ = MOBILE_QUERY.matches ? 26 : 42;
+    const geometry = new THREE.PlaneGeometry(LOCAL_RADIUS_X * 2, LOCAL_RADIUS_Z * 2, segmentsX, segmentsZ);
+    geometry.rotateX(-Math.PI / 2);
+    const position = geometry.getAttribute('position');
+    const colors = new Float32Array(position.count * 3);
+    const base = new THREE.Color(region.color).convertSRGBToLinear();
+    const stone = new THREE.Color(family === 'dry' ? 0x8d6747 : family === 'cold' ? 0xb9cbd0 : 0x45504a).convertSRGBToLinear();
+    const low = new THREE.Color(family === 'coast' || family === 'wetland' ? 0x1d5b62 : 0x20392f).convertSRGBToLinear();
+
+    for (let index = 0; index < position.count; index += 1) {
+        const x = position.getX(index);
+        const z = position.getZ(index);
+        const height = localHeightAt(x, z);
+        const edge = Math.hypot(x / LOCAL_RADIUS_X, z / LOCAL_RADIUS_Z);
+        const variation = fbm(x * 0.24 + 3.1, z * 0.24 - 2.7);
+        const color = base.clone().lerp(height < -0.06 ? low : stone, 0.2 + variation * 0.24 + smoothstep(0.72, 1.05, edge) * 0.26);
+        position.setY(index, height);
+        colors[index * 3] = color.r;
+        colors[index * 3 + 1] = color.g;
+        colors[index * 3 + 2] = color.b;
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.computeVertexNormals();
+    const material = new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        roughness: family === 'cold' ? 0.7 : 0.94,
+        metalness: family === 'urban' || family === 'citadel' ? 0.055 : 0.005
+    });
+    localGround = new THREE.Mesh(geometry, material);
+    localGround.receiveShadow = true;
+    localGround.name = `${region.label} walkable ground`;
+    regionStage.add(localGround);
+
+    const underlay = new THREE.Mesh(
+        new THREE.CylinderGeometry(LOCAL_RADIUS_X * 1.08, LOCAL_RADIUS_X * 0.93, 1.2, 64),
+        new THREE.MeshStandardMaterial({ color: family === 'dry' ? 0x352116 : 0x102229, roughness: 1 })
+    );
+    underlay.position.y = -0.72;
+    underlay.scale.z = LOCAL_RADIUS_Z / LOCAL_RADIUS_X;
+    underlay.receiveShadow = true;
+    regionStage.add(underlay);
+}
+
+function createLocalWays(region, family) {
+    const roadColor = family === 'cold' ? 0x9eb6bb : family === 'dry' ? 0x76563d : 0x8b8978;
+    const roadMaterial = new THREE.MeshStandardMaterial({ color: roadColor, roughness: 0.98, transparent: true, opacity: 0.82 });
+    const seed = world.regions.indexOf(region) + 1;
+    const baseArms = family === 'citadel' ? 6 : family === 'urban' ? 4 : 2;
+    const arms = baseArms + (regionStage.userData.returning ? 1 : 0);
+
+    for (let arm = 0; arm < arms; arm += 1) {
+        const angle = family === 'citadel' ? arm / arms * Math.PI * 2 : -0.42 + arm * (Math.PI / Math.max(1, arms - 1));
+        const points = [];
+        for (let step = 0; step <= 7; step += 1) {
+            const distance = step / 7 * LOCAL_RADIUS_X * 0.84;
+            const bend = Math.sin(step / 7 * Math.PI) * (hash(seed * 19 + arm * 7.2) - 0.5) * 1.1;
+            const x = Math.cos(angle) * distance + Math.cos(angle + Math.PI / 2) * bend;
+            const z = Math.sin(angle) * distance * 0.72 + Math.sin(angle + Math.PI / 2) * bend;
+            points.push(new THREE.Vector3(x, localHeightAt(x, z) + 0.035, z));
+        }
+        const road = new THREE.Mesh(
+            new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 36, family === 'citadel' ? 0.19 : 0.115, 6, false),
+            roadMaterial
+        );
+        road.scale.y = 0.18;
+        road.receiveShadow = true;
+        regionStage.add(road);
+    }
+
+    if (family === 'urban' || family === 'citadel') {
+        const ringCount = family === 'citadel' ? 4 : 3;
+        for (let ring = 1; ring <= ringCount; ring += 1) {
+            const radius = 1.18 + ring * 1.05;
+            const path = new THREE.Mesh(
+                new THREE.TorusGeometry(radius, 0.075, 5, 72),
+                roadMaterial
+            );
+            path.rotation.x = -Math.PI / 2;
+            path.scale.z = 0.72;
+            path.position.y = localHeightAt(radius, 0) + 0.045;
+            regionStage.add(path);
+        }
+    }
+}
+
+function stagePoint(seed, index, inner = 1.35, outer = 6.8) {
+    if (outer < 2) {
+        inner *= 3.2;
+        outer *= 4.35;
+    }
     const angle = hash(seed * 17.3 + index * 5.91) * Math.PI * 2;
     const radius = inner + hash(seed * 31.7 + index * 11.43) * (outer - inner);
-    return { angle, radius, x: Math.cos(angle) * radius, z: Math.sin(angle) * radius * 0.72 };
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius * 0.74;
+    return { angle, radius, x, z, y: localHeightAt(x, z) };
 }
 
 function addStageMesh(mesh) {
@@ -1082,6 +1262,163 @@ function addStageMesh(mesh) {
     mesh.receiveShadow = true;
     regionStage.add(mesh);
     return mesh;
+}
+
+function createLocalHorizon(region, family) {
+    const count = MOBILE_QUERY.matches ? 26 : 42;
+    const seed = world.regions.indexOf(region) + 1;
+    const geometry = family === 'urban' || family === 'citadel'
+        ? new THREE.BoxGeometry(0.72, 1, 0.72)
+        : family === 'ridge' || family === 'cold'
+            ? new THREE.ConeGeometry(0.82, 2.4, family === 'cold' ? 5 : 7)
+            : family === 'dry'
+                ? new THREE.IcosahedronGeometry(0.72, 1)
+                : new THREE.ConeGeometry(0.64, 1.65, 7);
+    const horizonColors = {
+        cold: 0x78919a,
+        wetland: 0x294d3d,
+        urban: 0x3f4550,
+        citadel: 0x4a4546,
+        green: 0x234b35,
+        ridge: 0x4f5654,
+        dry: 0x73513a,
+        coast: 0x285543
+    };
+    const material = new THREE.MeshStandardMaterial({ color: horizonColors[family], roughness: 0.96, metalness: family === 'urban' ? 0.05 : 0 });
+    const horizon = new THREE.InstancedMesh(geometry, material, count);
+    const dummy = new THREE.Object3D();
+
+    for (let index = 0; index < count; index += 1) {
+        const angle = index / count * Math.PI * 2 + (hash(seed * 11 + index) - 0.5) * 0.12;
+        const x = Math.cos(angle) * LOCAL_RADIUS_X * (0.84 + hash(seed * 23 + index * 2.1) * 0.15);
+        const z = Math.sin(angle) * LOCAL_RADIUS_Z * (0.84 + hash(seed * 37 + index * 3.7) * 0.15);
+        const height = family === 'urban' || family === 'citadel'
+            ? 1.7 + hash(seed * 47 + index * 5.3) * 3.8
+            : 0.9 + hash(seed * 47 + index * 5.3) * 1.55;
+        dummy.position.set(x, localHeightAt(x, z) + height * 0.5 - 0.05, z);
+        dummy.rotation.set(0, -angle + hash(index * 4.2) * 0.3, family === 'dry' ? (hash(index * 3.1) - 0.5) * 0.14 : 0);
+        dummy.scale.set(0.72 + hash(index * 7.3) * 0.82, height, 0.72 + hash(index * 9.8) * 0.82);
+        dummy.updateMatrix();
+        horizon.setMatrixAt(index, dummy.matrix);
+    }
+    horizon.instanceMatrix.needsUpdate = true;
+    horizon.castShadow = true;
+    horizon.receiveShadow = true;
+    horizon.name = `${region.label} horizon`;
+    regionStage.add(horizon);
+}
+
+function createRegionSignature(region) {
+    const stone = new THREE.MeshStandardMaterial({ color: 0x817b70, roughness: 0.82, metalness: 0.035 });
+    const darkStone = new THREE.MeshStandardMaterial({ color: 0x373d42, roughness: 0.9, metalness: 0.02 });
+    const paleStone = new THREE.MeshStandardMaterial({ color: 0xb8b3a5, roughness: 0.86 });
+    const timber = new THREE.MeshStandardMaterial({ color: 0x60462f, roughness: 0.98 });
+    const green = new THREE.MeshStandardMaterial({ color: 0x315e3e, roughness: 0.96 });
+
+    const block = (x, z, width, height, depth, material = stone, rotation = 0) => {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+        mesh.position.set(x, localHeightAt(x, z) + height * 0.5, z);
+        mesh.rotation.y = rotation;
+        return addStageMesh(mesh);
+    };
+    const ring = (radius, tube, material = stone, x = 0, z = 0) => {
+        const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 7, 64), material);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.set(x, localHeightAt(x, z) + 0.085, z);
+        return addStageMesh(mesh);
+    };
+
+    if (region.id === 'r_north_cap') {
+        for (let index = 0; index < 7; index += 1) {
+            const angle = index / 7 * Math.PI * 2;
+            const x = Math.cos(angle) * 2.15;
+            const z = Math.sin(angle) * 1.55;
+            const height = index === 0 ? 5.4 : 2.2 + hash(index * 5.1) * 2.1;
+            const spire = new THREE.Mesh(new THREE.ConeGeometry(0.48, height, 5), paleStone);
+            spire.position.set(x, localHeightAt(x, z) + height * 0.5, z);
+            spire.rotation.y = angle;
+            addStageMesh(spire);
+        }
+    } else if (region.id === 'r_ice_shelf') {
+        for (let index = -3; index <= 3; index += 1) {
+            block(index * 1.65, Math.sin(index) * 0.7, 1.45, 0.16 + Math.abs(index) * 0.04, 3.8, paleStone, index * 0.08);
+        }
+    } else if (region.id === 'r_north_marsh') {
+        for (let index = -5; index <= 5; index += 1) {
+            block(index * 1.05, Math.sin(index * 0.7) * 0.95, 1.2, 0.12, 0.62, timber, Math.sin(index * 0.7) * 0.18);
+        }
+    } else if (region.id === 'r_west_metro') {
+        ring(3.6, 0.18, darkStone, -0.8, 0.35);
+        for (let index = -3; index <= 3; index += 1) block(index * 1.05 - 0.8, -2.5, 0.28, 0.34, 3.8, paleStone);
+    } else if (region.id === 'r_rivermouth') {
+        [-2.25, 1.9].forEach((x, index) => block(x, index ? 0.25 : -0.2, 0.48, 0.24, 4.6, paleStone, -0.88));
+    } else if (region.id === 'r_west_capital') {
+        [-1.25, 1.25].forEach(x => block(x, -2.2, 0.86, 3.8, 0.86, paleStone));
+        block(0, -2.2, 3.35, 0.28, 0.5, paleStone);
+    } else if (region.id === 'r_high_pass') {
+        for (let index = -4; index <= 4; index += 1) {
+            const z = index * 1.05;
+            const x = Math.sin(index * 0.82) * 2.2;
+            block(x, z, 2.2, 0.22, 0.34, paleStone, Math.cos(index * 0.82) * 0.5);
+        }
+        block(2.8, -1.2, 1.6, 1.1, 1.15, timber, 0.12);
+    } else if (region.id === 'r_frontier') {
+        [-4.2, 0, 4.2].forEach((x, index) => {
+            block(x, -1.3 + index * 0.9, 0.28, 3.4 - index * 0.35, 0.28, darkStone);
+            ring(0.52, 0.055, timber, x, -1.3 + index * 0.9);
+        });
+    } else if (region.id === 'r_desert') {
+        const arch = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.34, 8, 40, Math.PI), stone);
+        arch.position.set(0, localHeightAt(0, -1.1) + 0.25, -1.1);
+        arch.rotation.z = Math.PI / 2;
+        arch.rotation.y = Math.PI / 2;
+        addStageMesh(arch);
+    } else if (region.id === 'r_karst') {
+        for (let index = 0; index < 9; index += 1) {
+            const angle = index / 9 * Math.PI * 2;
+            const radius = index % 2 ? 2.7 : 4.2;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius * 0.7;
+            const height = 1.7 + hash(index * 8.4) * 3.1;
+            const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.72, height, 7), darkStone);
+            tower.position.set(x, localHeightAt(x, z) + height * 0.5, z);
+            addStageMesh(tower);
+        }
+    } else if (['r_archive_qtr', 'r_old_quarter'].includes(region.id)) {
+        for (let index = -4; index <= 4; index += 1) {
+            block(index * 1.05, -2.2, 0.34, 2.3 + (index % 2) * 0.5, 0.34, paleStone);
+        }
+        block(0, -2.2, 9.1, 0.25, 0.5, paleStone);
+    } else if (region.id === 'r_undercity') {
+        ring(2.65, 0.34, darkStone);
+        for (let index = 0; index < 8; index += 1) {
+            const angle = index / 8 * Math.PI * 2;
+            block(Math.cos(angle) * 3.8, Math.sin(angle) * 2.7, 0.5, 3.6, 0.5, darkStone);
+        }
+    } else if (region.id === 'r_commons') {
+        ring(3.9, 0.2, paleStone);
+        ring(2.7, 0.08, green);
+    } else if (region.id === 'r_spire_dist') {
+        [-2.2, 0, 2.2].forEach((x, index) => block(x, -0.6 + Math.abs(index - 1) * 0.8, 0.72, 4.4 + index * 0.8, 0.72, darkStone));
+    } else if (region.id === 'r_gardens') {
+        [1.45, 2.7, 4.1].forEach((radius, index) => ring(radius, index === 2 ? 0.14 : 0.075, index === 1 ? paleStone : green));
+    } else if (region.id === 'r_south_wilds') {
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.92, 4.8, 9), timber);
+        trunk.position.y = 2.4;
+        addStageMesh(trunk);
+        const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(2.25, 2), green);
+        crown.position.y = 5.15;
+        crown.scale.y = 0.72;
+        addStageMesh(crown);
+    } else if (region.id === 'r_east_shore') {
+        for (let index = -5; index <= 5; index += 1) block(index * 1.15, -2.8, 1.3, 0.14, 0.72, paleStone);
+    } else if (region.id === 'r_tropic_isle') {
+        ring(3.6, 0.16, paleStone);
+        for (let index = 0; index < 6; index += 1) {
+            const angle = index / 6 * Math.PI * 2;
+            block(Math.cos(angle) * 2.15, Math.sin(angle) * 1.55, 0.38, 1.55, 0.38, paleStone, angle);
+        }
+    }
 }
 
 function buildColdStage(region) {
@@ -1104,7 +1441,7 @@ function buildColdStage(region) {
             ? 0.32 + hash(seed * 53 + index * 7.1) * 0.34
             : 0.45 + hash(seed * 53 + index * 7.1) * 1.15;
         const shard = new THREE.Mesh(geometry, material);
-        shard.position.set(spot.x, isTundra ? height * 0.14 : height * 0.36, spot.z);
+        shard.position.set(spot.x, spot.y + (isTundra ? height * 0.14 : height * 0.36), spot.z);
         shard.rotation.y = spot.angle;
         shard.rotation.z = (hash(index * 9.7) - 0.5) * 0.16;
         shard.scale.set(
@@ -1130,9 +1467,9 @@ function buildWetlandStage(region) {
     const reedGeometry = new THREE.CylinderGeometry(0.012, 0.018, 0.42, 5);
 
     for (let index = 0; index < 4; index += 1) {
-        const pool = new THREE.Mesh(new THREE.CircleGeometry(0.34 + index * 0.045, 28), waterMaterial);
+        const pool = new THREE.Mesh(new THREE.CircleGeometry(0.82 + index * 0.11, 28), waterMaterial);
         const spot = stagePoint(seed, index, 0.28, 0.92);
-        pool.position.set(spot.x, 0.018, spot.z);
+        pool.position.set(spot.x, spot.y + 0.028, spot.z);
         pool.rotation.x = -Math.PI / 2;
         pool.scale.set(1.45, 0.72, 1);
         regionStage.add(pool);
@@ -1141,7 +1478,7 @@ function buildWetlandStage(region) {
         const spot = stagePoint(seed, index + 8, 0.32, 1.48);
         const reed = new THREE.Mesh(reedGeometry, reedMaterial);
         const height = 0.55 + hash(index * 4.9) * 0.75;
-        reed.position.set(spot.x, height * 0.2, spot.z);
+        reed.position.set(spot.x, spot.y + height * 0.2, spot.z);
         reed.scale.y = height;
         reed.rotation.z = (hash(index * 8.1) - 0.5) * 0.12;
         addStageMesh(reed);
@@ -1150,7 +1487,7 @@ function buildWetlandStage(region) {
 
 function buildUrbanStage(region, isCitadel) {
     const seed = world.regions.indexOf(region) + 1;
-    const geometry = new THREE.BoxGeometry(0.16, 1, 0.16);
+    const geometry = new THREE.BoxGeometry(0.46, 1, 0.46);
     const material = new THREE.MeshStandardMaterial({
         color: region.biome === 'oldtown' ? 0x62556d : 0x747882,
         roughness: 0.62,
@@ -1161,33 +1498,33 @@ function buildUrbanStage(region, isCitadel) {
 
     for (let index = 0; index < count; index += 1) {
         const spot = stagePoint(seed, index, isCitadel ? 0.48 : 0.22, isCitadel ? 1.5 : 1.32);
-        const height = 0.24 + hash(seed * 61 + index * 7.7) * (isCitadel ? 0.9 : 0.72);
+        const height = 0.72 + hash(seed * 61 + index * 7.7) * (isCitadel ? 2.4 : 1.75);
         const building = new THREE.Mesh(geometry, material);
-        building.position.set(spot.x, height * 0.5, spot.z);
+        building.position.set(spot.x, spot.y + height * 0.5, spot.z);
         building.scale.set(0.6 + hash(index * 4.3) * 0.9, height, 0.6 + hash(index * 9.1) * 0.85);
         building.rotation.y = spot.angle * 0.5;
         addStageMesh(building);
         if (region.biome === 'oldtown' && index % 3 === 0) {
             const roof = new THREE.Mesh(
-                new THREE.ConeGeometry(0.13, 0.14, 4),
+                new THREE.ConeGeometry(0.38, 0.3, 4),
                 new THREE.MeshStandardMaterial({ color: 0x76504d, roughness: 0.88 })
             );
-            roof.position.set(spot.x, height + 0.07, spot.z);
+            roof.position.set(spot.x, spot.y + height + 0.15, spot.z);
             roof.rotation.y = Math.PI / 4 + spot.angle * 0.5;
             addStageMesh(roof);
         }
-        if (index % 3 === 0) lightPositions.push(new THREE.Vector3(spot.x, height * 0.72, spot.z));
+        if (index % 3 === 0) lightPositions.push(new THREE.Vector3(spot.x, spot.y + height * 0.72, spot.z));
     }
 
     if (region.biome === 'urban-river') {
         const riverCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-1.5, 0.035, -0.6),
-            new THREE.Vector3(-0.45, 0.045, 0.16),
-            new THREE.Vector3(0.42, 0.04, -0.12),
-            new THREE.Vector3(1.5, 0.035, 0.62)
+            new THREE.Vector3(-8.2, 0.08, -3.1),
+            new THREE.Vector3(-2.7, 0.07, 0.8),
+            new THREE.Vector3(2.1, 0.075, -0.6),
+            new THREE.Vector3(8.2, 0.08, 3.2)
         ]);
         const river = new THREE.Mesh(
-            new THREE.TubeGeometry(riverCurve, 32, 0.055, 6, false),
+            new THREE.TubeGeometry(riverCurve, 48, 0.34, 8, false),
             new THREE.MeshPhysicalMaterial({ color: 0x4e8c9b, roughness: 0.2, clearcoat: 0.62, transparent: true, opacity: 0.76, depthWrite: false })
         );
         regionStage.add(river);
@@ -1196,7 +1533,7 @@ function buildUrbanStage(region, isCitadel) {
     const lightGeometry = new THREE.BufferGeometry().setFromPoints(lightPositions);
     const lightMaterial = new THREE.PointsMaterial({
         color: 0xc68b55,
-        size: 0.032,
+        size: 0.075,
         sizeAttenuation: true,
         transparent: true,
         opacity: 0.72,
@@ -1209,10 +1546,24 @@ function buildUrbanStage(region, isCitadel) {
         const gardenMaterial = new THREE.MeshStandardMaterial({ color: 0x47764f, roughness: 0.95 });
         for (let index = 0; index < 12; index += 1) {
             const angle = index / 12 * Math.PI * 2;
-            const garden = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 1), gardenMaterial);
-            garden.position.set(Math.cos(angle) * 0.38, 0.08, Math.sin(angle) * 0.38);
+            const garden = new THREE.Mesh(new THREE.IcosahedronGeometry(0.28, 1), gardenMaterial);
+            const x = Math.cos(angle) * 2.1;
+            const z = Math.sin(angle) * 1.55;
+            garden.position.set(x, localHeightAt(x, z) + 0.22, z);
             addStageMesh(garden);
         }
+        const crown = new THREE.Group();
+        const crownStone = new THREE.MeshStandardMaterial({ color: 0x8d8278, roughness: 0.68, metalness: 0.08 });
+        [1.8, 1.35, 0.94].forEach((radius, index) => {
+            const terrace = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius * 1.08, 0.34, 12), crownStone);
+            terrace.position.y = 0.17 + index * 0.33;
+            crown.add(terrace);
+        });
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.72, 4.8, 10), crownStone);
+        tower.position.y = 3.25;
+        tower.castShadow = true;
+        crown.add(tower);
+        regionStage.add(crown);
     }
 }
 
@@ -1229,8 +1580,9 @@ function buildGreenStage(region) {
     if (isFarmland) {
         const rowMaterial = new THREE.MeshStandardMaterial({ color: 0xa6bd68, roughness: 0.95 });
         for (let index = -8; index <= 8; index += 1) {
-            const row = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.018, 0.026), rowMaterial);
-            row.position.set(0, 0.025, index * 0.09);
+            const z = index * 0.38;
+            const row = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.024, 0.08), rowMaterial);
+            row.position.set(0, localHeightAt(0, z) + 0.035, z);
             row.rotation.y = -0.28;
             addStageMesh(row);
         }
@@ -1241,17 +1593,18 @@ function buildGreenStage(region) {
         const spot = isOrchard
             ? {
                 angle: 0,
-                x: ((index % 6) - 2.5) * 0.27,
-                z: (Math.floor(index / 6) - 1.7) * 0.26
+                x: ((index % 6) - 2.5) * 1.18,
+                z: (Math.floor(index / 6) - 1.7) * 1.04,
+                y: localHeightAt(((index % 6) - 2.5) * 1.18, (Math.floor(index / 6) - 1.7) * 1.04)
             }
             : stagePoint(seed, index, isVillage ? 0.52 : 0.24, 1.48);
         const size = 0.72 + hash(seed * 43 + index * 7.2) * 0.78;
         const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-        trunk.position.set(spot.x, 0.17 * size, spot.z);
+        trunk.position.set(spot.x, spot.y + 0.17 * size, spot.z);
         trunk.scale.set(size, size, size);
         addStageMesh(trunk);
         const crown = new THREE.Mesh(crownGeometry, crownMaterial);
-        crown.position.set(spot.x, 0.43 * size, spot.z);
+        crown.position.set(spot.x, spot.y + 0.43 * size, spot.z);
         crown.scale.set(size, 0.78 * size, size);
         addStageMesh(crown);
     }
@@ -1261,13 +1614,14 @@ function buildGreenStage(region) {
         const roofMaterial = new THREE.MeshStandardMaterial({ color: 0x765044, roughness: 0.9 });
         for (let index = 0; index < 5; index += 1) {
             const angle = index / 5 * Math.PI * 2;
-            const x = Math.cos(angle) * 0.34;
-            const z = Math.sin(angle) * 0.25;
-            const cottage = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.18, 0.18), wallMaterial);
-            cottage.position.set(x, 0.09, z);
+            const x = Math.cos(angle) * 2.4;
+            const z = Math.sin(angle) * 1.75;
+            const y = localHeightAt(x, z);
+            const cottage = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.62, 0.7), wallMaterial);
+            cottage.position.set(x, y + 0.31, z);
             addStageMesh(cottage);
-            const roof = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.13, 4), roofMaterial);
-            roof.position.set(x, 0.245, z);
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(0.58, 0.42, 4), roofMaterial);
+            roof.position.set(x, y + 0.82, z);
             roof.rotation.y = Math.PI / 4;
             addStageMesh(roof);
         }
@@ -1276,7 +1630,7 @@ function buildGreenStage(region) {
 
 function buildRidgeStage(region) {
     const seed = world.regions.indexOf(region) + 1;
-    const geometry = new THREE.ConeGeometry(0.19, 0.92, region.biome === 'rock' ? 6 : 7);
+    const geometry = new THREE.ConeGeometry(0.54, 1.35, region.biome === 'rock' ? 6 : 7);
     const material = new THREE.MeshStandardMaterial({ color: region.color, roughness: 0.9, metalness: 0.015 });
     const count = MOBILE_QUERY.matches ? 13 : 24;
 
@@ -1284,7 +1638,7 @@ function buildRidgeStage(region) {
         const spot = stagePoint(seed, index, 0.2, 1.62);
         const height = 0.5 + hash(seed * 71 + index * 5.8) * 1.3;
         const peak = new THREE.Mesh(geometry, material);
-        peak.position.set(spot.x, height * 0.42, spot.z);
+        peak.position.set(spot.x, spot.y + height * 0.52, spot.z);
         peak.scale.set(0.58 + hash(index * 4.7) * 0.8, height, 0.62 + hash(index * 8.9) * 0.74);
         peak.rotation.y = spot.angle;
         addStageMesh(peak);
@@ -1304,7 +1658,7 @@ function buildDryStage(region) {
         const spot = stagePoint(seed, index, 0.18, 1.58);
         const dune = new THREE.Mesh(duneGeometry, duneMaterial);
         const size = 0.58 + hash(seed * 39 + index * 5.2) * 0.9;
-        dune.position.set(spot.x, (isFrontier ? 0.14 : 0.075) * size, spot.z);
+        dune.position.set(spot.x, spot.y + (isFrontier ? 0.14 : 0.075) * size, spot.z);
         dune.scale.set(
             (isFrontier ? 0.72 : 1.9) * size,
             (isFrontier ? 0.85 : 0.32) * size,
@@ -1318,7 +1672,14 @@ function buildDryStage(region) {
 function buildCoastStage(region) {
     const seed = world.regions.indexOf(region) + 1;
     const shoreMaterial = new THREE.MeshStandardMaterial({ color: 0xe4c88d, roughness: 0.88 });
-    const shore = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.032, 6, 48, Math.PI * 1.45), shoreMaterial);
+    const localSea = new THREE.Mesh(
+        new THREE.PlaneGeometry(LOCAL_RADIUS_X * 2.4, LOCAL_RADIUS_Z * 0.92, 16, 8),
+        new THREE.MeshPhysicalMaterial({ color: 0x1f6677, roughness: 0.24, clearcoat: 0.62, transparent: true, opacity: 0.82, depthWrite: false })
+    );
+    localSea.rotation.x = -Math.PI / 2;
+    localSea.position.set(0, 0.015, -LOCAL_RADIUS_Z * 0.68);
+    regionStage.add(localSea);
+    const shore = new THREE.Mesh(new THREE.TorusGeometry(5.8, 0.11, 6, 72, Math.PI * 1.45), shoreMaterial);
     shore.rotation.x = -Math.PI / 2;
     shore.rotation.z = -0.65;
     shore.position.y = 0.035;
@@ -1334,12 +1695,12 @@ function buildCoastStage(region) {
         const spot = stagePoint(seed, index, 0.34, 1.42);
         const size = 0.7 + hash(index * 6.3) * 0.75;
         const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-        trunk.position.set(spot.x, 0.26 * size, spot.z);
+        trunk.position.set(spot.x, spot.y + 0.26 * size, spot.z);
         trunk.scale.set(size, size, size);
         trunk.rotation.z = (hash(index * 11.4) - 0.5) * 0.2;
         addStageMesh(trunk);
         const crown = new THREE.Mesh(crownGeometry, crownMaterial);
-        crown.position.set(spot.x, 0.58 * size, spot.z);
+        crown.position.set(spot.x, spot.y + 0.58 * size, spot.z);
         crown.rotation.x = Math.PI;
         crown.scale.set(size, 0.52 * size, size);
         addStageMesh(crown);
@@ -1353,7 +1714,7 @@ function createRegionParticles(region, family) {
     for (let index = 0; index < count; index += 1) {
         const spot = stagePoint(seed, index + 40, 0.12, 1.7);
         positions[index * 3] = spot.x;
-        positions[index * 3 + 1] = 0.18 + hash(seed * 71 + index * 3.8) * 1.35;
+        positions[index * 3 + 1] = spot.y + 0.3 + hash(seed * 71 + index * 3.8) * 3.4;
         positions[index * 3 + 2] = spot.z;
     }
 
@@ -1371,7 +1732,7 @@ function createRegionParticles(region, family) {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     const material = new THREE.PointsMaterial({
         color: colors[family],
-        size: family === 'cold' ? 0.038 : 0.026,
+        size: family === 'cold' ? 0.075 : 0.052,
         sizeAttenuation: true,
         transparent: true,
         opacity: family === 'urban' ? 0.18 : 0.34,
@@ -1416,6 +1777,7 @@ function resetMood() {
 function snapMood() {
     scene.background.copy(backgroundTarget);
     scene.fog.color.copy(fogTarget);
+    scene.fog.density = fogDensityTarget;
     hemisphereLight.color.copy(hemisphereSkyTarget);
     hemisphereLight.groundColor.copy(hemisphereGroundTarget);
     directionalLight.color.copy(keyLightColorTarget);
@@ -1576,6 +1938,25 @@ function fbm(x, y) {
     return value / normalizer;
 }
 
+function loadVisitedRegionIds() {
+    try {
+        const saved = JSON.parse(window.localStorage.getItem(VISIT_STORAGE_KEY) || '[]');
+        if (!Array.isArray(saved)) return new Set();
+        return new Set(saved.filter(id => typeof id === 'string' && regionById.has(id)));
+    } catch (error) {
+        return new Set();
+    }
+}
+
+function markRegionVisited(regionId) {
+    visitedRegionIds.add(regionId);
+    try {
+        window.localStorage.setItem(VISIT_STORAGE_KEY, JSON.stringify([...visitedRegionIds]));
+    } catch (error) {
+        // The atlas remains fully playable when storage is blocked.
+    }
+}
+
 function fract(value) {
     return value - Math.floor(value);
 }
@@ -1626,7 +2007,13 @@ function bindInterface() {
         if (event.key === '-' || event.key === '_') changeZoom(-0.14);
         if (event.key === '0') resetView();
         if (event.key.toLowerCase() === 'l') setLabelsVisible(!labelsVisible);
-        if (event.key === 'Enter' && event.target === canvas) focusOnRegion(regionById.get('r_citadel'));
+        if (atlas.classList.contains('is-local') && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+            event.preventDefault();
+            const stepX = event.key === 'ArrowLeft' ? -1.1 : event.key === 'ArrowRight' ? 1.1 : 0;
+            const stepZ = event.key === 'ArrowUp' ? -1.1 : event.key === 'ArrowDown' ? 1.1 : 0;
+            nudgeLocalTraveler(stepX, stepZ);
+        }
+        if (event.key === 'Enter' && event.target === canvas && !atlas.classList.contains('is-local')) focusOnRegion(regionById.get('r_citadel'));
         if (event.key === 'Escape' && !notes.hidden) closeNotes();
     });
 
@@ -1636,6 +2023,20 @@ function bindInterface() {
     });
 
     MOTION_QUERY.addEventListener?.('change', () => window.location.reload());
+}
+
+function nudgeLocalTraveler(dx, dz) {
+    if (!regionStage || !focusedRegion) return;
+    const localX = THREE.MathUtils.clamp(traveler.position.x - regionStage.position.x + dx, -LOCAL_RADIUS_X * 0.86, LOCAL_RADIUS_X * 0.86);
+    const localZ = THREE.MathUtils.clamp(traveler.position.z - regionStage.position.z + dz, -LOCAL_RADIUS_Z * 0.86, LOCAL_RADIUS_Z * 0.86);
+    localMoveTarget = new THREE.Vector3(
+        regionStage.position.x + localX,
+        regionStage.position.y + localHeightAt(localX, localZ) + 0.055,
+        regionStage.position.z + localZ
+    );
+    focusMarker.position.set(localMoveTarget.x, localMoveTarget.y - 0.04, localMoveTarget.z);
+    focusMarker.visible = true;
+    statusText.textContent = `Walking through ${focusedRegion.label}`;
 }
 
 function beginWorldDrag(event) {
@@ -1667,6 +2068,11 @@ function moveAcrossWorld(event) {
 
     const dx = event.clientX - dragStartX;
     const dy = event.clientY - dragStartY;
+    if (atlas.classList.contains('is-local')) {
+        pointerX = 0;
+        pointerY = 0;
+        return;
+    }
     const dragThreshold = activePointerType === 'touch' ? 14 : 5;
     if (!hasDragged && Math.hypot(dx, dy) > dragThreshold) {
         hasDragged = true;
@@ -1694,7 +2100,8 @@ function moveAcrossWorld(event) {
 
 function finishWorldDrag(event) {
     if (event.pointerId !== activePointerId) return;
-    if (!hasDragged) focusAtPointer(event);
+    if (atlas.classList.contains('is-local')) focusAtPointer(event);
+    else if (!hasDragged) focusAtPointer(event);
     else statusText.textContent = 'North stays fixed · drag again to continue';
     canvas.releasePointerCapture?.(event.pointerId);
     activePointerId = null;
@@ -1716,6 +2123,27 @@ function focusAtPointer(event) {
         -((event.clientY - bounds.top) / bounds.height) * 2 + 1
     );
     raycaster.setFromCamera(pointerNdc, camera);
+
+    if (atlas.classList.contains('is-local') && localGround && regionStage) {
+        const hit = raycaster.intersectObject(localGround, false)[0];
+        if (!hit) return;
+        const localX = hit.point.x - regionStage.position.x;
+        const localZ = hit.point.z - regionStage.position.z;
+        const ellipse = Math.hypot(localX / (LOCAL_RADIUS_X * 0.88), localZ / (LOCAL_RADIUS_Z * 0.88));
+        const amount = ellipse > 1 ? 1 / ellipse : 1;
+        const x = localX * amount;
+        const z = localZ * amount;
+        localMoveTarget = new THREE.Vector3(
+            regionStage.position.x + x,
+            regionStage.position.y + localHeightAt(x, z) + 0.055,
+            regionStage.position.z + z
+        );
+        focusMarker.position.set(localMoveTarget.x, localMoveTarget.y - 0.04, localMoveTarget.z);
+        focusMarker.visible = true;
+        statusText.textContent = `Walking through ${focusedRegion.label}`;
+        return;
+    }
+
     const hit = raycaster.intersectObject(terrain, false)[0];
     const point = hit?.point || raycaster.ray.intersectPlane(interactionPlane, interactionPoint);
     if (!point) return;
@@ -1742,15 +2170,10 @@ function focusOnRegion(region) {
     if (MOTION_QUERY.matches) {
         traveler.position.copy(point);
         travelerJourney = null;
-        desiredTarget.set(point.x, point.y + 0.12, point.z);
-        desiredZoom = 1.54;
-        currentZoom = 1.54;
-        desiredFocusBlend = 1;
-        focusBlend = 1;
-        regionStage.scale.setScalar(1);
+        enterLocalRegion(region);
+        currentZoom = desiredZoom;
+        focusBlend = desiredFocusBlend;
         cameraTarget.copy(desiredTarget);
-        statusText.textContent = `${region.label} · tap another region or return to the whole world`;
-        atlas.classList.add('is-local');
         snapMood();
         renderScene();
     } else {
@@ -1768,6 +2191,7 @@ function changeZoom(amount) {
 
 function resetView() {
     travelerJourney = null;
+    localMoveTarget = null;
     desiredZoom = 1;
     desiredFocusBlend = 0;
     pointerX = 0;
@@ -1778,13 +2202,17 @@ function resetView() {
     if (regionStage) scene.remove(regionStage);
     regionStage = null;
     regionParticles = null;
+    localGround = null;
     disposeObject(journeyPath);
     if (journeyPath) scene.remove(journeyPath);
     journeyPath = null;
     focusedRegion = null;
+    traveler.scale.setScalar(1);
     labelEntries.forEach(entry => entry.element.classList.remove('is-focused'));
     atlas.classList.remove('has-focus', 'is-local');
     resetMood();
+    fogDensityTarget = 0.0115;
+    resetViewButton.textContent = 'Whole world';
     statusText.textContent = 'Whole world · north up';
     if (MOTION_QUERY.matches) {
         currentZoom = 1;
@@ -1878,6 +2306,7 @@ function updateAtmosphere(delta) {
     const moodAmount = 1 - Math.pow(0.018, delta);
     scene.background.lerp(backgroundTarget, moodAmount);
     scene.fog.color.lerp(fogTarget, moodAmount);
+    scene.fog.density += (fogDensityTarget - scene.fog.density) * moodAmount;
     hemisphereLight.color.lerp(hemisphereSkyTarget, moodAmount);
     hemisphereLight.groundColor.lerp(hemisphereGroundTarget, moodAmount);
     directionalLight.color.lerp(keyLightColorTarget, moodAmount);
@@ -1903,15 +2332,15 @@ function updateRegionParticles(delta) {
         if (family === 'cold') {
             y -= delta * 0.18;
             x += Math.sin(elapsed * 0.7 + index) * delta * 0.025;
-            if (y < 0.08) y = 1.5;
+            if (y < 0.08) y = 3.7;
         } else if (family === 'dry') {
             x += delta * 0.07;
             y += Math.sin(elapsed + index) * delta * 0.012;
-            if (x > 1.75) x = -1.75;
+            if (x > LOCAL_RADIUS_X * 0.9) x = -LOCAL_RADIUS_X * 0.9;
         } else if (family === 'coast') {
             y += delta * 0.045;
             z += Math.sin(elapsed * 0.8 + index) * delta * 0.025;
-            if (y > 1.58) y = 0.14;
+            if (y > 3.8) y = 0.14;
         } else {
             y += Math.sin(elapsed * 0.65 + index * 0.7) * delta * 0.018;
             x += Math.cos(elapsed * 0.28 + index) * delta * 0.006;
