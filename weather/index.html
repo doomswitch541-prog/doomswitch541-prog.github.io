@@ -2386,7 +2386,7 @@
                 ctx.restore();
             }
 
-            function drawWeatherCard(temp, cond, wind) {
+            function drawWeatherCard(temp, cond, stats) {
                 const ctx = shareCanvas.getContext('2d');
                 const W = 1200, H = 630, padX = 80;
                 ctx.clearRect(0, 0, W, H);
@@ -2418,17 +2418,25 @@
                 ctx.fillText(bigTemp, padX - 4, 350);
                 ctx.restore();
 
-                ctx.fillStyle = '#c2cad8'; ctx.font = '400 40px Georgia,serif';
-                ctx.fillText(cond || 'The sky where you are, read live.', padX, 420);
+                ctx.fillStyle = '#c2cad8'; ctx.font = '400 38px Georgia,serif';
+                ctx.fillText(cond || 'The sky where you are, read live.', padX, 414);
 
+                // Labeled stat row: value (serif) over a mono label, per column.
                 ctx.strokeStyle = 'rgba(150,180,230,.14)'; ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.moveTo(padX, 500); ctx.lineTo(W - padX, 500); ctx.stroke();
-                ctx.fillStyle = '#8a94a8'; ctx.font = '500 19px "Courier New",monospace';
-                const strip = [];
-                if (temp) strip.push('TEMPERATURE');
-                if (cond) strip.push('SKY');
-                strip.push(wind ? 'WIND ' + wind.toUpperCase() : 'WIND');
-                ctx.fillText(strip.join('    ·    '), padX, 546);
+                ctx.beginPath(); ctx.moveTo(padX, 470); ctx.lineTo(W - padX, 470); ctx.stroke();
+                const cols = (stats && stats.length ? stats : [['WIND', ''], ['FEELS', ''], ['HUMIDITY', '']]).slice(0, 4);
+                ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+                let sx = padX;
+                cols.forEach(([label, value]) => {
+                    const vTxt = value || '—';
+                    ctx.fillStyle = '#eef2f8'; ctx.font = '600 46px Georgia,serif';
+                    ctx.fillText(vTxt, sx, 536);
+                    const vW = ctx.measureText(vTxt).width;
+                    ctx.fillStyle = '#8a94a8'; ctx.font = '500 15px "Courier New",monospace';
+                    ctx.fillText(label, sx, 566);
+                    const lW = ctx.measureText(label).width;
+                    sx += Math.max(vW, lW) + 52;
+                });
             }
 
             hudShare.addEventListener('click', async () => {
@@ -2438,16 +2446,27 @@
                 const cond = clean(document.querySelector('#hudConditions span')?.textContent);
                 const wind = clean(document.getElementById('windSpeed')?.textContent);
                 const t = skip(temp) ? '' : temp, c = skip(cond) ? '' : cond, w = skip(wind) ? '' : wind;
+                const feels = clean(document.getElementById('feelsLike')?.textContent);
+                const humidity = clean(document.getElementById('humidity')?.textContent);
+                const uvRaw = clean(document.querySelector('#hudUV span')?.textContent);
+                const uv = uvRaw ? uvRaw.replace(/^UV\s*/i, '') : '';
+                const stats = [];
+                if (w) stats.push(['WIND', w]);
+                if (!skip(feels)) stats.push(['FEELS', feels]);
+                if (!skip(humidity)) stats.push(['HUMIDITY', humidity]);
+                if (uv && !/-/.test(uv)) stats.push(['UV', uv]);
                 const parts = [];
                 if (t) parts.push(t);
                 if (c) parts.push(c);
                 if (w) parts.push('wind ' + w);
+                if (!skip(feels)) parts.push('feels ' + feels);
+                if (!skip(humidity)) parts.push('humidity ' + humidity);
                 const report = 'Weather HQ' + (parts.length ? ' — ' + parts.join(' · ') : '');
                 const url = location.href;
                 const icon = hudShare.querySelector('i');
                 let payload = { title: 'Weather HQ', text: report, url };
                 try {
-                    drawWeatherCard(t, c, w);
+                    drawWeatherCard(t, c, stats);
                     const blob = await new Promise(res => shareCanvas.toBlob(res, 'image/png'));
                     if (blob && typeof File === 'function') {
                         const file = new File([blob], 'weather-hq.png', { type: 'image/png' });
