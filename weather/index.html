@@ -2364,26 +2364,109 @@
         // clipboard fallback on desktop.
         const hudShare = document.getElementById('hudShare');
         if (hudShare) {
+            // Offscreen live share card: render current temp/sky/wind to a
+            // 1200x630 canvas and share it as a PNG file so the actual conditions
+            // travel as an image. Location-free. Text + download fallbacks.
+            const shareCanvas = document.createElement('canvas');
+            shareCanvas.width = 1200; shareCanvas.height = 630;
+
+            function drawWeatherBolt(ctx, bx, by, bw, bh) {
+                const pts = [[58,0],[20,52],[48,52],[10,100],[86,40],[54,40],[84,0]];
+                ctx.save();
+                const g = ctx.createLinearGradient(bx, by, bx, by + bh);
+                g.addColorStop(0, '#fff3c8'); g.addColorStop(.46, '#ffd45e'); g.addColorStop(1, '#ffab34');
+                ctx.fillStyle = g;
+                ctx.shadowColor = 'rgba(255,210,90,.5)'; ctx.shadowBlur = 40;
+                ctx.beginPath();
+                pts.forEach(([fx, fy], i) => {
+                    const x = bx + fx / 100 * bw, y = by + fy / 100 * bh;
+                    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+                });
+                ctx.closePath(); ctx.fill();
+                ctx.restore();
+            }
+
+            function drawWeatherCard(temp, cond, wind) {
+                const ctx = shareCanvas.getContext('2d');
+                const W = 1200, H = 630, padX = 80;
+                ctx.clearRect(0, 0, W, H);
+                let g = ctx.createLinearGradient(0, 0, W * .6, H);
+                g.addColorStop(0, '#0c1019'); g.addColorStop(.55, '#080b12'); g.addColorStop(1, '#06080e');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                let rg = ctx.createRadialGradient(W * .8, -H * .25, 0, W * .8, -H * .25, 900);
+                rg.addColorStop(0, 'rgba(120,150,210,.16)'); rg.addColorStop(1, 'rgba(120,150,210,0)');
+                ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+
+                drawWeatherBolt(ctx, 968, 150, 150, 300);
+
+                ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+                ctx.font = '600 19px "Courier New",monospace'; ctx.fillStyle = '#c2cad8';
+                ctx.fillText('RG', padX, 96);
+                ctx.fillStyle = '#8a94a8'; ctx.fillText(' / WEATHER', padX + ctx.measureText('RG').width, 96);
+                ctx.textAlign = 'right'; ctx.fillStyle = '#8a94a8';
+                ctx.font = '600 16px "Courier New",monospace';
+                ctx.fillText('WEATHER HQ  ✴', W - padX, 96);
+
+                ctx.textAlign = 'left'; ctx.fillStyle = '#ffd45e';
+                ctx.font = '600 19px "Courier New",monospace';
+                ctx.fillText('—  LIVE SKY · LOCAL HUD', padX, 190);
+
+                const bigTemp = temp || 'Weather';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = (temp ? '600 168px' : '600 128px') + ' Georgia,"Times New Roman",serif';
+                ctx.save(); ctx.shadowColor = 'rgba(255,224,138,.28)'; ctx.shadowBlur = 50;
+                ctx.fillText(bigTemp, padX - 4, 350);
+                ctx.restore();
+
+                ctx.fillStyle = '#c2cad8'; ctx.font = '400 40px Georgia,serif';
+                ctx.fillText(cond || 'The sky where you are, read live.', padX, 420);
+
+                ctx.strokeStyle = 'rgba(150,180,230,.14)'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(padX, 500); ctx.lineTo(W - padX, 500); ctx.stroke();
+                ctx.fillStyle = '#8a94a8'; ctx.font = '500 19px "Courier New",monospace';
+                const strip = [];
+                if (temp) strip.push('TEMPERATURE');
+                if (cond) strip.push('SKY');
+                strip.push(wind ? 'WIND ' + wind.toUpperCase() : 'WIND');
+                ctx.fillText(strip.join('    ·    '), padX, 546);
+            }
+
             hudShare.addEventListener('click', async () => {
                 const clean = (s) => (s || '').replace(/\s+/g, ' ').trim();
                 const skip = (s) => !s || /loading/i.test(s) || /^-{1,2}/.test(s);
                 const temp = clean(document.querySelector('#hudTemp span')?.textContent);
                 const cond = clean(document.querySelector('#hudConditions span')?.textContent);
                 const wind = clean(document.getElementById('windSpeed')?.textContent);
+                const t = skip(temp) ? '' : temp, c = skip(cond) ? '' : cond, w = skip(wind) ? '' : wind;
                 const parts = [];
-                if (!skip(temp)) parts.push(temp);
-                if (!skip(cond)) parts.push(cond);
-                if (!skip(wind)) parts.push('wind ' + wind);
-                const report = 'Celestial Drift' + (parts.length ? ' — ' + parts.join(' · ') : '');
+                if (t) parts.push(t);
+                if (c) parts.push(c);
+                if (w) parts.push('wind ' + w);
+                const report = 'Weather HQ' + (parts.length ? ' — ' + parts.join(' · ') : '');
                 const url = location.href;
                 const icon = hudShare.querySelector('i');
+                let payload = { title: 'Weather HQ', text: report, url };
                 try {
-                    if (navigator.share) { await navigator.share({ title: 'Celestial Drift', text: report, url }); return; }
+                    drawWeatherCard(t, c, w);
+                    const blob = await new Promise(res => shareCanvas.toBlob(res, 'image/png'));
+                    if (blob && typeof File === 'function') {
+                        const file = new File([blob], 'weather-hq.png', { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            payload = { title: 'Weather HQ', text: `${report}\n${url}`, files: [file] };
+                        }
+                    }
+                    if (navigator.share) { await navigator.share(payload); return; }
+                    if (blob) {
+                        const a = document.createElement('a');
+                        a.download = 'weather-hq.png';
+                        a.href = URL.createObjectURL(blob); a.click();
+                        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+                    }
                     await navigator.clipboard.writeText(`${report} ${url}`);
                     hudShare.classList.add('copied');
                     if (icon) icon.className = 'fas fa-check';
                     setTimeout(() => { hudShare.classList.remove('copied'); if (icon) icon.className = 'fas fa-share-nodes'; }, 1600);
-                } catch (_) {}
+                } catch (e) { if (e && e.name === 'AbortError') return; }
             });
         }
 

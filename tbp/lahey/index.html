@@ -544,7 +544,7 @@
                     'Loose lawn furniture. Randy remains within shouting distance. Trouble is developing over the park.',
                     'The shit winds are gathering behind lot forty-two. Maintain visual contact with the liquor cabinet.',
                     'Gusting shitfronts near the trailer office. Do not attempt to reason with the weather.',
-                    'A wall of consequences building on the horizon. The rum-and-cokes are now load-bearing.',
+                    'A wall of consequences building on the horizon. I have started drinking defensively.',
                     'Sustained shit gusts of forty. Ricky has an idea. This is how it always starts.',
                     'The barometer is drunk, and the barometer is usually right.',
                     'Debris field expanding. If you can read this, you are already downwind of Randy.',
@@ -605,17 +605,132 @@
                 body.classList.add('forecast-flash');
             });
 
+            // Live share card: render the CURRENT report (pressure, title, code,
+            // line) to an offscreen 1200x630 canvas and share it as a PNG file so
+            // the actual forecast travels as an image. Text + download fallbacks.
+            const shareCanvas = document.createElement('canvas');
+            shareCanvas.width = 1200; shareCanvas.height = 630;
+
+            function wrapText(ctx, text, maxWidth) {
+                const words = String(text).split(/\s+/);
+                const lines = [];
+                let line = '';
+                words.forEach(word => {
+                    const test = line ? `${line} ${word}` : word;
+                    if (line && ctx.measureText(test).width > maxWidth) { lines.push(line); line = word; }
+                    else line = test;
+                });
+                if (line) lines.push(line);
+                return lines;
+            }
+
+            function drawLaheyCard() {
+                const pressure = Math.max(0, Math.min(100, Number(slider.value)));
+                const ctx = shareCanvas.getContext('2d');
+                const W = 1200, H = 630, padX = 76;
+                ctx.clearRect(0, 0, W, H);
+
+                let g = ctx.createLinearGradient(0, 0, W, H);
+                g.addColorStop(0, '#1d3025'); g.addColorStop(.68, '#0b120e'); g.addColorStop(1, '#0b120e');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                let rg = ctx.createRadialGradient(W * .82, H * .06, 0, W * .82, H * .06, 640);
+                rg.addColorStop(0, 'rgba(240,182,80,.16)'); rg.addColorStop(1, 'rgba(240,182,80,0)');
+                ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+                ctx.strokeStyle = 'rgba(231,220,189,.035)'; ctx.lineWidth = 1;
+                for (let x = 54; x < W; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+                for (let y = 54; y < H; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+                let vg = ctx.createRadialGradient(W / 2, H / 2, H * .32, W / 2, H / 2, W * .72);
+                vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.6)');
+                ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+                ctx.strokeStyle = 'rgba(231,220,189,.22)'; ctx.lineWidth = 1;
+                ctx.strokeRect(26.5, 26.5, W - 53, H - 53);
+
+                ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+                ctx.fillStyle = '#f0b650';
+                ctx.beginPath(); ctx.moveTo(padX, 74); ctx.lineTo(padX + 16, 74); ctx.lineTo(padX + 8, 60); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = 'rgba(231,220,189,.55)';
+                ctx.font = '500 15px "Courier New",monospace';
+                ctx.fillText('SUNNYVALE METEOROLOGICAL SERVICE · DEPT. OF SHITWIND DETECTION', padX + 28, 74);
+                ctx.textAlign = 'right'; ctx.fillStyle = '#f0b650';
+                ctx.font = '700 16px "Courier New",monospace';
+                ctx.fillText(code.textContent, W - padX, 74);
+
+                ctx.textAlign = 'left';
+                ctx.fillStyle = 'rgba(231,220,189,.55)';
+                ctx.font = '700 44px "Arial Narrow","Helvetica Neue",Arial,sans-serif';
+                ctx.fillText('THE LIQUOR', padX, 150);
+                ctx.fillStyle = '#e7dcbd';
+                ctx.font = '700 92px "Arial Narrow","Helvetica Neue",Arial,sans-serif';
+                ctx.fillText('WEATHER ', padX, 232);
+                const wW = ctx.measureText('WEATHER ').width;
+                ctx.fillStyle = '#f0b650';
+                ctx.fillText('REPORT', padX + wW, 232);
+
+                ctx.font = '600 16px "Courier New",monospace';
+                const badgeText = 'LIQUOR ADVISORY · ' + title.textContent.toUpperCase();
+                const bw = ctx.measureText(badgeText).width + 30;
+                ctx.fillStyle = 'rgba(216,98,46,.10)'; ctx.strokeStyle = '#d8622e'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.rect(padX, 268, bw, 34); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#f0b650'; ctx.textBaseline = 'middle';
+                ctx.fillText(badgeText, padX + 15, 286);
+                ctx.textBaseline = 'alphabetic';
+
+                ctx.fillStyle = '#e7dcbd';
+                ctx.font = 'italic 30px Georgia,serif';
+                wrapText(ctx, copy.textContent, 620).slice(0, 4).forEach((l, i) => ctx.fillText(l, padX, 362 + i * 40));
+
+                ctx.fillStyle = 'rgba(231,220,189,.55)';
+                ctx.font = '500 15px "Courier New",monospace';
+                ctx.fillText('doomswitch541-prog.github.io/tbp/lahey', padX, 556);
+
+                // gauge
+                const cx = 980, cy = 296, R = 116;
+                const start = Math.PI * 0.75, end = Math.PI * 2.25;
+                ctx.lineCap = 'round'; ctx.lineWidth = 22;
+                ctx.strokeStyle = 'rgba(231,220,189,.14)';
+                ctx.beginPath(); ctx.arc(cx, cy, R, start, end); ctx.stroke();
+                const fillEnd = start + (end - start) * (pressure / 100);
+                ctx.strokeStyle = pressure < 20 ? '#2b8a5a' : pressure < 50 ? '#c9a13a' : pressure < 80 ? '#e08a3c' : '#c23b1e';
+                ctx.beginPath(); ctx.arc(cx, cy, R, start, fillEnd); ctx.stroke();
+                ctx.strokeStyle = '#f0b650'; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(fillEnd) * (R - 10), cy + Math.sin(fillEnd) * (R - 10)); ctx.stroke();
+                ctx.fillStyle = '#f0b650'; ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 7); ctx.fill();
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#e7dcbd'; ctx.font = '700 56px "Arial Narrow","Helvetica Neue",Arial,sans-serif';
+                ctx.fillText(String(pressure).padStart(2, '0'), cx, cy - 2);
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = 'rgba(231,220,189,.55)'; ctx.font = '600 13px "Courier New",monospace';
+                ctx.fillText('LIQUOR PRESSURE', cx, cy + R + 34);
+                ctx.textAlign = 'left';
+            }
+
+            function canvasBlob() {
+                return new Promise(res => shareCanvas.toBlob(res, 'image/png'));
+            }
+
             shareButton.addEventListener('click', async () => {
                 const report = `Sunnyvale Liquor Weather: ${title.textContent} — ${copy.textContent}`;
+                let payload = { title: 'The Liquor Weather Report', text: report, url: location.href };
                 try {
-                    if (navigator.share) {
-                        await navigator.share({ title: 'The Liquor Weather Report', text: report, url: location.href });
-                        return;
+                    drawLaheyCard();
+                    const blob = await canvasBlob();
+                    if (blob && typeof File === 'function') {
+                        const file = new File([blob], 'liquor-weather-report.png', { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            payload = { title: payload.title, text: `${report}\n${location.href}`, files: [file] };
+                        }
+                    }
+                    if (navigator.share) { await navigator.share(payload); return; }
+                    if (blob) {
+                        const a = document.createElement('a');
+                        a.download = 'liquor-weather-report.png';
+                        a.href = URL.createObjectURL(blob); a.click();
+                        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
                     }
                     await navigator.clipboard.writeText(`${report} ${location.href}`);
                     shareButton.textContent = 'Copied';
                     setTimeout(() => { shareButton.textContent = 'Share report'; }, 1600);
-                } catch (_) {}
+                } catch (e) { if (e && e.name === 'AbortError') return; }
             });
 
             document.addEventListener('keydown', event => {
