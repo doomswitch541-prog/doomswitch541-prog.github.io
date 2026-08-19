@@ -2897,7 +2897,11 @@
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
             const declination = 23.45 * Math.sin((360/365) * (dayOfYear - 81) * Math.PI / 180);
 
-            const hour = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+            // Hour angle is measured from local solar noon. The + lon term converts
+            // to local solar time, so the clock hour must be UTC (not the viewer's
+            // local time) — otherwise longitude is counted twice. (~4 min equation-of-
+            // time offset is ignored; well within display precision.)
+            const hour = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
             const hourAngle = 15 * (hour - 12) + lon;
 
             const latRad = lat * Math.PI / 180;
