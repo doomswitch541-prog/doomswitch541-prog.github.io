@@ -530,6 +530,10 @@
                     'Visibility good, cabinet full, Ricky asleep. Enjoy it while the front holds.',
                     'Conditions nominal. The rum is at rest. Do not, under any circumstances, wake the rum.',
                     'A high-pressure system of pure decency sits over the trailer. It will not last. It never does.',
+                    'The liquor is sleeping. Do not email the liquor. Do not call the liquor. Let the liquor sleep.',
+                    'Decency index at a record high. Bubbles suspects a trap. Bubbles is correct.',
+                    'Not one shit cloud in the sky — which means the shit clouds are up to something.',
+                    'Dead calm. You could hear a shirt drop. Nobody has dropped a shirt. Yet.',
                 ]},
                 { max: 36, title: 'Shit Breeze', code: 'SB-02', lines: [
                     'A minor disturbance near the cheeseburger corridor. Conditions remain manageable.',
@@ -539,6 +543,10 @@
                     'Randy reports his shirt is "thinking about it." Advisory: it comes off by evening.',
                     'Scattered nonsense expected after dark. Bring the bottle inside, just in case.',
                     'Pressure is ticking up. The park can feel it. So can the liquor.',
+                    'A gentle shitfront moving through — the kind you can still drink your way out of.',
+                    'Randy\'s shirt is at DEFCON three. This is a shirt advisory, not a shirt warning. Yet.',
+                    'Mild consequences inbound. Recommend one (1) preemptive rum and coke. Minimum.',
+                    'Light chop on the decency. Julian has lit a cigarette and said nothing. Ominous.',
                 ]},
                 { max: 59, title: 'Shit Gust', code: 'SG-03', lines: [
                     'Loose lawn furniture. Randy remains within shouting distance. Trouble is developing over the park.',
@@ -548,6 +556,10 @@
                     'Sustained shit gusts of forty. Ricky has an idea. This is how it always starts.',
                     'The barometer is drunk, and the barometer is usually right.',
                     'Debris field expanding. If you can read this, you are already downwind of Randy.',
+                    'The winds are shiftin\', bud, and they smell like Randy\'s cheeseburgers.',
+                    'Moderate to heavy nonsense. Julian is holding his drink at a concerning angle.',
+                    'The park is bracing. So is the liquor. So am I. I am the liquor.',
+                    'Gust front approaching. Somebody said "I got this." Nobody has this.',
                 ]},
                 { max: 81, title: 'Shit Squall', code: 'SS-04', lines: [
                     'Barometric decency is dropping fast. Shirts may be removed without warning.',
@@ -557,6 +569,10 @@
                     'Conditions deteriorating beautifully. Bubbles has secured the kitties. You are on your own.',
                     'Horizontal shit-rain near the swing set. Supervisor is "handling it," which means he is not.',
                     'The forecast has stopped making sense and started making decisions.',
+                    'Structural decency has failed. The rum is now load-bearing.',
+                    'Forecast is ninety percent liquor, ten percent Randy, one hundred percent regret.',
+                    'The winds tore the labels off the bottles. We drink them blind now. This is fine. This is fine.',
+                    'Ricky is outside yelling at the sky. The sky is winning. The liquor is refereeing.',
                 ]},
                 { max: 100, title: 'Full Shiticane', code: 'SH-05', lines: [
                     'All shit systems are now organized. Secure the trailer and let the liquor conduct the investigation.',
@@ -567,20 +583,37 @@
                     'The shit winds have made landfall. Randy is shirtless and at peace. It is finished.',
                     'Maximum sustained chaos. Evacuate the sober, shelter the drunk, praise the bottle.',
                     'This is your supervisor speaking. The park is gone, the liquor remains. Godspeed.',
+                    'Category Lahey has been upgraded to Category Mister Lahey. God help the park.',
+                    'The barometer exploded. Its final reading was "liquor." It died as it lived.',
+                    'Shit winds at maximum. Randy has ascended. He is one with the cheeseburger now.',
+                    'This is the big one, bud. Batten the trailer, salute the rum, and remember — I am the liquor.',
                 ]},
             ];
 
             let lineIndex = 0;
+            let currentCode = null;
 
             function forecastFor(value) {
                 return forecasts.find(item => value <= item.max) || forecasts[forecasts.length - 1];
             }
 
+            // Pick a fresh line — random, and not the one already showing, so it rotates
+            // and never feels stale.
+            function rollLine(current) {
+                if (current.lines.length <= 1) return 0;
+                let i;
+                do { i = Math.floor(Math.random() * current.lines.length); } while (i === lineIndex);
+                return i;
+            }
+
             function applyPressure(value, freshLine = false) {
                 const pressure = Math.max(0, Math.min(100, Number(value)));
                 const current = forecastFor(pressure);
-                if (freshLine) lineIndex = (lineIndex + 1) % current.lines.length;
+                // A new band (or the read button) rolls a fresh random line; dragging
+                // within the same band keeps the current one so it doesn't flicker.
+                if (freshLine || current.code !== currentCode) lineIndex = rollLine(current);
                 else lineIndex = Math.min(lineIndex, current.lines.length - 1);
+                currentCode = current.code;
 
                 root.style.setProperty('--pressure', pressure);
                 root.style.setProperty('--gust', (pressure / 100).toFixed(2));
