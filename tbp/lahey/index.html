@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#17251d">
     <title>The Liquor Weather Report — Mr. Lahey</title>
-    <meta name="description" content="Sunnyvale's official shitwind forecast. Adjust the liquor pressure, read the winds, share the report.">
+    <meta name="description" content="Sunnyvale's official shitwind forecast, filed from the Park Supervisor's office. The barometer is drunk, and the barometer is usually right. I am the liquor.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="RG HQ">
     <meta property="og:title" content="The Liquor Weather Report">
-    <meta property="og:description" content="Sunnyvale's official shitwind forecast. Adjust the liquor pressure, read the winds, share the report.">
+    <meta property="og:description" content="Sunnyvale's official shitwind forecast, filed from the Park Supervisor's office. The barometer is drunk, and the barometer is usually right. I am the liquor.">
     <meta property="og:url" content="https://doomswitch541-prog.github.io/tbp/lahey/">
     <meta property="og:image" content="https://doomswitch541-prog.github.io/assets/og/lahey.png">
     <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
     <meta property="og:image:alt" content="The Liquor Weather Report — a Sunnyvale storm bulletin with the liquor-pressure gauge pinned at Full Shiticane.">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="The Liquor Weather Report">
-    <meta name="twitter:description" content="Sunnyvale's official shitwind forecast — read the winds, share the report.">
+    <meta name="twitter:description" content="Sunnyvale's shitwind forecast. The barometer is drunk, and it's usually right. I am the liquor.">
     <meta name="twitter:image" content="https://doomswitch541-prog.github.io/assets/og/lahey.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -709,7 +709,7 @@
             }
 
             shareButton.addEventListener('click', async () => {
-                const report = `Sunnyvale Liquor Weather: ${title.textContent} — ${copy.textContent}`;
+                const report = `Sunnyvale Liquor Weather — liquor pressure ${slider.value}/100 · ${title.textContent}. ${copy.textContent}`;
                 let payload = { title: 'The Liquor Weather Report', text: report, url: location.href };
                 try {
                     drawLaheyCard();
