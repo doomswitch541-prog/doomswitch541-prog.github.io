@@ -7,6 +7,23 @@ const FALLBACK_SERVERS = [
 const FAVORITES_KEY = 'rg-broadcast-favorites-v1';
 const LAST_STATION_KEY = 'rg-broadcast-last-station-v1';
 const RESULT_LIMIT = 50;
+const SIGNAL_TEST_LIMIT = 30;
+const SIGNAL_TEST_TIMEOUT = 9000;
+const SIGNAL_TEST_CONCURRENCY = 4;
+const NEWS_TERMS = ['Bloomberg', 'CNN', 'Fox News'];
+const OFFICIAL_NEWS_STATIONS = [{
+    stationuuid: 'official-alex-jones-network',
+    name: 'Alex Jones Network',
+    url_resolved: 'https://stream.alexjones.media/stream/7/',
+    homepage: 'https://alexjones.media/',
+    countrycode: 'US',
+    codec: 'AAC+',
+    bitrate: 32,
+    tags: 'infowars,news,talk',
+    hls: false,
+    lastcheckok: true,
+    source: 'official'
+}];
 
 const audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
@@ -27,6 +44,7 @@ const searchQuery = document.getElementById('search-query');
 const searchField = document.getElementById('search-field');
 const presetButtons = [...document.querySelectorAll('[data-preset]')];
 const resultsLabel = document.getElementById('results-label');
+const testSignalsButton = document.getElementById('test-signals');
 const randomButton = document.getElementById('random-station');
 const stationList = document.getElementById('station-list');
 const directoryMessage = document.getElementById('directory-message');
@@ -40,6 +58,9 @@ let currentIndex = -1;
 let lastRequest = { kind: 'top' };
 let favoritesOnly = false;
 let favorites = loadFavorites();
+let playbackRun = 0;
+let signalTestRun = 0;
+const signalResults = new Map();
 const supportsNativeHls = audio.canPlayType('application/vnd.apple.mpegurl') !== '';
 
 function timeoutSignal(milliseconds) {
@@ -118,7 +139,8 @@ async function radioBrowser(path, options = {}) {
 }
 
 function sanitizeStations(items, limit = RESULT_LIMIT) {
-    const seen = new Set();
+    const seenUuids = new Set();
+    const seenStreams = new Set();
     return items.filter(station => {
         const stream = String(station.url_resolved || '');
         const uuid = String(station.stationuuid || '');
@@ -126,8 +148,9 @@ function sanitizeStations(items, limit = RESULT_LIMIT) {
         if (!stream.startsWith('https://')) return false;
         if ((Number(station.hls) === 1 || station.hls === true) && !supportsNativeHls) return false;
         if (Number(station.lastcheckok) !== 1 && station.lastcheckok !== true) return false;
-        if (seen.has(uuid)) return false;
-        seen.add(uuid);
+        if (seenUuids.has(uuid) || seenStreams.has(stream)) return false;
+        seenUuids.add(uuid);
+        seenStreams.add(stream);
         return true;
     }).slice(0, limit);
 }
@@ -187,6 +210,7 @@ function compactStation(station) {
         codec: station.codec || '',
         bitrate: Number(station.bitrate) || 0,
         tags: station.tags || '',
+        source: station.source || 'radio-browser',
         hls: Number(station.hls) === 1 || station.hls === true,
         geo_lat: station.geo_lat !== null && station.geo_lat !== '' && Number.isFinite(Number(station.geo_lat))
             ? Number(station.geo_lat) : null,
@@ -230,6 +254,151 @@ function updateRowFavorites() {
     });
 }
 
+function mediaErrorDetail(media, fallbackError) {
+    const code = media?.error?.code;
+    const messages = {
+        1: 'Playback aborted',
+        2: 'Network error',
+        3: 'Audio decode error',
+        4: 'Format not supported'
+    };
+    if (messages[code]) return `${messages[code]} (media ${code})`;
+    if (fallbackError?.name === 'NotSupportedError') return 'Format not supported';
+    if (fallbackError?.name === 'AbortError') return 'Connection aborted';
+    if (fallbackError?.message) return fallbackError.message;
+    return 'No playable audio returned';
+}
+
+function signalFailureLabel(detail) {
+    const value = detail.toLowerCase();
+    if (value.includes('network')) return 'NETWORK ERROR';
+    if (value.includes('decode')) return 'DECODE ERROR';
+    if (value.includes('not supported') || value.includes('unsupported')) return 'UNSUPPORTED';
+    if (value.includes('timed out')) return 'TIMEOUT';
+    if (value.includes('aborted')) return 'ABORTED';
+    return 'NO RESPONSE';
+}
+
+function resetSignalTests() {
+    signalTestRun += 1;
+    signalResults.clear();
+    testSignalsButton.disabled = true;
+    testSignalsButton.textContent = 'TEST SIGNALS';
+}
+
+function updateSignalRow(uuid) {
+    const row = [...stationList.querySelectorAll('.station-row')]
+        .find(item => item.dataset.uuid === uuid);
+    if (!row) return;
+    const result = signalResults.get(uuid) || {
+        state: 'untested',
+        label: 'UNTESTED',
+        detail: 'Signal has not been tested on this device.'
+    };
+    const state = row.querySelector('.signal-state');
+    row.dataset.signal = result.state;
+    state.dataset.state = result.state;
+    state.textContent = result.label;
+    state.title = result.detail;
+    state.setAttribute('aria-label', `${result.label}: ${result.detail}`);
+}
+
+function setSignalResult(station, result) {
+    if (!station?.stationuuid) return;
+    signalResults.set(station.stationuuid, result);
+    updateSignalRow(station.stationuuid);
+}
+
+function probeStationSignal(station) {
+    return new Promise(resolve => {
+        const probe = new Audio();
+        const startedAt = performance.now();
+        let settled = false;
+        let timer;
+
+        const finish = (state, label, detail) => {
+            if (settled) return;
+            settled = true;
+            window.clearTimeout(timer);
+            ['loadeddata', 'canplay', 'playing'].forEach(eventName => probe.removeEventListener(eventName, onReady));
+            probe.removeEventListener('error', onError);
+            probe.pause();
+            probe.removeAttribute('src');
+            probe.load();
+            resolve({
+                state,
+                label,
+                detail: `${detail} | ${Math.round(performance.now() - startedAt)} ms`
+            });
+        };
+        const onReady = () => finish('ready', 'READY', 'Playable audio returned');
+        const onError = () => {
+            const detail = mediaErrorDetail(probe);
+            finish('dead', signalFailureLabel(detail), detail);
+        };
+
+        ['loadeddata', 'canplay', 'playing'].forEach(eventName => probe.addEventListener(eventName, onReady, { once: true }));
+        probe.addEventListener('error', onError, { once: true });
+        timer = window.setTimeout(
+            () => finish('dead', 'TIMEOUT', `Timed out after ${SIGNAL_TEST_TIMEOUT / 1000} seconds`),
+            SIGNAL_TEST_TIMEOUT
+        );
+        probe.preload = 'auto';
+        probe.muted = true;
+        probe.volume = 0;
+        probe.playsInline = true;
+        probe.src = station.url_resolved;
+        probe.load();
+        const playAttempt = probe.play();
+        if (playAttempt?.catch) {
+            playAttempt.catch(error => {
+                if (error?.name !== 'NotAllowedError') {
+                    const detail = mediaErrorDetail(probe, error);
+                    finish('dead', signalFailureLabel(detail), detail);
+                }
+            });
+        }
+    });
+}
+
+async function testCurrentSignals() {
+    if (!stations.length) return;
+    const run = ++signalTestRun;
+    const candidates = stations.slice(0, SIGNAL_TEST_LIMIT);
+    let complete = 0;
+    let ready = 0;
+
+    testSignalsButton.disabled = true;
+    candidates.forEach(station => setSignalResult(station, {
+        state: 'testing',
+        label: 'TESTING',
+        detail: 'Waiting for playable audio from this stream.'
+    }));
+    testSignalsButton.textContent = `TESTING 0 / ${candidates.length}`;
+
+    let cursor = 0;
+    async function worker() {
+        while (cursor < candidates.length && run === signalTestRun) {
+            const station = candidates[cursor];
+            cursor += 1;
+            const result = await probeStationSignal(station);
+            if (run !== signalTestRun) return;
+            setSignalResult(station, result);
+            complete += 1;
+            if (result.state === 'ready') ready += 1;
+            testSignalsButton.textContent = `TESTING ${complete} / ${candidates.length}`;
+        }
+    }
+
+    await Promise.all(Array.from(
+        { length: Math.min(SIGNAL_TEST_CONCURRENCY, candidates.length) },
+        () => worker()
+    ));
+    if (run !== signalTestRun) return;
+    testSignalsButton.disabled = false;
+    testSignalsButton.textContent = `READY ${ready} / ${candidates.length}`;
+}
+
 function renderStations() {
     stationList.replaceChildren();
     stationList.setAttribute('aria-busy', 'false');
@@ -241,6 +410,7 @@ function renderStations() {
             ? 'NO SAVED STATIONS'
             : nightSearch ? 'NO NIGHT SIGNALS FOUND' : 'NO HTTPS STATIONS FOUND';
         randomButton.disabled = true;
+        testSignalsButton.disabled = true;
         directoryMessageCopy.textContent = favoritesOnly
             ? 'Save a station and it will stay here on this device.'
             : nightSearch ? 'No after-dark stations answered this pass. Try the night again.' : 'Try another name, genre, or country.';
@@ -252,6 +422,7 @@ function renderStations() {
     retryButton.hidden = false;
     resultsLabel.textContent = `${stations.length} STATIONS`;
     randomButton.disabled = false;
+    testSignalsButton.disabled = false;
 
     const fragment = document.createDocumentFragment();
     stations.forEach((station, index) => {
@@ -268,9 +439,9 @@ function renderStations() {
         select.type = 'button';
         select.className = 'station-select';
         select.dataset.index = String(index);
-        select.innerHTML = `<strong></strong><span></span>`;
+        select.innerHTML = `<strong></strong><span class="station-detail"></span><span class="signal-state"></span>`;
         select.querySelector('strong').textContent = station.name.trim();
-        select.querySelector('span').textContent = stationDetail(station);
+        select.querySelector('.station-detail').textContent = stationDetail(station);
         select.setAttribute('aria-label', `Play ${station.name}`);
 
         const save = document.createElement('button');
@@ -283,11 +454,13 @@ function renderStations() {
         fragment.appendChild(item);
     });
     stationList.appendChild(fragment);
+    stations.forEach(station => updateSignalRow(station.stationuuid));
     updateRowFavorites();
     updateTransportAvailability();
 }
 
 function setDirectoryLoading(label) {
+    resetSignalTests();
     stationList.replaceChildren();
     stationList.setAttribute('aria-busy', 'true');
     resultsLabel.textContent = label;
@@ -302,6 +475,7 @@ function showDirectoryError(error) {
     directoryMessageCopy.textContent = 'The live station directory did not answer. Your saved stations are still available.';
     retryButton.hidden = false;
     directoryMessage.hidden = false;
+    testSignalsButton.disabled = true;
     console.warn('RG Broadcast directory request failed', error);
 }
 
@@ -319,7 +493,9 @@ async function loadStations(request = lastRequest) {
 
     let path;
     let label;
-    if (request.kind === 'tag') {
+    if (request.kind === 'news') {
+        label = 'NEWS DESK';
+    } else if (request.kind === 'tag') {
         const tag = encodeURIComponent(request.value);
         path = `/json/stations/search?tag=${tag}&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
         label = request.value.toUpperCase();
@@ -336,7 +512,18 @@ async function loadStations(request = lastRequest) {
     }
 
     try {
-        const { data } = await radioBrowser(path);
+        let data;
+        if (request.kind === 'news') {
+            const responses = await Promise.allSettled(NEWS_TERMS.map(term => radioBrowser(
+                `/json/stations/search?name=${encodeURIComponent(term)}&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=9`
+            )));
+            data = [
+                ...OFFICIAL_NEWS_STATIONS,
+                ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
+            ];
+        } else {
+            ({ data } = await radioBrowser(path));
+        }
         if (request.kind === 'night') {
             const now = new Date();
             stations = sanitizeStations(data, 250)
@@ -409,7 +596,7 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
 }
 
 async function recordPlay(station) {
-    if (!station?.stationuuid) return;
+    if (!station?.stationuuid || station.source === 'official') return;
     try {
         await radioBrowser(`/json/url/${encodeURIComponent(station.stationuuid)}`, { timeout: 5000 });
     } catch {
@@ -419,13 +606,16 @@ async function recordPlay(station) {
 
 async function playStation(station, index) {
     if (!station) return;
+    const run = ++playbackRun;
     const changed = currentStation?.stationuuid !== station.stationuuid;
     if (changed) {
         audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
         setCurrentStation(station, index);
+    }
+    if (changed || !audio.currentSrc || audio.src !== station.url_resolved) {
+        audio.dataset.uuid = station.stationuuid;
         audio.src = station.url_resolved;
+        audio.load();
     }
 
     setPlayerState('loading', 'TUNING', `Connecting to ${station.name}...`);
@@ -433,7 +623,15 @@ async function playStation(station, index) {
         await audio.play();
         recordPlay(station);
     } catch (error) {
-        setPlayerState('error', 'NO SIGNAL', 'This stream did not start. Choose another station.');
+        if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
+        if (error?.name === 'NotAllowedError') {
+            setPlayerState('paused', 'READY', 'Press play again to start this station.');
+            playToggle.setAttribute('aria-label', 'Play station');
+            return;
+        }
+        const detail = mediaErrorDetail(audio, error);
+        setSignalResult(station, { state: 'dead', label: signalFailureLabel(detail), detail });
+        setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
         console.warn('RG Broadcast playback failed', error);
     }
 }
@@ -480,6 +678,12 @@ function bindMediaSession() {
 function restoreLastStation() {
     const requestedUuid = new URLSearchParams(location.search).get('station');
     if (requestedUuid) {
+        const official = OFFICIAL_NEWS_STATIONS.find(station => station.stationuuid === requestedUuid);
+        if (official) {
+            setCurrentStation(official);
+            setPlayerState('idle', 'STANDBY', 'Press play to connect.');
+            return;
+        }
         radioBrowser(`/json/stations/byuuid/${encodeURIComponent(requestedUuid)}`)
             .then(({ data }) => {
                 const [station] = sanitizeStations(data);
@@ -547,7 +751,9 @@ presetButtons.forEach(button => {
         loadStations(
             preset === 'top'
                 ? { kind: 'top' }
-                : preset === 'night' ? { kind: 'night' } : { kind: 'tag', value: preset }
+                : preset === 'news'
+                    ? { kind: 'news' }
+                    : preset === 'night' ? { kind: 'night' } : { kind: 'tag', value: preset }
         );
     });
 });
@@ -557,6 +763,7 @@ favoritesFilter.addEventListener('click', () => {
     favoritesFilter.setAttribute('aria-pressed', String(favoritesOnly));
     setActivePreset();
     if (favoritesOnly) {
+        resetSignalTests();
         stations = [...favorites];
         renderStations();
         resultsLabel.textContent = `SAVED  |  ${stations.length}`;
@@ -567,9 +774,17 @@ favoritesFilter.addEventListener('click', () => {
 
 randomButton.addEventListener('click', () => {
     if (!stations.length) return;
-    const index = Math.floor(Math.random() * stations.length);
-    playStation(stations[index], index);
+    const readyStations = stations
+        .map((station, index) => ({ station, index }))
+        .filter(item => signalResults.get(item.station.stationuuid)?.state === 'ready');
+    const pool = readyStations.length
+        ? readyStations
+        : stations.map((station, index) => ({ station, index }));
+    const choice = pool[Math.floor(Math.random() * pool.length)];
+    playStation(choice.station, choice.index);
 });
+
+testSignalsButton.addEventListener('click', testCurrentSignals);
 
 retryButton.addEventListener('click', () => {
     if (favoritesOnly) {
@@ -602,6 +817,11 @@ shareButton.addEventListener('click', async () => {
 
 audio.addEventListener('playing', () => {
     setPlayerState('playing', 'ON AIR', `Playing ${currentStation?.name || 'station'}.`);
+    setSignalResult(currentStation, {
+        state: 'ready',
+        label: 'READY',
+        detail: 'Playable audio confirmed by this receiver.'
+    });
     playToggle.setAttribute('aria-label', 'Pause station');
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 });
@@ -618,7 +838,10 @@ audio.addEventListener('waiting', () => {
 });
 
 audio.addEventListener('error', () => {
-    setPlayerState('error', 'NO SIGNAL', 'This stream stopped or could not be played. Choose another station.');
+    if (!currentStation || !audio.getAttribute('src') || audio.dataset.uuid !== currentStation.stationuuid) return;
+    const detail = mediaErrorDetail(audio);
+    setSignalResult(currentStation, { state: 'dead', label: signalFailureLabel(detail), detail });
+    setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
     playToggle.setAttribute('aria-label', 'Retry station');
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
 });

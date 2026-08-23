@@ -446,11 +446,19 @@ button {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
     min-height: 52px;
     color: var(--muted);
     font-family: var(--font-data);
     font-size: 0.61rem;
     letter-spacing: 0.11em;
+}
+
+.results-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem 0.85rem;
+    margin-left: auto;
 }
 
 .station-list {
@@ -503,7 +511,7 @@ button {
     white-space: nowrap;
 }
 
-.station-select span {
+.station-select .station-detail {
     display: block;
     overflow: hidden;
     margin-top: 0.38rem;
@@ -514,6 +522,44 @@ button {
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
+}
+
+.station-select .signal-state {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    margin-top: 0.42rem;
+    color: #656159;
+    font-size: 0.54rem;
+    letter-spacing: 0.12em;
+}
+
+.signal-state::before {
+    content: "";
+    width: 0.36rem;
+    height: 1px;
+    margin-right: 0.38rem;
+    background: currentColor;
+}
+
+.signal-state[data-state="testing"] {
+    color: var(--amber);
+}
+
+.signal-state[data-state="ready"] {
+    color: var(--green);
+}
+
+.signal-state[data-state="dead"] {
+    color: var(--red);
+}
+
+.station-row[data-signal="ready"] .station-number {
+    color: var(--green);
+}
+
+.station-row[data-signal="dead"] .station-select strong {
+    color: var(--muted);
 }
 
 .row-save {
@@ -659,6 +705,22 @@ button:hover:not(:disabled) {
     .station-actions a {
         grid-column: 1 / -1;
         border-top: 1px solid var(--line);
+    }
+
+    .results-meta {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 0.45rem 0 0.35rem;
+    }
+
+    .results-actions {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .results-actions button {
+        flex: 1;
+        min-width: 0;
     }
 
     .broadcast-foot {

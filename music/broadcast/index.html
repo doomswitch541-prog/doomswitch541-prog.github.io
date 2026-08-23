@@ -73,6 +73,7 @@
 
             <div class="quick-tunes" aria-label="Quick station searches">
                 <button type="button" data-preset="top" aria-pressed="true">MOST PLAYED</button>
+                <button type="button" data-preset="news" aria-pressed="false">NEWS DESK</button>
                 <button type="button" data-preset="night" aria-pressed="false">FOLLOW THE NIGHT</button>
                 <button type="button" data-preset="rock" aria-pressed="false">ROCK</button>
                 <button type="button" data-preset="jazz" aria-pressed="false">JAZZ</button>
@@ -84,7 +85,10 @@
 
             <div class="results-meta">
                 <span id="results-label">CONNECTING</span>
-                <button id="random-station" type="button" disabled>SURPRISE ME</button>
+                <div class="results-actions">
+                    <button id="test-signals" type="button" disabled>TEST SIGNALS</button>
+                    <button id="random-station" type="button" disabled>SURPRISE ME</button>
+                </div>
             </div>
 
             <ol class="station-list" id="station-list" aria-busy="true"></ol>
@@ -97,7 +101,7 @@
     </main>
 
     <footer class="broadcast-foot">
-        <span>Station data: Radio Browser</span>
+        <span>Station data: Radio Browser + direct feeds</span>
         <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">OPEN DIRECTORY</a>
     </footer>
 
