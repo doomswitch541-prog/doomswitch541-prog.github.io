@@ -36,6 +36,28 @@
             <p class="sw-log" id="sw-log" aria-live="polite">— tuning —</p>
         </header>
 
+        <!-- Receiver console -->
+        <section class="sw-console" id="sw-console" aria-label="receiver console">
+            <div class="swc-frame">
+                <div class="swc-top">
+                    <div class="swc-readout">
+                        <span class="swc-freq" id="swc-freq">4625<span class="swc-unit">kHz</span></span>
+                        <span class="swc-mode" id="swc-mode">USB</span>
+                    </div>
+                    <div class="swc-name" id="swc-name">UVB-76 · The Buzzer</div>
+                    <div class="swc-sub" id="swc-status">live 24/7 restream · press play</div>
+                </div>
+                <canvas class="swc-fall" id="swc-fall" aria-hidden="true"></canvas>
+                <div class="swc-dial" id="swc-dial" aria-label="tune the band"></div>
+                <div class="swc-controls">
+                    <button class="swc-step" id="swc-prev" type="button" aria-label="previous station">◀</button>
+                    <div class="swc-player" id="swc-player"></div>
+                    <button class="swc-step" id="swc-next" type="button" aria-label="next station">▶</button>
+                </div>
+            </div>
+            <p class="swc-note">A dial across the channels that are actually up right now. Inline audio where a 24/7 stream exists (the Buzzer); a pre-tuned live receiver for the rest. It's not a software radio — it's a curated tuner over real sources.</p>
+        </section>
+
         <!-- Global launchpad -->
         <section class="sw-section">
             <h2>Where to listen</h2>
@@ -70,10 +92,7 @@
                         <a class="sw-open" href="http://websdr.ewi.utwente.nl:8901/?tune=4625usb" target="_blank" rel="noopener">Open a receiver ↗</a>
                         <a class="sw-open sw-open--ghost" href="http://kiwisdr.com/public/" target="_blank" rel="noopener">Other receivers</a>
                     </div>
-                    <div class="sw-listen" data-yt-channel="UCZ3VcGJ2pKkLj-hItlzeykA,UCEvM5ChAueZivZUHNCZAlNg,UCr1d7Fk0KnlIbNXoqvy-kVw">
-                        <button type="button" class="sw-listen-btn" aria-expanded="false">▶ Play the Buzzer — live, 24/7</button>
-                        <p class="sw-listen-note">Press play and the live signal comes right in. It's a community stream of the real transmission, not the transmitter itself. If it's ever quiet, tap “try another feed.”</p>
-                    </div>
+                    <p class="sw-listen-note" style="margin:0.3rem 0 0">Play it live from the tuner console up top — press ▶ on 4625. A community stream of the real transmission, not the transmitter itself.</p>
                 </article>
 
                 <article class="sw-channel" data-live>
