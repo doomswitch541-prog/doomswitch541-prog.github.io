@@ -29,6 +29,7 @@ const SiteNavigation = {
         { label: 'Visuals', href: '/visuals', links: [
             ['/clock', 'Clock'],
             ['/weather', 'Weather'],
+            ['/shortwave', 'Shortwave'],
             ['/screensaver', 'Screensaver'],
             ['/visuals', 'Gallery'],
         ]},

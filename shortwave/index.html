@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://i.ytimg.com; connect-src 'self' https://*.open-meteo.com; frame-src https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Shortwave — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/shortwave.css">
+</head>
+<body>
+    <!-- Dynamic Backgrounds -->
+    <div class="bg-layer night" id="bg-night"></div>
+    <div class="bg-layer evening" id="bg-evening"></div>
+    <div class="bg-layer afternoon" id="bg-afternoon"></div>
+    <div class="bg-layer day" id="bg-day"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/" class="btn">RG</a>
+        </div>
+        <div class="nav-center"></div>
+        <div class="nav-right">
+            <button id="theme-switch" class="btn">Auto</button>
+        </div>
+    </nav>
+
+    <main class="sw-page">
+        <header class="sw-header">
+            <h1>Shortwave</h1>
+            <p class="sw-sub">The good channels. You don't need a radio — public receivers do the listening. Pick a signal, open a receiver, and it opens pre-tuned.</p>
+            <p class="sw-log" id="sw-log" aria-live="polite">— tuning —</p>
+        </header>
+
+        <!-- Global launchpad -->
+        <section class="sw-section">
+            <h2>Where to listen</h2>
+            <div class="sw-launch">
+                <a class="sw-launch-card" href="http://websdr.ewi.utwente.nl:8901/" target="_blank" rel="noopener">
+                    <span class="sw-launch-name">Twente WebSDR</span>
+                    <span class="sw-launch-note">University of Twente, NL · 0–30 MHz · the world's most reliable receiver. Hears most of Europe's HF traffic.</span>
+                    <span class="sw-launch-go">Open ↗</span>
+                </a>
+                <a class="sw-launch-card" href="http://kiwisdr.com/public/" target="_blank" rel="noopener">
+                    <span class="sw-launch-name">KiwiSDR public map</span>
+                    <span class="sw-launch-note">Hundreds of live receivers worldwide. Pick one near a signal, then tune. Best for North American channels.</span>
+                    <span class="sw-launch-go">Open ↗</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- The markers -->
+        <section class="sw-section">
+            <h2>The markers</h2>
+            <p class="sw-intro">Channels that never stop. A tone or a buzz, 24 hours a day — holding a frequency open so no one else can use it. Nobody official will say what for.</p>
+            <div class="sw-list">
+
+                <article class="sw-channel sw-channel--marquee" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">4625<span class="sw-khz">kHz</span> <span class="sw-mode">USB</span></span>
+                        <span class="sw-name">UVB-76 · “The Buzzer”</span>
+                        <p class="sw-desc">A monotone buzz, ~25 tones a minute, running since the Cold War. Every so often it stops and a Russian voice reads names and numbers. Officially a channel marker. Unofficially, decades of people listening for the nights it talks.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="http://websdr.ewi.utwente.nl:8901/?tune=4625usb" target="_blank" rel="noopener">Open a receiver ↗</a>
+                        <a class="sw-open sw-open--ghost" href="http://kiwisdr.com/public/" target="_blank" rel="noopener">Other receivers</a>
+                    </div>
+                    <div class="sw-listen" data-yt="UVfveoImQI4">
+                        <button type="button" class="sw-listen-btn" aria-expanded="false">▶ Listen here — 24/7 restream</button>
+                        <p class="sw-listen-note">A community stream, not the transmitter itself. For the raw signal, open a receiver above. Loads only when you tap it.</p>
+                    </div>
+                </article>
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">5448<span class="sw-khz">kHz</span> <span class="sw-mode">USB</span></span>
+                        <span class="sw-name">The Pip (S30)</span>
+                        <p class="sw-desc">A short, sharp repeating pip — a Russian marker like the Buzzer's cousin. Also logged near 3756 kHz at night. Occasional voice messages break the rhythm.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="http://websdr.ewi.utwente.nl:8901/?tune=5448usb" target="_blank" rel="noopener">Open a receiver ↗</a>
+                    </div>
+                </article>
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">3828<span class="sw-khz">kHz</span> <span class="sw-mode">USB</span></span>
+                        <span class="sw-name">The Squeaky Wheel (S32)</span>
+                        <p class="sw-desc">A rising-and-falling two-tone squeak, like an unoiled hinge turning forever. Another Russian channel marker with no acknowledged purpose. Best heard after dark.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="http://websdr.ewi.utwente.nl:8901/?tune=3828usb" target="_blank" rel="noopener">Open a receiver ↗</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Spooks & numbers -->
+        <section class="sw-section">
+            <h2>Spooks &amp; numbers</h2>
+            <p class="sw-intro">Coded traffic that was never meant for you. Strings of numbers read aloud, military broadcasts that begin with a callword and end before you can write it down.</p>
+            <div class="sw-list">
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">8992<span class="sw-khz">kHz</span> <span class="sw-mode">USB</span></span>
+                        <span class="sw-name">HF-GCS · US military (EAM)</span>
+                        <p class="sw-desc">The US Air Force High Frequency Global Communications System. Long silences, then a station calls “Skyking, Skyking, do not answer” and reads an Emergency Action Message in phonetics. Also on 11175, 6739, 15016 kHz. Real, encrypted, and constant.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="http://kiwisdr.com/public/" target="_blank" rel="noopener">Open a receiver ↗</a>
+                        <a class="sw-open sw-open--ghost" href="http://websdr.ewi.utwente.nl:8901/?tune=8992usb" target="_blank" rel="noopener">Try Twente</a>
+                    </div>
+                </article>
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">various</span>
+                        <span class="sw-name">Numbers stations (E/S/V series)</span>
+                        <p class="sw-desc">Voices reading digit groups in English, Russian, German — one-way messages to agents in the field, unbroken since the Cold War. Schedules and frequencies are tracked by enthusiasts; priyom.org is the log everyone keeps.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="https://priyom.org/" target="_blank" rel="noopener">Priyom live schedule ↗</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Anchors -->
+        <section class="sw-section">
+            <h2>Anchors</h2>
+            <p class="sw-intro">The ones that are always there. Time signals — the sound of a machine telling you, to the second, that the world is still turning. Good for testing your receiver, good for the quiet.</p>
+            <div class="sw-list">
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">10000<span class="sw-khz">kHz</span> <span class="sw-mode">AM</span></span>
+                        <span class="sw-name">WWV · NIST time signal</span>
+                        <p class="sw-desc">Fort Collins, Colorado. A tick every second and a voice reading Coordinated Universal Time each minute. Also on 2500, 5000, 15000, 20000 kHz — pick whichever band is open.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="http://kiwisdr.com/public/" target="_blank" rel="noopener">Open a receiver ↗</a>
+                    </div>
+                </article>
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">7850<span class="sw-khz">kHz</span> <span class="sw-mode">USB</span></span>
+                        <span class="sw-name">CHU · Canada time signal</span>
+                        <p class="sw-desc">Ottawa. English and French time announcements over a steady tick, with a digital burst each minute. Also on 3330 and 14670 kHz. Quietly hypnotic.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="http://kiwisdr.com/public/" target="_blank" rel="noopener">Open a receiver ↗</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Broadcast band -->
+        <section class="sw-section">
+            <h2>Broadcast band</h2>
+            <p class="sw-intro">Off the spy channels — the loud stuff. Late-night AM talk, worldwide radio, and the fringe broadcasts that treat the airwaves like a battleground. Some of it's unhinged. That's the point.</p>
+            <div class="sw-list">
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">AM / worldwide</span>
+                        <span class="sw-name">Radio Garden</span>
+                        <p class="sw-desc">Spin a globe and drop onto any live radio station on Earth — a green dot is a broadcast playing right now. The closest thing to twisting an AM dial across the whole planet at 3am.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="https://radio.garden/" target="_blank" rel="noopener">Open the globe ↗</a>
+                    </div>
+                </article>
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">stream</span>
+                        <span class="sw-name">Infowars</span>
+                        <p class="sw-desc">Alex Jones' 24/7 broadcast — deplatformed off the big networks, still running on its own pipes. Load it up for the full end-of-the-world AM-radio energy, straight from the source.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="https://www.infowars.com/show" target="_blank" rel="noopener">Open the show ↗</a>
+                    </div>
+                </article>
+
+                <article class="sw-channel" data-live>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--live">LIVE</span>
+                        <span class="sw-freq">AM / stream</span>
+                        <span class="sw-name">Coast to Coast AM</span>
+                        <p class="sw-desc">The overnight institution — UFOs, cryptids, shadow people, and callers from the dark. The original late-night AM paranormal show, still carried on stations coast to coast.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open" href="https://www.coasttocoastam.com/listen/" target="_blank" rel="noopener">Find a station ↗</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Gone dark -->
+        <section class="sw-section sw-section--dark">
+            <h2>Gone dark</h2>
+            <p class="sw-intro">Channels that used to be here. Some went off in a single night and never came back. Left in the log on purpose — this is half of what shortwave is.</p>
+            <div class="sw-list">
+
+                <article class="sw-channel" data-dark>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--dark">GONE DARK</span>
+                        <span class="sw-freq">various</span>
+                        <span class="sw-name">HM01 · Cuban numbers</span>
+                        <p class="sw-desc">A Spanish woman's voice, then a screech of digital data — hybrid voice/OFDM messages from Cuban intelligence, hourly across sixteen frequencies. In August 2024 the transmitter suffered a catastrophic failure shortly before a scheduled broadcast. It hasn't returned.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open sw-open--ghost" href="https://priyom.org/number-stations/digital/hm01" target="_blank" rel="noopener">The record ↗</a>
+                    </div>
+                </article>
+
+                <article class="sw-channel" data-dark>
+                    <div class="sw-chan-main">
+                        <span class="sw-status sw-status--dark">GONE DARK</span>
+                        <span class="sw-freq">~11545<span class="sw-khz">kHz</span></span>
+                        <span class="sw-name">The Lincolnshire Poacher (E03)</span>
+                        <p class="sw-desc">The most famous numbers station ever heard: two bars of an English folk tune, then a woman reading five-figure groups — a British SIS station broadcast from Cyprus. It fell silent around 2008. People still play the recordings.</p>
+                    </div>
+                    <div class="sw-chan-actions">
+                        <a class="sw-open sw-open--ghost" href="https://priyom.org/" target="_blank" rel="noopener">The record ↗</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <footer class="sw-foot">
+            <p>Frequencies and status are logged by the shortwave-listening community and drift over time — bands open and close with the sun. If a channel's quiet, it's not always gone; sometimes it's just not the hour. <a href="https://priyom.org/" target="_blank" rel="noopener">priyom.org</a> · <a href="https://websdr.org/" target="_blank" rel="noopener">websdr.org</a></p>
+        </footer>
+    </main>
+
+    <script src="/js/site.js"></script>
+    <script src="/js/shortwave.js"></script>
+</body>
+</html>
