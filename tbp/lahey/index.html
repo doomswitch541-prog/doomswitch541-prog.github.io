@@ -477,14 +477,14 @@
                 <span class="station-label">Department of shitwind detection</span>
                 <div class="gauge" aria-label="Liquor pressure gauge">
                     <div class="needle-wrap" aria-hidden="true"><span class="needle"></span></div>
-                    <output class="gauge-center" id="pressure-output" for="pressure">42</output>
+                    <output class="gauge-center" id="pressure-output" for="pressure">62</output>
                     <span class="gauge-unit">Liquor pressure</span>
                 </div>
 
                 <div class="forecast-box" aria-live="polite">
-                    <div class="forecast-meta"><span>Current conditions</span><span id="forecast-code">SW-03</span></div>
-                    <h2 id="forecast-title">Shit Gust</h2>
-                    <p id="forecast-copy">Loose lawn furniture. Randy remains within shouting distance. Trouble is developing over the park.</p>
+                    <div class="forecast-meta"><span>Current conditions</span><span id="forecast-code">PK-04</span></div>
+                    <h2 id="forecast-title">Right in the Pocket</h2>
+                    <p id="forecast-copy">I'm sober enough to know what I'm doing, and drunk enough to really enjoy it.</p>
                 </div>
             </div>
         </section>
@@ -492,10 +492,11 @@
         <section class="controls" aria-label="Liquor weather controls">
             <div class="pressure-control">
                 <label for="pressure"><span>Adjust liquor pressure</span><span>DECENT → LIQUOR</span></label>
-                <input id="pressure" type="range" min="0" max="100" value="42">
+                <input id="pressure" type="range" min="0" max="100" value="62">
             </div>
             <div class="actions">
                 <button class="action primary" id="read-winds" type="button">Read the winds</button>
+                <button class="action" id="pocket-mode" type="button">Right in the pocket</button>
                 <button class="action" id="share-report" type="button">Share report</button>
             </div>
         </section>
@@ -521,72 +522,57 @@
             const shareButton = document.getElementById('share-report');
             const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+            // Canon Lahey — actual lines from the show, not written-in-his-voice filler.
+            // Levels tuned so the sweet spot ("Right in the Pocket") sits as the
+            // deliberate centre of the liquor scale.
+            const POCKET = 62;   // his optimal liquor level — the pinned share-card mode
             const forecasts = [
-                { max: 17, title: 'Suspicious Calm', code: 'SC-01', lines: [
-                    'The park is quiet. Too quiet. Keep one eye on the bottle and the other on Randy.',
-                    'No active shitfronts detected. This is usually when somebody gets confident.',
-                    'Clear skies over Sunnyvale, barometric decency holding. Nobody move and nobody gets hurt.',
-                    'Zero precipitation, zero drama. A dangerous combination. Somebody is about to ruin it.',
-                    'Visibility good, cabinet full, Ricky asleep. Enjoy it while the front holds.',
-                    'Conditions nominal. The rum is at rest. Do not, under any circumstances, wake the rum.',
-                    'A high-pressure system of pure decency sits over the trailer. It will not last. It never does.',
-                    'The liquor is sleeping. Do not email the liquor. Do not call the liquor. Let the liquor sleep.',
-                    'Decency index at a record high. Bubbles suspects a trap. Bubbles is correct.',
-                    'Not one shit cloud in the sky — which means the shit clouds are up to something.',
-                    'Dead calm. You could hear a shirt drop. Nobody has dropped a shirt. Yet.',
+                { max: 22, title: 'Suspicious Calm', code: 'SC-01', lines: [
+                    'A shit leopard can\'t change its spots.',
+                    'The shitapple doesn\'t fall far from the shit tree.',
+                    'Birds of a shitfeather flock together, Randy.',
+                    'When you plant shit seeds, you get shit weeds.',
+                    'I\'m sober enough to know what I\'m doing.',
+                    'Randy, is this you talking, or the liquor?',
+                    'The liquor\'s asleep. Best we keep it that way.',
                 ]},
-                { max: 36, title: 'Shit Breeze', code: 'SB-02', lines: [
-                    'A minor disturbance near the cheeseburger corridor. Conditions remain manageable.',
-                    'Paperwork is lifting off the hood of the supervisor car. Trouble may be local.',
-                    'Light shit breeze out of the northwest. Secure your lawn chairs and your excuses.',
-                    'A faint smell of consequences on the wind. Nothing a drink will not clarify.',
-                    'Randy reports his shirt is "thinking about it." Advisory: it comes off by evening.',
-                    'Scattered nonsense expected after dark. Bring the bottle inside, just in case.',
-                    'Pressure is ticking up. The park can feel it. So can the liquor.',
-                    'A gentle shitfront moving through — the kind you can still drink your way out of.',
-                    'Randy\'s shirt is at DEFCON three. This is a shirt advisory, not a shirt warning. Yet.',
-                    'Mild consequences inbound. Recommend one (1) preemptive rum and coke. Minimum.',
-                    'Light chop on the decency. Julian has lit a cigarette and said nothing. Ominous.',
+                { max: 42, title: 'Shit Breeze', code: 'SB-02', lines: [
+                    'Shit winds are blowin\', Randers.',
+                    'The winds are shiftin\', Ricky. Big shit winds.',
+                    'Life is a shit river, Randy, and we\'re all just floatin\' down it.',
+                    'Shit hawks, Randy. Shit hawks.',
+                    'The ol\' shit-liner\'s comin\' to port, Rick — and I\'ll be there to tie \'er up.',
+                    'I can smell it, Randy. Somewhere out there, a shirt is comin\' off.',
                 ]},
-                { max: 59, title: 'Shit Gust', code: 'SG-03', lines: [
-                    'Loose lawn furniture. Randy remains within shouting distance. Trouble is developing over the park.',
-                    'The shit winds are gathering behind lot forty-two. Maintain visual contact with the liquor cabinet.',
-                    'Gusting shitfronts near the trailer office. Do not attempt to reason with the weather.',
-                    'A wall of consequences building on the horizon. I have started drinking defensively.',
-                    'Sustained shit gusts of forty. Ricky has an idea. This is how it always starts.',
-                    'The barometer is drunk, and the barometer is usually right.',
-                    'Debris field expanding. If you can read this, you are already downwind of Randy.',
-                    'The winds are shiftin\', bud, and they smell like Randy\'s cheeseburgers.',
-                    'Moderate to heavy nonsense. Julian is holding his drink at a concerning angle.',
-                    'The park is bracing. So is the liquor. So am I. I am the liquor.',
-                    'Gust front approaching. Somebody said "I got this." Nobody has this.',
+                { max: 55, title: 'Shit Gust', code: 'SG-03', lines: [
+                    'There\'s a shit storm comin\', Randy.',
+                    'The shit\'s about to hit the fan, Julian.',
+                    'You know what you get when two shit-tectonic plates collide? Shitquakes, Julian. Shitquakes.',
+                    'We\'re in the eye of a shiticane here, Julian — and Ricky\'s a low shit system.',
+                    'Let the liquor do the thinking.',
+                    'Shit hawks, Randy. Shit hawks.',
                 ]},
-                { max: 81, title: 'Shit Squall', code: 'SS-04', lines: [
-                    'Barometric decency is dropping fast. Shirts may be removed without warning.',
-                    'A rotating disturbance has formed over Sunnyvale. The liquor has assumed operational command.',
-                    'Shit squall warning in effect. Take shelter, take a drink, take no prisoners.',
-                    'The park is now inside the weather, the weather is now inside the park, and the liquor is inside everyone.',
-                    'Conditions deteriorating beautifully. Bubbles has secured the kitties. You are on your own.',
-                    'Horizontal shit-rain near the swing set. Supervisor is "handling it," which means he is not.',
-                    'The forecast has stopped making sense and started making decisions.',
-                    'Structural decency has failed. The rum is now load-bearing.',
-                    'Forecast is ninety percent liquor, ten percent Randy, one hundred percent regret.',
-                    'The winds tore the labels off the bottles. We drink them blind now. This is fine. This is fine.',
-                    'Ricky is outside yelling at the sky. The sky is winning. The liquor is refereeing.',
+                { max: 72, title: 'Right in the Pocket', code: 'PK-04', lines: [
+                    'I\'m sober enough to know what I\'m doing, and drunk enough to really enjoy it.',
+                    'Right in the pocket, Randy.',
+                    'Not too much, not too little — just enough to run a goddamn trailer park.',
+                    'This, Randy? This is a man operating at peak liquor.',
+                    'Let the liquor do the thinking.',
                 ]},
-                { max: 100, title: 'Full Shiticane', code: 'SH-05', lines: [
-                    'All shit systems are now organized. Secure the trailer and let the liquor conduct the investigation.',
-                    'Catastrophic park conditions. The forecast is liquor with a ninety-nine percent chance of consequences.',
-                    'Full shiticane, category Lahey. This is not a drill. This is a way of life.',
-                    'The eye of the shiticane is calm, well-lit, and holding a rum and coke. That is me. I am the liquor.',
-                    'Total system failure across Sunnyvale. There is no more weather. There is only liquor.',
-                    'The shit winds have made landfall. Randy is shirtless and at peace. It is finished.',
-                    'Maximum sustained chaos. Evacuate the sober, shelter the drunk, praise the bottle.',
-                    'This is your supervisor speaking. The park is gone, the liquor remains. Godspeed.',
-                    'Category Lahey has been upgraded to Category Mister Lahey. God help the park.',
-                    'The barometer exploded. Its final reading was "liquor." It died as it lived.',
-                    'Shit winds at maximum. Randy has ascended. He is one with the cheeseburger now.',
-                    'This is the big one, bud. Batten the trailer, salute the rum, and remember — I am the liquor.',
+                { max: 86, title: 'Shit Squall', code: 'SS-05', lines: [
+                    'Feel that? The way the shit clings to the air, Randy.',
+                    'It\'s already started, my dear good friend.',
+                    'Randy, is this you talking, or the liquor?',
+                    'He grew from a little shit-spark into a raging shit-firestorm, Randy.',
+                    'The winds are shiftin\', Ricky — and they\'re bringin\' the whole load.',
+                ]},
+                { max: 100, title: 'Full Shiticane', code: 'SH-06', lines: [
+                    'The shit blizzard, Randy.',
+                    'I am the liquor.',
+                    'Randy... I am the liquor.',
+                    'Someone could get killed? Wouldn\'t that be nice.',
+                    'Driven by the winds of his monumental ignorance, he became a raging shit-firestorm.',
+                    'There\'s no shelter from this one, Randy. There\'s only the liquor.',
                 ]},
             ];
 
@@ -633,6 +619,16 @@
                 const nudge = Math.floor(Math.random() * 35) - 8;
                 const next = Math.max(4, Math.min(100, present + nudge));
                 applyPressure(next, true);
+                body.classList.remove('forecast-flash');
+                void body.offsetWidth;
+                body.classList.add('forecast-flash');
+            });
+
+            // Permanent share-card mode: snap the liquor level right in the pocket —
+            // his optimal read — then Share report sends that exact card.
+            const pocketButton = document.getElementById('pocket-mode');
+            pocketButton.addEventListener('click', () => {
+                applyPressure(POCKET, true);
                 body.classList.remove('forecast-flash');
                 void body.offsetWidth;
                 body.classList.add('forecast-flash');
@@ -776,8 +772,8 @@
             const now = new Date();
             document.getElementById('report-time').textContent = `Filed ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
-            let saved = 42;
-            try { saved = Number(localStorage.getItem('rg-lahey-pressure')) || 42; } catch (_) {}
+            let saved = POCKET;
+            try { saved = Number(localStorage.getItem('rg-lahey-pressure')) || POCKET; } catch (_) {}
             lineIndex = Math.floor(Math.random() * forecastFor(saved).lines.length);
             applyPressure(saved);
 
