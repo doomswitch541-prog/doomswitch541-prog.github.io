@@ -38,6 +38,15 @@ body {
     color: var(--paper);
 }
 
+.radio-nav-anchor {
+    display: none !important;
+}
+
+.nav-menu-btn {
+    top: max(0.4rem, env(safe-area-inset-top));
+    left: max(0.65rem, env(safe-area-inset-left));
+}
+
 button,
 input,
 select {
@@ -70,7 +79,7 @@ button {
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     min-height: calc(56px + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) clamp(1rem, 3vw, 2.5rem) 0;
+    padding: env(safe-area-inset-top) clamp(1rem, 3vw, 2.5rem) 0 max(4.5rem, calc(1rem + env(safe-area-inset-left)));
     border-bottom: 1px solid var(--line);
     font-family: var(--font-data);
     font-size: 0.66rem;
@@ -166,6 +175,189 @@ button {
     margin-top: clamp(3rem, 8vh, 6rem);
     border-top: 1px solid var(--line-strong);
     border-bottom: 1px solid var(--line);
+}
+
+.band-console {
+    padding: 1rem 0 1.15rem;
+    border-bottom: 1px solid var(--line-strong);
+}
+
+.band-readout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: end;
+    gap: 0.9rem;
+}
+
+.band-readout .readout-label {
+    margin-bottom: 0.25rem;
+}
+
+.band-readout strong {
+    display: flex;
+    align-items: baseline;
+    color: var(--paper);
+    font-family: var(--font-data);
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 400;
+    letter-spacing: -0.07em;
+    line-height: 0.9;
+}
+
+.band-readout strong small {
+    margin-left: 0.4rem;
+    color: var(--muted);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+}
+
+.band-readout > b {
+    align-self: center;
+    min-width: 5.5rem;
+    color: var(--muted);
+    font-family: var(--font-data);
+    font-size: 0.57rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-align: right;
+}
+
+.band-meter {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 1.5rem;
+}
+
+.band-meter i {
+    width: 3px;
+    height: calc(0.35rem + var(--meter-step, 0) * 0.2rem);
+    background: rgba(230, 220, 195, 0.16);
+}
+
+.band-meter i:nth-child(1) { --meter-step: 0; }
+.band-meter i:nth-child(2) { --meter-step: 1; }
+.band-meter i:nth-child(3) { --meter-step: 2; }
+.band-meter i:nth-child(4) { --meter-step: 3; }
+.band-meter i:nth-child(5) { --meter-step: 4; }
+
+.band-meter i.active {
+    background: var(--amber);
+    box-shadow: 0 0 0.45rem rgba(230, 160, 74, 0.45);
+}
+
+.band-console[data-state="on-air"] .band-meter i.active,
+.band-console[data-state="ready"] .band-meter i.active {
+    background: var(--green);
+    box-shadow: 0 0 0.45rem rgba(134, 181, 156, 0.45);
+}
+
+.band-console[data-state="error"] .band-readout > b,
+.band-console[data-state="static"] .band-readout > b {
+    color: var(--red);
+}
+
+.band-track-wrap {
+    margin-top: 1rem;
+}
+
+.band-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-family: var(--font-data);
+    font-size: 0.5rem;
+    letter-spacing: 0.09em;
+}
+
+.band-track {
+    position: relative;
+    height: 44px;
+    margin-top: 0.15rem;
+}
+
+.band-track::before {
+    content: "";
+    position: absolute;
+    top: 21px;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: var(--line-strong);
+}
+
+.band-markers {
+    position: absolute;
+    inset: 0;
+}
+
+.band-marker {
+    position: absolute;
+    top: 14px;
+    width: 1px;
+    height: 15px;
+    background: var(--muted);
+    transform: translateX(-50%);
+}
+
+.band-marker[data-signal="ready"] {
+    height: 21px;
+    top: 11px;
+    background: var(--green);
+}
+
+.band-marker[data-signal="dead"] {
+    background: var(--red);
+}
+
+#band-tuner {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    appearance: none;
+    background: transparent;
+    cursor: ew-resize;
+}
+
+#band-tuner::-webkit-slider-runnable-track {
+    height: 1px;
+    background: transparent;
+}
+
+#band-tuner::-moz-range-track {
+    height: 1px;
+    background: transparent;
+}
+
+#band-tuner::-webkit-slider-thumb {
+    width: 21px;
+    height: 32px;
+    margin-top: -15px;
+    appearance: none;
+    border: 1px solid var(--amber);
+    border-radius: 0;
+    background: var(--black);
+    box-shadow: 0 0 0.8rem rgba(230, 160, 74, 0.24);
+}
+
+#band-tuner::-moz-range-thumb {
+    width: 21px;
+    height: 32px;
+    border: 1px solid var(--amber);
+    border-radius: 0;
+    background: var(--black);
+    box-shadow: 0 0 0.8rem rgba(230, 160, 74, 0.24);
+}
+
+#band-note {
+    margin: 0.05rem 0 0;
+    color: #656159;
+    font-family: var(--font-data);
+    font-size: 0.48rem;
+    letter-spacing: 0.07em;
+    line-height: 1.4;
 }
 
 .on-air {
@@ -683,6 +875,21 @@ button:hover:not(:disabled) {
 
     .receiver-title h1 {
         font-size: clamp(3.15rem, 18vw, 5rem);
+    }
+
+    .band-readout {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .band-meter {
+        grid-column: 1;
+        grid-row: 2;
+        margin-top: 0.45rem;
+    }
+
+    .band-readout > b {
+        grid-column: 2;
+        grid-row: 1 / span 2;
     }
 
     .station-search {

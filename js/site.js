@@ -34,6 +34,7 @@ const SiteNavigation = {
         ]},
         { label: 'Listen', href: '/music', links: [
             ['/music/broadcast', 'RG Broadcast'],
+            ['/music/rgradio-legacy', 'RG Radio Legacy'],
             ['/shortwave', 'Shortwave'],
             ['/music/zeppelin', 'Fifty-Five Years Loud'],
         ]},

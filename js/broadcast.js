@@ -1,3 +1,5 @@
+import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
+
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
     'https://de1.api.radio-browser.info',
@@ -10,6 +12,8 @@ const RESULT_LIMIT = 50;
 const SIGNAL_TEST_LIMIT = 30;
 const SIGNAL_TEST_TIMEOUT = 9000;
 const SIGNAL_TEST_CONCURRENCY = 4;
+const BAND_FREQUENCIES = [88.1, 90.3, 92.7, 95.1, 97.5, 100.1, 102.5, 104.9, 106.3, 107.7];
+const BAND_LOCK_DISTANCE = 0.42;
 const NEWS_TERMS = ['Bloomberg', 'CNN', 'Fox News'];
 const OFFICIAL_NEWS_STATIONS = [{
     stationuuid: 'official-alex-jones-network',
@@ -39,6 +43,12 @@ const favoriteCount = document.getElementById('favorite-count');
 const favoritesFilter = document.getElementById('favorites-filter');
 const shareButton = document.getElementById('share-station');
 const stationHome = document.getElementById('station-home');
+const bandConsole = document.getElementById('band-console');
+const bandFrequency = document.getElementById('band-frequency');
+const bandState = document.getElementById('band-state');
+const bandTuner = document.getElementById('band-tuner');
+const bandMarkers = document.getElementById('band-markers');
+const bandMeter = [...document.querySelectorAll('.band-meter i')];
 const searchForm = document.getElementById('station-search');
 const searchQuery = document.getElementById('search-query');
 const searchField = document.getElementById('search-field');
@@ -50,16 +60,21 @@ const stationList = document.getElementById('station-list');
 const directoryMessage = document.getElementById('directory-message');
 const directoryMessageCopy = document.getElementById('directory-message-copy');
 const retryButton = document.getElementById('retry-directory');
+const surfaceMonitor = createRadioSurfaceMonitor({
+    root: 'broadcast-surface-list',
+    summary: 'broadcast-surface-summary'
+});
 
 let apiServers = [];
 let stations = [];
 let currentStation = null;
 let currentIndex = -1;
-let lastRequest = { kind: 'top' };
+let lastRequest = { kind: 'us' };
 let favoritesOnly = false;
 let favorites = loadFavorites();
 let playbackRun = 0;
 let signalTestRun = 0;
+let bandStations = [];
 const signalResults = new Map();
 const supportsNativeHls = audio.canPlayType('application/vnd.apple.mpegurl') !== '';
 
@@ -101,8 +116,14 @@ function shuffled(items) {
 }
 
 async function discoverServers() {
+    const url = `${BOOTSTRAP_SERVER}/json/servers`;
+    const startedAt = performance.now();
+    surfaceMonitor.report('directory-bootstrap', {
+        kind: 'DIRECTORY API', auth: 'KEYLESS', name: 'Radio Browser mirror discovery',
+        url, state: 'checking', label: 'CHECKING', detail: 'Public read-only GET.'
+    });
     try {
-        const response = await fetch(`${BOOTSTRAP_SERVER}/json/servers`, {
+        const response = await fetch(url, {
             headers: { Accept: 'application/json' },
             signal: timeoutSignal(6500)
         });
@@ -112,8 +133,15 @@ async function discoverServers() {
             .map(item => item && item.name ? `https://${item.name}` : '')
             .filter(Boolean);
         apiServers = shuffled([...discovered, ...FALLBACK_SERVERS]);
-    } catch {
+        surfaceMonitor.report('directory-bootstrap', {
+            state: 'ready', label: 'LIVE',
+            detail: `HTTP ${response.status} · ${discovered.length} mirrors · ${Math.round(performance.now() - startedAt)} ms`
+        });
+    } catch (error) {
         apiServers = shuffled(FALLBACK_SERVERS);
+        surfaceMonitor.report('directory-bootstrap', {
+            state: 'error', label: 'FALLBACK', detail: error.message
+        });
     }
 }
 
@@ -122,16 +150,32 @@ async function radioBrowser(path, options = {}) {
     let lastError;
 
     for (const server of apiServers) {
+        const url = `${server}${path}`;
+        const surfaceId = `directory:${url}`;
+        const startedAt = performance.now();
+        surfaceMonitor.report(surfaceId, {
+            kind: 'DIRECTORY API', auth: 'KEYLESS', name: options.name || 'Radio Browser request',
+            url, state: 'checking', label: 'CHECKING', detail: options.detail || 'Public read-only GET.'
+        });
         try {
-            const response = await fetch(`${server}${path}`, {
+            const response = await fetch(url, {
                 headers: { Accept: 'application/json' },
                 signal: timeoutSignal(options.timeout || 9000),
                 cache: 'no-store'
             });
             if (!response.ok) throw new Error(`${server} returned ${response.status}`);
-            return { data: await response.json(), server };
+            const data = await response.json();
+            const count = Array.isArray(data) ? `${data.length} rows` : 'response received';
+            surfaceMonitor.report(surfaceId, {
+                state: 'ready', label: 'LIVE',
+                detail: `HTTP ${response.status} · ${count} · ${Math.round(performance.now() - startedAt)} ms`
+            });
+            return { data, server };
         } catch (error) {
             lastError = error;
+            surfaceMonitor.report(surfaceId, {
+                state: 'error', label: 'FAILED', detail: error.message
+            });
         }
     }
 
@@ -198,6 +242,28 @@ function stationDetail(station) {
         .slice(0, 2);
     if (tags.length) parts.push(tags.join(' / ').toUpperCase());
     return parts.join('  |  ') || 'LIVE INTERNET RADIO';
+}
+
+function safeHttpsUrl(value) {
+    try {
+        const url = new URL(value);
+        return url.protocol === 'https:' ? url.href : '';
+    } catch {
+        return '';
+    }
+}
+
+function reportMediaSurface(station, state, label, detail) {
+    if (!station?.url_resolved) return;
+    surfaceMonitor.report(`media:${station.stationuuid}:${station.url_resolved}`, {
+        kind: station.source === 'official' ? 'OFFICIAL MEDIA' : 'DIRECT MEDIA',
+        auth: 'NO KEY',
+        name: station.name,
+        url: station.url_resolved,
+        state,
+        label,
+        detail
+    });
 }
 
 function compactStation(station) {
@@ -284,6 +350,7 @@ function resetSignalTests() {
     signalResults.clear();
     testSignalsButton.disabled = true;
     testSignalsButton.textContent = 'TEST SIGNALS';
+    renderBandMarkers();
 }
 
 function updateSignalRow(uuid) {
@@ -307,14 +374,145 @@ function setSignalResult(station, result) {
     if (!station?.stationuuid) return;
     signalResults.set(station.stationuuid, result);
     updateSignalRow(station.stationuuid);
+    renderBandMarkers();
+    if (currentStation?.stationuuid === station.stationuuid) {
+        if (result.state === 'testing') setBandState('testing', 'TESTING', 3);
+        else if (result.state === 'ready' && !audio.paused) setBandState('on-air', 'ON AIR', 5);
+        else if (result.state === 'ready') setBandState('ready', 'READY', 5);
+        else if (result.state === 'dead') setBandState('error', result.label, 1);
+    }
+}
+
+function setBandState(state, label, strength = 0) {
+    bandConsole.dataset.state = state;
+    bandState.textContent = label;
+    bandMeter.forEach((bar, index) => bar.classList.toggle('active', index < strength));
+}
+
+function renderBandMarkers() {
+    bandMarkers.replaceChildren();
+    const fragment = document.createDocumentFragment();
+    bandStations.forEach(slot => {
+        const marker = document.createElement('span');
+        const signal = signalResults.get(slot.station.stationuuid)?.state || 'untested';
+        marker.className = 'band-marker';
+        marker.dataset.signal = signal;
+        marker.style.left = `${((slot.frequency - 87.5) / 20.5) * 100}%`;
+        fragment.appendChild(marker);
+    });
+    bandMarkers.appendChild(fragment);
+}
+
+function syncBandToStation(station, index) {
+    if (!station || !bandStations.length) return;
+    let slot = bandStations.find(item => item.station.stationuuid === station.stationuuid);
+    if (!slot) {
+        const currentFrequency = Number(bandTuner.value) / 10;
+        slot = bandStations.reduce((nearest, item) =>
+            Math.abs(item.frequency - currentFrequency) < Math.abs(nearest.frequency - currentFrequency)
+                ? item : nearest
+        );
+        slot.station = station;
+        slot.index = index;
+        renderBandMarkers();
+    }
+    bandTuner.value = String(Math.round(slot.frequency * 10));
+    bandFrequency.textContent = slot.frequency.toFixed(1);
+    const result = signalResults.get(station.stationuuid);
+    if (result?.state === 'ready') setBandState('ready', 'READY', 5);
+    else if (result?.state === 'dead') setBandState('error', result.label, 1);
+    else setBandState('locked', 'LOCKED', 4);
+}
+
+function clearBandSelection() {
+    currentStation = null;
+    currentIndex = -1;
+    currentName.textContent = 'Quiet band';
+    currentDetail.textContent = 'No station occupies this part of the current internet band.';
+    playToggle.disabled = true;
+    favoriteToggle.disabled = true;
+    shareButton.disabled = true;
+    favoriteToggle.setAttribute('aria-pressed', 'false');
+    stationHome.href = '/music/broadcast';
+    stationHome.setAttribute('aria-disabled', 'true');
+    const params = new URLSearchParams(location.search);
+    params.delete('station');
+    history.replaceState(null, '', [...params].length ? `${location.pathname}?${params}` : location.pathname);
+    updateCurrentRow();
+    updateTransportAvailability();
+    setPlayerState('idle', 'STATIC', 'Quiet band. Move toward a station marker.');
+}
+
+function updateBandFromTuner() {
+    if (!bandStations.length) {
+        setBandState('idle', 'STANDBY', 0);
+        return;
+    }
+    const frequency = Number(bandTuner.value) / 10;
+    bandFrequency.textContent = frequency.toFixed(1);
+    const nearest = bandStations.reduce((best, slot) => {
+        const distance = Math.abs(slot.frequency - frequency);
+        return !best || distance < best.distance ? { slot, distance } : best;
+    }, null);
+
+    if (!nearest || nearest.distance > BAND_LOCK_DISTANCE) {
+        clearBandSelection();
+        return;
+    }
+
+    const strength = Math.max(1, 5 - Math.floor(nearest.distance / 0.09));
+    if (currentStation?.stationuuid !== nearest.slot.station.stationuuid) {
+        setCurrentStation(nearest.slot.station, nearest.slot.index);
+    }
+    if (audio.paused) {
+        setPlayerState('paused', 'LOCKED', `Tuned to ${nearest.slot.station.name}. Press play or test its signal.`);
+    }
+    const result = signalResults.get(nearest.slot.station.stationuuid);
+    if (result?.state === 'ready') setBandState('ready', 'READY', Math.max(strength, 4));
+    else if (result?.state === 'dead') setBandState('error', result.label, 1);
+    else setBandState(
+        nearest.distance < 0.16 ? 'locked' : 'acquiring',
+        nearest.distance < 0.16 ? 'LOCKED' : 'ACQUIRING',
+        strength
+    );
+}
+
+function renderBandStations() {
+    bandStations = stations.slice(0, BAND_FREQUENCIES.length).map((station, index) => ({
+        station,
+        index,
+        frequency: BAND_FREQUENCIES[index]
+    }));
+    renderBandMarkers();
+    if (!bandStations.length) {
+        setBandState('idle', 'NO BAND', 0);
+        return;
+    }
+    if (currentStation) syncBandToStation(currentStation, currentIndex);
+    else {
+        const center = bandStations[Math.floor((bandStations.length - 1) / 2)];
+        bandTuner.value = String(Math.round(center.frequency * 10));
+        updateBandFromTuner();
+    }
 }
 
 function probeStationSignal(station) {
     return new Promise(resolve => {
         const probe = new Audio();
         const startedAt = performance.now();
+        const surfaceId = `media:${station.stationuuid}:${station.url_resolved}`;
         let settled = false;
         let timer;
+
+        surfaceMonitor.report(surfaceId, {
+            kind: station.source === 'official' ? 'OFFICIAL MEDIA' : 'DIRECT MEDIA',
+            auth: 'NO KEY',
+            name: station.name,
+            url: station.url_resolved,
+            state: 'checking',
+            label: 'TESTING',
+            detail: 'Waiting for browser-decodable HTTPS audio.'
+        });
 
         const finish = (state, label, detail) => {
             if (settled) return;
@@ -325,10 +523,16 @@ function probeStationSignal(station) {
             probe.pause();
             probe.removeAttribute('src');
             probe.load();
+            const elapsed = Math.round(performance.now() - startedAt);
+            surfaceMonitor.report(surfaceId, {
+                state: state === 'ready' ? 'ready' : 'error',
+                label,
+                detail: `${detail} · ${elapsed} ms`
+            });
             resolve({
                 state,
                 label,
-                detail: `${detail} | ${Math.round(performance.now() - startedAt)} ms`
+                detail: `${detail} | ${elapsed} ms`
             });
         };
         const onReady = () => finish('ready', 'READY', 'Playable audio returned');
@@ -405,6 +609,9 @@ function renderStations() {
     directoryMessage.hidden = true;
 
     if (!stations.length) {
+        bandStations = [];
+        renderBandMarkers();
+        setBandState('idle', 'NO BAND', 0);
         const nightSearch = lastRequest.kind === 'night';
         resultsLabel.textContent = favoritesOnly
             ? 'NO SAVED STATIONS'
@@ -455,6 +662,7 @@ function renderStations() {
     });
     stationList.appendChild(fragment);
     stations.forEach(station => updateSignalRow(station.stationuuid));
+    renderBandStations();
     updateRowFavorites();
     updateTransportAvailability();
 }
@@ -495,6 +703,9 @@ async function loadStations(request = lastRequest) {
     let label;
     if (request.kind === 'news') {
         label = 'NEWS DESK';
+    } else if (request.kind === 'us') {
+        path = `/json/stations/search?countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
+        label = 'US LIVE';
     } else if (request.kind === 'tag') {
         const tag = encodeURIComponent(request.value);
         path = `/json/stations/search?tag=${tag}&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
@@ -515,7 +726,7 @@ async function loadStations(request = lastRequest) {
         let data;
         if (request.kind === 'news') {
             const responses = await Promise.allSettled(NEWS_TERMS.map(term => radioBrowser(
-                `/json/stations/search?name=${encodeURIComponent(term)}&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=9`
+                `/json/stations/search?name=${encodeURIComponent(term)}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=9`
             )));
             data = [
                 ...OFFICIAL_NEWS_STATIONS,
@@ -549,6 +760,18 @@ function setPlayerState(state, label, message) {
     nowPlaying.dataset.state = state;
     airLabel.textContent = label;
     playerStatus.textContent = message;
+    if (!currentStation) {
+        if (state === 'idle') setBandState('static', label === 'STATIC' ? 'STATIC' : 'STANDBY', 0);
+        return;
+    }
+    const signal = signalResults.get(currentStation.stationuuid);
+    if (state === 'playing') setBandState('on-air', 'ON AIR', 5);
+    else if (state === 'loading') setBandState('testing', 'TUNING', 3);
+    else if (state === 'error') setBandState('error', 'NO SIGNAL', 0);
+    else if (state === 'paused' && label === 'PAUSED') setBandState('paused', 'PAUSED', 4);
+    else if (signal?.state === 'ready') setBandState('ready', 'READY', 5);
+    else if (signal?.state === 'dead') setBandState('error', signal.label, 1);
+    else setBandState('locked', state === 'paused' ? 'LOCKED' : 'STANDBY', 4);
 }
 
 function updateCurrentRow() {
@@ -572,8 +795,9 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     favoriteToggle.disabled = false;
     shareButton.disabled = false;
 
-    if (station.homepage && station.homepage.startsWith('http')) {
-        stationHome.href = station.homepage;
+    const homepage = safeHttpsUrl(station.homepage);
+    if (homepage) {
+        stationHome.href = homepage;
         stationHome.setAttribute('aria-disabled', 'false');
     } else {
         stationHome.href = '/music/broadcast';
@@ -593,12 +817,17 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     updateCurrentRow();
     updateTransportAvailability();
     updateMediaSession(station);
+    syncBandToStation(station, index);
 }
 
 async function recordPlay(station) {
     if (!station?.stationuuid || station.source === 'official') return;
     try {
-        await radioBrowser(`/json/url/${encodeURIComponent(station.stationuuid)}`, { timeout: 5000 });
+        await radioBrowser(`/json/url/${encodeURIComponent(station.stationuuid)}`, {
+            timeout: 5000,
+            name: 'Radio Browser click counter',
+            detail: 'Keyless directory count sent after successful playback.'
+        });
     } catch {
         // Playback does not depend on the directory accepting its click count.
     }
@@ -619,6 +848,7 @@ async function playStation(station, index) {
     }
 
     setPlayerState('loading', 'TUNING', `Connecting to ${station.name}...`);
+    reportMediaSurface(station, 'checking', 'TUNING', 'Main receiver is opening this direct HTTPS stream.');
     try {
         await audio.play();
         recordPlay(station);
@@ -626,10 +856,12 @@ async function playStation(station, index) {
         if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
         if (error?.name === 'NotAllowedError') {
             setPlayerState('paused', 'READY', 'Press play again to start this station.');
+            reportMediaSurface(station, 'idle', 'READY', 'Browser requires another play gesture.');
             playToggle.setAttribute('aria-label', 'Play station');
             return;
         }
         const detail = mediaErrorDetail(audio, error);
+        reportMediaSurface(station, 'error', signalFailureLabel(detail), detail);
         setSignalResult(station, { state: 'dead', label: signalFailureLabel(detail), detail });
         setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
         console.warn('RG Broadcast playback failed', error);
@@ -749,7 +981,9 @@ presetButtons.forEach(button => {
         searchQuery.value = '';
         setActivePreset(preset);
         loadStations(
-            preset === 'top'
+            preset === 'us'
+                ? { kind: 'us' }
+                : preset === 'top'
                 ? { kind: 'top' }
                 : preset === 'news'
                     ? { kind: 'news' }
@@ -786,6 +1020,11 @@ randomButton.addEventListener('click', () => {
 
 testSignalsButton.addEventListener('click', testCurrentSignals);
 
+bandTuner.addEventListener('input', () => {
+    if (!audio.paused) audio.pause();
+    updateBandFromTuner();
+});
+
 retryButton.addEventListener('click', () => {
     if (favoritesOnly) {
         stations = [...favorites];
@@ -816,12 +1055,13 @@ shareButton.addEventListener('click', async () => {
 });
 
 audio.addEventListener('playing', () => {
-    setPlayerState('playing', 'ON AIR', `Playing ${currentStation?.name || 'station'}.`);
     setSignalResult(currentStation, {
         state: 'ready',
         label: 'READY',
         detail: 'Playable audio confirmed by this receiver.'
     });
+    setPlayerState('playing', 'ON AIR', `Playing ${currentStation?.name || 'station'}.`);
+    reportMediaSurface(currentStation, 'ready', 'ON AIR', 'Playable audio confirmed by the main receiver.');
     playToggle.setAttribute('aria-label', 'Pause station');
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 });
@@ -840,6 +1080,7 @@ audio.addEventListener('waiting', () => {
 audio.addEventListener('error', () => {
     if (!currentStation || !audio.getAttribute('src') || audio.dataset.uuid !== currentStation.stationuuid) return;
     const detail = mediaErrorDetail(audio);
+    reportMediaSurface(currentStation, 'error', signalFailureLabel(detail), detail);
     setSignalResult(currentStation, { state: 'dead', label: signalFailureLabel(detail), detail });
     setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
     playToggle.setAttribute('aria-label', 'Retry station');
@@ -857,6 +1098,6 @@ stationHome.addEventListener('click', event => {
 bindMediaSession();
 updateFavoriteControls();
 discoverServers().finally(() => {
-    loadStations({ kind: 'top' });
+    loadStations({ kind: 'us' });
     restoreLastStation();
 });

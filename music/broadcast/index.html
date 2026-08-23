@@ -8,9 +8,12 @@
     <meta name="theme-color" content="#0a0b0b">
     <meta name="description" content="Find and play real internet radio stations.">
     <title>RG Broadcast</title>
+    <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/broadcast.css">
+    <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
+    <div class="navbar radio-nav-anchor" aria-label="RG HQ navigation"></div>
     <header class="broadcast-head">
         <a class="back-link" href="/music" aria-label="Back to Listen">RG / LISTEN</a>
         <span class="head-mark" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -25,6 +28,26 @@
             </div>
 
             <div class="now-playing" id="now-playing" data-state="idle">
+                <div class="band-console" id="band-console" data-state="idle">
+                    <div class="band-readout">
+                        <div>
+                            <span class="readout-label">RG internet band</span>
+                            <strong><output id="band-frequency" for="band-tuner">97.5</output><small> FM</small></strong>
+                        </div>
+                        <div class="band-meter" aria-hidden="true">
+                            <i></i><i></i><i></i><i></i><i></i>
+                        </div>
+                        <b id="band-state">STANDBY</b>
+                    </div>
+                    <div class="band-track-wrap">
+                        <div class="band-labels" aria-hidden="true"><span>87.5</span><span>US INTERNET SIGNALS</span><span>108.0</span></div>
+                        <div class="band-track">
+                            <div class="band-markers" id="band-markers" aria-hidden="true"></div>
+                            <input id="band-tuner" type="range" min="875" max="1080" step="1" value="975" aria-label="Tune the RG internet band">
+                        </div>
+                        <p id="band-note">DISPLAY SCALE · INTERNET STATION SLOTS, NOT TERRESTRIAL FREQUENCIES</p>
+                    </div>
+                </div>
                 <div class="on-air" aria-hidden="true"><span></span><b id="air-label">STANDBY</b></div>
                 <div class="station-readout">
                     <span class="readout-label">Selected station</span>
@@ -72,7 +95,8 @@
             </form>
 
             <div class="quick-tunes" aria-label="Quick station searches">
-                <button type="button" data-preset="top" aria-pressed="true">MOST PLAYED</button>
+                <button type="button" data-preset="us" aria-pressed="true">US LIVE</button>
+                <button type="button" data-preset="top" aria-pressed="false">WORLD</button>
                 <button type="button" data-preset="news" aria-pressed="false">NEWS DESK</button>
                 <button type="button" data-preset="night" aria-pressed="false">FOLLOW THE NIGHT</button>
                 <button type="button" data-preset="rock" aria-pressed="false">ROCK</button>
@@ -97,6 +121,12 @@
                 <p id="directory-message-copy">The station directory could not be reached.</p>
                 <button id="retry-directory" type="button">TRY AGAIN</button>
             </div>
+
+            <details class="radio-surfaces" id="broadcast-surfaces">
+                <summary><span>API + MEDIA SURFACES</span><b id="broadcast-surface-summary" role="status" aria-live="polite">0 KNOWN</b></summary>
+                <p class="radio-surfaces-intro">Keyless directory calls and direct HTTPS audio touched by this browser.</p>
+                <div class="radio-surfaces-list" id="broadcast-surface-list"></div>
+            </details>
         </section>
     </main>
 
@@ -105,6 +135,7 @@
         <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">OPEN DIRECTORY</a>
     </footer>
 
+    <script src="/js/site.js"></script>
     <script type="module" src="/js/broadcast.js"></script>
 </body>
 </html>
