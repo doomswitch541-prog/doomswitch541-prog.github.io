@@ -117,7 +117,7 @@ async function radioBrowser(path, options = {}) {
     throw lastError || new Error('No Radio Browser server responded');
 }
 
-function sanitizeStations(items) {
+function sanitizeStations(items, limit = RESULT_LIMIT) {
     const seen = new Set();
     return items.filter(station => {
         const stream = String(station.url_resolved || '');
@@ -129,11 +129,42 @@ function sanitizeStations(items) {
         if (seen.has(uuid)) return false;
         seen.add(uuid);
         return true;
-    }).slice(0, RESULT_LIMIT);
+    }).slice(0, limit);
+}
+
+function solarStateAtStation(station, date = new Date()) {
+    if (station.geo_lat === null || station.geo_lat === '' || station.geo_long === null || station.geo_long === '') {
+        return null;
+    }
+    const latitude = Number(station.geo_lat);
+    const longitude = Number(station.geo_long);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+
+    const utcDay = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    const yearStart = Date.UTC(date.getUTCFullYear(), 0, 0);
+    const dayOfYear = Math.floor((utcDay - yearStart) / 86400000);
+    const utcHour = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
+    const declination = 23.44 * Math.sin((Math.PI * 2 / 365) * (dayOfYear - 81));
+    const solarHour = (utcHour + longitude / 15 + 24) % 24;
+    const hourAngle = (solarHour - 12) * 15;
+    const toRadians = degrees => degrees * Math.PI / 180;
+    const sineElevation =
+        Math.sin(toRadians(latitude)) * Math.sin(toRadians(declination)) +
+        Math.cos(toRadians(latitude)) * Math.cos(toRadians(declination)) * Math.cos(toRadians(hourAngle));
+    const elevation = Math.asin(Math.max(-1, Math.min(1, sineElevation))) * 180 / Math.PI;
+    const hours = Math.floor(solarHour);
+    const minutes = Math.floor((solarHour - hours) * 60);
+
+    return {
+        isNight: elevation < -6,
+        label: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} SOLAR  |  SUN ${Math.round(elevation)}\u00b0`
+    };
 }
 
 function stationDetail(station) {
     const parts = [];
+    if (station.night_context) parts.push(station.night_context);
     if (station.countrycode) parts.push(station.countrycode.toUpperCase());
     if (station.codec) parts.push(String(station.codec).toUpperCase());
     if (Number(station.bitrate) > 0) parts.push(`${station.bitrate} KBPS`);
@@ -156,7 +187,11 @@ function compactStation(station) {
         codec: station.codec || '',
         bitrate: Number(station.bitrate) || 0,
         tags: station.tags || '',
-        hls: Number(station.hls) === 1 || station.hls === true
+        hls: Number(station.hls) === 1 || station.hls === true,
+        geo_lat: station.geo_lat !== null && station.geo_lat !== '' && Number.isFinite(Number(station.geo_lat))
+            ? Number(station.geo_lat) : null,
+        geo_long: station.geo_long !== null && station.geo_long !== '' && Number.isFinite(Number(station.geo_long))
+            ? Number(station.geo_long) : null
     };
 }
 
@@ -201,12 +236,15 @@ function renderStations() {
     directoryMessage.hidden = true;
 
     if (!stations.length) {
-        resultsLabel.textContent = favoritesOnly ? 'NO SAVED STATIONS' : 'NO HTTPS STATIONS FOUND';
+        const nightSearch = lastRequest.kind === 'night';
+        resultsLabel.textContent = favoritesOnly
+            ? 'NO SAVED STATIONS'
+            : nightSearch ? 'NO NIGHT SIGNALS FOUND' : 'NO HTTPS STATIONS FOUND';
         randomButton.disabled = true;
         directoryMessageCopy.textContent = favoritesOnly
             ? 'Save a station and it will stay here on this device.'
-            : 'Try another name, genre, or country.';
-        retryButton.hidden = true;
+            : nightSearch ? 'No after-dark stations answered this pass. Try the night again.' : 'Try another name, genre, or country.';
+        retryButton.hidden = favoritesOnly;
         directoryMessage.hidden = false;
         return;
     }
@@ -289,6 +327,9 @@ async function loadStations(request = lastRequest) {
         const parameter = request.field === 'tag' ? 'tag' : request.field === 'country' ? 'country' : 'name';
         path = `/json/stations/search?${parameter}=${encodeURIComponent(request.value)}&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
         label = `RESULTS: ${request.value.toUpperCase()}`;
+    } else if (request.kind === 'night') {
+        path = '/json/stations/search?has_geo_info=true&is_https=true&hidebroken=true&order=random&limit=250';
+        label = 'FOLLOW THE NIGHT';
     } else {
         path = `/json/stations/topclick/${RESULT_LIMIT}?hidebroken=true`;
         label = 'MOST PLAYED';
@@ -296,7 +337,18 @@ async function loadStations(request = lastRequest) {
 
     try {
         const { data } = await radioBrowser(path);
-        stations = sanitizeStations(data);
+        if (request.kind === 'night') {
+            const now = new Date();
+            stations = sanitizeStations(data, 250)
+                .map(station => {
+                    const solar = solarStateAtStation(station, now);
+                    return solar?.isNight ? { ...station, night_context: solar.label } : null;
+                })
+                .filter(Boolean)
+                .slice(0, RESULT_LIMIT);
+        } else {
+            stations = sanitizeStations(data);
+        }
         resultsLabel.textContent = label;
         renderStations();
         resultsLabel.textContent = `${label}  |  ${stations.length}`;
@@ -492,7 +544,11 @@ presetButtons.forEach(button => {
         const preset = button.dataset.preset;
         searchQuery.value = '';
         setActivePreset(preset);
-        loadStations(preset === 'top' ? { kind: 'top' } : { kind: 'tag', value: preset });
+        loadStations(
+            preset === 'top'
+                ? { kind: 'top' }
+                : preset === 'night' ? { kind: 'night' } : { kind: 'tag', value: preset }
+        );
     });
 });
 
