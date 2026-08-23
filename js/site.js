@@ -29,12 +29,12 @@ const SiteNavigation = {
         { label: 'Visuals', href: '/visuals', links: [
             ['/clock', 'Clock'],
             ['/weather', 'Weather'],
-            ['/shortwave', 'Shortwave'],
             ['/screensaver', 'Screensaver'],
             ['/visuals', 'Gallery'],
         ]},
-        { label: 'Music', href: '/music', links: [
+        { label: 'Listen', href: '/music', links: [
             ['/music/broadcast', 'RG Broadcast'],
+            ['/shortwave', 'Shortwave'],
             ['/music/zeppelin', 'Fifty-Five Years Loud'],
         ]},
         { label: 'TBP', href: '/tbp', links: [
