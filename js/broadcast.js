@@ -36,6 +36,7 @@ const currentName = document.getElementById('current-name');
 const currentDetail = document.getElementById('current-detail');
 const playerStatus = document.getElementById('player-status');
 const playToggle = document.getElementById('play-toggle');
+const playStateLabel = document.getElementById('play-state-label');
 const previousButton = document.getElementById('previous-station');
 const nextButton = document.getElementById('next-station');
 const favoriteToggle = document.getElementById('favorite-toggle');
@@ -73,6 +74,7 @@ let lastRequest = { kind: 'us' };
 let favoritesOnly = false;
 let favorites = loadFavorites();
 let playbackRun = 0;
+let playPending = false;
 let signalTestRun = 0;
 let bandStations = [];
 const signalResults = new Map();
@@ -255,8 +257,8 @@ function safeHttpsUrl(value) {
 
 function reportMediaSurface(station, state, label, detail) {
     if (!station?.url_resolved) return;
-    surfaceMonitor.report(`media:${station.stationuuid}:${station.url_resolved}`, {
-        kind: station.source === 'official' ? 'OFFICIAL MEDIA' : 'DIRECT MEDIA',
+    surfaceMonitor.report(`playback:${station.stationuuid}:${station.url_resolved}`, {
+        kind: 'PLAY STREAM',
         auth: 'NO KEY',
         name: station.name,
         url: station.url_resolved,
@@ -756,10 +758,35 @@ async function loadStations(request = lastRequest) {
     }
 }
 
+function updatePlayControl(state, label) {
+    const isLoading = state === 'loading';
+    const isRebuffering = isLoading && !playPending && !audio.paused;
+    const visibleLabel = state === 'playing'
+        ? 'PAUSE'
+        : state === 'error'
+            ? 'RETRY'
+            : isLoading
+                ? (label === 'BUFFERING' ? 'BUFFERING' : 'TUNING')
+                : 'PLAY';
+    const accessibleLabel = state === 'playing'
+        ? 'Pause station'
+        : state === 'error'
+            ? 'Retry station'
+            : isLoading
+                ? `${visibleLabel.toLowerCase()} station`
+                : 'Play station';
+
+    playStateLabel.textContent = visibleLabel;
+    playToggle.disabled = !currentStation || playPending;
+    playToggle.setAttribute('aria-busy', String(isLoading));
+    playToggle.setAttribute('aria-label', isRebuffering ? 'Pause station while buffering' : accessibleLabel);
+}
+
 function setPlayerState(state, label, message) {
     nowPlaying.dataset.state = state;
     airLabel.textContent = label;
     playerStatus.textContent = message;
+    updatePlayControl(state, label);
     if (!currentStation) {
         if (state === 'idle') setBandState('static', label === 'STATIC' ? 'STATIC' : 'STANDBY', 0);
         return;
@@ -791,7 +818,6 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     currentIndex = index;
     currentName.textContent = station.name.trim();
     currentDetail.textContent = stationDetail(station);
-    playToggle.disabled = false;
     favoriteToggle.disabled = false;
     shareButton.disabled = false;
 
@@ -818,6 +844,7 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     updateTransportAvailability();
     updateMediaSession(station);
     syncBandToStation(station, index);
+    updatePlayControl(nowPlaying.dataset.state || 'idle', airLabel.textContent);
 }
 
 async function recordPlay(station) {
@@ -835,29 +862,32 @@ async function recordPlay(station) {
 
 async function playStation(station, index) {
     if (!station) return;
+    if (playPending && currentStation?.stationuuid === station.stationuuid) return;
+
     const run = ++playbackRun;
     const changed = currentStation?.stationuuid !== station.stationuuid;
+    playPending = true;
     if (changed) {
         audio.pause();
         setCurrentStation(station, index);
     }
-    if (changed || !audio.currentSrc || audio.src !== station.url_resolved) {
+    if (changed || audio.dataset.uuid !== station.stationuuid || audio.src !== station.url_resolved) {
         audio.dataset.uuid = station.stationuuid;
         audio.src = station.url_resolved;
-        audio.load();
     }
 
     setPlayerState('loading', 'TUNING', `Connecting to ${station.name}...`);
     reportMediaSurface(station, 'checking', 'TUNING', 'Main receiver is opening this direct HTTPS stream.');
     try {
         await audio.play();
+        if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
         recordPlay(station);
     } catch (error) {
         if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
+        playPending = false;
         if (error?.name === 'NotAllowedError') {
-            setPlayerState('paused', 'READY', 'Press play again to start this station.');
-            reportMediaSurface(station, 'idle', 'READY', 'Browser requires another play gesture.');
-            playToggle.setAttribute('aria-label', 'Play station');
+            setPlayerState('error', 'PLAY BLOCKED', 'The browser blocked playback. Tap RETRY once.');
+            reportMediaSurface(station, 'error', 'PLAY BLOCKED', 'The browser rejected the playback gesture.');
             return;
         }
         const detail = mediaErrorDetail(audio, error);
@@ -869,7 +899,10 @@ async function playStation(station, index) {
 }
 
 function pauseStation() {
+    playbackRun += 1;
+    playPending = false;
     audio.pause();
+    if (currentStation) setPlayerState('paused', 'PAUSED', `${currentStation.name} paused.`);
 }
 
 function moveStation(direction) {
@@ -956,6 +989,7 @@ stationList.addEventListener('click', event => {
 
 playToggle.addEventListener('click', () => {
     if (!currentStation) return;
+    if (playPending) return;
     if (audio.paused) playStation(currentStation, currentIndex);
     else pauseStation();
 });
@@ -1021,7 +1055,7 @@ randomButton.addEventListener('click', () => {
 testSignalsButton.addEventListener('click', testCurrentSignals);
 
 bandTuner.addEventListener('input', () => {
-    if (!audio.paused) audio.pause();
+    if (!audio.paused || playPending) pauseStation();
     updateBandFromTuner();
 });
 
@@ -1055,6 +1089,7 @@ shareButton.addEventListener('click', async () => {
 });
 
 audio.addEventListener('playing', () => {
+    playPending = false;
     setSignalResult(currentStation, {
         state: 'ready',
         label: 'READY',
@@ -1062,33 +1097,35 @@ audio.addEventListener('playing', () => {
     });
     setPlayerState('playing', 'ON AIR', `Playing ${currentStation?.name || 'station'}.`);
     reportMediaSurface(currentStation, 'ready', 'ON AIR', 'Playable audio confirmed by the main receiver.');
-    playToggle.setAttribute('aria-label', 'Pause station');
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 });
 
 audio.addEventListener('pause', () => {
-    if (!currentStation || nowPlaying.dataset.state === 'error') return;
-    setPlayerState('paused', 'PAUSED', `${currentStation.name} paused.`);
-    playToggle.setAttribute('aria-label', 'Play station');
+    if (!currentStation || playPending || nowPlaying.dataset.state === 'error') return;
+    if (nowPlaying.dataset.state !== 'paused') {
+        setPlayerState('paused', 'PAUSED', `${currentStation.name} paused.`);
+    }
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
 });
 
 audio.addEventListener('waiting', () => {
-    if (currentStation) setPlayerState('loading', 'TUNING', `Buffering ${currentStation.name}...`);
+    if (currentStation) setPlayerState('loading', 'BUFFERING', `Buffering ${currentStation.name}...`);
 });
 
 audio.addEventListener('error', () => {
     if (!currentStation || !audio.getAttribute('src') || audio.dataset.uuid !== currentStation.stationuuid) return;
+    playPending = false;
     const detail = mediaErrorDetail(audio);
     reportMediaSurface(currentStation, 'error', signalFailureLabel(detail), detail);
     setSignalResult(currentStation, { state: 'dead', label: signalFailureLabel(detail), detail });
     setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
-    playToggle.setAttribute('aria-label', 'Retry station');
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
 });
 
 audio.addEventListener('stalled', () => {
-    if (currentStation) playerStatus.textContent = 'The stream is taking longer than expected.';
+    if (currentStation && !audio.paused) {
+        setPlayerState('loading', 'BUFFERING', `${currentStation.name} is taking longer than expected...`);
+    }
 });
 
 stationHome.addEventListener('click', event => {

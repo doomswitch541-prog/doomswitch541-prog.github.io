@@ -58,6 +58,7 @@
                     <button class="transport transport--small" id="previous-station" type="button" aria-label="Previous station" disabled>&larr;</button>
                     <button class="transport transport--play" id="play-toggle" type="button" aria-label="Play station" disabled>
                         <span class="play-icon" aria-hidden="true"></span>
+                        <span class="transport-label" id="play-state-label" aria-hidden="true">PLAY</span>
                     </button>
                     <button class="transport transport--small" id="next-station" type="button" aria-label="Next station" disabled>&rarr;</button>
                 </div>
@@ -94,7 +95,11 @@
                 <button type="submit">FIND</button>
             </form>
 
-            <div class="quick-tunes" aria-label="Quick station searches">
+            <div class="mode-strip-head" aria-hidden="true">
+                <span>Station modes</span>
+                <span>Choose a band</span>
+            </div>
+            <div class="quick-tunes" role="group" aria-label="Station modes">
                 <button type="button" data-preset="us" aria-pressed="true">US LIVE</button>
                 <button type="button" data-preset="top" aria-pressed="false">WORLD</button>
                 <button type="button" data-preset="news" aria-pressed="false">NEWS DESK</button>

@@ -514,12 +514,12 @@
 
             const audio = document.getElementById('radioPlayer');
             const src = s.secureUrl;
-            const surfaceId = `media:${s.stationuuid}:${src}`;
+            const surfaceId = `playback:${s.stationuuid}:${src}`;
 
             log(`Starting direct playback: ${s.name}`, 'info');
             document.getElementById('signalLabel').textContent = 'TUNING';
             surfaceMonitor.report(surfaceId, {
-                kind: 'DIRECT MEDIA', auth: 'NO KEY', name: s.name, url: src,
+                kind: 'PLAY STREAM', auth: 'NO KEY', name: s.name, url: src,
                 state: 'checking', label: 'TUNING', detail: 'Main receiver is opening this stream.'
             });
 

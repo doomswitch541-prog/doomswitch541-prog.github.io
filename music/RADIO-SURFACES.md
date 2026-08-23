@@ -102,13 +102,17 @@ publishing an open proxy.
 | --- | --- | --- | --- |
 | Radio Browser station search | Public directory API | None | HTTPS GET returning JSON |
 | Radio Browser server discovery | Public directory API | None | HTTPS GET returning mirror metadata |
-| Radio Browser click counter | Public directory API | None | HTTPS GET after playback |
+| Radio Browser click counter | Optional directory popularity signal | None | HTTPS GET after successful playback |
 | Station `url_resolved` | Direct media stream | None | HTML audio load/play |
 | Official network feed | Direct media stream | None | HTML audio load/play |
 | Google font files on Legacy | Static font assets | None | Stylesheet/font download |
 | Original `/proxy` | RG's server-side stream relay | None | Server fetch and byte pipe |
 
 Station streams and font files are network surfaces, but they are not APIs.
+The click counter does not return, authorize, or relay a station. It only tells
+Radio Browser that one directory entry was successfully played so its public
+click-based rankings can reflect listener activity. Removing that request would
+not remove a station or change playback.
 
 ## Browser-hosted architecture
 
@@ -144,6 +148,8 @@ Station streams and font files are network surfaces, but they are not APIs.
 - The surface taxonomy distinguishes directory APIs, direct media, official
   media, and static assets. The live monitors show API and audio activity; the
   static Legacy font request is accounted for in this document.
+- Signal-test probes remain labeled `DIRECT MEDIA`; the exact URL used by the
+  main receiver appears separately as `PLAY STREAM` with its live playback state.
 - Sensitive-looking query parameters are redacted before a URL is rendered.
 - Radio Browser requests are limited to its HTTPS API hosts by CSP.
 - Dynamic station audio is allowed only through HTTPS media URLs.
