@@ -40,31 +40,75 @@
   }
 
   // --- click-to-load listen embeds (keyless; privacy-nocookie) ---
+  // Prefers data-yt-channel (comma-separated YouTube channel IDs): embeds the
+  // channel's CURRENT live stream via live_stream?channel=, so it self-heals when
+  // a 24/7 broadcast ends and restarts under a new video id. Falls back to a
+  // single data-yt video id if that's all a card has. Nothing loads until tapped.
   function wireListen() {
     document.querySelectorAll('.sw-listen').forEach((box) => {
       const btn = box.querySelector('.sw-listen-btn');
-      const id = box.getAttribute('data-yt');
-      if (!btn || !id) return;
-      btn.addEventListener('click', () => {
-        if (box.querySelector('.sw-listen-frame')) return; // already loaded
-        const frame = document.createElement('div');
-        frame.className = 'sw-listen-frame';
+      if (!btn) return;
+      const channels = (box.getAttribute('data-yt-channel') || '')
+        .split(',').map((s) => s.trim()).filter(Boolean);
+      const vid = box.getAttribute('data-yt');
+      if (!channels.length && !vid) return;
+
+      const playLabel = btn.textContent;
+      let playing = false;
+      let idx = 0;
+      let cycler = null;
+
+      const srcFor = () =>
+        channels.length
+          ? 'https://www.youtube-nocookie.com/embed/live_stream?channel=' +
+            encodeURIComponent(channels[idx]) + '&autoplay=1&rel=0'
+          : 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) +
+            '?autoplay=1&rel=0';
+
+      function buildFrame() {
+        let frame = box.querySelector('.sw-listen-frame');
+        if (!frame) {
+          frame = document.createElement('div');
+          frame.className = 'sw-listen-frame';
+          box.appendChild(frame);
+        }
+        frame.innerHTML = '';
         const iframe = document.createElement('iframe');
-        iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) +
-          '?autoplay=1&rel=0';
+        iframe.src = srcFor();
         iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
         iframe.setAttribute('allowfullscreen', '');
-        iframe.title = 'Live shortwave restream';
+        iframe.title = 'Live shortwave stream';
         frame.appendChild(iframe);
-        box.appendChild(frame);
+
+        if (channels.length > 1 && !cycler) {
+          cycler = document.createElement('button');
+          cycler.type = 'button';
+          cycler.className = 'sw-listen-alt';
+          cycler.textContent = '↻ Try another feed';
+          cycler.addEventListener('click', (e) => {
+            e.stopPropagation();
+            idx = (idx + 1) % channels.length;
+            buildFrame();
+          });
+          box.appendChild(cycler);
+        }
+      }
+
+      function stop() {
+        const frame = box.querySelector('.sw-listen-frame');
+        if (frame) frame.remove();
+        if (cycler) { cycler.remove(); cycler = null; }
+        playing = false;
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = playLabel;
+      }
+
+      btn.addEventListener('click', () => {
+        if (playing) { stop(); return; }
+        buildFrame();
+        playing = true;
         btn.setAttribute('aria-expanded', 'true');
         btn.textContent = '■ Stop';
-        btn.addEventListener('click', function stop() {
-          frame.remove();
-          btn.setAttribute('aria-expanded', 'false');
-          btn.textContent = '▶ Listen here — 24/7 restream';
-          btn.removeEventListener('click', stop);
-        }, { once: true });
       });
     });
   }
