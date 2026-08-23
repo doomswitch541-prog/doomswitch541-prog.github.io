@@ -95,22 +95,35 @@
                 <button type="submit">FIND</button>
             </form>
 
-            <div class="mode-strip-head" aria-hidden="true">
-                <span>Station modes</span>
-                <span>Choose a band</span>
-            </div>
-            <div class="quick-tunes" role="group" aria-label="Station modes">
-                <button type="button" data-preset="us" aria-pressed="true">US LIVE</button>
-                <button type="button" data-preset="top" aria-pressed="false">WORLD</button>
-                <button type="button" data-preset="news" aria-pressed="false">NEWS DESK</button>
-                <button type="button" data-preset="night" aria-pressed="false">FOLLOW THE NIGHT</button>
-                <button type="button" data-preset="rock" aria-pressed="false">ROCK</button>
-                <button type="button" data-preset="jazz" aria-pressed="false">JAZZ</button>
-                <button type="button" data-preset="ambient" aria-pressed="false">AMBIENT</button>
-                <button type="button" data-preset="classical" aria-pressed="false">CLASSICAL</button>
-                <button type="button" data-preset="electronic" aria-pressed="false">ELECTRONIC</button>
-                <button type="button" data-preset="talk" aria-pressed="false">TALK</button>
-            </div>
+            <section class="station-mode-selector" aria-labelledby="station-mode-title">
+                <div class="mode-strip-head">
+                    <div class="mode-strip-copy">
+                        <h3 id="station-mode-title">Choose station type</h3>
+                        <span id="station-mode-help">This changes the station list below.</span>
+                    </div>
+                    <output id="station-mode-position" aria-live="polite">1 OF 10 &middot; US LIVE</output>
+                </div>
+                <div class="mode-carousel">
+                    <button class="mode-carousel-arrow" id="previous-station-mode" type="button" aria-label="Previous station type" aria-controls="station-list" disabled>
+                        <span aria-hidden="true">&larr;</span><small>BACK</small>
+                    </button>
+                    <div class="quick-tunes" id="station-mode-track" role="group" aria-label="Station types" aria-describedby="station-mode-help">
+                        <button type="button" data-preset="us" aria-pressed="true" aria-controls="station-list">US LIVE</button>
+                        <button type="button" data-preset="top" aria-pressed="false" aria-controls="station-list">WORLD</button>
+                        <button type="button" data-preset="news" aria-pressed="false" aria-controls="station-list">NEWS DESK</button>
+                        <button type="button" data-preset="night" aria-pressed="false" aria-controls="station-list">FOLLOW THE NIGHT</button>
+                        <button type="button" data-preset="rock" aria-pressed="false" aria-controls="station-list">ROCK</button>
+                        <button type="button" data-preset="jazz" aria-pressed="false" aria-controls="station-list">JAZZ</button>
+                        <button type="button" data-preset="ambient" aria-pressed="false" aria-controls="station-list">AMBIENT</button>
+                        <button type="button" data-preset="classical" aria-pressed="false" aria-controls="station-list">CLASSICAL</button>
+                        <button type="button" data-preset="electronic" aria-pressed="false" aria-controls="station-list">ELECTRONIC</button>
+                        <button type="button" data-preset="talk" aria-pressed="false" aria-controls="station-list">TALK</button>
+                    </div>
+                    <button class="mode-carousel-arrow" id="next-station-mode" type="button" aria-label="Next station type" aria-controls="station-list">
+                        <span aria-hidden="true">&rarr;</span><small>NEXT</small>
+                    </button>
+                </div>
+            </section>
 
             <div class="results-meta">
                 <span id="results-label">CONNECTING</span>

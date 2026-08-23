@@ -54,6 +54,10 @@ const searchForm = document.getElementById('station-search');
 const searchQuery = document.getElementById('search-query');
 const searchField = document.getElementById('search-field');
 const presetButtons = [...document.querySelectorAll('[data-preset]')];
+const presetTrack = document.getElementById('station-mode-track');
+const previousPresetButton = document.getElementById('previous-station-mode');
+const nextPresetButton = document.getElementById('next-station-mode');
+const presetPosition = document.getElementById('station-mode-position');
 const resultsLabel = document.getElementById('results-label');
 const testSignalsButton = document.getElementById('test-signals');
 const randomButton = document.getElementById('random-station');
@@ -76,6 +80,7 @@ let favorites = loadFavorites();
 let playbackRun = 0;
 let playPending = false;
 let signalTestRun = 0;
+let stationRequestRun = 0;
 let bandStations = [];
 const signalResults = new Map();
 const supportsNativeHls = audio.canPlayType('application/vnd.apple.mpegurl') !== '';
@@ -689,13 +694,59 @@ function showDirectoryError(error) {
     console.warn('RG Broadcast directory request failed', error);
 }
 
-function setActivePreset(name = '') {
-    presetButtons.forEach(button => {
-        button.setAttribute('aria-pressed', String(button.dataset.preset === name));
+function centerPreset(button) {
+    if (!button) return;
+    const left = button.offsetLeft - ((presetTrack.clientWidth - button.offsetWidth) / 2);
+    presetTrack.scrollTo({
+        left: Math.max(0, left),
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
     });
 }
 
+function setActivePreset(name = '', emptyLabel = 'CUSTOM LIST') {
+    let activeButton = null;
+    presetButtons.forEach(button => {
+        const active = button.dataset.preset === name;
+        button.setAttribute('aria-pressed', String(active));
+        if (active) activeButton = button;
+    });
+
+    const index = activeButton ? presetButtons.indexOf(activeButton) : -1;
+    presetPosition.textContent = index >= 0
+        ? `${index + 1} OF ${presetButtons.length} · ${activeButton.textContent.trim()}`
+        : emptyLabel;
+    previousPresetButton.disabled = index === 0;
+    nextPresetButton.disabled = index === presetButtons.length - 1;
+    if (activeButton) centerPreset(activeButton);
+}
+
+function requestForPreset(preset) {
+    if (preset === 'us') return { kind: 'us' };
+    if (preset === 'top') return { kind: 'top' };
+    if (preset === 'news') return { kind: 'news' };
+    if (preset === 'night') return { kind: 'night' };
+    return { kind: 'tag', value: preset };
+}
+
+function choosePreset(button, { focus = false } = {}) {
+    if (!button) return;
+    const preset = button.dataset.preset;
+    searchQuery.value = '';
+    setActivePreset(preset);
+    if (focus) button.focus({ preventScroll: true });
+    loadStations(requestForPreset(preset));
+}
+
+function movePreset(direction, options) {
+    const activeIndex = presetButtons.findIndex(button => button.getAttribute('aria-pressed') === 'true');
+    const nextIndex = activeIndex < 0
+        ? direction > 0 ? 0 : presetButtons.length - 1
+        : Math.min(presetButtons.length - 1, Math.max(0, activeIndex + direction));
+    choosePreset(presetButtons[nextIndex], options);
+}
+
 async function loadStations(request = lastRequest) {
+    const run = ++stationRequestRun;
     lastRequest = request;
     favoritesOnly = false;
     favoritesFilter.setAttribute('aria-pressed', 'false');
@@ -737,6 +788,7 @@ async function loadStations(request = lastRequest) {
         } else {
             ({ data } = await radioBrowser(path));
         }
+        if (run !== stationRequestRun) return;
         if (request.kind === 'night') {
             const now = new Date();
             stations = sanitizeStations(data, 250)
@@ -753,6 +805,7 @@ async function loadStations(request = lastRequest) {
         renderStations();
         resultsLabel.textContent = `${label}  |  ${stations.length}`;
     } catch (error) {
+        if (run !== stationRequestRun) return;
         stations = [];
         showDirectoryError(error);
     }
@@ -1005,37 +1058,38 @@ searchForm.addEventListener('submit', event => {
         searchQuery.focus();
         return;
     }
-    setActivePreset();
+    setActivePreset('', 'CUSTOM SEARCH');
     loadStations({ kind: 'search', field: searchField.value, value });
 });
 
 presetButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const preset = button.dataset.preset;
-        searchQuery.value = '';
-        setActivePreset(preset);
-        loadStations(
-            preset === 'us'
-                ? { kind: 'us' }
-                : preset === 'top'
-                ? { kind: 'top' }
-                : preset === 'news'
-                    ? { kind: 'news' }
-                    : preset === 'night' ? { kind: 'night' } : { kind: 'tag', value: preset }
-        );
-    });
+    button.addEventListener('click', () => choosePreset(button));
+});
+
+previousPresetButton.addEventListener('click', () => movePreset(-1));
+nextPresetButton.addEventListener('click', () => movePreset(1));
+
+presetTrack.addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    if (event.key === 'Home') choosePreset(presetButtons[0], { focus: true });
+    else if (event.key === 'End') choosePreset(presetButtons[presetButtons.length - 1], { focus: true });
+    else movePreset(event.key === 'ArrowRight' ? 1 : -1, { focus: true });
 });
 
 favoritesFilter.addEventListener('click', () => {
     favoritesOnly = !favoritesOnly;
     favoritesFilter.setAttribute('aria-pressed', String(favoritesOnly));
-    setActivePreset();
+    setActivePreset('', 'SAVED STATIONS');
     if (favoritesOnly) {
+        stationRequestRun += 1;
         resetSignalTests();
         stations = [...favorites];
         renderStations();
         resultsLabel.textContent = `SAVED  |  ${stations.length}`;
     } else {
+        const lastPreset = lastRequest.kind === 'tag' ? lastRequest.value : lastRequest.kind;
+        setActivePreset(presetButtons.some(button => button.dataset.preset === lastPreset) ? lastPreset : '', 'CUSTOM LIST');
         loadStations(lastRequest);
     }
 });
@@ -1134,6 +1188,7 @@ stationHome.addEventListener('click', event => {
 
 bindMediaSession();
 updateFavoriteControls();
+setActivePreset('us');
 discoverServers().finally(() => {
     loadStations({ kind: 'us' });
     restoreLastStation();
