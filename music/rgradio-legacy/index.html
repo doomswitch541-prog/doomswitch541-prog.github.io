@@ -17,12 +17,11 @@
     <div class="navbar radio-nav-anchor" aria-label="RG HQ navigation"></div>
     <div class="crt-overlay"></div>
     <canvas id="staticCanvas"></canvas>
-    <div class="day-counter">008/365</div>
 
     <div class="radio-container">
         <div class="radio-unit">
             <header class="radio-brand">
-                <div class="brand-text">EMERGENCY BROADCAST // DEBUG MODE</div>
+                <div class="brand-text">GHOST FREQUENCY // RECEIVER</div>
                 <div class="power-indicator">
                     <span id="connectionStatus">INITIALIZING...</span>
                     <div class="power-light"></div>
@@ -30,7 +29,7 @@
             </header>
 
             <div class="display-window">
-                <div class="frequency-readout" id="freqDisplay">97.50</div>
+                <div class="frequency-readout" id="freqDisplay">97.70</div>
 
                 <div class="signal-display">
                     <span class="signal-label" id="signalLabel">STANDBY</span>
@@ -45,18 +44,17 @@
                 <div class="content-area">
                     <div class="station-info" id="stationInfo">
                         <div class="station-call-sign" id="callSign">---</div>
-                        <div class="station-name" id="stationName">Initializing API...</div>
-                        <div class="station-meta" id="stationLocation">Waiting for radio-browser.info</div>
+                        <div class="station-name" id="stationName">Finding stations...</div>
+                        <div class="station-meta" id="stationLocation">Loading US news and talk signals</div>
                         <div id="stationTags"></div>
-                                        <button class="play-btn" id="playBtn" disabled>
+                        <button class="play-btn" id="playBtn" disabled>
                             <span id="playIcon">▶</span> <span id="playText">CONNECTING...</span>
                         </button>
-                        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;" id="stationPresetButtons"></div>
                     </div>
 
                     <div class="mystery-mode" id="mysteryMode">
                         <div class="mystery-text">NO SIGNAL</div>
-                        <div class="mystery-coords">API OR STREAM ERROR</div>
+                        <div class="mystery-coords">MOVE THE DIAL OR CHOOSE A STATION</div>
                     </div>
                 </div>
             </div>
@@ -64,11 +62,11 @@
             <div class="dial-section">
                 <div class="dial-label">
                     <span>87.5 MHz</span>
-                    <span>NEWS NETWORKS // 10 STATIONS</span>
+                    <span id="stationBandLabel">US NEWS + TALK // LOADING</span>
                     <span>108.0 MHz</span>
                 </div>
                 <div class="dial-track-container">
-                    <div class="dial-track" id="dialTrack" role="slider" tabindex="0" aria-label="Tune the US internet station band" aria-valuemin="87.5" aria-valuemax="108.0" aria-valuenow="97.5" aria-valuetext="97.5 megahertz display position">
+                    <div class="dial-track" id="dialTrack" role="slider" tabindex="0" aria-label="Tune the US internet station band" aria-valuemin="87.5" aria-valuemax="108.0" aria-valuenow="97.7" aria-valuetext="97.7 megahertz display position">
                         <div class="dial-fill" id="dialFill"></div>
                         <div class="station-markers" id="stationMarkers"></div>
                         <div class="dial-knob" id="dialKnob" style="left: 50%"></div>
@@ -86,53 +84,30 @@
                 </div>
             </div>
         </div>
+
+        <section class="station-lineup" aria-labelledby="stationLineupTitle">
+            <header class="station-lineup-head">
+                <div>
+                    <span>AVAILABLE SIGNALS</span>
+                    <h2 id="stationLineupTitle">US news + talk</h2>
+                </div>
+                <div class="station-lineup-tools">
+                    <b id="stationLineupCount">WAITING FOR DIRECTORY</b>
+                    <span id="streamStatusText" role="status" aria-live="polite">0/0 LIVE</span>
+                    <button class="station-check" id="testAllStreams" type="button" disabled>CHECK ALL SIGNALS</button>
+                </div>
+            </header>
+            <div class="station-preset-grid" id="stationPresetButtons"></div>
+        </section>
     </div>
 
     <audio id="radioPlayer" preload="none" playsinline></audio>
 
-    <nav class="pagination">
-        <button class="pagination-btn" id="prevStationBtn" type="button" title="Previous Station" aria-label="Previous station">◀</button>
-        <a href="/music" class="pagination-home" title="Back to Listen" aria-label="Back to Listen">⊞</a>
-        <button class="pagination-btn" id="nextStationBtn" type="button" title="Next Station" aria-label="Next station">▶</button>
-    </nav>
-
-    <!-- DEBUG PANEL -->
-    <div class="debug-panel" id="debugPanel">
-        <div class="debug-header" id="debugHeader">
-            <div class="debug-title">
-                <span>🔧</span>
-                <span>API DEBUG CONSOLE</span>
-            </div>
-            <div class="debug-status">
-                <div class="status-item">
-                    <div class="status-dot" id="apiStatusDot"></div>
-                    <span id="apiStatusText" role="status" aria-live="polite">API: Unknown</span>
-                </div>
-                <div class="status-item">
-                    <div class="status-dot" id="streamStatusDot"></div>
-                    <span id="streamStatusText" role="status" aria-live="polite">Streams: 0/10 OK</span>
-                </div>
-                <button class="debug-toggle" id="testAllStreams" type="button">TEST ALL</button>
-                <button class="debug-toggle" id="debugToggle" type="button">TOGGLE</button>
-            </div>
-        </div>
-
-        <div class="debug-content" id="debugContent">
-            <div class="debug-section">
-                <div class="debug-section-title">📡 LOG OUTPUT</div>
-                <div class="debug-log" id="apiLog"></div>
-            </div>
-            <div class="debug-section">
-                <div class="debug-section-title">📋 STATION LIST</div>
-                <div class="debug-list" id="debugList"></div>
-            </div>
-            <div class="debug-section debug-section--surfaces radio-surfaces">
-                <div class="debug-section-title">⌁ API + MEDIA SURFACES</div>
-                <p class="surface-explainer">KEYLESS DIRECTORY CALLS AND DIRECT HTTPS AUDIO TOUCHED BY THIS BROWSER.</p>
-                <div class="radio-surfaces-list" id="legacySurfaceList"></div>
-            </div>
-        </div>
-    </div>
+    <details class="legacy-api-debugger radio-surfaces">
+        <summary><span>API DEBUGGER</span><b id="legacySurfaceSummary" role="status" aria-live="polite">0 KNOWN</b></summary>
+        <p class="radio-surfaces-intro">The keyless directory calls and direct audio streams this browser has actually touched.</p>
+        <div class="radio-surfaces-list" id="legacySurfaceList"></div>
+    </details>
 
     <script src="/js/site.js"></script>
     <script type="module" src="/js/rgradio-legacy.js"></script>

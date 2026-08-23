@@ -114,12 +114,19 @@ Station streams and font files are network surfaces, but they are not APIs.
 
 ### RG Radio Legacy
 
-- Preserves the Ghost Frequency CRT, dial gaps, station locks, and debug console.
+- Preserves the Ghost Frequency CRT, dial gaps, and station locks while removing
+  the imported 365 counter and archive pagination.
 - Uses HTTPS Radio Browser mirrors directly from the page.
+- Combines US news and talk searches, removes duplicate results, and maps up to
+  sixteen HTTPS stations onto the display band.
+- Shows every loaded station in an always-visible lineup. Selecting a station
+  tunes it, runs the browser signal check when needed, and starts playback.
 - Keeps only real HTTPS stream candidates; it does not rewrite `http:` to
   `https:` and hope the station supports it.
 - Tests direct audio in the browser and reports the exact browser media outcome.
 - Never claims a relay state and never exposes a proxy endpoint.
+- Keeps a collapsed API/media debugger at the bottom in normal page flow. It has
+  no fixed overlay or nested scrolling and is not part of the listening flow.
 
 ### RG Broadcast
 

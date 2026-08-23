@@ -1,4 +1,4 @@
-        import { createRadioSurfaceMonitor, safeSurfaceUrl } from '/js/radio-surfaces.js';
+        import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
 
         const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
         const FALLBACK_SERVERS = [
@@ -7,25 +7,17 @@
             'https://at1.api.radio-browser.info'
         ];
         const STREAM_TIMEOUT = 7000;
-        const surfaceMonitor = createRadioSurfaceMonitor({ root: 'legacySurfaceList' });
+        const DISPLAY_FREQUENCIES = [
+            88.1, 89.3, 90.7, 92.1, 93.5, 94.9, 96.3, 97.7,
+            99.1, 100.5, 101.9, 103.3, 104.7, 105.9, 106.9, 107.7
+        ];
+        const surfaceMonitor = createRadioSurfaceMonitor({
+            root: 'legacySurfaceList',
+            summary: 'legacySurfaceSummary'
+        });
 
-        // Debug Logger
         function log(msg, type = 'info') {
-            const logEl = document.getElementById('apiLog');
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            const time = new Date().toLocaleTimeString().split(' ')[0];
-            entry.textContent = `[${time}] ${msg}`;
-            logEl.appendChild(entry);
-            logEl.scrollTop = logEl.scrollHeight;
             console.log(`[${type.toUpperCase()}] ${msg}`);
-        }
-
-        let debugExpanded = true;
-        function toggleDebug() {
-            const content = document.getElementById('debugContent');
-            debugExpanded = !debugExpanded;
-            content.style.display = debugExpanded ? 'grid' : 'none';
         }
 
         // The USB snapshot names this canvas but leaves its implementation as a
@@ -82,6 +74,7 @@
             stations: [],
             testedStreams: {},
             testDetails: {},
+            testingStreams: new Set(),
             currentStationIndex: -1,  // -1 means no station locked
             isPlaying: false,
             isDragging: false,
@@ -123,7 +116,7 @@
             const startedAt = performance.now();
             surfaceMonitor.report('directory-bootstrap', {
                 kind: 'DIRECTORY API', auth: 'KEYLESS', name: 'Radio Browser mirror discovery',
-                url, state: 'checking', label: 'CHECKING', detail: 'Public read-only GET.'
+                url, state: 'checking', label: 'CHECKING', detail: 'Finding a public directory mirror.'
             });
             try {
                 const response = await fetch(url, {
@@ -138,7 +131,7 @@
                     .filter(Boolean);
                 surfaceMonitor.report('directory-bootstrap', {
                     state: 'ready', label: 'LIVE',
-                    detail: `HTTP ${response.status} · ${discovered.length} mirrors · ${Math.round(performance.now() - startedAt)} ms`
+                    detail: `${discovered.length} mirrors · ${Math.round(performance.now() - startedAt)} ms`
                 });
                 return shuffled([...discovered, ...FALLBACK_SERVERS]);
             } catch (error) {
@@ -149,15 +142,14 @@
             }
         }
 
-        async function queryRadioBrowser(path) {
-            const servers = await discoverServers();
+        async function queryRadioBrowser(path, servers) {
             let lastError;
             for (const server of servers) {
                 const url = `${server}${path}`;
-                const id = `directory:${url}`;
+                const surfaceId = `directory:${url}`;
                 const startedAt = performance.now();
-                surfaceMonitor.report(id, {
-                    kind: 'DIRECTORY API', auth: 'KEYLESS', name: 'US news station search',
+                surfaceMonitor.report(surfaceId, {
+                    kind: 'DIRECTORY API', auth: 'KEYLESS', name: 'US station search',
                     url, state: 'checking', label: 'CHECKING', detail: 'Public read-only GET.'
                 });
                 try {
@@ -168,14 +160,14 @@
                     });
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
-                    surfaceMonitor.report(id, {
+                    surfaceMonitor.report(surfaceId, {
                         state: 'ready', label: 'LIVE',
-                        detail: `HTTP ${response.status} · ${data.length} candidates · ${Math.round(performance.now() - startedAt)} ms`
+                        detail: `${data.length} candidates · ${Math.round(performance.now() - startedAt)} ms`
                     });
                     return data;
                 } catch (error) {
                     lastError = error;
-                    surfaceMonitor.report(id, {
+                    surfaceMonitor.report(surfaceId, {
                         state: 'error', label: 'FAILED', detail: error.message
                     });
                 }
@@ -184,80 +176,58 @@
         }
 
         async function loadStations() {
-            log('Fetching keyless US news directory...', 'info');
+            log('Fetching keyless US news and talk stations...', 'info');
             document.getElementById('connectionStatus').textContent = 'DIRECTORY...';
-            document.getElementById('apiStatusText').textContent = 'API: Checking';
-            document.getElementById('apiStatusDot').className = 'status-dot warn';
+            document.getElementById('stationLineupCount').textContent = 'FINDING STATIONS';
             try {
-                const data = await queryRadioBrowser(
-                    '/json/stations/search?limit=40&countrycode=US&tag=news&is_https=true&hidebroken=true&order=clickcount&reverse=true'
-                );
-                state.stations = data
+                const servers = await discoverServers();
+                const searches = await Promise.allSettled([
+                    queryRadioBrowser(
+                        '/json/stations/search?limit=50&countrycode=US&tag=news&is_https=true&hidebroken=true&order=clickcount&reverse=true',
+                        servers
+                    ),
+                    queryRadioBrowser(
+                        '/json/stations/search?limit=50&countrycode=US&tag=talk&is_https=true&hidebroken=true&order=clickcount&reverse=true',
+                        servers
+                    )
+                ]);
+                const data = searches.flatMap(result => result.status === 'fulfilled' ? result.value : []);
+                const seen = new Set();
+                const unique = data.filter(station => {
+                    const identity = station.stationuuid || station.url_resolved;
+                    if (!identity || seen.has(identity)) return false;
+                    seen.add(identity);
+                    return true;
+                });
+                if (!unique.length) throw new Error('No station search answered');
+
+                state.stations = unique
                     .map(station => ({ ...station, streamUrls: stationStreamUrls(station) }))
                     .filter(station => station.streamUrls.length)
-                    .slice(0, 10)
+                    .slice(0, DISPLAY_FREQUENCIES.length)
                     .map((station, index) => ({
                         ...station,
-                        assignedFreq: (88.0 + (index * 2.0)).toFixed(1),
+                        assignedFreq: DISPLAY_FREQUENCIES[index].toFixed(1),
                         secureUrl: station.streamUrls[0],
                         playbackMode: 'untested'
                     }));
                 stations = state.stations;
                 document.getElementById('connectionStatus').textContent = `${stations.length} SIGNALS`;
-                document.getElementById('apiStatusText').textContent = 'API: Live';
-                document.getElementById('apiStatusDot').className = 'status-dot ok';
-                log(`Directory returned ${data.length}; ${stations.length} HTTPS stations loaded.`, 'success');
-                renderDebugList();
+                document.getElementById('stationBandLabel').textContent = `US NEWS + TALK // ${stations.length} STATIONS`;
+                document.getElementById('stationLineupCount').textContent = `${stations.length} AVAILABLE`;
+                document.getElementById('testAllStreams').disabled = !stations.length;
+                log(`Directory returned ${unique.length} unique candidates; ${stations.length} HTTPS stations loaded.`, 'success');
                 renderDialMarkers();
                 renderPresetButtons();
                 updateStreamStatus();
-                updateDisplay(97.5);
+                updateDisplay(97.7);
             } catch (error) {
                 document.getElementById('connectionStatus').textContent = 'DIRECTORY ERROR';
-                document.getElementById('apiStatusText').textContent = 'API: Offline';
-                document.getElementById('apiStatusDot').className = 'status-dot error';
+                document.getElementById('stationLineupCount').textContent = 'DIRECTORY UNAVAILABLE';
                 document.getElementById('stationName').textContent = 'Directory unavailable';
                 document.getElementById('stationLocation').textContent = error.message;
                 log(`Directory failed: ${error.message}`, 'error');
             }
-        }
-
-        function renderDebugList() {
-            const list = document.getElementById('debugList');
-            if (!list) return;
-
-            list.replaceChildren();
-            state.stations.forEach((station, index) => {
-                const item = document.createElement('div');
-                item.className = 'debug-item';
-                item.id = `debug-item-${index}`;
-                const copy = document.createElement('div');
-                copy.className = 'debug-item-info';
-                const title = document.createElement('strong');
-                title.textContent = `${station.assignedFreq} MHz — ${station.name}`;
-                const url = document.createElement('small');
-                url.textContent = safeSurfaceUrl(station.secureUrl);
-                copy.append(title, document.createElement('br'), url);
-
-                const actions = document.createElement('div');
-                actions.className = 'debug-item-actions';
-                const test = document.createElement('button');
-                test.type = 'button';
-                test.className = `test-btn${state.testedStreams[index] === true ? ' tested-ok' : state.testedStreams[index] === false ? ' tested-fail' : ''}`;
-                test.dataset.action = 'test';
-                test.dataset.index = String(index);
-                test.textContent = state.testedStreams[index] === true ? '✓ PLAYABLE' : state.testedStreams[index] === false ? '✗ FAILED' : 'TEST';
-                const play = document.createElement('button');
-                play.type = 'button';
-                play.className = 'test-btn';
-                play.dataset.action = 'play';
-                play.dataset.index = String(index);
-                play.disabled = state.currentStationIndex === index && state.isPlaying;
-                play.textContent = play.disabled ? 'PLAYING' : 'PLAY';
-                actions.append(test, play);
-                item.append(copy, actions);
-                list.appendChild(item);
-            });
         }
 
         function renderPresetButtons() {
@@ -268,10 +238,30 @@
             state.stations.forEach((station, index) => {
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.className = 'tag';
+                button.className = 'station-preset';
                 button.dataset.index = String(index);
+                button.dataset.signal = state.testingStreams.has(index)
+                    ? 'testing'
+                    : state.testedStreams[index] === true
+                        ? 'ready'
+                        : state.testedStreams[index] === false ? 'failed' : 'untested';
                 button.setAttribute('aria-pressed', String(state.currentStationIndex === index));
-                button.textContent = station.assignedFreq;
+                button.setAttribute('aria-label', `Play ${station.name} at ${station.assignedFreq}`);
+                button.disabled = state.testingStreams.has(index);
+                const frequency = document.createElement('span');
+                frequency.className = 'station-preset-frequency';
+                frequency.textContent = `${station.assignedFreq} MHz`;
+                const name = document.createElement('strong');
+                name.className = 'station-preset-name';
+                name.textContent = station.name;
+                const meta = document.createElement('small');
+                meta.className = 'station-preset-meta';
+                meta.textContent = state.testingStreams.has(index)
+                    ? 'CHECKING SIGNAL'
+                    : state.testedStreams[index] === true
+                        ? state.isPlaying && state.currentStationIndex === index ? 'ON AIR' : 'LIVE SIGNAL'
+                        : state.testedStreams[index] === false ? 'NO SIGNAL' : 'TAP TO PLAY';
+                button.append(frequency, name, meta);
                 container.appendChild(button);
             });
         }
@@ -347,6 +337,8 @@
         async function testStream(idx) {
             const station = state.stations[idx];
             if (!station) return false;
+            state.testingStreams.add(idx);
+            renderPresetButtons();
             log(`Testing ${station.assignedFreq}: ${station.name}`, 'info');
             if (state.currentStationIndex === idx) document.getElementById('signalLabel').textContent = 'TESTING';
             let lastResult = null;
@@ -358,10 +350,11 @@
                     state.testedStreams[idx] = true;
                     state.testDetails[idx] = lastResult;
                     testedStreams = state.testedStreams;
+                    state.testingStreams.delete(idx);
                     log(`Stream ${station.assignedFreq}: playable direct audio.`, 'success');
                     updateStreamStatus();
-                    renderDebugList();
-                    updateDisplay(parseFloat(state.stations[state.currentStationIndex]?.assignedFreq || 97.5));
+                    renderPresetButtons();
+                    updateDisplay(parseFloat(state.stations[state.currentStationIndex]?.assignedFreq || 97.7));
                     return true;
                 }
             }
@@ -369,10 +362,11 @@
             state.testedStreams[idx] = false;
             state.testDetails[idx] = lastResult;
             testedStreams = state.testedStreams;
+            state.testingStreams.delete(idx);
             log(`Stream ${station.assignedFreq}: ${lastResult?.detail || 'no playable candidate'}.`, 'error');
             updateStreamStatus();
-            renderDebugList();
-            updateDisplay(parseFloat(state.stations[state.currentStationIndex]?.assignedFreq || 97.5));
+            renderPresetButtons();
+            updateDisplay(parseFloat(state.stations[state.currentStationIndex]?.assignedFreq || 97.7));
             return false;
         }
 
@@ -387,18 +381,18 @@
                     const index = cursor;
                     cursor += 1;
                     if (await testStream(index)) ready += 1;
-                    button.textContent = `${ready}/${cursor} LIVE`;
+                    button.textContent = `CHECKING ${cursor}/${state.stations.length}`;
                 }
             }
             await Promise.all(Array.from({ length: Math.min(3, state.stations.length) }, () => worker()));
             if (run !== state.testRun) return;
             button.disabled = false;
-            button.textContent = `${ready}/${state.stations.length} LIVE`;
+            button.textContent = `CHECK AGAIN · ${ready} LIVE`;
         }
 
-        // Play a station directly from debug panel
-        async function playFromDebug(idx) {
-            log(`Play requested from debug for station ${idx}`, 'info');
+        // Selecting a station from the lineup tunes, verifies, and plays it.
+        async function selectStation(idx) {
+            log(`Station selected from lineup: ${idx}`, 'info');
 
             // Stop current playback if any
             if (state.isPlaying) {
@@ -595,14 +589,11 @@
                 if (tapePlayBtn) tapePlayBtn.textContent = '⏯';
             }
 
-            // Update debug panel play buttons
-            renderDebugList();
+            renderPresetButtons();
         }
 
         // Sync all UI elements to current state
         function syncAllUI() {
-            renderPresetButtons();
-            renderDebugList();
             updatePlayButtonUI();
         }
 
@@ -610,10 +601,9 @@
             const ok = Object.values(state.testedStreams).filter(v => v).length;
             const total = state.stations.length;
             const tested = Object.keys(state.testedStreams).length;
-            document.getElementById('streamStatusText').textContent = `Streams: ${ok}/${total} LIVE`;
-            document.getElementById('streamStatusDot').className = ok > 0
-                ? 'status-dot ok'
-                : tested === total && total ? 'status-dot error' : 'status-dot warn';
+            document.getElementById('streamStatusText').textContent = tested
+                ? `${ok}/${total} LIVE · ${tested} CHECKED`
+                : `0/${total} CHECKED`;
         }
 
         // Main UI Logic
@@ -717,7 +707,7 @@
             if (dialTrack.hasPointerCapture(event.pointerId)) dialTrack.releasePointerCapture(event.pointerId);
         });
         dialTrack.addEventListener('keydown', event => {
-            const current = Number(dialTrack.getAttribute('aria-valuenow')) || 97.5;
+            const current = Number(dialTrack.getAttribute('aria-valuenow')) || 97.7;
             const changes = {
                 ArrowLeft: -0.1,
                 ArrowDown: -0.1,
@@ -754,34 +744,17 @@
             syncAllUI();
         });
 
-        document.getElementById('debugList').addEventListener('click', event => {
-            const button = event.target.closest('[data-action]');
-            if (!button) return;
-            const index = Number(button.dataset.index);
-            if (button.dataset.action === 'test') testStream(index);
-            if (button.dataset.action === 'play') playFromDebug(index);
-        });
-
         document.getElementById('stationPresetButtons').addEventListener('click', event => {
             const button = event.target.closest('[data-index]');
-            if (button) tuneToStation(Number(button.dataset.index));
+            if (button) selectStation(Number(button.dataset.index));
         });
 
         document.getElementById('tapePrevBtn').addEventListener('click', () => changeStation(-1));
         document.getElementById('tapeNextBtn').addEventListener('click', () => changeStation(1));
         document.getElementById('tapePlayBtn').addEventListener('click', togglePlayFromTape);
-        document.getElementById('prevStationBtn').addEventListener('click', () => changeStation(-1));
-        document.getElementById('nextStationBtn').addEventListener('click', () => changeStation(1));
         document.getElementById('testAllStreams').addEventListener('click', event => {
             event.stopPropagation();
             testAllStreams();
-        });
-        document.getElementById('debugToggle').addEventListener('click', event => {
-            event.stopPropagation();
-            toggleDebug();
-        });
-        document.getElementById('debugHeader').addEventListener('click', event => {
-            if (!event.target.closest('button')) toggleDebug();
         });
 
         document.getElementById('radioPlayer').addEventListener('error', event => {
@@ -802,7 +775,7 @@
         });
 
         // Init
-        log('Debug panel initialized', 'info');
+        log('Receiver initialized', 'info');
         log(
             'Client-side detection: ' +
             (window.location.protocol === 'https:' ? 'HTTPS (Good for streams)' : 'HTTP (May cause mixed content)'),
