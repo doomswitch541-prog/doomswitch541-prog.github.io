@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.api.radio-browser.info; media-src https:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0b0b">
+    <meta name="description" content="Find and play real internet radio stations.">
+    <title>RG Broadcast</title>
+    <link rel="stylesheet" href="/css/broadcast.css">
+</head>
+<body>
+    <header class="broadcast-head">
+        <a class="back-link" href="/music" aria-label="Back to Music">RG / MUSIC</a>
+        <span class="head-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="head-source">INTERNET RADIO</span>
+    </header>
+
+    <main class="broadcast-shell">
+        <section class="receiver" aria-labelledby="broadcast-title">
+            <div class="receiver-title">
+                <p class="kicker">RG Broadcast</p>
+                <h1 id="broadcast-title">Find something<br>worth hearing.</h1>
+            </div>
+
+            <div class="now-playing" id="now-playing" data-state="idle">
+                <div class="on-air" aria-hidden="true"><span></span><b id="air-label">STANDBY</b></div>
+                <div class="station-readout">
+                    <span class="readout-label">Selected station</span>
+                    <strong id="current-name">Choose a station</strong>
+                    <span id="current-detail">Search the live directory or start with most played.</span>
+                </div>
+                <div class="player-controls">
+                    <button class="transport transport--small" id="previous-station" type="button" aria-label="Previous station" disabled>&larr;</button>
+                    <button class="transport transport--play" id="play-toggle" type="button" aria-label="Play station" disabled>
+                        <span class="play-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="transport transport--small" id="next-station" type="button" aria-label="Next station" disabled>&rarr;</button>
+                </div>
+                <div class="station-actions">
+                    <button id="favorite-toggle" type="button" disabled aria-pressed="false">SAVE</button>
+                    <button id="share-station" type="button" disabled>SHARE</button>
+                    <a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">STATION SITE</a>
+                </div>
+                <p class="player-status" id="player-status" role="status" aria-live="polite">Receiver ready.</p>
+                <audio id="radio-audio" preload="none" playsinline></audio>
+            </div>
+        </section>
+
+        <section class="directory" aria-labelledby="directory-title">
+            <div class="directory-head">
+                <div>
+                    <p class="kicker">Live directory</p>
+                    <h2 id="directory-title">Stations</h2>
+                </div>
+                <button class="favorites-filter" id="favorites-filter" type="button" aria-pressed="false">
+                    SAVED <span id="favorite-count">0</span>
+                </button>
+            </div>
+
+            <form class="station-search" id="station-search">
+                <label class="sr-only" for="search-query">Search internet radio</label>
+                <input id="search-query" name="query" type="search" autocomplete="off" placeholder="Station name">
+                <label class="sr-only" for="search-field">Search by</label>
+                <select id="search-field" name="field" aria-label="Search by">
+                    <option value="name">STATION</option>
+                    <option value="tag">GENRE</option>
+                    <option value="country">COUNTRY</option>
+                </select>
+                <button type="submit">FIND</button>
+            </form>
+
+            <div class="quick-tunes" aria-label="Quick station searches">
+                <button type="button" data-preset="top" aria-pressed="true">MOST PLAYED</button>
+                <button type="button" data-preset="rock" aria-pressed="false">ROCK</button>
+                <button type="button" data-preset="jazz" aria-pressed="false">JAZZ</button>
+                <button type="button" data-preset="ambient" aria-pressed="false">AMBIENT</button>
+                <button type="button" data-preset="classical" aria-pressed="false">CLASSICAL</button>
+                <button type="button" data-preset="electronic" aria-pressed="false">ELECTRONIC</button>
+                <button type="button" data-preset="talk" aria-pressed="false">TALK</button>
+            </div>
+
+            <div class="results-meta">
+                <span id="results-label">CONNECTING</span>
+                <button id="random-station" type="button" disabled>SURPRISE ME</button>
+            </div>
+
+            <ol class="station-list" id="station-list" aria-busy="true"></ol>
+
+            <div class="directory-message" id="directory-message" hidden>
+                <p id="directory-message-copy">The station directory could not be reached.</p>
+                <button id="retry-directory" type="button">TRY AGAIN</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="broadcast-foot">
+        <span>Station data: Radio Browser</span>
+        <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">OPEN DIRECTORY</a>
+    </footer>
+
+    <script type="module" src="/js/broadcast.js"></script>
+</body>
+</html>

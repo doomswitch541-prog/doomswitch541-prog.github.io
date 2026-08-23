@@ -34,6 +34,7 @@ const SiteNavigation = {
             ['/visuals', 'Gallery'],
         ]},
         { label: 'Music', href: '/music', links: [
+            ['/music/broadcast', 'RG Broadcast'],
             ['/music/zeppelin', 'Fifty-Five Years Loud'],
         ]},
         { label: 'TBP', href: '/tbp', links: [
