@@ -135,35 +135,45 @@ not remove a station or change playback.
 ### RG Broadcast
 
 - Uses the same directory-candidate then browser-verification principle.
-- Opens on a hand-curated **Top 15** stored in `js/broadcast.js`. The list begins
-  with Behind the Sch3m3s and the official Alex Jones Network feed. U7 Radio's
-  official 24/7 Art Bell / Coast to Coast archive stream, a dedicated US grunge
-  feed, and DKFM's current shoegaze feed replace three weaker general-rock picks.
-  The rest of the dial mixes US rock, freeform, psychedelic, experimental, and
-  space/ambient stations. The exact HTTPS stream remains visible in the surface
-  monitor and is still tested by the listener's browser.
-- Organizes discovery into six restrained bands: Top 15, News Desk, Conspiracy,
+- Opens on a hand-curated **Top 20** stored in `js/broadcast.js`. It is an RG
+  audience lock rather than a click-count chart: Behind the Sch3m3s, Alex Jones,
+  U7 Art Bell / Coast to Coast, Ground Zero Plus, Free People of the Cosmos,
+  Dr. J Radio, and KHNC occupy the first seven positions. The music side favors
+  grunge, emo, shoegaze, psychedelic/freeform, and spacey late-night listening.
+  Radio Paradise's general eclectic-rock mix was removed. Every exact HTTPS
+  stream remains visible in the surface monitor and is still tested by the
+  listener's browser.
+- Organizes discovery into six restrained bands: Top 20, News Desk, Conspiracy,
   Rock, Trippy, and Follow the Night. The broad US Live band was removed because
   it duplicated search, and Ambient was folded into Trippy. World, Talk, Jazz,
   and Classical remain out. All ordinary directory/search bands are US-filtered;
   Follow the Night remains geographically open because its actual function is
   finding stations currently broadcasting after dark.
-- Rock merges live US directory searches for rock, grunge, shoegaze, and
-  alternative rock, then leads with matching curated stations. This keeps both
-  classic Seattle-era grunge and current shoegaze/dream-pop texture visible in
-  the same band instead of hiding them behind generic rock results.
-- Conspiracy leads with the curated Behind the Sch3m3s, Alex Jones, and U7 Art
-  Bell / Coast to Coast signals before adding matching live directory results.
+- Rock merges live US directory searches for rock, grunge, shoegaze,
+  alternative rock, emo, screamo, and post-hardcore, then leads with matching
+  curated stations. Screamo Emo appears in both Rock and Top 20 alongside
+  classic Seattle-era grunge and current shoegaze/dream-pop.
+- Conspiracy leads with all matching Top 20 signals before adding live directory
+  results, keeping the seven core alternative/paranormal picks together.
 - Search has one field. Each query checks both Radio Browser `name` and `tag`
   results with `countrycode=US`, merges them, removes duplicate UUIDs/streams,
   and keeps only HTTPS candidates with a positive directory health check.
-- Maps the first fifteen active results onto an explicitly labeled **RG internet
+- Maps the first twenty active results onto an explicitly labeled **RG internet
   band**. Band positions are interaction slots, not terrestrial frequencies.
 - Keeps quiet gaps between positions so `STATIC`, `ACQUIRING`, `LOCKED`,
   `TESTING`, `READY`, `PAUSED`, `ON AIR`, and `NO SIGNAL` are visible receiver
   states. Dragging can cross those gaps; tapping the range snaps to the nearest
   occupied station slot. The tuner sits below the primary music-player controls.
-- Enables **Share Card** only for stations in the curated Top 15. The browser
+- The main player separates station identity from program data. Every station
+  shows a plain-language description, genre, origin, stream quality, and source.
+  The station list repeats a shorter description plus technical signal facts so
+  listeners can choose without opening the debugger.
+- For stations that publish browser-readable metadata, the player polls a
+  keyless, read-only now-playing surface every 30 seconds and shows the current
+  song or program. Stations that do not publish a usable browser endpoint stay
+  honest: the player shows their format and says the live title is not published.
+  It never invents a title from a schedule or station description.
+- Enables **Share Card** only for stations in the curated Top 20. The browser
   draws a 1200 x 630 tuner capture locally on canvas with the station name, RG
   display position, signal state, and direct `?station=` listening URL. Phones
   that support file sharing receive the PNG in the native share sheet; other
@@ -177,6 +187,28 @@ not remove a station or change playback.
 | U7 Radio: Art Bell / Coast to Coast | 24/7 Art Bell and Coast to Coast archive programming | `https://u7radio.org/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | LITT Live: Grunge | US 1990s grunge and rock | `https://das-sa39.cdnstream1.com/5570_128` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | DKFM Shoegaze Radio | Current shoegaze and dream pop | `https://kathy.torontocast.com:2005/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| Ground Zero Plus | Clyde Lewis, paranormal, conspiracy, and fringe science | `https://s2.radio.co/s7a9080f05/listen` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| Free People of the Cosmos | UFO, UAP, and paranormal podcast rotation | `https://podradio.us/stream/free-cosmos` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| Dr. J Radio | Paranormal and UFO long-form interviews | `https://podradio.us/stream/drjradio-live` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| KHNC 1360 "The Lion" | Colorado conspiracy and independent talk | `https://www.ophanim.net:8444/s/7250/` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| Screamo Emo | Emo, screamo, and post-hardcore | `https://radio.hearme.fm:8478/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| DKFM Edge | New shoegaze and dream pop | `https://radio.streemlion.com:4405/stream` | HTTP 200, `audio/aacp`, audio bytes returned |
+
+### Browser-readable now-playing surfaces
+
+| Station group | Read-only endpoint | Browser result |
+| --- | --- | --- |
+| Ground Zero Plus | `https://public.radio.co/stations/s7a9080f05/status` | Radio.co JSON with CORS and a current-track title |
+| SomaFM channels | `https://somafm.com/songs/<channel>.json` | Channel JSON with CORS, artist, title, and album |
+| DKFM Shoegaze Radio | `https://kathy.torontocast.com:2005/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
+| DKFM Edge | `https://radio.streemlion.com:4405/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
+| HEADY | `https://c22.radioboss.fm:18364/status-json.xsl` | Icecast JSON with CORS and current title |
+
+These hosts are explicitly allowed in the page and shared hosting CSP. The
+endpoints require no API key, receive no RG identity, and are requested only for
+the currently selected station. U7, PodRadio, KHNC, and Screamo Emo did not
+expose a browser-readable CORS endpoint during this check, so their player state
+uses the format fallback.
 
 ## Public-surface rules
 
@@ -187,7 +219,8 @@ not remove a station or change playback.
 - Signal-test probes remain labeled `DIRECT MEDIA`; the exact URL used by the
   main receiver appears separately as `PLAY STREAM` with its live playback state.
 - Sensitive-looking query parameters are redacted before a URL is rendered.
-- Radio Browser requests are limited to its HTTPS API hosts by CSP.
+- Radio Browser and the five explicit now-playing providers are limited to their
+  HTTPS hosts by CSP.
 - Dynamic station audio is allowed only through HTTPS media URLs.
 - The shared Cloudflare/Netlify headers carry the same Radio Browser and HTTPS
   media allowances as the page policies, so a host-level CSP cannot silently

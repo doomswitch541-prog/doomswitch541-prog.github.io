@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.api.radio-browser.info; media-src https:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.api.radio-browser.info https://public.radio.co https://somafm.com https://kathy.torontocast.com:2005 https://radio.streemlion.com:4405 https://c22.radioboss.fm:18364; media-src https:; base-uri 'self'; form-action 'self'; object-src 'none'">
     <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0a0b0b">
@@ -30,9 +30,20 @@
             <div class="now-playing" id="now-playing" data-state="idle">
                 <div class="on-air" aria-hidden="true"><span></span><b id="air-label">STANDBY</b></div>
                 <div class="station-readout">
-                    <span class="readout-label">Selected station</span>
+                    <span class="readout-label">Live station</span>
                     <strong id="current-name">Choose a station</strong>
-                    <span id="current-detail">Start with Top 15 or search by station name or genre.</span>
+                    <p class="current-description" id="current-description">Start with Top 20 or search by station name or genre.</p>
+                    <div class="program-readout" data-state="format">
+                        <span class="program-label"><i aria-hidden="true"></i><b id="current-program-label">ON THIS SIGNAL</b></span>
+                        <strong id="current-program">WAITING FOR A STATION</strong>
+                        <span id="current-program-note">LIVE TITLES APPEAR HERE WHEN A STATION PUBLISHES THEM</span>
+                    </div>
+                    <dl class="station-facts" aria-label="Selected station details">
+                        <div><dt>Genre</dt><dd id="current-genre">—</dd></div>
+                        <div><dt>From</dt><dd id="current-origin">—</dd></div>
+                        <div><dt>Quality</dt><dd id="current-quality">—</dd></div>
+                        <div><dt>Source</dt><dd id="current-source">—</dd></div>
+                    </dl>
                 </div>
                 <div class="player-controls">
                     <button class="transport transport--small" id="previous-station" type="button" aria-label="Previous station" disabled>&larr;</button>
@@ -44,7 +55,7 @@
                 </div>
                 <div class="station-actions">
                     <button id="favorite-toggle" type="button" disabled aria-pressed="false">SAVE</button>
-                    <button id="share-station" type="button" disabled title="Share cards are available for Top 15 stations">SHARE CARD</button>
+                    <button id="share-station" type="button" disabled title="Share cards are available for Top 20 stations">SHARE CARD</button>
                     <a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">STATION SITE</a>
                 </div>
                 <p class="player-status" id="player-status" role="status" aria-live="polite">Receiver ready.</p>
@@ -86,7 +97,7 @@
             <form class="station-search" id="station-search">
                 <label for="search-query">Search US stations <span>by name or genre</span></label>
                 <div class="station-search-controls">
-                    <input id="search-query" name="query" type="search" autocomplete="off" placeholder="KEXP, classic rock, psychedelic…">
+                    <input id="search-query" name="query" type="search" autocomplete="off" placeholder="Art Bell, emo, grunge, shoegaze...">
                     <button type="submit">SEARCH</button>
                 </div>
             </form>
@@ -94,14 +105,14 @@
             <section class="station-mode-selector" aria-labelledby="station-mode-title">
                 <div class="mode-strip-head">
                     <h3 id="station-mode-title">Bands</h3>
-                    <output id="station-mode-position" aria-live="polite">1 OF 6 &middot; TOP 15</output>
+                    <output id="station-mode-position" aria-live="polite">1 OF 6 &middot; TOP 20</output>
                 </div>
                 <div class="mode-carousel">
                     <button class="mode-carousel-arrow" id="previous-station-mode" type="button" aria-label="Previous station band" aria-controls="station-list" disabled>
                         <span aria-hidden="true">&larr;</span><small>BACK</small>
                     </button>
                     <div class="quick-tunes" id="station-mode-track" role="group" aria-label="Station bands">
-                        <button type="button" data-preset="top15" aria-pressed="true" aria-controls="station-list">TOP 15</button>
+                        <button type="button" data-preset="top20" aria-pressed="true" aria-controls="station-list">TOP 20</button>
                         <button type="button" data-preset="news" aria-pressed="false" aria-controls="station-list">NEWS DESK</button>
                         <button type="button" data-preset="conspiracy" aria-pressed="false" aria-controls="station-list">CONSPIRACY</button>
                         <button type="button" data-preset="rock" aria-pressed="false" aria-controls="station-list">ROCK</button>

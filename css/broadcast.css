@@ -400,8 +400,7 @@ button {
 }
 
 .station-readout {
-    min-height: 10rem;
-    padding: 1.35rem 0 1.6rem;
+    padding: 1.35rem 0 1.5rem;
 }
 
 .readout-label {
@@ -425,15 +424,124 @@ button {
     text-transform: uppercase;
 }
 
-.station-readout > span:last-child {
+.current-description {
+    max-width: 54ch;
+    margin: 0.7rem 0 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+.program-readout {
+    position: relative;
+    margin-top: 1.45rem;
+    padding: 1rem 0 1.05rem 1rem;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+.program-readout::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    left: 0;
+    width: 2px;
+    background: var(--amber);
+    box-shadow: 0 0 0.75rem rgba(230, 160, 74, 0.25);
+}
+
+.program-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--amber);
+    font-family: var(--font-data);
+    font-size: 0.62rem;
+    letter-spacing: 0.13em;
+}
+
+.program-label i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.program-label b {
+    font: inherit;
+}
+
+.program-readout[data-state="live"] .program-label {
+    color: var(--green);
+}
+
+.program-readout[data-state="live"] .program-label i {
+    box-shadow: 0 0 0.65rem rgba(134, 181, 156, 0.75);
+    animation: air-pulse 1.8s ease-in-out infinite;
+}
+
+.program-readout strong {
+    margin-top: 0.45rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.5vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+}
+
+.program-readout > span:last-child {
     display: block;
-    margin-top: 0.8rem;
+    margin-top: 0.5rem;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.75rem;
-    letter-spacing: 0.06em;
-    line-height: 1.5;
+    font-size: 0.62rem;
+    letter-spacing: 0.075em;
+    line-height: 1.45;
+}
+
+.station-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 1rem 0 0;
+    border-top: 1px solid var(--line);
+}
+
+.station-facts div {
+    min-width: 0;
+    padding: 0.72rem 0.75rem 0.72rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.station-facts div:nth-child(odd) {
+    padding-right: 1rem;
+    border-right: 1px solid var(--line);
+}
+
+.station-facts div:nth-child(even) {
+    padding-left: 1rem;
+}
+
+.station-facts dt,
+.station-facts dd {
+    margin: 0;
+    font-family: var(--font-data);
+    line-height: 1.35;
     text-transform: uppercase;
+}
+
+.station-facts dt {
+    color: #6f6b63;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+}
+
+.station-facts dd {
+    overflow-wrap: anywhere;
+    margin-top: 0.25rem;
+    color: var(--paper);
+    font-size: 0.66rem;
+    letter-spacing: 0.055em;
 }
 
 .player-controls {
@@ -822,7 +930,7 @@ button {
     display: grid;
     grid-template-columns: 2.25rem minmax(0, 1fr) auto;
     align-items: stretch;
-    min-height: 72px;
+    min-height: 108px;
     border-bottom: 1px solid var(--line);
 }
 
@@ -831,7 +939,7 @@ button {
 }
 
 .station-number {
-    padding-top: 1.15rem;
+    padding-top: 1.1rem;
     color: #656159;
     font-family: var(--font-data);
     font-size: 0.62rem;
@@ -839,7 +947,7 @@ button {
 
 .station-select {
     min-width: 0;
-    padding: 0.85rem 0.7rem 0.8rem 0;
+    padding: 0.85rem 0.85rem 0.85rem 0;
     border: 0;
     background: transparent;
     color: inherit;
@@ -858,20 +966,29 @@ button {
     line-height: 1.08;
     text-overflow: ellipsis;
     text-transform: uppercase;
-    white-space: nowrap;
+    white-space: normal;
+}
+
+.station-select .station-description {
+    display: block;
+    max-width: 62ch;
+    margin-top: 0.35rem;
+    color: #b0aa9d;
+    font-size: 0.78rem;
+    line-height: 1.42;
 }
 
 .station-select .station-detail {
     display: block;
     overflow: hidden;
-    margin-top: 0.38rem;
+    margin-top: 0.45rem;
     color: var(--muted);
     font-family: var(--font-data);
     font-size: 0.66rem;
     letter-spacing: 0.055em;
-    text-overflow: ellipsis;
+    line-height: 1.35;
     text-transform: uppercase;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .station-select .signal-state {

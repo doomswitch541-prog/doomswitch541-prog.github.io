@@ -12,15 +12,17 @@ const RESULT_LIMIT = 50;
 const SIGNAL_TEST_LIMIT = 30;
 const SIGNAL_TEST_TIMEOUT = 9000;
 const SIGNAL_TEST_CONCURRENCY = 4;
+const NOW_PLAYING_REFRESH = 30000;
 const BAND_FREQUENCIES = [
-    87.9, 89.3, 90.7, 92.1, 93.5,
-    94.9, 96.3, 97.7, 99.1, 100.5,
-    101.9, 103.3, 104.7, 106.1, 107.5
+    87.9, 88.9, 90.0, 91.0, 92.0,
+    93.1, 94.1, 95.1, 96.2, 97.2,
+    98.2, 99.3, 100.3, 101.3, 102.4,
+    103.4, 104.4, 105.5, 106.5, 107.5
 ];
 const BAND_LOCK_DISTANCE = 0.42;
 const NEWS_TERMS = ['Bloomberg', 'CNN', 'Fox News'];
 const CONSPIRACY_TAGS = ['conspiracy', 'conspiracy theories', 'paranormal', 'ufo', 'uap'];
-const ROCK_TAGS = ['rock', 'grunge', 'shoegaze', 'alternative rock'];
+const ROCK_TAGS = ['rock', 'grunge', 'shoegaze', 'alternative rock', 'emo', 'screamo', 'post-hardcore'];
 const TRIPPY_TAGS = ['psychedelic', 'experimental', 'freeform', 'space', 'ambient', 'drone'];
 const BEHIND_THE_SCHEMES = {
     stationuuid: '54944202-69d5-4f89-9189-e949aeac59b8',
@@ -28,7 +30,8 @@ const BEHIND_THE_SCHEMES = {
     url_resolved: 'https://scream.behindthesch3m3s.com/radio/8000/.mp3',
     homepage: 'https://behindthesch3m3s.com/',
     countrycode: 'US', codec: 'MP3', bitrate: 128,
-    tags: 'conspiracy theories', hls: false, lastcheckok: true, source: 'curated'
+    tags: 'conspiracy theories,independent talk', hls: false, lastcheckok: true, source: 'curated',
+    description: 'Late-night conspiracy talk and independent broadcasts.'
 };
 const OFFICIAL_NEWS_STATIONS = [{
     stationuuid: 'official-alex-jones-network',
@@ -38,10 +41,11 @@ const OFFICIAL_NEWS_STATIONS = [{
     countrycode: 'US',
     codec: 'AAC+',
     bitrate: 32,
-    tags: 'infowars,news,talk',
+    tags: 'infowars,alternative news,conspiracy,talk',
     hls: false,
     lastcheckok: true,
-    source: 'official'
+    source: 'official',
+    description: 'Live Infowars network programming and alternative news.'
 }];
 const CURATED_TOP_STATIONS = [
     BEHIND_THE_SCHEMES,
@@ -50,79 +54,135 @@ const CURATED_TOP_STATIONS = [
         stationuuid: 'official-u7-art-bell', name: 'U7 Radio: Art Bell / Coast to Coast',
         url_resolved: 'https://u7radio.org/stream', homepage: 'https://u7radio.org/',
         countrycode: 'US', codec: 'MP3', bitrate: 0, tags: 'art bell,coast to coast,paranormal',
-        hls: false, lastcheckok: true, source: 'official'
+        hls: false, lastcheckok: true, source: 'official',
+        description: '24/7 Art Bell and Coast to Coast archive rotation.'
+    },
+    {
+        stationuuid: '15dced36-90ba-4c50-bc06-8156fe53433f', name: 'Ground Zero Plus',
+        url_resolved: 'https://s2.radio.co/s7a9080f05/listen', homepage: 'https://groundzeroplus.com/',
+        countrycode: 'US', codec: 'MP3', bitrate: 192, tags: 'paranormal,conspiracy,fringe science,talk',
+        hls: false, lastcheckok: true, source: 'official',
+        description: 'Clyde Lewis on paranormal events, hidden systems, and fringe science.',
+        now_playing: { type: 'radio-co', url: 'https://public.radio.co/stations/s7a9080f05/status' }
+    },
+    {
+        stationuuid: 'b21c058e-6f4b-4558-b1cf-cfeae8608f61', name: 'Free People of the Cosmos',
+        url_resolved: 'https://podradio.us/stream/free-cosmos', homepage: 'https://podradio.us/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'ufo,uap,paranormal,podcast,talk',
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'UFO, UAP, paranormal, and contact-focused podcast rotation.'
+    },
+    {
+        stationuuid: '1d565cd5-d5a7-457d-b212-557be006f31a', name: 'Dr. J Radio',
+        url_resolved: 'https://podradio.us/stream/drjradio-live', homepage: 'https://podradio.us/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'ufo,paranormal,conspiracy,podcast,talk',
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Paranormal interviews and long-form UFO and conspiracy talk.'
+    },
+    {
+        stationuuid: 'd78d7518-9212-4541-91be-2a4a6bf1a945', name: 'KHNC 1360 "The Lion"',
+        url_resolved: 'https://www.ophanim.net:8444/s/7250/', homepage: 'https://1360khnc.com/',
+        countrycode: 'US', codec: 'MP3', bitrate: 48, tags: 'conspiracy,independent talk,politics',
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Colorado independent talk mixing conspiracy, politics, and Christian programming.'
     },
     {
         stationuuid: '445cbb3a-1c4e-49aa-a268-f5b6acfa8f2e', name: 'KEXP',
         url_resolved: 'https://kexp.streamguys1.com/kexp160.aac', homepage: 'https://www.kexp.org/',
         countrycode: 'US', codec: 'AAC', bitrate: 162, tags: 'alternative,indie,rock',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Seattle-led alternative, indie, punk, and left-field new music.'
     },
     {
         stationuuid: '021e14a0-ddda-4ed5-bf37-3f5744b65eeb', name: 'WFMU Freeform',
         url_resolved: 'https://stream0.wfmu.org/freeform-extrahigh-primary.aac', homepage: 'https://wfmu.org/',
         countrycode: 'US', codec: 'AAC+', bitrate: 256, tags: 'experimental,freeform',
-        hls: false, lastcheckok: true, source: 'curated'
-    },
-    {
-        stationuuid: '9e54d6fc-16a6-4308-9c15-c60aeb1e2de8', name: 'Radio Paradise Rock Mix',
-        url_resolved: 'https://stream.radioparadise.com/rock-64', homepage: 'https://radioparadise.com/',
-        countrycode: 'US', codec: 'AAC', bitrate: 64, tags: 'alternative,eclectic,rock',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Listener-supported freeform radio with experimental programming and no fixed format.'
     },
     {
         stationuuid: '96187609-0601-11e8-ae97-52543be04c81', name: '181.FM The Eagle',
         url_resolved: 'https://listen.181fm.com/181-eagle_128k.mp3', homepage: 'https://www.181.fm/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'classic rock',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Classic-rock heavy rotation built around the familiar deep catalog.'
     },
     {
         stationuuid: '9b65470b-c31d-4a3a-b57b-eea8c62c58c9', name: 'LITT Live: Grunge',
         url_resolved: 'https://das-sa39.cdnstream1.com/5570_128', homepage: 'https://littlive.com/grunge',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: '90s,grunge,rock',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Nirvana, Alice in Chains, Soundgarden, Pearl Jam, and the wider 1990s grunge lane.'
+    },
+    {
+        stationuuid: 'official-hearme-screamo-emo', name: 'Screamo Emo',
+        url_resolved: 'https://radio.hearme.fm:8478/stream', homepage: 'https://hearme.fm/radio/screamo-emo',
+        countrycode: 'GB', codec: 'MP3', bitrate: 0, tags: 'emo,screamo,post-hardcore,punk',
+        hls: false, lastcheckok: true, source: 'official',
+        description: 'Emo, screamo, post-hardcore, and cathartic punk-adjacent rotation.'
     },
     {
         stationuuid: 'b5585301-1987-4605-9c4d-86da2488c0ad', name: 'DKFM Shoegaze Radio',
         url_resolved: 'https://kathy.torontocast.com:2005/stream', homepage: 'https://decayfm.com/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'rock,shoegaze,dream pop,new music',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Shoegaze and dream pop across classics, deep cuts, and new releases.',
+        now_playing: { type: 'icecast', url: 'https://kathy.torontocast.com:2005/status-json.xsl' }
+    },
+    {
+        stationuuid: '51745b10-5f95-49ab-bc53-068ad35fcee1', name: 'DKFM Edge',
+        url_resolved: 'https://radio.streemlion.com:4405/stream', homepage: 'https://decayfm.com/dkfm-edge-2/',
+        countrycode: 'US', codec: 'AAC+', bitrate: 64, tags: 'shoegaze,dream pop,new music',
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'The newest shoegaze and dream-pop releases in a tighter 24/7 rotation.',
+        now_playing: { type: 'icecast', url: 'https://radio.streemlion.com:4405/status-json.xsl' }
     },
     {
         stationuuid: '960d3f6f-0601-11e8-ae97-52543be04c81', name: 'Space Station Soma',
         url_resolved: 'https://ice6.somafm.com/spacestation-128-aac', homepage: 'https://somafm.com/spacestation/',
         countrycode: 'US', codec: 'AAC', bitrate: 128, tags: 'ambient,electronic,space',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Spaced-out ambient and mid-tempo electronica for long orbital listening.',
+        now_playing: { type: 'somafm', url: 'https://somafm.com/songs/spacestation.json' }
     },
     {
         stationuuid: '960eb2e9-0601-11e8-ae97-52543be04c81', name: 'Drone Zone',
         url_resolved: 'https://ice2.somafm.com/dronezone-128-mp3', homepage: 'https://somafm.com/dronezone/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'ambient,atmospheric,drone',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Deep ambient drones and atmospheric sound without the hard edges.',
+        now_playing: { type: 'somafm', url: 'https://somafm.com/songs/dronezone.json' }
     },
     {
         stationuuid: '960c7c81-0601-11e8-ae97-52543be04c81', name: 'Secret Agent',
         url_resolved: 'https://ice6.somafm.com/secretagent-128-mp3', homepage: 'https://somafm.com/secretagent/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'downtempo,lounge,spy',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Spy-soundtrack lounge, downtempo tension, and covert grooves.',
+        now_playing: { type: 'somafm', url: 'https://somafm.com/songs/secretagent.json' }
     },
     {
         stationuuid: '9614eb15-0601-11e8-ae97-52543be04c81', name: 'Mission Control',
         url_resolved: 'https://ice5.somafm.com/missioncontrol-128-mp3', homepage: 'https://somafm.com/missioncontrol/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'experimental,space program',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Space-program audio folded into experimental ambient transmission.',
+        now_playing: { type: 'somafm', url: 'https://somafm.com/songs/missioncontrol.json' }
     },
     {
         stationuuid: '70133397-5845-4524-bcda-701da75f46fa', name: 'HEADY',
         url_resolved: 'https://c22.radioboss.fm:18364/stream', homepage: 'https://www.heady.fm/',
         countrycode: 'US', codec: 'AAC', bitrate: 320, tags: 'indie rock,psychedelic rock',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Modern psychedelic and underground indie rock, commercial-free.',
+        now_playing: { type: 'icecast', url: 'https://c22.radioboss.fm:18364/status-json.xsl' }
     },
     {
         stationuuid: '43ea0516-a17e-4b65-8999-61791c800ca6', name: 'Radio BipTunia',
         url_resolved: 'https://ecast.myautodj.com:1380/listen.mp3', homepage: 'https://biptunia.com/?page_id=4399',
         countrycode: 'US', codec: 'MP3', bitrate: 224, tags: 'experimental,microtonal,psychedelic',
-        hls: false, lastcheckok: true, source: 'curated'
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Microtonal, psychedelic, and outsider experimental radio.'
     }
 ];
 
@@ -130,7 +190,14 @@ const audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
 const airLabel = document.getElementById('air-label');
 const currentName = document.getElementById('current-name');
-const currentDetail = document.getElementById('current-detail');
+const currentDescription = document.getElementById('current-description');
+const currentProgramLabel = document.getElementById('current-program-label');
+const currentProgram = document.getElementById('current-program');
+const currentProgramNote = document.getElementById('current-program-note');
+const currentGenre = document.getElementById('current-genre');
+const currentOrigin = document.getElementById('current-origin');
+const currentQuality = document.getElementById('current-quality');
+const currentSource = document.getElementById('current-source');
 const playerStatus = document.getElementById('player-status');
 const playToggle = document.getElementById('play-toggle');
 const playStateLabel = document.getElementById('play-state-label');
@@ -170,7 +237,7 @@ let apiServers = [];
 let stations = [];
 let currentStation = null;
 let currentIndex = -1;
-let lastRequest = { kind: 'top15' };
+let lastRequest = { kind: 'top20' };
 let favoritesOnly = false;
 let favorites = loadFavorites();
 let playbackRun = 0;
@@ -179,6 +246,8 @@ let signalTestRun = 0;
 let stationRequestRun = 0;
 let bandStations = [];
 let bandPointerStart = null;
+let nowPlayingRun = 0;
+let nowPlayingTimer = null;
 const signalResults = new Map();
 const supportsNativeHls = audio.canPlayType('application/vnd.apple.mpegurl') !== '';
 
@@ -359,6 +428,167 @@ function stationDetail(station) {
     return parts.join('  |  ') || 'LIVE INTERNET RADIO';
 }
 
+function stationTags(station, limit = 3) {
+    return String(station.tags || '')
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(Boolean)
+        .slice(0, limit);
+}
+
+function stationDescription(station) {
+    if (station.description) return station.description;
+    const tags = stationTags(station);
+    const format = tags.length ? tags.join(', ') : 'internet radio';
+    const origin = station.countrycode ? ` from ${station.countrycode.toUpperCase()}` : '';
+    return `Live ${format}${origin}.`;
+}
+
+function stationOrigin(station) {
+    const parts = [station.state, station.countrycode]
+        .map(value => String(value || '').trim())
+        .filter(Boolean);
+    return parts.length ? parts.join(', ').toUpperCase() : 'INTERNET';
+}
+
+function stationQuality(station) {
+    const codec = String(station.codec || '').trim().toUpperCase();
+    const bitrate = Number(station.bitrate) > 0 ? `${Number(station.bitrate)} KBPS` : '';
+    return [codec, bitrate].filter(Boolean).join(' / ') || 'LIVE STREAM';
+}
+
+function stationSource(station) {
+    if (station.source === 'official') return 'OFFICIAL FEED';
+    if (station.source === 'curated') return 'CURATED DIRECT';
+    return 'RADIO BROWSER';
+}
+
+function stationFormat(station) {
+    const tags = stationTags(station, 4);
+    return tags.length ? tags.join(' / ').toUpperCase() : 'LIVE INTERNET RADIO';
+}
+
+function setProgramFallback(station, note = 'LIVE TITLE NOT PUBLISHED') {
+    currentProgramLabel.textContent = 'ON THIS SIGNAL';
+    currentProgram.textContent = stationFormat(station);
+    currentProgramNote.textContent = `STATION FORMAT  /  ${note}`;
+    currentProgram.closest('.program-readout').dataset.state = 'format';
+}
+
+function reportNowPlayingSurface(station, state, label, detail) {
+    const config = station?.now_playing;
+    if (!config?.url) return;
+    surfaceMonitor.report(`metadata:${station.stationuuid}:${config.url}`, {
+        kind: 'NOW PLAYING API',
+        auth: 'NO KEY',
+        name: `${station.name} live metadata`,
+        url: config.url,
+        state,
+        label,
+        detail
+    });
+}
+
+function icecastSource(data, config) {
+    const source = data?.icestats?.source;
+    const sources = Array.isArray(source) ? source : source ? [source] : [];
+    if (!sources.length) return null;
+    const match = String(config.match || '').toLowerCase();
+    if (match) {
+        const matched = sources.find(item =>
+            `${item.server_name || ''} ${item.listenurl || ''}`.toLowerCase().includes(match)
+        );
+        if (matched) return matched;
+    }
+    return sources.find(item => String(item.title || '').trim()) || sources[0];
+}
+
+function parseNowPlaying(config, data) {
+    if (config.type === 'radio-co') {
+        const title = String(data?.current_track?.title || '').trim();
+        if (!title) return null;
+        const listeners = Number(data?.listeners);
+        return {
+            title,
+            note: Number.isFinite(listeners) ? `${listeners} LISTENING  /  LIVE NETWORK DATA` : 'LIVE NETWORK DATA'
+        };
+    }
+
+    if (config.type === 'somafm') {
+        const song = Array.isArray(data?.songs) ? data.songs[0] : null;
+        if (!song) return null;
+        const artist = String(song.artist || '').trim();
+        const title = String(song.title || '').trim();
+        const album = String(song.album || '').trim();
+        if (!artist && !title) return null;
+        return {
+            title: [artist, title].filter(Boolean).join('  /  '),
+            note: album ? `${album.toUpperCase()}  /  SOMAFM LIVE DATA` : 'SOMAFM LIVE DATA'
+        };
+    }
+
+    if (config.type === 'icecast') {
+        const source = icecastSource(data, config);
+        const title = String(source?.title || '').trim();
+        if (!title) return null;
+        const listeners = Number(source.listeners);
+        const genre = String(source.genre || '').trim();
+        const note = [
+            Number.isFinite(listeners) ? `${listeners} LISTENING` : '',
+            genre ? genre.toUpperCase() : '',
+            'LIVE SERVER DATA'
+        ].filter(Boolean).join('  /  ');
+        return { title, note };
+    }
+
+    return null;
+}
+
+function stopNowPlayingUpdates() {
+    nowPlayingRun += 1;
+    if (nowPlayingTimer !== null) window.clearTimeout(nowPlayingTimer);
+    nowPlayingTimer = null;
+}
+
+function startNowPlayingUpdates(station) {
+    stopNowPlayingUpdates();
+    setProgramFallback(station);
+    const config = station.now_playing;
+    if (!config?.url) return;
+
+    const run = nowPlayingRun;
+    async function refresh() {
+        reportNowPlayingSurface(station, 'checking', 'CHECKING', 'Reading public live-title data for the selected station.');
+        try {
+            const response = await fetch(config.url, {
+                headers: { Accept: 'application/json' },
+                cache: 'no-store',
+                signal: timeoutSignal(6500)
+            });
+            if (!response.ok) throw new Error(`Metadata returned ${response.status}`);
+            const data = await response.json();
+            if (run !== nowPlayingRun || currentStation?.stationuuid !== station.stationuuid) return;
+            const program = parseNowPlaying(config, data);
+            if (!program) throw new Error('No current title was published');
+            currentProgramLabel.textContent = 'NOW PLAYING';
+            currentProgram.textContent = program.title;
+            currentProgramNote.textContent = program.note;
+            currentProgram.closest('.program-readout').dataset.state = 'live';
+            reportNowPlayingSurface(station, 'ready', 'LIVE', program.note);
+            updateMediaSession(station, program.title);
+        } catch (error) {
+            if (run !== nowPlayingRun || currentStation?.stationuuid !== station.stationuuid) return;
+            setProgramFallback(station, 'LIVE TITLE TEMPORARILY UNAVAILABLE');
+            reportNowPlayingSurface(station, 'error', 'UNAVAILABLE', error.message);
+        }
+        if (run === nowPlayingRun && currentStation?.stationuuid === station.stationuuid) {
+            nowPlayingTimer = window.setTimeout(refresh, NOW_PLAYING_REFRESH);
+        }
+    }
+
+    refresh();
+}
+
 function safeHttpsUrl(value) {
     try {
         const url = new URL(value);
@@ -385,7 +615,7 @@ function shareCardFilename(station) {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         .slice(0, 54);
-    return `rg-broadcast-${slug || 'top-15'}.png`;
+    return `rg-broadcast-${slug || 'top-20'}.png`;
 }
 
 function wrapCanvasText(context, text, maxWidth, maxLines) {
@@ -468,7 +698,7 @@ function stationCardBlob(station, slotIndex) {
     context.fillText('RG BROADCAST', 74, 94);
     context.fillStyle = colors.amber;
     context.font = '700 18px "Courier New", monospace';
-    context.fillText(`TOP 15 / LOCK ${String(slotIndex + 1).padStart(2, '0')}`, 75, 126);
+    context.fillText(`TOP 20 / LOCK ${String(slotIndex + 1).padStart(2, '0')}`, 75, 126);
 
     context.textAlign = 'right';
     context.fillStyle = colors.paper;
@@ -510,7 +740,7 @@ function stationCardBlob(station, slotIndex) {
     context.fillText(signal.label, 151, 527);
     context.textAlign = 'right';
     context.fillStyle = colors.amber;
-    context.fillText(`${String(slotIndex + 1).padStart(2, '0')} / 15`, 1123, 527);
+    context.fillText(`${String(slotIndex + 1).padStart(2, '0')} / 20`, 1123, 527);
     context.textAlign = 'left';
 
     context.fillStyle = colors.muted;
@@ -568,9 +798,12 @@ function compactStation(station) {
         url_resolved: station.url_resolved,
         homepage: station.homepage || '',
         countrycode: station.countrycode || '',
+        state: station.state || '',
         codec: station.codec || '',
         bitrate: Number(station.bitrate) || 0,
         tags: station.tags || '',
+        description: station.description || '',
+        now_playing: station.now_playing || null,
         source: station.source || 'radio-browser',
         hls: Number(station.hls) === 1 || station.hls === true,
         geo_lat: station.geo_lat !== null && station.geo_lat !== '' && Number.isFinite(Number(station.geo_lat))
@@ -720,15 +953,24 @@ function syncBandToStation(station, index) {
 }
 
 function clearBandSelection() {
+    stopNowPlayingUpdates();
     currentStation = null;
     currentIndex = -1;
     currentName.textContent = 'Quiet band';
-    currentDetail.textContent = 'No station occupies this part of the current internet band.';
+    currentDescription.textContent = 'No station occupies this part of the current internet band.';
+    currentProgramLabel.textContent = 'ON THIS SIGNAL';
+    currentProgram.textContent = 'STATIC';
+    currentProgramNote.textContent = 'MOVE TOWARD A MARKER TO LOCK';
+    currentProgram.closest('.program-readout').dataset.state = 'format';
+    currentGenre.textContent = '—';
+    currentOrigin.textContent = '—';
+    currentQuality.textContent = '—';
+    currentSource.textContent = '—';
     playToggle.disabled = true;
     favoriteToggle.disabled = true;
     shareButton.disabled = true;
-    shareButton.title = 'Share cards are available for Top 15 stations';
-    shareButton.setAttribute('aria-label', 'Share cards are available for Top 15 stations');
+    shareButton.title = 'Share cards are available for Top 20 stations';
+    shareButton.setAttribute('aria-label', 'Share cards are available for Top 20 stations');
     favoriteToggle.setAttribute('aria-pressed', 'false');
     stationHome.href = '/music/broadcast';
     stationHome.setAttribute('aria-disabled', 'true');
@@ -962,8 +1204,14 @@ function renderStations() {
         select.type = 'button';
         select.className = 'station-select';
         select.dataset.index = String(index);
-        select.innerHTML = `<strong></strong><span class="station-detail"></span><span class="signal-state"></span>`;
+        select.innerHTML = `
+            <strong></strong>
+            <span class="station-description"></span>
+            <span class="station-detail"></span>
+            <span class="signal-state"></span>
+        `;
         select.querySelector('strong').textContent = station.name.trim();
+        select.querySelector('.station-description').textContent = stationDescription(station);
         select.querySelector('.station-detail').textContent = stationDetail(station);
         select.setAttribute('aria-label', `Play ${station.name}`);
 
@@ -1030,7 +1278,7 @@ function setActivePreset(name = '', emptyLabel = 'CUSTOM LIST') {
 }
 
 function requestForPreset(preset) {
-    if (preset === 'top15') return { kind: 'top15' };
+    if (preset === 'top20') return { kind: 'top20' };
     if (preset === 'news') return { kind: 'news' };
     if (preset === 'conspiracy') return { kind: 'conspiracy' };
     if (preset === 'rock') return { kind: 'rock' };
@@ -1065,8 +1313,8 @@ async function loadStations(request = lastRequest) {
 
     let path;
     let label;
-    if (request.kind === 'top15') {
-        label = 'TOP 15';
+    if (request.kind === 'top20') {
+        label = 'TOP 20';
     } else if (request.kind === 'news') {
         label = 'NEWS DESK';
     } else if (request.kind === 'conspiracy') {
@@ -1094,7 +1342,7 @@ async function loadStations(request = lastRequest) {
 
     try {
         let data;
-        if (request.kind === 'top15') {
+        if (request.kind === 'top20') {
             data = CURATED_TOP_STATIONS;
         } else if (request.kind === 'news') {
             const responses = await Promise.allSettled(NEWS_TERMS.map(term => radioBrowser(
@@ -1230,14 +1478,19 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     currentStation = station;
     currentIndex = index;
     currentName.textContent = station.name.trim();
-    currentDetail.textContent = stationDetail(station);
+    currentDescription.textContent = stationDescription(station);
+    currentGenre.textContent = stationFormat(station);
+    currentOrigin.textContent = stationOrigin(station);
+    currentQuality.textContent = stationQuality(station);
+    currentSource.textContent = stationSource(station);
+    startNowPlayingUpdates(station);
     favoriteToggle.disabled = false;
     const shareSlot = topStationIndex(station);
     const hasShareCard = shareSlot >= 0;
     shareButton.disabled = !hasShareCard;
     shareButton.title = hasShareCard
-        ? `Share Top 15 card for ${station.name}`
-        : 'Share cards are available for Top 15 stations';
+        ? `Share Top 20 card for ${station.name}`
+        : 'Share cards are available for Top 20 stations';
     shareButton.setAttribute('aria-label', shareButton.title);
 
     const homepage = safeHttpsUrl(station.homepage);
@@ -1333,11 +1586,11 @@ function moveStation(direction) {
     playStation(stations[next], next);
 }
 
-function updateMediaSession(station) {
+function updateMediaSession(station, programTitle = '') {
     if (!('mediaSession' in navigator) || !('MediaMetadata' in window)) return;
     navigator.mediaSession.metadata = new MediaMetadata({
-        title: station.name,
-        artist: stationDetail(station),
+        title: programTitle || station.name,
+        artist: programTitle ? station.name : stationFormat(station),
         album: 'RG Broadcast'
     });
 }
@@ -1599,7 +1852,7 @@ stationHome.addEventListener('click', event => {
 
 bindMediaSession();
 updateFavoriteControls();
-setActivePreset('top15');
-loadStations({ kind: 'top15' });
+setActivePreset('top20');
+loadStations({ kind: 'top20' });
 restoreLastStation();
 discoverServers();
