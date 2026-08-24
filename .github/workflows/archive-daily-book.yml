@@ -1,0 +1,53 @@
+name: Archive daily book
+
+on:
+  schedule:
+    - cron: '17 0 * * *'
+      timezone: America/Chicago
+  workflow_dispatch:
+    inputs:
+      date:
+        description: Optional Central date to archive (YYYY-MM-DD)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: archive-daily-book
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Pull one book
+        env:
+          ARCHIVE_DATE: ${{ inputs.date }}
+        run: node scripts/pull-archive-book.mjs
+
+      - name: Commit the new record
+        shell: bash
+        run: |
+          if git diff --quiet -- archive/books/books.json; then
+            echo "The date is already present; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- archive/books/books.json
+          git commit -m "Archive daily book"
+          git push
+
+      # A GITHUB_TOKEN push does not start a Pages rebuild. The Books page reads
+      # this JSON from raw main first, so the new daily record still appears.

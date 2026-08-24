@@ -24,7 +24,6 @@ const SiteNavigation = {
         { label: 'HQ', links: [
             ['/', 'Home'],
             ['/365', '365'],
-            ['/archive', 'Archive'],
             ['/directory', 'Directory'],
         ]},
         { label: 'Visuals', href: '/visuals', links: [
@@ -32,6 +31,10 @@ const SiteNavigation = {
             ['/weather', 'Weather'],
             ['/screensaver', 'Screensaver'],
             ['/visuals', 'Gallery'],
+        ]},
+        { label: 'Archive', href: '/archive', links: [
+            ['/archive/books', 'Books'],
+            ['/archive', 'Collections'],
         ]},
         { label: 'Listen', href: '/music', links: [
             ['/music/broadcast', 'RG Broadcast'],

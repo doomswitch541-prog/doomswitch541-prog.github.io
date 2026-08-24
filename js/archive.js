@@ -1,30 +1,16 @@
 (() => {
     'use strict';
 
-    const SEARCH_URL = 'https://archive.org/advancedsearch.php';
-    const CACHE_PREFIX = 'rg-archive-daily-v1:';
-    const REQUEST_TIMEOUT_MS = 10000;
-    const RESULT_COUNT = 48;
-    let activeDateKey = '';
-    let rolloverTimer = null;
+    const RAW_HISTORY_URL = 'https://raw.githubusercontent.com/doomswitch541-prog/doomswitch541-prog.github.io/main/archive/books/books.json';
+    const LOCAL_HISTORY_URL = '/archive/books/books.json';
+    const CACHE_KEY = 'rg-archive-books-history-v1';
+    const REQUEST_TIMEOUT_MS = 9000;
+    const STALE_RETRY_MS = 15 * 60 * 1000;
+    const LONG_CHECK_MS = 6 * 60 * 60 * 1000;
 
-    const shelves = [
-        {
-            label: 'Smithsonian Libraries',
-            shortLabel: 'Smithsonian',
-            query: 'collection:smithsonian AND mediatype:texts AND language:eng AND date:[1500-01-01 TO 1928-12-31] AND (subject:art OR subject:design OR subject:architecture OR subject:"decorative arts")',
-        },
-        {
-            label: 'Biodiversity Heritage Library',
-            shortLabel: 'Biodiversity',
-            query: 'collection:biodiversity AND mediatype:texts AND language:eng AND date:[1500-01-01 TO 1928-12-31] AND (subject:botany OR subject:birds OR subject:"natural history")',
-        },
-        {
-            label: 'Americana · Folklore',
-            shortLabel: 'Folklore',
-            query: 'collection:americana AND mediatype:texts AND language:eng AND date:[1800-01-01 TO 1928-12-31] AND subject:folklore',
-        },
-    ];
+    let latestArchiveDate = '';
+    let lastCheckedAt = 0;
+    let refreshTimer = null;
 
     const els = {
         entry: document.getElementById('archive-entry'),
@@ -32,34 +18,34 @@
         book: document.getElementById('archive-book'),
         error: document.getElementById('archive-error'),
         retry: document.getElementById('archive-retry'),
+        kicker: document.getElementById('archive-kicker'),
+        date: document.getElementById('archive-date'),
         title: document.getElementById('archive-book-title'),
         creator: document.getElementById('archive-creator'),
         description: document.getElementById('archive-description'),
         year: document.getElementById('archive-year'),
+        added: document.getElementById('archive-added'),
         shelf: document.getElementById('archive-shelf'),
         open: document.getElementById('archive-open'),
         coverLink: document.getElementById('archive-cover-link'),
         cover: document.getElementById('archive-cover'),
         coverFallback: document.getElementById('archive-cover-fallback'),
-        coverDate: document.getElementById('archive-cover-date'),
-        slipDate: document.getElementById('archive-slip-date'),
-        slipPull: document.getElementById('archive-slip-pull'),
-        slipShelf: document.getElementById('archive-slip-shelf'),
+        coverTitle: document.getElementById('archive-cover-title'),
+        history: document.getElementById('archive-history'),
+        historyEmpty: document.getElementById('archive-history-empty'),
+        count: document.getElementById('archive-count'),
     };
 
-    function localDateParts(date = new Date()) {
+    function localDateKey(date = new Date()) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        const dayOfYear = Math.floor(
-            (Date.UTC(year, date.getMonth(), date.getDate()) - Date.UTC(year, 0, 0)) / 86400000
-        );
-        return {
-            key: `${year}-${month}-${day}`,
-            display: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            dayOfYear,
-            pull: `${year}.${String(dayOfYear).padStart(3, '0')}`,
-        };
+        return `${year}-${month}-${day}`;
+    }
+
+    function displayDate(dateKey, options = { month: 'short', day: 'numeric', year: 'numeric' }) {
+        const parsed = new Date(`${dateKey}T12:00:00`);
+        return Number.isNaN(parsed.getTime()) ? dateKey : parsed.toLocaleDateString('en-US', options);
     }
 
     function hash(value) {
@@ -71,114 +57,88 @@
         return result >>> 0;
     }
 
-    function first(value) {
-        if (Array.isArray(value)) return value.find(Boolean) || '';
-        return value || '';
-    }
-
-    function textFromMarkup(value) {
-        const source = String(first(value)).trim();
-        if (!source) return '';
-        const parsed = new DOMParser().parseFromString(source, 'text/html');
-        return (parsed.body.textContent || '').replace(/\s+/g, ' ').trim();
-    }
-
-    function shorten(value, limit = 420) {
-        if (value.length <= limit) return value;
-        const cut = value.slice(0, limit + 1);
-        const boundary = cut.lastIndexOf(' ');
-        return `${cut.slice(0, boundary > limit * 0.7 ? boundary : limit).trim()}…`;
-    }
-
     function validIdentifier(value) {
         return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{4,99}$/.test(value);
     }
 
-    function publicationLabel(value) {
-        const catalogDate = textFromMarkup(value);
-        const year = catalogDate.match(/\b(?:1[0-9]{3}|20[0-9]{2})\b/);
-        return year ? year[0] : shorten(catalogDate, 32);
+    function normalizeHistory(payload) {
+        if (!payload || !Array.isArray(payload.books)) return null;
+        const books = payload.books
+            .filter((book) => book && /^\d{4}-\d{2}-\d{2}$/.test(book.date) && validIdentifier(book.identifier) && book.title)
+            .map((book) => ({
+                date: book.date,
+                identifier: book.identifier,
+                title: String(book.title),
+                creator: String(book.creator || 'Creator not listed'),
+                published: String(book.published || 'Uncatalogued'),
+                description: String(book.description || ''),
+                shelf: String(book.shelf || 'Internet Archive'),
+                archivedAt: String(book.archivedAt || ''),
+            }))
+            .sort((a, b) => b.date.localeCompare(a.date));
+        return books.length ? { ...payload, books } : null;
     }
 
-    function normalize(doc, shelf) {
-        if (!doc || !validIdentifier(doc.identifier)) return null;
-        const title = textFromMarkup(doc.title);
-        if (!title) return null;
-        return {
-            identifier: doc.identifier,
-            title,
-            creator: textFromMarkup(doc.creator) || 'Creator not listed',
-            date: publicationLabel(doc.date),
-            description: shorten(textFromMarkup(doc.description)),
-            shelf: shelf.label,
-            shelfShort: shelf.shortLabel,
-        };
-    }
-
-    function readCache(dateKey) {
-        try {
-            const value = JSON.parse(localStorage.getItem(CACHE_PREFIX + dateKey));
-            return value && validIdentifier(value.identifier) && value.title ? value : null;
-        } catch {
-            return null;
-        }
-    }
-
-    function writeCache(dateKey, book) {
-        try {
-            localStorage.setItem(CACHE_PREFIX + dateKey, JSON.stringify(book));
-        } catch {
-            // The book still renders when storage is blocked.
-        }
-    }
-
-    function buildSearchUrl(shelf) {
-        const params = new URLSearchParams();
-        params.set('q', shelf.query);
-        ['identifier', 'title', 'creator', 'date', 'description', 'downloads'].forEach((field) => {
-            params.append('fl[]', field);
-        });
-        params.append('sort[]', 'downloads desc');
-        params.set('rows', String(RESULT_COUNT));
-        params.set('page', '1');
-        params.set('output', 'json');
-        return `${SEARCH_URL}?${params.toString()}`;
-    }
-
-    async function requestBook(dateInfo) {
-        const shelf = shelves[hash(`${dateInfo.key}:shelf`) % shelves.length];
+    async function fetchJson(url) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
         try {
-            const response = await fetch(buildSearchUrl(shelf), {
-                cache: 'no-store',
-                signal: controller.signal,
-            });
-            if (!response.ok) throw new Error(`Archive request failed: ${response.status}`);
-            const payload = await response.json();
-            const docs = Array.isArray(payload.response?.docs) ? payload.response.docs : [];
-            const normalized = docs.map((doc) => normalize(doc, shelf)).filter(Boolean);
-            if (!normalized.length) throw new Error('Archive returned no usable books');
-            return normalized[hash(`${dateInfo.key}:book`) % normalized.length];
+            const response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+            if (!response.ok) throw new Error(`Archive history request failed: ${response.status}`);
+            const history = normalizeHistory(await response.json());
+            if (!history) throw new Error('Archive history was empty or malformed');
+            return history;
         } finally {
             clearTimeout(timeout);
         }
     }
 
-    function paintDate(dateInfo) {
-        els.slipDate.textContent = dateInfo.display;
-        els.slipPull.textContent = dateInfo.pull;
-        els.coverDate.textContent = dateInfo.display;
+    function readCachedHistory() {
+        try {
+            return normalizeHistory(JSON.parse(localStorage.getItem(CACHE_KEY)));
+        } catch {
+            return null;
+        }
+    }
+
+    function writeCachedHistory(history) {
+        try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(history));
+        } catch {
+            // A blocked cache never blocks the shared archive.
+        }
+    }
+
+    async function readHistory() {
+        const cacheBust = `v=${Date.now()}`;
+        const sources = [`${RAW_HISTORY_URL}?${cacheBust}`, `${LOCAL_HISTORY_URL}?${cacheBust}`];
+        for (const source of sources) {
+            try {
+                const history = await fetchJson(source);
+                writeCachedHistory(history);
+                return history;
+            } catch {
+                // Try the checked-in copy, then the last successful browser copy.
+            }
+        }
+        const cached = readCachedHistory();
+        if (cached) return cached;
+        throw new Error('No archive history source was available');
     }
 
     function showBook(book) {
         const itemUrl = `https://archive.org/details/${encodeURIComponent(book.identifier)}`;
+        const coverUrl = `https://archive.org/services/img/${encodeURIComponent(book.identifier)}`;
+        const isToday = book.date === localDateKey();
+
+        els.kicker.textContent = isToday ? 'Today’s pull' : 'Latest pull';
+        els.date.textContent = displayDate(book.date).toUpperCase();
         els.title.textContent = book.title;
+        els.coverTitle.textContent = book.title;
         els.creator.textContent = book.creator;
-        els.year.textContent = book.date || 'Uncatalogued';
+        els.year.textContent = book.published;
+        els.added.textContent = displayDate(book.date);
         els.shelf.textContent = book.shelf;
-        els.slipShelf.textContent = book.shelfShort;
         els.open.href = itemUrl;
         els.coverLink.href = itemUrl;
         els.coverLink.removeAttribute('aria-disabled');
@@ -191,6 +151,9 @@
             els.description.hidden = true;
         }
 
+        els.cover.classList.remove('is-visible');
+        els.coverFallback.classList.remove('is-hidden');
+        els.cover.hidden = true;
         els.cover.onload = () => {
             els.cover.hidden = false;
             requestAnimationFrame(() => {
@@ -203,66 +166,110 @@
             els.coverFallback.classList.remove('is-hidden');
         };
         els.cover.alt = `Cover of ${book.title}`;
-        els.cover.src = `https://archive.org/services/img/${encodeURIComponent(book.identifier)}`;
+        els.cover.src = coverUrl;
 
         els.error.hidden = true;
         els.book.hidden = false;
-        els.status.textContent = `Today’s book is ${book.title}.`;
+        els.status.textContent = `${isToday ? 'Today’s' : 'The latest'} archived book is ${book.title}.`;
         els.status.classList.add('is-complete');
         els.entry.setAttribute('aria-busy', 'false');
         requestAnimationFrame(() => els.book.classList.add('is-ready'));
     }
 
+    function historyRow(book) {
+        const item = document.createElement('li');
+        item.className = 'books-history-item';
+
+        const link = document.createElement('a');
+        link.className = 'books-history-link';
+        link.href = `https://archive.org/details/${encodeURIComponent(book.identifier)}`;
+        link.target = '_blank';
+        link.rel = 'noopener';
+
+        const date = document.createElement('time');
+        date.className = 'books-history-date';
+        date.dateTime = book.date;
+        date.textContent = displayDate(book.date, { month: 'short', day: 'numeric', year: '2-digit' });
+
+        const spine = document.createElement('span');
+        spine.className = `books-history-spine spine-${hash(book.identifier) % 6}`;
+        spine.setAttribute('aria-hidden', 'true');
+
+        const copy = document.createElement('span');
+        copy.className = 'books-history-copy';
+        const title = document.createElement('strong');
+        title.textContent = book.title;
+        const creator = document.createElement('span');
+        creator.textContent = book.creator;
+        copy.append(title, creator);
+
+        const arrow = document.createElement('span');
+        arrow.className = 'books-history-arrow';
+        arrow.setAttribute('aria-hidden', 'true');
+        arrow.textContent = '↗';
+
+        link.append(date, spine, copy, arrow);
+        item.appendChild(link);
+        return item;
+    }
+
+    function showHistory(books) {
+        els.history.replaceChildren();
+        const previous = books.slice(1);
+        previous.forEach((book) => els.history.appendChild(historyRow(book)));
+        els.historyEmpty.hidden = previous.length > 0;
+        els.count.textContent = `${books.length} ${books.length === 1 ? 'book' : 'books'} held`;
+    }
+
     function showError(error) {
-        console.warn('[archive] daily pull unavailable', error);
+        console.warn('[archive] history unavailable', error);
         els.book.hidden = true;
         els.book.classList.remove('is-ready');
         els.error.hidden = false;
-        els.status.textContent = 'The Internet Archive shelf is unavailable.';
+        els.status.textContent = 'The shared book archive is unavailable.';
         els.status.classList.remove('is-complete');
-        els.slipShelf.textContent = 'Unavailable';
         els.entry.setAttribute('aria-busy', 'false');
+        els.count.textContent = 'Unavailable';
     }
 
-    async function load({ force = false } = {}) {
-        const dateInfo = localDateParts();
-        activeDateKey = dateInfo.key;
-        paintDate(dateInfo);
+    function scheduleNextCheck() {
+        if (refreshTimer) clearTimeout(refreshTimer);
+        const now = new Date();
+        const today = localDateKey(now);
+        let delay = STALE_RETRY_MS;
+
+        if (latestArchiveDate >= today) {
+            const nextCheck = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 32, 0);
+            delay = nextCheck.getTime() - now.getTime();
+        }
+
+        refreshTimer = setTimeout(() => load(), Math.max(1000, delay));
+    }
+
+    async function load() {
+        lastCheckedAt = Date.now();
         els.error.hidden = true;
         els.entry.setAttribute('aria-busy', 'true');
-        els.status.textContent = 'Checking the shelf…';
+        els.status.textContent = 'Opening the shelf…';
         els.status.classList.remove('is-complete');
 
-        const cached = force ? null : readCache(dateInfo.key);
-        if (cached) {
-            showBook(cached);
-            return;
-        }
-
         try {
-            const book = await requestBook(dateInfo);
-            writeCache(dateInfo.key, book);
-            showBook(book);
+            const history = await readHistory();
+            latestArchiveDate = history.books[0].date;
+            showBook(history.books[0]);
+            showHistory(history.books);
         } catch (error) {
             showError(error);
+        } finally {
+            scheduleNextCheck();
         }
     }
 
-    function scheduleRollover() {
-        if (rolloverTimer) clearTimeout(rolloverTimer);
-        const now = new Date();
-        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1);
-        rolloverTimer = setTimeout(async () => {
-            await load();
-            scheduleRollover();
-        }, tomorrow.getTime() - now.getTime());
-    }
-
-    els.retry?.addEventListener('click', () => load({ force: true }));
+    els.retry?.addEventListener('click', load);
     document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && localDateParts().key !== activeDateKey) {
-            load().finally(scheduleRollover);
-        }
+        const staleDay = latestArchiveDate && latestArchiveDate < localDateKey();
+        const staleCheck = Date.now() - lastCheckedAt > LONG_CHECK_MS;
+        if (!document.hidden && (staleDay || staleCheck)) load();
     });
-    load().finally(scheduleRollover);
+    load();
 })();

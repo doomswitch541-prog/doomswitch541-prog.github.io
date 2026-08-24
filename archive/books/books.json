@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "timezone": "America/Chicago",
+  "updatedAt": "2026-08-24T07:08:36.9777630Z",
+  "books": [
+    {
+      "date": "2026-08-24",
+      "identifier": "dictionaryofflow00will",
+      "title": "A dictionary of the flowering plants and ferns",
+      "creator": "Willis, J. C. (John Christopher), 1868-1958",
+      "published": "1919",
+      "description": "xii, 712, liv, [2] p. 19 cm",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-08-24T07:08:36.9777630Z"
+    }
+  ]
+}

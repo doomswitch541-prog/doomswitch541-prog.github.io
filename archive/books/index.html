@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://archive.org https://*.archive.org; connect-src 'self' https://raw.githubusercontent.com; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="A growing daily shelf of books from the Internet Archive.">
+    <title>Books — Archive — RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;family=JetBrains+Mono:wght@300;400;500&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/archive.css">
+</head>
+<body>
+    <div class="bg-layer night" id="bg-night"></div>
+    <div class="bg-layer evening" id="bg-evening"></div>
+    <div class="bg-layer afternoon" id="bg-afternoon"></div>
+    <div class="bg-layer day" id="bg-day"></div>
+
+    <nav class="navbar" aria-label="RG HQ">
+        <div class="nav-left">
+            <a href="/" class="btn">RG</a>
+        </div>
+        <div class="nav-center"></div>
+        <div class="nav-right">
+            <button id="theme-switch" class="btn" type="button">Auto</button>
+        </div>
+    </nav>
+
+    <main class="books-page">
+        <header class="books-mast">
+            <nav class="archive-breadcrumb" aria-label="Breadcrumb">
+                <a href="/archive">Archive</a>
+                <span aria-hidden="true">/</span>
+                <span aria-current="page">Books</span>
+            </nav>
+            <h1>Books</h1>
+            <p>One book a day from the Internet Archive. The shelf keeps every pull.</p>
+        </header>
+
+        <section class="books-feature" id="archive-entry" aria-label="Latest archived book" aria-busy="true">
+            <div class="books-cover-object">
+                <p class="books-date" id="archive-date">—</p>
+                <a class="books-cover-link" id="archive-cover-link" target="_blank" rel="noopener" aria-label="Latest book cover" aria-disabled="true">
+                    <span class="books-cover-frame">
+                        <img class="books-cover" id="archive-cover" alt="" decoding="async" hidden>
+                        <span class="books-cover-fallback" id="archive-cover-fallback" aria-hidden="true">
+                            <span>RG HQ / BOOKS</span>
+                            <strong id="archive-cover-title">Archive</strong>
+                            <span>Internet Archive</span>
+                        </span>
+                    </span>
+                </a>
+            </div>
+
+            <div class="books-record">
+                <p class="books-kicker" id="archive-kicker">Latest pull</p>
+                <p class="books-status" id="archive-status" role="status" aria-live="polite">Opening the shelf…</p>
+
+                <article class="books-current" id="archive-book" hidden>
+                    <p class="books-shelf" id="archive-shelf"></p>
+                    <h2 id="archive-book-title"></h2>
+                    <p class="books-creator" id="archive-creator"></p>
+                    <p class="books-description" id="archive-description" hidden></p>
+
+                    <dl class="books-meta">
+                        <div>
+                            <dt>Published</dt>
+                            <dd id="archive-year">Uncatalogued</dd>
+                        </div>
+                        <div>
+                            <dt>Archived</dt>
+                            <dd id="archive-added">—</dd>
+                        </div>
+                    </dl>
+
+                    <a class="books-open" id="archive-open" href="https://archive.org/details/texts" target="_blank" rel="noopener">
+                        Open the book <span aria-hidden="true">↗</span>
+                    </a>
+                </article>
+
+                <div class="books-error" id="archive-error" hidden>
+                    <p>The book record could not be loaded.</p>
+                    <button type="button" id="archive-retry">Try again</button>
+                </div>
+
+                <noscript>
+                    <p class="books-noscript">Turn on JavaScript to open the shelf, or <a href="https://archive.org/details/texts">browse the Internet Archive</a>.</p>
+                </noscript>
+            </div>
+        </section>
+
+        <section class="books-history" aria-labelledby="books-history-title">
+            <header class="books-history-head">
+                <h2 id="books-history-title">Previous pulls</h2>
+                <p id="archive-count">—</p>
+            </header>
+            <ol class="books-history-list" id="archive-history"></ol>
+            <p class="books-history-empty" id="archive-history-empty" hidden>The shelf starts with today.</p>
+        </section>
+
+        <footer class="books-foot">
+            <p>Recorded daily at 12:17 AM Central. Source material and reading formats remain with the Internet Archive.</p>
+        </footer>
+    </main>
+
+    <script src="/js/site.js"></script>
+    <script src="/js/archive.js"></script>
+</body>
+</html>
