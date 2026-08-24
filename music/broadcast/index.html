@@ -44,7 +44,7 @@
                 </div>
                 <div class="station-actions">
                     <button id="favorite-toggle" type="button" disabled aria-pressed="false">SAVE</button>
-                    <button id="share-station" type="button" disabled>SHARE</button>
+                    <button id="share-station" type="button" disabled title="Share cards are available for Top 15 stations">SHARE CARD</button>
                     <a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">STATION SITE</a>
                 </div>
                 <p class="player-status" id="player-status" role="status" aria-live="polite">Receiver ready.</p>
@@ -94,7 +94,7 @@
             <section class="station-mode-selector" aria-labelledby="station-mode-title">
                 <div class="mode-strip-head">
                     <h3 id="station-mode-title">Bands</h3>
-                    <output id="station-mode-position" aria-live="polite">1 OF 8 &middot; TOP 15</output>
+                    <output id="station-mode-position" aria-live="polite">1 OF 6 &middot; TOP 15</output>
                 </div>
                 <div class="mode-carousel">
                     <button class="mode-carousel-arrow" id="previous-station-mode" type="button" aria-label="Previous station band" aria-controls="station-list" disabled>
@@ -102,13 +102,11 @@
                     </button>
                     <div class="quick-tunes" id="station-mode-track" role="group" aria-label="Station bands">
                         <button type="button" data-preset="top15" aria-pressed="true" aria-controls="station-list">TOP 15</button>
-                        <button type="button" data-preset="us" aria-pressed="false" aria-controls="station-list">US LIVE</button>
                         <button type="button" data-preset="news" aria-pressed="false" aria-controls="station-list">NEWS DESK</button>
                         <button type="button" data-preset="conspiracy" aria-pressed="false" aria-controls="station-list">CONSPIRACY</button>
                         <button type="button" data-preset="rock" aria-pressed="false" aria-controls="station-list">ROCK</button>
                         <button type="button" data-preset="trippy" aria-pressed="false" aria-controls="station-list">TRIPPY</button>
                         <button type="button" data-preset="night" aria-pressed="false" aria-controls="station-list">FOLLOW THE NIGHT</button>
-                        <button type="button" data-preset="ambient" aria-pressed="false" aria-controls="station-list">AMBIENT</button>
                     </div>
                     <button class="mode-carousel-arrow" id="next-station-mode" type="button" aria-label="Next station band" aria-controls="station-list">
                         <span aria-hidden="true">&rarr;</span><small>NEXT</small>

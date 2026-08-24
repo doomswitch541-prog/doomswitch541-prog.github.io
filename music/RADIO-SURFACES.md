@@ -136,15 +136,24 @@ not remove a station or change playback.
 
 - Uses the same directory-candidate then browser-verification principle.
 - Opens on a hand-curated **Top 15** stored in `js/broadcast.js`. The list begins
-  with Behind the Sch3m3s and the official Alex Jones Network feed, then mixes
-  US rock, freeform, psychedelic, experimental, and space/ambient stations. The
-  exact HTTPS stream remains visible in the surface monitor and is still tested
-  by the listener's browser.
-- Organizes discovery into eight restrained bands: Top 15, US Live, News Desk,
-  Conspiracy, Rock, Trippy, Follow the Night, and Ambient. The generic World,
-  Talk, Jazz, and Classical bands were removed. All ordinary directory/search
-  bands are US-filtered; Follow the Night remains geographically open because
-  its actual function is finding stations currently broadcasting after dark.
+  with Behind the Sch3m3s and the official Alex Jones Network feed. U7 Radio's
+  official 24/7 Art Bell / Coast to Coast archive stream, a dedicated US grunge
+  feed, and DKFM's current shoegaze feed replace three weaker general-rock picks.
+  The rest of the dial mixes US rock, freeform, psychedelic, experimental, and
+  space/ambient stations. The exact HTTPS stream remains visible in the surface
+  monitor and is still tested by the listener's browser.
+- Organizes discovery into six restrained bands: Top 15, News Desk, Conspiracy,
+  Rock, Trippy, and Follow the Night. The broad US Live band was removed because
+  it duplicated search, and Ambient was folded into Trippy. World, Talk, Jazz,
+  and Classical remain out. All ordinary directory/search bands are US-filtered;
+  Follow the Night remains geographically open because its actual function is
+  finding stations currently broadcasting after dark.
+- Rock merges live US directory searches for rock, grunge, shoegaze, and
+  alternative rock, then leads with matching curated stations. This keeps both
+  classic Seattle-era grunge and current shoegaze/dream-pop texture visible in
+  the same band instead of hiding them behind generic rock results.
+- Conspiracy leads with the curated Behind the Sch3m3s, Alex Jones, and U7 Art
+  Bell / Coast to Coast signals before adding matching live directory results.
 - Search has one field. Each query checks both Radio Browser `name` and `tag`
   results with `countrycode=US`, merges them, removes duplicate UUIDs/streams,
   and keeps only HTTPS candidates with a positive directory health check.
@@ -154,6 +163,20 @@ not remove a station or change playback.
   `TESTING`, `READY`, `PAUSED`, `ON AIR`, and `NO SIGNAL` are visible receiver
   states. Dragging can cross those gaps; tapping the range snaps to the nearest
   occupied station slot. The tuner sits below the primary music-player controls.
+- Enables **Share Card** only for stations in the curated Top 15. The browser
+  draws a 1200 x 630 tuner capture locally on canvas with the station name, RG
+  display position, signal state, and direct `?station=` listening URL. Phones
+  that support file sharing receive the PNG in the native share sheet; other
+  browsers download it and copy the station link when clipboard access is
+  available. No image service, tracking call, or remote artwork is involved.
+
+### Curated stream additions checked August 24, 2026
+
+| Station | Programming role | Direct HTTPS media | Check |
+| --- | --- | --- | --- |
+| U7 Radio: Art Bell / Coast to Coast | 24/7 Art Bell and Coast to Coast archive programming | `https://u7radio.org/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| LITT Live: Grunge | US 1990s grunge and rock | `https://das-sa39.cdnstream1.com/5570_128` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| DKFM Shoegaze Radio | Current shoegaze and dream pop | `https://kathy.torontocast.com:2005/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
 
 ## Public-surface rules
 
@@ -177,4 +200,5 @@ not remove a station or change playback.
   relay, or rebroadcast a station stream.
 - A public, keyless directory entry is a technical access fact, not proof of a
   station's ownership or programming rights. Directory results remain labeled
-  as direct media; only the hand-specified network feed is labeled official.
+  as direct media; only hand-specified streams published by their own operators
+  are labeled official.

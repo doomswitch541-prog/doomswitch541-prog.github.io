@@ -542,6 +542,11 @@ button {
     color: var(--amber);
 }
 
+.station-actions button[aria-busy="true"] {
+    color: var(--amber);
+    opacity: 1;
+}
+
 .station-actions a[aria-disabled="true"] {
     pointer-events: none;
     opacity: 0.36;

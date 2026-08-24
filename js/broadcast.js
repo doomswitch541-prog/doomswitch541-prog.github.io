@@ -20,7 +20,8 @@ const BAND_FREQUENCIES = [
 const BAND_LOCK_DISTANCE = 0.42;
 const NEWS_TERMS = ['Bloomberg', 'CNN', 'Fox News'];
 const CONSPIRACY_TAGS = ['conspiracy', 'conspiracy theories', 'paranormal', 'ufo', 'uap'];
-const TRIPPY_TAGS = ['psychedelic', 'experimental', 'freeform', 'space'];
+const ROCK_TAGS = ['rock', 'grunge', 'shoegaze', 'alternative rock'];
+const TRIPPY_TAGS = ['psychedelic', 'experimental', 'freeform', 'space', 'ambient', 'drone'];
 const BEHIND_THE_SCHEMES = {
     stationuuid: '54944202-69d5-4f89-9189-e949aeac59b8',
     name: 'Behind the Sch3m3s',
@@ -46,6 +47,12 @@ const CURATED_TOP_STATIONS = [
     BEHIND_THE_SCHEMES,
     OFFICIAL_NEWS_STATIONS[0],
     {
+        stationuuid: 'official-u7-art-bell', name: 'U7 Radio: Art Bell / Coast to Coast',
+        url_resolved: 'https://u7radio.org/stream', homepage: 'https://u7radio.org/',
+        countrycode: 'US', codec: 'MP3', bitrate: 0, tags: 'art bell,coast to coast,paranormal',
+        hls: false, lastcheckok: true, source: 'official'
+    },
+    {
         stationuuid: '445cbb3a-1c4e-49aa-a268-f5b6acfa8f2e', name: 'KEXP',
         url_resolved: 'https://kexp.streamguys1.com/kexp160.aac', homepage: 'https://www.kexp.org/',
         countrycode: 'US', codec: 'AAC', bitrate: 162, tags: 'alternative,indie,rock',
@@ -70,15 +77,15 @@ const CURATED_TOP_STATIONS = [
         hls: false, lastcheckok: true, source: 'curated'
     },
     {
-        stationuuid: 'e5b81ad3-bb7d-41a5-a3d3-0f715434778e', name: 'Megarock Radio',
-        url_resolved: 'https://stream3.megarockradio.net:80/', homepage: 'https://megarockradio.net/',
-        countrycode: 'US', codec: 'MP3', bitrate: 320, tags: 'classic rock,hard rock,metal',
+        stationuuid: '9b65470b-c31d-4a3a-b57b-eea8c62c58c9', name: 'LITT Live: Grunge',
+        url_resolved: 'https://das-sa39.cdnstream1.com/5570_128', homepage: 'https://littlive.com/grunge',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: '90s,grunge,rock',
         hls: false, lastcheckok: true, source: 'curated'
     },
     {
-        stationuuid: '960dd7a5-0601-11e8-ae97-52543be04c81', name: 'WXPN 88.5',
-        url_resolved: 'https://wxpnhi.xpn.org/xpnhi', homepage: 'https://xpn.org/',
-        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'public radio,rock,folk',
+        stationuuid: 'b5585301-1987-4605-9c4d-86da2488c0ad', name: 'DKFM Shoegaze Radio',
+        url_resolved: 'https://kathy.torontocast.com:2005/stream', homepage: 'https://decayfm.com/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'rock,shoegaze,dream pop,new music',
         hls: false, lastcheckok: true, source: 'curated'
     },
     {
@@ -103,12 +110,6 @@ const CURATED_TOP_STATIONS = [
         stationuuid: '9614eb15-0601-11e8-ae97-52543be04c81', name: 'Mission Control',
         url_resolved: 'https://ice5.somafm.com/missioncontrol-128-mp3', homepage: 'https://somafm.com/missioncontrol/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'experimental,space program',
-        hls: false, lastcheckok: true, source: 'curated'
-    },
-    {
-        stationuuid: '4ff47fb3-9c31-4e43-a267-ae11d5fa615e', name: 'The In-Sound',
-        url_resolved: 'https://ice5.somafm.com/insound-128-aac', homepage: 'https://somafm.com/insound/',
-        countrycode: 'US', codec: 'AAC', bitrate: 128, tags: 'avant-garde,psychedelic pop',
         hls: false, lastcheckok: true, source: 'curated'
     },
     {
@@ -367,6 +368,186 @@ function safeHttpsUrl(value) {
     }
 }
 
+function topStationIndex(station) {
+    if (!station) return -1;
+    return CURATED_TOP_STATIONS.findIndex(item => item.stationuuid === station.stationuuid);
+}
+
+function stationListenUrl(station) {
+    const url = new URL(location.pathname, location.origin);
+    url.searchParams.set('station', station.stationuuid);
+    return url.href;
+}
+
+function shareCardFilename(station) {
+    const slug = station.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 54);
+    return `rg-broadcast-${slug || 'top-15'}.png`;
+}
+
+function wrapCanvasText(context, text, maxWidth, maxLines) {
+    const words = String(text).trim().split(/\s+/).filter(Boolean);
+    const lines = [];
+    let line = '';
+
+    words.forEach(word => {
+        const candidate = line ? `${line} ${word}` : word;
+        if (!line || context.measureText(candidate).width <= maxWidth) {
+            line = candidate;
+            return;
+        }
+        if (lines.length < maxLines - 1) {
+            lines.push(line);
+            line = word;
+        } else {
+            line = `${line} ${word}`;
+        }
+    });
+    if (line) lines.push(line);
+
+    if (lines.length > maxLines) lines.length = maxLines;
+    const lastIndex = lines.length - 1;
+    if (lastIndex >= 0 && context.measureText(lines[lastIndex]).width > maxWidth) {
+        let shortened = lines[lastIndex];
+        while (shortened.length && context.measureText(`${shortened}...`).width > maxWidth) {
+            shortened = shortened.slice(0, -1).trimEnd();
+        }
+        lines[lastIndex] = `${shortened}...`;
+    }
+    return lines;
+}
+
+function shareCardSignal(station) {
+    if (currentStation?.stationuuid === station.stationuuid && nowPlaying.dataset.state === 'playing') {
+        return { label: 'ON AIR', bars: 5, color: 'green' };
+    }
+    const result = signalResults.get(station.stationuuid);
+    if (result?.state === 'ready') return { label: 'SIGNAL READY', bars: 5, color: 'green' };
+    if (result?.state === 'dead') return { label: result.label || 'NO SIGNAL', bars: 1, color: 'red' };
+    return { label: 'CURATED LOCK', bars: 4, color: 'amber' };
+}
+
+function stationCardBlob(station, slotIndex) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 630;
+    const context = canvas.getContext('2d');
+    if (!context) return Promise.reject(new Error('Canvas is not available'));
+
+    const colors = {
+        black: '#0a0b0b', panel: '#111313', paper: '#e6dfcd', muted: '#938e82',
+        amber: '#e6a04a', green: '#86b59c', red: '#d34f3f', line: '#4a4842'
+    };
+    const frequency = BAND_FREQUENCIES[slotIndex].toFixed(1);
+    const signal = shareCardSignal(station);
+    const listenUrl = stationListenUrl(station);
+    const displayUrl = listenUrl.replace(/^https?:\/\//, '');
+    const tags = String(station.tags || 'live internet radio')
+        .split(',')
+        .map(tag => tag.trim().toUpperCase())
+        .filter(Boolean)
+        .slice(0, 3)
+        .join(' / ');
+
+    context.fillStyle = colors.black;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = colors.panel;
+    context.fillRect(36, 36, canvas.width - 72, canvas.height - 72);
+    context.strokeStyle = colors.line;
+    context.lineWidth = 2;
+    context.strokeRect(36, 36, canvas.width - 72, canvas.height - 72);
+    context.fillStyle = colors.amber;
+    context.fillRect(36, 36, canvas.width - 72, 7);
+
+    context.textBaseline = 'alphabetic';
+    context.fillStyle = colors.paper;
+    context.font = '700 30px "Arial Narrow", "Helvetica Neue", Arial, sans-serif';
+    context.fillText('RG BROADCAST', 74, 94);
+    context.fillStyle = colors.amber;
+    context.font = '700 18px "Courier New", monospace';
+    context.fillText(`TOP 15 / LOCK ${String(slotIndex + 1).padStart(2, '0')}`, 75, 126);
+
+    context.textAlign = 'right';
+    context.fillStyle = colors.paper;
+    context.font = '900 72px "Arial Narrow", "Helvetica Neue", Arial, sans-serif';
+    context.fillText(frequency, 1115, 104);
+    context.fillStyle = colors.muted;
+    context.font = '700 18px "Courier New", monospace';
+    context.fillText('RG BAND / DISPLAY SCALE', 1113, 130);
+    context.textAlign = 'left';
+
+    context.fillStyle = colors.paper;
+    context.font = '900 78px "Arial Narrow", "Helvetica Neue", Arial, sans-serif';
+    const nameLines = wrapCanvasText(context, station.name, 1020, 2);
+    nameLines.forEach((line, index) => context.fillText(line, 74, 242 + index * 82));
+
+    context.fillStyle = colors.muted;
+    context.font = '700 20px "Courier New", monospace';
+    context.fillText(tags, 76, 391);
+
+    const bandStart = 76;
+    const bandEnd = 1124;
+    const bandY = 461;
+    context.fillStyle = colors.line;
+    context.fillRect(bandStart, bandY - 1, bandEnd - bandStart, 2);
+    BAND_FREQUENCIES.forEach((value, index) => {
+        const x = bandStart + (index / (BAND_FREQUENCIES.length - 1)) * (bandEnd - bandStart);
+        const active = index === slotIndex;
+        context.fillStyle = active ? colors.amber : colors.muted;
+        context.fillRect(x - (active ? 3 : 1), bandY - (active ? 21 : 9), active ? 6 : 2, active ? 42 : 18);
+    });
+
+    for (let index = 0; index < 5; index += 1) {
+        const height = 8 + index * 6;
+        context.fillStyle = index < signal.bars ? colors[signal.color] : colors.line;
+        context.fillRect(76 + index * 12, 529 - height, 7, height);
+    }
+    context.fillStyle = colors.paper;
+    context.font = '700 17px "Courier New", monospace';
+    context.fillText(signal.label, 151, 527);
+    context.textAlign = 'right';
+    context.fillStyle = colors.amber;
+    context.fillText(`${String(slotIndex + 1).padStart(2, '0')} / 15`, 1123, 527);
+    context.textAlign = 'left';
+
+    context.fillStyle = colors.muted;
+    context.font = '16px "Courier New", monospace';
+    context.fillText(`LISTEN  ${displayUrl}`, 76, 576, 1048);
+    context.fillStyle = colors.red;
+    context.fillRect(1113, 566, 10, 10);
+
+    return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+            if (blob) resolve(blob);
+            else reject(new Error('Card image could not be created'));
+        }, 'image/png');
+    });
+}
+
+function downloadShareCard(blob, filename) {
+    const link = document.createElement('a');
+    const objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+async function copyStationLink(url) {
+    if (!navigator.clipboard?.writeText) return false;
+    try {
+        await navigator.clipboard.writeText(url);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 function reportMediaSurface(station, state, label, detail) {
     if (!station?.url_resolved) return;
     surfaceMonitor.report(`playback:${station.stationuuid}:${station.url_resolved}`, {
@@ -546,6 +727,8 @@ function clearBandSelection() {
     playToggle.disabled = true;
     favoriteToggle.disabled = true;
     shareButton.disabled = true;
+    shareButton.title = 'Share cards are available for Top 15 stations';
+    shareButton.setAttribute('aria-label', 'Share cards are available for Top 15 stations');
     favoriteToggle.setAttribute('aria-pressed', 'false');
     stationHome.href = '/music/broadcast';
     stationHome.setAttribute('aria-disabled', 'true');
@@ -848,9 +1031,9 @@ function setActivePreset(name = '', emptyLabel = 'CUSTOM LIST') {
 
 function requestForPreset(preset) {
     if (preset === 'top15') return { kind: 'top15' };
-    if (preset === 'us') return { kind: 'us' };
     if (preset === 'news') return { kind: 'news' };
     if (preset === 'conspiracy') return { kind: 'conspiracy' };
+    if (preset === 'rock') return { kind: 'rock' };
     if (preset === 'trippy') return { kind: 'trippy' };
     if (preset === 'night') return { kind: 'night' };
     return { kind: 'tag', value: preset };
@@ -888,6 +1071,8 @@ async function loadStations(request = lastRequest) {
         label = 'NEWS DESK';
     } else if (request.kind === 'conspiracy') {
         label = 'CONSPIRACY';
+    } else if (request.kind === 'rock') {
+        label = 'ROCK';
     } else if (request.kind === 'trippy') {
         label = 'TRIPPY';
     } else if (request.kind === 'us') {
@@ -926,6 +1111,15 @@ async function loadStations(request = lastRequest) {
             data = [
                 BEHIND_THE_SCHEMES,
                 ...OFFICIAL_NEWS_STATIONS,
+                ...curatedMatches(CONSPIRACY_TAGS),
+                ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
+            ];
+        } else if (request.kind === 'rock') {
+            const responses = await Promise.allSettled(ROCK_TAGS.map(tag => radioBrowser(
+                `/json/stations/search?tag=${encodeURIComponent(tag)}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=15`
+            )));
+            data = [
+                ...curatedMatches([...ROCK_TAGS, 'dream pop']),
                 ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
             ];
         } else if (request.kind === 'trippy') {
@@ -933,7 +1127,7 @@ async function loadStations(request = lastRequest) {
                 `/json/stations/search?tag=${encodeURIComponent(tag)}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=15`
             )));
             data = [
-                ...curatedMatches([...TRIPPY_TAGS, 'drone', 'spy', 'microtonal']),
+                ...curatedMatches([...TRIPPY_TAGS, 'spy', 'microtonal']),
                 ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
             ];
         } else if (request.kind === 'search') {
@@ -1038,7 +1232,13 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     currentName.textContent = station.name.trim();
     currentDetail.textContent = stationDetail(station);
     favoriteToggle.disabled = false;
-    shareButton.disabled = false;
+    const shareSlot = topStationIndex(station);
+    const hasShareCard = shareSlot >= 0;
+    shareButton.disabled = !hasShareCard;
+    shareButton.title = hasShareCard
+        ? `Share Top 15 card for ${station.name}`
+        : 'Share cards are available for Top 15 stations';
+    shareButton.setAttribute('aria-label', shareButton.title);
 
     const homepage = safeHttpsUrl(station.homepage);
     if (homepage) {
@@ -1162,9 +1362,9 @@ function bindMediaSession() {
 function restoreLastStation() {
     const requestedUuid = new URLSearchParams(location.search).get('station');
     if (requestedUuid) {
-        const official = OFFICIAL_NEWS_STATIONS.find(station => station.stationuuid === requestedUuid);
-        if (official) {
-            setCurrentStation(official);
+        const curated = CURATED_TOP_STATIONS.find(station => station.stationuuid === requestedUuid);
+        if (curated) {
+            setCurrentStation(curated, topStationIndex(curated));
             setPlayerState('idle', 'STANDBY', 'Press play to connect.');
             return;
         }
@@ -1305,21 +1505,51 @@ retryButton.addEventListener('click', () => {
 });
 
 shareButton.addEventListener('click', async () => {
-    if (!currentStation) return;
-    const url = location.href;
-    const data = {
-        title: `${currentStation.name} | RG Broadcast`,
-        text: `Listening to ${currentStation.name} on RG Broadcast`,
-        url
-    };
+    const station = currentStation;
+    const slotIndex = topStationIndex(station);
+    if (!station || slotIndex < 0) return;
+    const url = stationListenUrl(station);
+    const title = `${station.name} | RG Broadcast`;
+    const text = `Listen to ${station.name} on RG Broadcast.`;
+    shareButton.disabled = true;
+    shareButton.setAttribute('aria-busy', 'true');
+    playerStatus.textContent = 'Capturing tuner card...';
     try {
-        if (navigator.share) await navigator.share(data);
-        else {
-            await navigator.clipboard.writeText(`${data.text} ${url}`);
-            playerStatus.textContent = 'Station link copied.';
+        const blob = await stationCardBlob(station, slotIndex);
+        const filename = shareCardFilename(station);
+        const file = typeof File === 'function' ? new File([blob], filename, { type: 'image/png' }) : null;
+        let canShareFile = false;
+        try {
+            canShareFile = Boolean(
+                file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })
+            );
+        } catch {
+            // File sharing support varies; the download fallback remains available.
         }
+
+        if (canShareFile) {
+            try {
+                await navigator.share({ title, text, url, files: [file] });
+                playerStatus.textContent = 'Share card opened.';
+                return;
+            } catch (error) {
+                if (error?.name === 'AbortError') {
+                    playerStatus.textContent = 'Share cancelled.';
+                    return;
+                }
+            }
+        }
+
+        downloadShareCard(blob, filename);
+        const copied = await copyStationLink(url);
+        playerStatus.textContent = copied
+            ? 'Share card downloaded. Station link copied.'
+            : 'Share card downloaded.';
     } catch (error) {
-        if (error?.name !== 'AbortError') playerStatus.textContent = 'Share was not available.';
+        playerStatus.textContent = 'Share card was not available.';
+    } finally {
+        shareButton.removeAttribute('aria-busy');
+        shareButton.disabled = topStationIndex(currentStation) < 0;
     }
 });
 
