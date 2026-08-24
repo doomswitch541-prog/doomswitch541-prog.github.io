@@ -24,6 +24,7 @@ const SiteNavigation = {
         { label: 'HQ', links: [
             ['/', 'Home'],
             ['/365', '365'],
+            ['/archive', 'Archive'],
             ['/directory', 'Directory'],
         ]},
         { label: 'Visuals', href: '/visuals', links: [
