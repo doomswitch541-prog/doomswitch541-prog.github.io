@@ -15,6 +15,7 @@ const SIGNAL_TEST_CONCURRENCY = 4;
 const BAND_FREQUENCIES = [88.1, 90.3, 92.7, 95.1, 97.5, 100.1, 102.5, 104.9, 106.3, 107.7];
 const BAND_LOCK_DISTANCE = 0.42;
 const NEWS_TERMS = ['Bloomberg', 'CNN', 'Fox News'];
+const CONSPIRACY_TAGS = ['conspiracy', 'conspiracy theories', 'paranormal', 'ufo', 'uap'];
 const OFFICIAL_NEWS_STATIONS = [{
     stationuuid: 'official-alex-jones-network',
     name: 'Alex Jones Network',
@@ -724,6 +725,7 @@ function requestForPreset(preset) {
     if (preset === 'us') return { kind: 'us' };
     if (preset === 'top') return { kind: 'top' };
     if (preset === 'news') return { kind: 'news' };
+    if (preset === 'conspiracy') return { kind: 'conspiracy' };
     if (preset === 'night') return { kind: 'night' };
     return { kind: 'tag', value: preset };
 }
@@ -756,6 +758,8 @@ async function loadStations(request = lastRequest) {
     let label;
     if (request.kind === 'news') {
         label = 'NEWS DESK';
+    } else if (request.kind === 'conspiracy') {
+        label = 'CONSPIRACY';
     } else if (request.kind === 'us') {
         path = `/json/stations/search?countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
         label = 'US LIVE';
@@ -780,6 +784,14 @@ async function loadStations(request = lastRequest) {
         if (request.kind === 'news') {
             const responses = await Promise.allSettled(NEWS_TERMS.map(term => radioBrowser(
                 `/json/stations/search?name=${encodeURIComponent(term)}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=9`
+            )));
+            data = [
+                ...OFFICIAL_NEWS_STATIONS,
+                ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
+            ];
+        } else if (request.kind === 'conspiracy') {
+            const responses = await Promise.allSettled(CONSPIRACY_TAGS.map(tag => radioBrowser(
+                `/json/stations/search?tag=${encodeURIComponent(tag)}&tagExact=true&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=12`
             )));
             data = [
                 ...OFFICIAL_NEWS_STATIONS,
