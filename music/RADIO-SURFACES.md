@@ -135,12 +135,25 @@ not remove a station or change playback.
 ### RG Broadcast
 
 - Uses the same directory-candidate then browser-verification principle.
-- Defaults toward US stations and supplies a separate curated News Desk query.
-- Maps a smaller active result set onto an explicitly labeled **RG internet
+- Opens on a hand-curated **Top 15** stored in `js/broadcast.js`. The list begins
+  with Behind the Sch3m3s and the official Alex Jones Network feed, then mixes
+  US rock, freeform, psychedelic, experimental, and space/ambient stations. The
+  exact HTTPS stream remains visible in the surface monitor and is still tested
+  by the listener's browser.
+- Organizes discovery into eight restrained bands: Top 15, US Live, News Desk,
+  Conspiracy, Rock, Trippy, Follow the Night, and Ambient. The generic World,
+  Talk, Jazz, and Classical bands were removed. All ordinary directory/search
+  bands are US-filtered; Follow the Night remains geographically open because
+  its actual function is finding stations currently broadcasting after dark.
+- Search has one field. Each query checks both Radio Browser `name` and `tag`
+  results with `countrycode=US`, merges them, removes duplicate UUIDs/streams,
+  and keeps only HTTPS candidates with a positive directory health check.
+- Maps the first fifteen active results onto an explicitly labeled **RG internet
   band**. Band positions are interaction slots, not terrestrial frequencies.
 - Keeps quiet gaps between positions so `STATIC`, `ACQUIRING`, `LOCKED`,
   `TESTING`, `READY`, `PAUSED`, `ON AIR`, and `NO SIGNAL` are visible receiver
-  states.
+  states. Dragging can cross those gaps; tapping the range snaps to the nearest
+  occupied station slot. The tuner sits below the primary music-player controls.
 
 ## Public-surface rules
 

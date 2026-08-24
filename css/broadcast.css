@@ -178,8 +178,8 @@ button {
 }
 
 .band-console {
-    padding: 1rem 0 1.15rem;
-    border-bottom: 1px solid var(--line-strong);
+    padding: 1.25rem 0 1.15rem;
+    border-top: 1px solid var(--line-strong);
 }
 
 .band-readout {
@@ -216,7 +216,7 @@ button {
     min-width: 5.5rem;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.57rem;
+    font-size: 0.64rem;
     font-weight: 400;
     letter-spacing: 0.12em;
     text-align: right;
@@ -266,7 +266,7 @@ button {
     justify-content: space-between;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.5rem;
+    font-size: 0.62rem;
     letter-spacing: 0.09em;
 }
 
@@ -353,11 +353,11 @@ button {
 
 #band-note {
     margin: 0.05rem 0 0;
-    color: #656159;
+    color: #858077;
     font-family: var(--font-data);
-    font-size: 0.48rem;
-    letter-spacing: 0.07em;
-    line-height: 1.4;
+    font-size: 0.62rem;
+    letter-spacing: 0.075em;
+    line-height: 1.5;
 }
 
 .on-air {
@@ -367,7 +367,7 @@ button {
     min-height: 34px;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     letter-spacing: 0.15em;
 }
 
@@ -409,7 +409,7 @@ button {
     margin-bottom: 0.7rem;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.6rem;
+    font-size: 0.67rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
 }
@@ -430,7 +430,7 @@ button {
     margin-top: 0.8rem;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.67rem;
+    font-size: 0.75rem;
     letter-spacing: 0.06em;
     line-height: 1.5;
     text-transform: uppercase;
@@ -477,7 +477,7 @@ button {
 .transport-label {
     min-width: 5.8rem;
     font-family: var(--font-data);
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.14em;
     line-height: 1;
@@ -528,7 +528,7 @@ button {
     background: transparent;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.58rem;
+    font-size: 0.64rem;
     letter-spacing: 0.1em;
     text-decoration: none;
     cursor: pointer;
@@ -550,11 +550,11 @@ button {
 .player-status {
     min-height: 2.2rem;
     margin: 0;
-    padding: 0.65rem 0;
+    padding: 0.75rem 0;
     border-top: 1px solid var(--line);
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.61rem;
+    font-size: 0.68rem;
     letter-spacing: 0.06em;
 }
 
@@ -590,7 +590,7 @@ button {
     background: transparent;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.62rem;
+    font-size: 0.67rem;
     letter-spacing: 0.11em;
     cursor: pointer;
 }
@@ -600,15 +600,38 @@ button {
 }
 
 .station-search {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
     margin-top: 1.3rem;
+}
+
+.station-search > label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.55rem;
+    color: var(--paper);
+    font-family: var(--font-data);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.station-search > label span {
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+}
+
+.station-search-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     border: 1px solid var(--line-strong);
 }
 
-.station-search input,
-.station-search select,
-.station-search button {
+.station-search-controls input,
+.station-search-controls button {
     min-height: 50px;
     border: 0;
     border-right: 1px solid var(--line);
@@ -616,7 +639,7 @@ button {
     outline: 0;
 }
 
-.station-search input {
+.station-search-controls input {
     min-width: 0;
     padding: 0 0.9rem;
     background: var(--panel);
@@ -624,25 +647,12 @@ button {
     font-size: 1rem;
 }
 
-.station-search input::placeholder {
+.station-search-controls input::placeholder {
     color: #6f6b63;
 }
 
-.station-search select {
-    padding: 0 2.2rem 0 0.8rem;
-    appearance: none;
-    background:
-        linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 13px) 22px / 5px 5px no-repeat,
-        linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 8px) 22px / 5px 5px no-repeat,
-        var(--panel-raised);
-    color: var(--muted);
-    font-family: var(--font-data);
-    font-size: 0.63rem;
-    letter-spacing: 0.08em;
-}
-
-.station-search button {
-    min-width: 70px;
+.station-search-controls button {
+    min-width: 86px;
     border-right: 0;
     background: var(--paper);
     color: var(--black);
@@ -657,42 +667,34 @@ button {
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    min-height: 3.35rem;
-    padding: 0.45rem 0;
+    min-height: 2.65rem;
+    padding: 0.35rem 0;
     color: var(--muted);
     font-family: var(--font-data);
     text-transform: uppercase;
 }
 
-.mode-strip-copy h3 {
+.mode-strip-head h3 {
     margin: 0;
     color: var(--paper);
     font-family: inherit;
-    font-size: 0.69rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.13em;
-}
-
-.mode-strip-copy span {
-    display: block;
-    margin-top: 0.3rem;
-    font-size: 0.56rem;
-    letter-spacing: 0.07em;
-    line-height: 1.35;
 }
 
 #station-mode-position {
     flex: 0 0 auto;
     color: var(--amber);
     font-family: inherit;
-    font-size: 0.57rem;
+    font-size: 0.66rem;
     letter-spacing: 0.09em;
     text-align: right;
 }
 
 .mode-carousel {
     display: grid;
-    grid-template-columns: 62px minmax(0, 1fr) 62px;
+    grid-template-columns: 54px minmax(0, 1fr) 54px;
     border-top: 1px solid var(--line-strong);
     border-bottom: 1px solid var(--line-strong);
 }
@@ -704,7 +706,7 @@ button {
     flex-direction: column;
     gap: 0.15rem;
     min-width: 44px;
-    min-height: 64px;
+    min-height: 58px;
     padding: 0;
     border: 0;
     border-right: 1px solid var(--line-strong);
@@ -727,7 +729,7 @@ button {
 
 .mode-carousel-arrow small {
     font-family: var(--font-data);
-    font-size: 0.5rem;
+    font-size: 0.6rem;
     letter-spacing: 0.1em;
 }
 
@@ -749,6 +751,7 @@ button {
     margin: 0;
     padding: 0;
     scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
 }
 
@@ -759,11 +762,12 @@ button {
 .quick-tunes button {
     flex: 0 0 auto;
     position: relative;
-    min-width: 7.8rem;
-    min-height: 64px;
+    min-width: 7.7rem;
+    min-height: 58px;
     padding: 0 1.1rem;
     border-right: 1px solid var(--line);
     color: rgba(230, 220, 195, 0.66);
+    scroll-snap-align: center;
     transition: color 160ms ease, background-color 160ms ease;
 }
 
@@ -791,7 +795,7 @@ button {
     min-height: 52px;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.61rem;
+    font-size: 0.66rem;
     letter-spacing: 0.11em;
 }
 
@@ -825,7 +829,7 @@ button {
     padding-top: 1.15rem;
     color: #656159;
     font-family: var(--font-data);
-    font-size: 0.58rem;
+    font-size: 0.62rem;
 }
 
 .station-select {
@@ -843,7 +847,7 @@ button {
     overflow: hidden;
     color: var(--paper);
     font-family: var(--font-display);
-    font-size: 1.18rem;
+    font-size: 1.25rem;
     font-stretch: condensed;
     letter-spacing: -0.015em;
     line-height: 1.08;
@@ -858,7 +862,7 @@ button {
     margin-top: 0.38rem;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.59rem;
+    font-size: 0.66rem;
     letter-spacing: 0.055em;
     text-overflow: ellipsis;
     text-transform: uppercase;
@@ -871,7 +875,7 @@ button {
     width: auto;
     margin-top: 0.42rem;
     color: #656159;
-    font-size: 0.54rem;
+    font-size: 0.6rem;
     letter-spacing: 0.12em;
 }
 
@@ -926,7 +930,7 @@ button {
     place-items: center;
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.61rem;
+    font-size: 0.67rem;
     letter-spacing: 0.12em;
     animation: loading-blink 1.25s steps(2, end) infinite;
 }
@@ -960,7 +964,7 @@ button {
     border-top: 1px solid var(--line);
     color: var(--muted);
     font-family: var(--font-data);
-    font-size: 0.57rem;
+    font-size: 0.62rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -1041,34 +1045,20 @@ button:hover:not(:disabled) {
         grid-row: 1 / span 2;
     }
 
-    .station-search {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
+    .station-search > label { align-items: flex-end; }
 
-    .station-search select {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        min-height: 44px;
-        border-top: 1px solid var(--line);
-        border-right: 0;
-        background-position: calc(100% - 13px) 19px, calc(100% - 8px) 19px;
-    }
-
-    .mode-strip-head {
-        align-items: flex-end;
-    }
-
-    .mode-strip-copy span {
-        max-width: 20ch;
+    .station-search > label span {
+        max-width: 13ch;
+        text-align: right;
     }
 
     .mode-carousel {
-        grid-template-columns: 54px minmax(0, 1fr) 54px;
+        grid-template-columns: 48px minmax(0, 1fr) 48px;
     }
 
     .mode-carousel-arrow,
     .quick-tunes button {
-        min-height: 60px;
+        min-height: 56px;
     }
 
     .station-actions {

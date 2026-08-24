@@ -12,10 +12,23 @@ const RESULT_LIMIT = 50;
 const SIGNAL_TEST_LIMIT = 30;
 const SIGNAL_TEST_TIMEOUT = 9000;
 const SIGNAL_TEST_CONCURRENCY = 4;
-const BAND_FREQUENCIES = [88.1, 90.3, 92.7, 95.1, 97.5, 100.1, 102.5, 104.9, 106.3, 107.7];
+const BAND_FREQUENCIES = [
+    87.9, 89.3, 90.7, 92.1, 93.5,
+    94.9, 96.3, 97.7, 99.1, 100.5,
+    101.9, 103.3, 104.7, 106.1, 107.5
+];
 const BAND_LOCK_DISTANCE = 0.42;
 const NEWS_TERMS = ['Bloomberg', 'CNN', 'Fox News'];
 const CONSPIRACY_TAGS = ['conspiracy', 'conspiracy theories', 'paranormal', 'ufo', 'uap'];
+const TRIPPY_TAGS = ['psychedelic', 'experimental', 'freeform', 'space'];
+const BEHIND_THE_SCHEMES = {
+    stationuuid: '54944202-69d5-4f89-9189-e949aeac59b8',
+    name: 'Behind the Sch3m3s',
+    url_resolved: 'https://scream.behindthesch3m3s.com/radio/8000/.mp3',
+    homepage: 'https://behindthesch3m3s.com/',
+    countrycode: 'US', codec: 'MP3', bitrate: 128,
+    tags: 'conspiracy theories', hls: false, lastcheckok: true, source: 'curated'
+};
 const OFFICIAL_NEWS_STATIONS = [{
     stationuuid: 'official-alex-jones-network',
     name: 'Alex Jones Network',
@@ -29,6 +42,88 @@ const OFFICIAL_NEWS_STATIONS = [{
     lastcheckok: true,
     source: 'official'
 }];
+const CURATED_TOP_STATIONS = [
+    BEHIND_THE_SCHEMES,
+    OFFICIAL_NEWS_STATIONS[0],
+    {
+        stationuuid: '445cbb3a-1c4e-49aa-a268-f5b6acfa8f2e', name: 'KEXP',
+        url_resolved: 'https://kexp.streamguys1.com/kexp160.aac', homepage: 'https://www.kexp.org/',
+        countrycode: 'US', codec: 'AAC', bitrate: 162, tags: 'alternative,indie,rock',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '021e14a0-ddda-4ed5-bf37-3f5744b65eeb', name: 'WFMU Freeform',
+        url_resolved: 'https://stream0.wfmu.org/freeform-extrahigh-primary.aac', homepage: 'https://wfmu.org/',
+        countrycode: 'US', codec: 'AAC+', bitrate: 256, tags: 'experimental,freeform',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '9e54d6fc-16a6-4308-9c15-c60aeb1e2de8', name: 'Radio Paradise Rock Mix',
+        url_resolved: 'https://stream.radioparadise.com/rock-64', homepage: 'https://radioparadise.com/',
+        countrycode: 'US', codec: 'AAC', bitrate: 64, tags: 'alternative,eclectic,rock',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '96187609-0601-11e8-ae97-52543be04c81', name: '181.FM The Eagle',
+        url_resolved: 'https://listen.181fm.com/181-eagle_128k.mp3', homepage: 'https://www.181.fm/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'classic rock',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: 'e5b81ad3-bb7d-41a5-a3d3-0f715434778e', name: 'Megarock Radio',
+        url_resolved: 'https://stream3.megarockradio.net:80/', homepage: 'https://megarockradio.net/',
+        countrycode: 'US', codec: 'MP3', bitrate: 320, tags: 'classic rock,hard rock,metal',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '960dd7a5-0601-11e8-ae97-52543be04c81', name: 'WXPN 88.5',
+        url_resolved: 'https://wxpnhi.xpn.org/xpnhi', homepage: 'https://xpn.org/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'public radio,rock,folk',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '960d3f6f-0601-11e8-ae97-52543be04c81', name: 'Space Station Soma',
+        url_resolved: 'https://ice6.somafm.com/spacestation-128-aac', homepage: 'https://somafm.com/spacestation/',
+        countrycode: 'US', codec: 'AAC', bitrate: 128, tags: 'ambient,electronic,space',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '960eb2e9-0601-11e8-ae97-52543be04c81', name: 'Drone Zone',
+        url_resolved: 'https://ice2.somafm.com/dronezone-128-mp3', homepage: 'https://somafm.com/dronezone/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'ambient,atmospheric,drone',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '960c7c81-0601-11e8-ae97-52543be04c81', name: 'Secret Agent',
+        url_resolved: 'https://ice6.somafm.com/secretagent-128-mp3', homepage: 'https://somafm.com/secretagent/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'downtempo,lounge,spy',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '9614eb15-0601-11e8-ae97-52543be04c81', name: 'Mission Control',
+        url_resolved: 'https://ice5.somafm.com/missioncontrol-128-mp3', homepage: 'https://somafm.com/missioncontrol/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'experimental,space program',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '4ff47fb3-9c31-4e43-a267-ae11d5fa615e', name: 'The In-Sound',
+        url_resolved: 'https://ice5.somafm.com/insound-128-aac', homepage: 'https://somafm.com/insound/',
+        countrycode: 'US', codec: 'AAC', bitrate: 128, tags: 'avant-garde,psychedelic pop',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '70133397-5845-4524-bcda-701da75f46fa', name: 'HEADY',
+        url_resolved: 'https://c22.radioboss.fm:18364/stream', homepage: 'https://www.heady.fm/',
+        countrycode: 'US', codec: 'AAC', bitrate: 320, tags: 'indie rock,psychedelic rock',
+        hls: false, lastcheckok: true, source: 'curated'
+    },
+    {
+        stationuuid: '43ea0516-a17e-4b65-8999-61791c800ca6', name: 'Radio BipTunia',
+        url_resolved: 'https://ecast.myautodj.com:1380/listen.mp3', homepage: 'https://biptunia.com/?page_id=4399',
+        countrycode: 'US', codec: 'MP3', bitrate: 224, tags: 'experimental,microtonal,psychedelic',
+        hls: false, lastcheckok: true, source: 'curated'
+    }
+];
 
 const audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
@@ -53,7 +148,6 @@ const bandMarkers = document.getElementById('band-markers');
 const bandMeter = [...document.querySelectorAll('.band-meter i')];
 const searchForm = document.getElementById('station-search');
 const searchQuery = document.getElementById('search-query');
-const searchField = document.getElementById('search-field');
 const presetButtons = [...document.querySelectorAll('[data-preset]')];
 const presetTrack = document.getElementById('station-mode-track');
 const previousPresetButton = document.getElementById('previous-station-mode');
@@ -75,7 +169,7 @@ let apiServers = [];
 let stations = [];
 let currentStation = null;
 let currentIndex = -1;
-let lastRequest = { kind: 'us' };
+let lastRequest = { kind: 'top15' };
 let favoritesOnly = false;
 let favorites = loadFavorites();
 let playbackRun = 0;
@@ -83,6 +177,7 @@ let playPending = false;
 let signalTestRun = 0;
 let stationRequestRun = 0;
 let bandStations = [];
+let bandPointerStart = null;
 const signalResults = new Map();
 const supportsNativeHls = audio.canPlayType('application/vnd.apple.mpegurl') !== '';
 
@@ -205,6 +300,17 @@ function sanitizeStations(items, limit = RESULT_LIMIT) {
         seenStreams.add(stream);
         return true;
     }).slice(0, limit);
+}
+
+function curatedMatches(terms) {
+    const needles = (Array.isArray(terms) ? terms : [terms])
+        .map(term => String(term).trim().toLowerCase())
+        .filter(Boolean);
+    if (!needles.length) return [];
+    return CURATED_TOP_STATIONS.filter(station => {
+        const haystack = `${station.name} ${station.tags || ''}`.toLowerCase();
+        return needles.some(needle => haystack.includes(needle));
+    });
 }
 
 function solarStateAtStation(station, date = new Date()) {
@@ -485,6 +591,25 @@ function updateBandFromTuner() {
     );
 }
 
+function snapBandToPointer(event) {
+    if (!bandStations.length) return;
+    const bounds = bandTuner.getBoundingClientRect();
+    if (!bounds.width) return;
+    const ratio = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+    const bandMinimum = Number(bandTuner.min) / 10;
+    const bandMaximum = Number(bandTuner.max) / 10;
+    const clickedFrequency = bandMinimum + ratio * (bandMaximum - bandMinimum);
+    const nearest = bandStations.reduce((best, slot) => (
+        !best || Math.abs(slot.frequency - clickedFrequency) < Math.abs(best.frequency - clickedFrequency)
+            ? slot : best
+    ), null);
+    if (!nearest) return;
+
+    if (!audio.paused || playPending) pauseStation();
+    bandTuner.value = String(Math.round(nearest.frequency * 10));
+    updateBandFromTuner();
+}
+
 function renderBandStations() {
     bandStations = stations.slice(0, BAND_FREQUENCIES.length).map((station, index) => ({
         station,
@@ -628,7 +753,7 @@ function renderStations() {
         testSignalsButton.disabled = true;
         directoryMessageCopy.textContent = favoritesOnly
             ? 'Save a station and it will stay here on this device.'
-            : nightSearch ? 'No after-dark stations answered this pass. Try the night again.' : 'Try another name, genre, or country.';
+            : nightSearch ? 'No after-dark stations answered this pass. Try the night again.' : 'Try another station name or genre.';
         retryButton.hidden = favoritesOnly;
         directoryMessage.hidden = false;
         return;
@@ -722,10 +847,11 @@ function setActivePreset(name = '', emptyLabel = 'CUSTOM LIST') {
 }
 
 function requestForPreset(preset) {
+    if (preset === 'top15') return { kind: 'top15' };
     if (preset === 'us') return { kind: 'us' };
-    if (preset === 'top') return { kind: 'top' };
     if (preset === 'news') return { kind: 'news' };
     if (preset === 'conspiracy') return { kind: 'conspiracy' };
+    if (preset === 'trippy') return { kind: 'trippy' };
     if (preset === 'night') return { kind: 'night' };
     return { kind: 'tag', value: preset };
 }
@@ -756,32 +882,36 @@ async function loadStations(request = lastRequest) {
 
     let path;
     let label;
-    if (request.kind === 'news') {
+    if (request.kind === 'top15') {
+        label = 'TOP 15';
+    } else if (request.kind === 'news') {
         label = 'NEWS DESK';
     } else if (request.kind === 'conspiracy') {
         label = 'CONSPIRACY';
+    } else if (request.kind === 'trippy') {
+        label = 'TRIPPY';
     } else if (request.kind === 'us') {
         path = `/json/stations/search?countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
         label = 'US LIVE';
     } else if (request.kind === 'tag') {
         const tag = encodeURIComponent(request.value);
-        path = `/json/stations/search?tag=${tag}&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
+        path = `/json/stations/search?tag=${tag}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
         label = request.value.toUpperCase();
     } else if (request.kind === 'search') {
-        const parameter = request.field === 'tag' ? 'tag' : request.field === 'country' ? 'country' : 'name';
-        path = `/json/stations/search?${parameter}=${encodeURIComponent(request.value)}&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
         label = `RESULTS: ${request.value.toUpperCase()}`;
     } else if (request.kind === 'night') {
         path = '/json/stations/search?has_geo_info=true&is_https=true&hidebroken=true&order=random&limit=250';
         label = 'FOLLOW THE NIGHT';
     } else {
-        path = `/json/stations/topclick/${RESULT_LIMIT}?hidebroken=true`;
-        label = 'MOST PLAYED';
+        path = `/json/stations/search?countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=${RESULT_LIMIT}`;
+        label = 'US LIVE';
     }
 
     try {
         let data;
-        if (request.kind === 'news') {
+        if (request.kind === 'top15') {
+            data = CURATED_TOP_STATIONS;
+        } else if (request.kind === 'news') {
             const responses = await Promise.allSettled(NEWS_TERMS.map(term => radioBrowser(
                 `/json/stations/search?name=${encodeURIComponent(term)}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=9`
             )));
@@ -794,11 +924,35 @@ async function loadStations(request = lastRequest) {
                 `/json/stations/search?tag=${encodeURIComponent(tag)}&tagExact=true&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=12`
             )));
             data = [
+                BEHIND_THE_SCHEMES,
                 ...OFFICIAL_NEWS_STATIONS,
                 ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
             ];
+        } else if (request.kind === 'trippy') {
+            const responses = await Promise.allSettled(TRIPPY_TAGS.map(tag => radioBrowser(
+                `/json/stations/search?tag=${encodeURIComponent(tag)}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=15`
+            )));
+            data = [
+                ...curatedMatches([...TRIPPY_TAGS, 'drone', 'spy', 'microtonal']),
+                ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
+            ];
+        } else if (request.kind === 'search') {
+            const term = encodeURIComponent(request.value);
+            const responses = await Promise.allSettled(['name', 'tag'].map(field => radioBrowser(
+                `/json/stations/search?${field}=${term}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=25`
+            )));
+            const successful = responses.filter(response => response.status === 'fulfilled');
+            const localMatches = curatedMatches(request.value);
+            if (!successful.length && !localMatches.length) {
+                throw responses[0]?.reason || new Error('Station search did not answer');
+            }
+            data = [
+                ...localMatches,
+                ...successful.flatMap(response => response.value.data)
+            ];
         } else {
             ({ data } = await radioBrowser(path));
+            if (request.kind === 'tag') data = [...curatedMatches(request.value), ...data];
         }
         if (run !== stationRequestRun) return;
         if (request.kind === 'night') {
@@ -1071,7 +1225,7 @@ searchForm.addEventListener('submit', event => {
         return;
     }
     setActivePreset('', 'CUSTOM SEARCH');
-    loadStations({ kind: 'search', field: searchField.value, value });
+    loadStations({ kind: 'search', value });
 });
 
 presetButtons.forEach(button => {
@@ -1123,6 +1277,21 @@ testSignalsButton.addEventListener('click', testCurrentSignals);
 bandTuner.addEventListener('input', () => {
     if (!audio.paused || playPending) pauseStation();
     updateBandFromTuner();
+});
+
+bandTuner.addEventListener('pointerdown', event => {
+    bandPointerStart = { x: event.clientX, y: event.clientY };
+});
+
+bandTuner.addEventListener('pointerup', event => {
+    const start = bandPointerStart;
+    bandPointerStart = null;
+    if (!start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) return;
+    snapBandToPointer(event);
+});
+
+bandTuner.addEventListener('pointercancel', () => {
+    bandPointerStart = null;
 });
 
 retryButton.addEventListener('click', () => {
@@ -1200,8 +1369,7 @@ stationHome.addEventListener('click', event => {
 
 bindMediaSession();
 updateFavoriteControls();
-setActivePreset('us');
-discoverServers().finally(() => {
-    loadStations({ kind: 'us' });
-    restoreLastStation();
-});
+setActivePreset('top15');
+loadStations({ kind: 'top15' });
+restoreLastStation();
+discoverServers();
