@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-24T07:08:36.9777630Z",
+  "updatedAt": "2026-08-25T05:55:24.595Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -12,6 +12,16 @@
       "description": "xii, 712, liv, [2] p. 19 cm",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-08-24T07:08:36.9777630Z"
+    },
+    {
+      "date": "2026-08-25",
+      "identifier": "beyondlegacyanni00lawt",
+      "title": "Beyond the legacy : anniversary acquisitions for the Freer Gallery of Art and the Arthur M. Sackler Gallery",
+      "creator": "Lawton, Thomas, 1931-",
+      "published": "1998",
+      "description": "Includes bibliographical references and index",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-08-25T05:55:24.595Z"
     }
   ]
 }
