@@ -151,8 +151,8 @@ not remove a station or change playback.
   finding stations currently broadcasting after dark.
 - Rock merges live US directory searches for rock, grunge, shoegaze,
   alternative rock, emo, screamo, and post-hardcore, then leads with matching
-  curated stations. Screamo Emo and Static appear in both Rock and Top 20
-  alongside classic Seattle-era grunge and current shoegaze/dream-pop.
+  curated stations. HearMe.fm — Screamo Emo and Static appear in both Rock and
+  Top 20 alongside classic Seattle-era grunge and current shoegaze/dream-pop.
 - Conspiracy leads with all matching Top 20 signals before adding live directory
   results, keeping the eight core alternative/paranormal picks together.
 - Search has one field. Each query checks both Radio Browser `name` and `tag`
@@ -168,6 +168,11 @@ not remove a station or change playback.
   shows a plain-language description, genre, origin, stream quality, and source.
   The station list repeats a shorter description plus technical signal facts so
   listeners can choose without opening the debugger.
+- Loads the Broadcast module through a release-versioned URL and canonicalizes
+  saved Top 20 records on startup. Renamed stations immediately use their current
+  label, while the retired Radio BipTunia and Secret Agent records resolve to
+  K-Star and Static across the player, saved view, direct station links, and
+  share-card state instead of surviving in device storage.
 - For stations that publish browser-readable metadata, the player polls a
   keyless, read-only now-playing surface every 30 seconds and shows the current
   song or program. Stations that do not publish a usable browser endpoint stay
@@ -192,7 +197,7 @@ not remove a station or change playback.
 | Dr. J Radio | Paranormal and UFO long-form interviews | `https://podradio.us/stream/drjradio-live` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | KHNC 1360 "The Lion" | Colorado conspiracy and independent talk | `https://www.ophanim.net:8444/s/7250/` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | K-Star Talk Radio Network | Conspiracy Radio, overnight talk, and alternative news | `https://c23.radioboss.fm/stream/204` | HTTP 200, `audio/mpeg`, audio bytes returned |
-| Screamo Emo | Emo, screamo, and post-hardcore | `https://radio.hearme.fm:8478/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| HearMe.fm — Screamo Emo | Emo, screamo, and post-hardcore | `https://radio.hearme.fm:8478/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | Static: 90s & 2000s Alt Rock | Alternative rock, grunge, and post-grunge | `https://r.bgp.rodeo/listen/static/radio.mp3` | HTTP 200, `audio/mpeg`, 320 kbps stream returned |
 | DKFM Edge | New shoegaze and dream pop | `https://radio.streemlion.com:4405/stream` | HTTP 200, `audio/aacp`, audio bytes returned |
 
@@ -205,7 +210,7 @@ not remove a station or change playback.
 | Free People of the Cosmos and Dr. J Radio | `https://podradio.us/admin/modules/IceCastManager/nowplaying.php` | PodRadio JSON with CORS and a title keyed to each stream slug |
 | K-Star Talk Radio Network | `https://c23.radioboss.fm/w/nowplayinginfo?u=204` | RadioBOSS JSON with CORS and current program fields |
 | Static: 90s & 2000s Alt Rock | `https://r.bgp.rodeo/api/nowplaying/static` | AzuraCast JSON with CORS, artist, title, album, and listener count |
-| Screamo Emo | Official `status-json.xsl` through `https://cors.eu.org/` | Exact Icecast title through a public CORS read bridge; rejected on bridge failure or placeholder data |
+| HearMe.fm — Screamo Emo | Official `status-json.xsl` through `https://cors.eu.org/` | Exact Icecast title through a public CORS read bridge; rejected on bridge failure or placeholder data |
 | SomaFM channels | `https://somafm.com/songs/<channel>.json` | Channel JSON with CORS, artist, title, and album |
 | DKFM Shoegaze Radio | `https://kathy.torontocast.com:2005/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
 | DKFM Edge | `https://radio.streemlion.com:4405/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
@@ -215,10 +220,12 @@ These hosts are explicitly allowed in the page and shared hosting CSP. The
 endpoints require no API key, receive no RG identity, and are requested only for
 the currently selected station. U7 and KHNC did not expose a browser-readable
 CORS endpoint during this check, so their player state uses the format fallback.
-Screamo Emo does publish an accurate official Icecast title but omits CORS; the
-public read bridge is therefore best-effort. A bridge error, blank title, generic
-placeholder, or station-name-only value immediately restores the honest format
-fallback and also clears that title from the browser Media Session.
+HearMe.fm — Screamo Emo publishes the official Icecast station name `Screamo
+Emo` and an accurate current title but omits CORS; the public read bridge is
+therefore best-effort. A bridge error, blank title, generic placeholder, or
+station-name-only value immediately restores the honest format fallback and also
+clears that title from the browser Media Session. Its former channel page now
+returns 404, so the station-site control uses the working HearMe.fm network home.
 
 ## Public-surface rules
 

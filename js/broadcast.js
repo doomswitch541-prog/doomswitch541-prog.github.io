@@ -138,8 +138,8 @@ const CURATED_TOP_STATIONS = [
         description: 'Nirvana, Alice in Chains, Soundgarden, Pearl Jam, and the wider 1990s grunge lane.'
     },
     {
-        stationuuid: 'official-hearme-screamo-emo', name: 'Screamo Emo',
-        url_resolved: 'https://radio.hearme.fm:8478/stream', homepage: 'https://hearme.fm/radio/screamo-emo/',
+        stationuuid: 'official-hearme-screamo-emo', name: 'HearMe.fm — Screamo Emo',
+        url_resolved: 'https://radio.hearme.fm:8478/stream', homepage: 'https://hearme.fm/',
         countrycode: 'GB', codec: 'MP3', bitrate: 0, tags: 'emo,screamo,post-hardcore,punk',
         hls: false, lastcheckok: true, source: 'official',
         description: 'Emo, screamo, post-hardcore, and cathartic punk-adjacent rotation.',
@@ -206,6 +206,20 @@ const CURATED_TOP_STATIONS = [
         now_playing: { type: 'icecast', url: 'https://c22.radioboss.fm:18364/status-json.xsl' }
     }
 ];
+
+const LEGACY_TOP_STATION_REPLACEMENTS = new Map([
+    // Retired experimental slot -> K-Star Talk Radio Network
+    ['43ea0516-a17e-4b65-8999-61791c800ca6', '1e8febb5-722e-4975-aade-c3e07d4ac6ba'],
+    // Retired lounge slot -> Static: 90s & 2000s Alt Rock
+    ['960c7c81-0601-11e8-ae97-52543be04c81', '2887dc93-4c30-4981-8f60-a87d25a4386f']
+]);
+
+function canonicalStoredStation(station) {
+    const storedUuid = String(station?.stationuuid || '');
+    if (!storedUuid) return station;
+    const canonicalUuid = LEGACY_TOP_STATION_REPLACEMENTS.get(storedUuid) || storedUuid;
+    return CURATED_TOP_STATIONS.find(item => item.stationuuid === canonicalUuid) || station;
+}
 
 const audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
@@ -285,7 +299,14 @@ function loadFavorites() {
     try {
         const stored = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
         if (!Array.isArray(stored)) return [];
-        return stored.filter(item => item && item.stationuuid && item.url_resolved);
+        const seen = new Set();
+        return stored
+            .map(canonicalStoredStation)
+            .filter(item => {
+                if (!item?.stationuuid || !item.url_resolved || seen.has(item.stationuuid)) return false;
+                seen.add(item.stationuuid);
+                return true;
+            });
     } catch {
         return [];
     }
@@ -1694,7 +1715,8 @@ function bindMediaSession() {
 function restoreLastStation() {
     const requestedUuid = new URLSearchParams(location.search).get('station');
     if (requestedUuid) {
-        const curated = CURATED_TOP_STATIONS.find(station => station.stationuuid === requestedUuid);
+        const canonicalUuid = LEGACY_TOP_STATION_REPLACEMENTS.get(requestedUuid) || requestedUuid;
+        const curated = CURATED_TOP_STATIONS.find(station => station.stationuuid === canonicalUuid);
         if (curated) {
             setCurrentStation(curated, topStationIndex(curated));
             setPlayerState('idle', 'STANDBY', 'Press play to connect.');
@@ -1712,7 +1734,7 @@ function restoreLastStation() {
     try {
         const stored = JSON.parse(localStorage.getItem(LAST_STATION_KEY) || 'null');
         if (stored?.stationuuid && String(stored.url_resolved || '').startsWith('https://')) {
-            setCurrentStation(stored);
+            setCurrentStation(canonicalStoredStation(stored));
             setPlayerState('idle', 'STANDBY', 'Press play to reconnect.');
         }
     } catch {
