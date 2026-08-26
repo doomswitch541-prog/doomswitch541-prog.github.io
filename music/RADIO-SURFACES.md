@@ -168,6 +168,9 @@ not remove a station or change playback.
   shows a plain-language description, genre, origin, stream quality, and source.
   The station list repeats a shorter description plus technical signal facts so
   listeners can choose without opening the debugger.
+- Media Session keeps the current song/program as its title, the station as its
+  artist, and `RG Broadcast 🦝` as its album label so supporting phone, Bluetooth,
+  and vehicle displays have a chance to carry the raccoon mark.
 - Loads the Broadcast module through a release-versioned URL and canonicalizes
   saved Top 20 records on startup. Renamed stations immediately use their current
   label, while the retired Radio BipTunia and Secret Agent records resolve to

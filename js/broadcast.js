@@ -1691,7 +1691,7 @@ function updateMediaSession(station, programTitle = '') {
     navigator.mediaSession.metadata = new MediaMetadata({
         title: programTitle || station.name,
         artist: programTitle ? station.name : stationFormat(station),
-        album: 'RG Broadcast'
+        album: 'RG Broadcast 🦝'
     });
 }
 
