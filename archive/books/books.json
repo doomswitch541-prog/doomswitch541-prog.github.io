@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-25T05:55:24.595Z",
+  "updatedAt": "2026-08-26T05:52:27.637Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -22,6 +22,16 @@
       "description": "Includes bibliographical references and index",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-08-25T05:55:24.595Z"
+    },
+    {
+      "date": "2026-08-26",
+      "identifier": "bibliografiadell00pitr",
+      "title": "Bibliografia delle tradizioni popolari d'Italia : con tre indici speciali",
+      "creator": "Pitrè, Giuseppe, 1841-1916",
+      "published": "1894",
+      "description": "Includes indexes",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-08-26T05:52:27.637Z"
     }
   ]
 }
