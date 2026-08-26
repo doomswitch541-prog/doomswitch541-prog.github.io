@@ -32,7 +32,7 @@
     # pages carry large inline <script> blocks. Hardening step later: externalise
     # those scripts, then drop 'unsafe-inline' (nonce or hash). Everything else is
     # already locked to self + the few hosts we actually load from.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com https://*.api.radio-browser.info https://public.radio.co https://somafm.com https://kathy.torontocast.com:2005 https://radio.streemlion.com:4405 https://c22.radioboss.fm:18364; media-src https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.open-meteo.com https://*.api.radio-browser.info https://public.radio.co https://somafm.com https://kathy.torontocast.com:2005 https://radio.streemlion.com:4405 https://c22.radioboss.fm:18364 https://scream.behindthesch3m3s.com https://podradio.us https://c23.radioboss.fm https://r.bgp.rodeo https://cors.eu.org; media-src https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
 # Fingerprint-free assets change rarely — cache hard, backgrounds + vendored
 # three.js shouldn't re-download every visit.

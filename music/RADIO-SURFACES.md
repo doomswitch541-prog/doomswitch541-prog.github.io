@@ -138,11 +138,11 @@ not remove a station or change playback.
 - Opens on a hand-curated **Top 20** stored in `js/broadcast.js`. It is an RG
   audience lock rather than a click-count chart: Behind the Sch3m3s, Alex Jones,
   U7 Art Bell / Coast to Coast, Ground Zero Plus, Free People of the Cosmos,
-  Dr. J Radio, and KHNC occupy the first seven positions. The music side favors
-  grunge, emo, shoegaze, psychedelic/freeform, and spacey late-night listening.
-  Radio Paradise's general eclectic-rock mix was removed. Every exact HTTPS
-  stream remains visible in the surface monitor and is still tested by the
-  listener's browser.
+  Dr. J Radio, KHNC, and K-Star occupy the first eight positions. The music side
+  favors grunge, emo, shoegaze, psychedelic/freeform, and spacey late-night
+  listening. K-Star Talk Radio Network and Static: 90s & 2000s Alt Rock replace
+  Radio BipTunia and Secret Agent. Every exact HTTPS stream remains visible in
+  the surface monitor and is still tested by the listener's browser.
 - Organizes discovery into six restrained bands: Top 20, News Desk, Conspiracy,
   Rock, Trippy, and Follow the Night. The broad US Live band was removed because
   it duplicated search, and Ambient was folded into Trippy. World, Talk, Jazz,
@@ -151,10 +151,10 @@ not remove a station or change playback.
   finding stations currently broadcasting after dark.
 - Rock merges live US directory searches for rock, grunge, shoegaze,
   alternative rock, emo, screamo, and post-hardcore, then leads with matching
-  curated stations. Screamo Emo appears in both Rock and Top 20 alongside
-  classic Seattle-era grunge and current shoegaze/dream-pop.
+  curated stations. Screamo Emo and Static appear in both Rock and Top 20
+  alongside classic Seattle-era grunge and current shoegaze/dream-pop.
 - Conspiracy leads with all matching Top 20 signals before adding live directory
-  results, keeping the seven core alternative/paranormal picks together.
+  results, keeping the eight core alternative/paranormal picks together.
 - Search has one field. Each query checks both Radio Browser `name` and `tag`
   results with `countrycode=US`, merges them, removes duplicate UUIDs/streams,
   and keeps only HTTPS candidates with a positive directory health check.
@@ -180,7 +180,7 @@ not remove a station or change playback.
   browsers download it and copy the station link when clipboard access is
   available. No image service, tracking call, or remote artwork is involved.
 
-### Curated stream additions checked August 24, 2026
+### Curated stream additions checked August 24–26, 2026
 
 | Station | Programming role | Direct HTTPS media | Check |
 | --- | --- | --- | --- |
@@ -191,14 +191,21 @@ not remove a station or change playback.
 | Free People of the Cosmos | UFO, UAP, and paranormal podcast rotation | `https://podradio.us/stream/free-cosmos` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | Dr. J Radio | Paranormal and UFO long-form interviews | `https://podradio.us/stream/drjradio-live` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | KHNC 1360 "The Lion" | Colorado conspiracy and independent talk | `https://www.ophanim.net:8444/s/7250/` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| K-Star Talk Radio Network | Conspiracy Radio, overnight talk, and alternative news | `https://c23.radioboss.fm/stream/204` | HTTP 200, `audio/mpeg`, audio bytes returned |
 | Screamo Emo | Emo, screamo, and post-hardcore | `https://radio.hearme.fm:8478/stream` | HTTP 200, `audio/mpeg`, audio bytes returned |
+| Static: 90s & 2000s Alt Rock | Alternative rock, grunge, and post-grunge | `https://r.bgp.rodeo/listen/static/radio.mp3` | HTTP 200, `audio/mpeg`, 320 kbps stream returned |
 | DKFM Edge | New shoegaze and dream pop | `https://radio.streemlion.com:4405/stream` | HTTP 200, `audio/aacp`, audio bytes returned |
 
 ### Browser-readable now-playing surfaces
 
 | Station group | Read-only endpoint | Browser result |
 | --- | --- | --- |
+| Behind the Sch3m3s | `https://scream.behindthesch3m3s.com/api/nowplaying/the_scaly_show` | AzuraCast JSON with CORS, current program title, and listener count |
 | Ground Zero Plus | `https://public.radio.co/stations/s7a9080f05/status` | Radio.co JSON with CORS and a current-track title |
+| Free People of the Cosmos and Dr. J Radio | `https://podradio.us/admin/modules/IceCastManager/nowplaying.php` | PodRadio JSON with CORS and a title keyed to each stream slug |
+| K-Star Talk Radio Network | `https://c23.radioboss.fm/w/nowplayinginfo?u=204` | RadioBOSS JSON with CORS and current program fields |
+| Static: 90s & 2000s Alt Rock | `https://r.bgp.rodeo/api/nowplaying/static` | AzuraCast JSON with CORS, artist, title, album, and listener count |
+| Screamo Emo | Official `status-json.xsl` through `https://cors.eu.org/` | Exact Icecast title through a public CORS read bridge; rejected on bridge failure or placeholder data |
 | SomaFM channels | `https://somafm.com/songs/<channel>.json` | Channel JSON with CORS, artist, title, and album |
 | DKFM Shoegaze Radio | `https://kathy.torontocast.com:2005/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
 | DKFM Edge | `https://radio.streemlion.com:4405/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
@@ -206,9 +213,12 @@ not remove a station or change playback.
 
 These hosts are explicitly allowed in the page and shared hosting CSP. The
 endpoints require no API key, receive no RG identity, and are requested only for
-the currently selected station. U7, PodRadio, KHNC, and Screamo Emo did not
-expose a browser-readable CORS endpoint during this check, so their player state
-uses the format fallback.
+the currently selected station. U7 and KHNC did not expose a browser-readable
+CORS endpoint during this check, so their player state uses the format fallback.
+Screamo Emo does publish an accurate official Icecast title but omits CORS; the
+public read bridge is therefore best-effort. A bridge error, blank title, generic
+placeholder, or station-name-only value immediately restores the honest format
+fallback and also clears that title from the browser Media Session.
 
 ## Public-surface rules
 
@@ -219,7 +229,7 @@ uses the format fallback.
 - Signal-test probes remain labeled `DIRECT MEDIA`; the exact URL used by the
   main receiver appears separately as `PLAY STREAM` with its live playback state.
 - Sensitive-looking query parameters are redacted before a URL is rendered.
-- Radio Browser and the five explicit now-playing providers are limited to their
+- Radio Browser and the explicit now-playing providers are limited to their
   HTTPS hosts by CSP.
 - Dynamic station audio is allowed only through HTTPS media URLs.
 - The shared Cloudflare/Netlify headers carry the same Radio Browser and HTTPS

@@ -31,7 +31,8 @@ const BEHIND_THE_SCHEMES = {
     homepage: 'https://behindthesch3m3s.com/',
     countrycode: 'US', codec: 'MP3', bitrate: 128,
     tags: 'conspiracy theories,independent talk', hls: false, lastcheckok: true, source: 'curated',
-    description: 'Late-night conspiracy talk and independent broadcasts.'
+    description: 'Late-night conspiracy talk and independent broadcasts.',
+    now_playing: { type: 'azuracast', url: 'https://scream.behindthesch3m3s.com/api/nowplaying/the_scaly_show' }
 };
 const OFFICIAL_NEWS_STATIONS = [{
     stationuuid: 'official-alex-jones-network',
@@ -70,14 +71,24 @@ const CURATED_TOP_STATIONS = [
         url_resolved: 'https://podradio.us/stream/free-cosmos', homepage: 'https://podradio.us/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'ufo,uap,paranormal,podcast,talk',
         hls: false, lastcheckok: true, source: 'curated',
-        description: 'UFO, UAP, paranormal, and contact-focused podcast rotation.'
+        description: 'UFO, UAP, paranormal, and contact-focused podcast rotation.',
+        now_playing: {
+            type: 'podradio',
+            url: 'https://podradio.us/admin/modules/IceCastManager/nowplaying.php',
+            slug: 'free-cosmos'
+        }
     },
     {
         stationuuid: '1d565cd5-d5a7-457d-b212-557be006f31a', name: 'Dr. J Radio',
         url_resolved: 'https://podradio.us/stream/drjradio-live', homepage: 'https://podradio.us/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'ufo,paranormal,conspiracy,podcast,talk',
         hls: false, lastcheckok: true, source: 'curated',
-        description: 'Paranormal interviews and long-form UFO and conspiracy talk.'
+        description: 'Paranormal interviews and long-form UFO and conspiracy talk.',
+        now_playing: {
+            type: 'podradio',
+            url: 'https://podradio.us/admin/modules/IceCastManager/nowplaying.php',
+            slug: 'drjradio-live'
+        }
     },
     {
         stationuuid: 'd78d7518-9212-4541-91be-2a4a6bf1a945', name: 'KHNC 1360 "The Lion"',
@@ -85,6 +96,18 @@ const CURATED_TOP_STATIONS = [
         countrycode: 'US', codec: 'MP3', bitrate: 48, tags: 'conspiracy,independent talk,politics',
         hls: false, lastcheckok: true, source: 'curated',
         description: 'Colorado independent talk mixing conspiracy, politics, and Christian programming.'
+    },
+    {
+        stationuuid: '1e8febb5-722e-4975-aade-c3e07d4ac6ba', name: 'K-Star Talk Radio Network',
+        url_resolved: 'https://c23.radioboss.fm/stream/204', homepage: 'https://www.kstartalkradio.com/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'conspiracy theories,alternative news,talk',
+        hls: false, lastcheckok: true, source: 'curated',
+        description: 'Conspiracy Radio programming, overnight talk, and independent alternative news.',
+        now_playing: {
+            type: 'radioboss',
+            url: 'https://c23.radioboss.fm/w/nowplayinginfo?u=204',
+            title_only: true
+        }
     },
     {
         stationuuid: '445cbb3a-1c4e-49aa-a268-f5b6acfa8f2e', name: 'KEXP',
@@ -116,10 +139,23 @@ const CURATED_TOP_STATIONS = [
     },
     {
         stationuuid: 'official-hearme-screamo-emo', name: 'Screamo Emo',
-        url_resolved: 'https://radio.hearme.fm:8478/stream', homepage: 'https://hearme.fm/radio/screamo-emo',
+        url_resolved: 'https://radio.hearme.fm:8478/stream', homepage: 'https://hearme.fm/radio/screamo-emo/',
         countrycode: 'GB', codec: 'MP3', bitrate: 0, tags: 'emo,screamo,post-hardcore,punk',
         hls: false, lastcheckok: true, source: 'official',
-        description: 'Emo, screamo, post-hardcore, and cathartic punk-adjacent rotation.'
+        description: 'Emo, screamo, post-hardcore, and cathartic punk-adjacent rotation.',
+        now_playing: {
+            type: 'icecast',
+            url: 'https://cors.eu.org/https://radio.hearme.fm:8478/status-json.xsl',
+            note: 'OFFICIAL TITLE VIA PUBLIC READ BRIDGE'
+        }
+    },
+    {
+        stationuuid: '2887dc93-4c30-4981-8f60-a87d25a4386f', name: 'Static: 90s & 2000s Alt Rock',
+        url_resolved: 'https://r.bgp.rodeo/listen/static/radio.mp3', homepage: 'https://r.bgp.rodeo/public/static',
+        countrycode: 'US', codec: 'MP3', bitrate: 320, tags: '90s alternative,alternative rock,grunge,post-grunge',
+        hls: false, lastcheckok: true, source: 'curated',
+        description: '90s and 2000s alt-rock anthems, grunge, post-grunge, and loud car-speaker cuts.',
+        now_playing: { type: 'azuracast', url: 'https://r.bgp.rodeo/api/nowplaying/static' }
     },
     {
         stationuuid: 'b5585301-1987-4605-9c4d-86da2488c0ad', name: 'DKFM Shoegaze Radio',
@@ -154,14 +190,6 @@ const CURATED_TOP_STATIONS = [
         now_playing: { type: 'somafm', url: 'https://somafm.com/songs/dronezone.json' }
     },
     {
-        stationuuid: '960c7c81-0601-11e8-ae97-52543be04c81', name: 'Secret Agent',
-        url_resolved: 'https://ice6.somafm.com/secretagent-128-mp3', homepage: 'https://somafm.com/secretagent/',
-        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'downtempo,lounge,spy',
-        hls: false, lastcheckok: true, source: 'curated',
-        description: 'Spy-soundtrack lounge, downtempo tension, and covert grooves.',
-        now_playing: { type: 'somafm', url: 'https://somafm.com/songs/secretagent.json' }
-    },
-    {
         stationuuid: '9614eb15-0601-11e8-ae97-52543be04c81', name: 'Mission Control',
         url_resolved: 'https://ice5.somafm.com/missioncontrol-128-mp3', homepage: 'https://somafm.com/missioncontrol/',
         countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'experimental,space program',
@@ -176,13 +204,6 @@ const CURATED_TOP_STATIONS = [
         hls: false, lastcheckok: true, source: 'curated',
         description: 'Modern psychedelic and underground indie rock, commercial-free.',
         now_playing: { type: 'icecast', url: 'https://c22.radioboss.fm:18364/status-json.xsl' }
-    },
-    {
-        stationuuid: '43ea0516-a17e-4b65-8999-61791c800ca6', name: 'Radio BipTunia',
-        url_resolved: 'https://ecast.myautodj.com:1380/listen.mp3', homepage: 'https://biptunia.com/?page_id=4399',
-        countrycode: 'US', codec: 'MP3', bitrate: 224, tags: 'experimental,microtonal,psychedelic',
-        hls: false, lastcheckok: true, source: 'curated',
-        description: 'Microtonal, psychedelic, and outsider experimental radio.'
     }
 ];
 
@@ -473,6 +494,7 @@ function setProgramFallback(station, note = 'LIVE TITLE NOT PUBLISHED') {
     currentProgram.textContent = stationFormat(station);
     currentProgramNote.textContent = `STATION FORMAT  /  ${note}`;
     currentProgram.closest('.program-readout').dataset.state = 'format';
+    updateMediaSession(station);
 }
 
 function reportNowPlayingSurface(station, state, label, detail) {
@@ -503,42 +525,99 @@ function icecastSource(data, config) {
     return sources.find(item => String(item.title || '').trim()) || sources[0];
 }
 
-function parseNowPlaying(config, data) {
+function cleanProgramText(value) {
+    return String(value || '')
+        .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 180);
+}
+
+function validProgramTitle(station, value) {
+    const title = cleanProgramText(value);
+    if (!title) return '';
+    const lowered = title.toLowerCase().replace(/[.!]+$/g, '');
+    const placeholders = new Set([
+        'unknown', 'unknown track', 'no title', 'untitled', 'stream', 'live',
+        'live stream', 'radio', 'auto dj', 'autodj', 'loading', 'loading...',
+        'carregando', 'carregando...'
+    ]);
+    if (placeholders.has(lowered)) return '';
+    if (lowered === cleanProgramText(station?.name).toLowerCase()) return '';
+    if (lowered === cleanProgramText(stationFormat(station)).toLowerCase()) return '';
+    return title;
+}
+
+function programResult(station, value, note) {
+    const title = validProgramTitle(station, value);
+    return title ? { title, note } : null;
+}
+
+function parseNowPlaying(station, config, data) {
     if (config.type === 'radio-co') {
-        const title = String(data?.current_track?.title || '').trim();
-        if (!title) return null;
         const listeners = Number(data?.listeners);
-        return {
-            title,
-            note: Number.isFinite(listeners) ? `${listeners} LISTENING  /  LIVE NETWORK DATA` : 'LIVE NETWORK DATA'
-        };
+        const note = Number.isFinite(listeners) ? `${listeners} LISTENING  /  LIVE NETWORK DATA` : 'LIVE NETWORK DATA';
+        return programResult(station, data?.current_track?.title, note);
     }
 
     if (config.type === 'somafm') {
         const song = Array.isArray(data?.songs) ? data.songs[0] : null;
         if (!song) return null;
-        const artist = String(song.artist || '').trim();
-        const title = String(song.title || '').trim();
-        const album = String(song.album || '').trim();
+        const artist = cleanProgramText(song.artist);
+        const title = cleanProgramText(song.title);
+        const album = cleanProgramText(song.album);
         if (!artist && !title) return null;
-        return {
-            title: [artist, title].filter(Boolean).join('  /  '),
-            note: album ? `${album.toUpperCase()}  /  SOMAFM LIVE DATA` : 'SOMAFM LIVE DATA'
-        };
+        const note = album ? `${album.toUpperCase()}  /  SOMAFM LIVE DATA` : 'SOMAFM LIVE DATA';
+        return programResult(station, [artist, title].filter(Boolean).join('  /  '), note);
     }
 
     if (config.type === 'icecast') {
         const source = icecastSource(data, config);
-        const title = String(source?.title || '').trim();
-        if (!title) return null;
+        if (!source) return null;
         const listeners = Number(source.listeners);
-        const genre = String(source.genre || '').trim();
+        const genre = cleanProgramText(source.genre);
         const note = [
             Number.isFinite(listeners) ? `${listeners} LISTENING` : '',
             genre ? genre.toUpperCase() : '',
-            'LIVE SERVER DATA'
+            config.note || 'LIVE SERVER DATA'
         ].filter(Boolean).join('  /  ');
-        return { title, note };
+        return programResult(station, source?.title, note);
+    }
+
+    if (config.type === 'azuracast') {
+        const payload = Array.isArray(data)
+            ? data.find(item => !config.slug || item?.station?.shortcode === config.slug)
+            : data;
+        const song = payload?.now_playing?.song;
+        const artist = cleanProgramText(song?.artist);
+        const title = cleanProgramText(song?.title);
+        const text = cleanProgramText(song?.text);
+        const album = cleanProgramText(song?.album);
+        const listeners = Number(payload?.listeners?.current);
+        const display = artist || title
+            ? [artist, title].filter(Boolean).join('  /  ')
+            : text;
+        const note = [
+            Number.isFinite(listeners) ? `${listeners} LISTENING` : '',
+            album ? album.toUpperCase() : '',
+            'AZURACAST LIVE DATA'
+        ].filter(Boolean).join('  /  ');
+        return programResult(station, display, note);
+    }
+
+    if (config.type === 'podradio') {
+        return programResult(station, data?.now?.[config.slug], 'PODRADIO LIVE DATA');
+    }
+
+    if (config.type === 'radioboss') {
+        const artist = cleanProgramText(data?.currenttrack_artist);
+        const title = cleanProgramText(data?.currenttrack_title);
+        const display = config.title_only
+            ? title || data?.nowplaying || data?.currenttrack
+            : artist || title
+                ? [artist, title].filter(Boolean).join('  /  ')
+                : data?.nowplaying || data?.currenttrack;
+        return programResult(station, display, 'RADIOBOSS LIVE DATA');
     }
 
     return null;
@@ -568,7 +647,7 @@ function startNowPlayingUpdates(station) {
             if (!response.ok) throw new Error(`Metadata returned ${response.status}`);
             const data = await response.json();
             if (run !== nowPlayingRun || currentStation?.stationuuid !== station.stationuuid) return;
-            const program = parseNowPlaying(config, data);
+            const program = parseNowPlaying(station, config, data);
             if (!program) throw new Error('No current title was published');
             currentProgramLabel.textContent = 'NOW PLAYING';
             currentProgram.textContent = program.title;
