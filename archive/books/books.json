@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-26T05:52:27.637Z",
+  "updatedAt": "2026-08-27T16:33:24.706Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -32,6 +32,16 @@
       "description": "Includes indexes",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-08-26T05:52:27.637Z"
+    },
+    {
+      "date": "2026-08-27",
+      "identifier": "mobot31753000819562",
+      "title": "Phytanthoza iconographia, sive, Conspectus aliquot millium : tam indigenarum quam exoticarum, ex quatuor mundi partibus longâ annorum serie indefesoque studio / à Joanne Guilielmo Weinmanno ... ; collectarum plantarum, arborum, fruticam, florum, fructuum, fungorum, &c., quae nitidissime aeri incisae",
+      "creator": "Weinmann, Johann Wilhelm, 1683-1741.",
+      "published": "1737",
+      "description": "",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-08-27T16:33:24.706Z"
     }
   ]
 }
