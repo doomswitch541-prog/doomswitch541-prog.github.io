@@ -1,16 +1,15 @@
-const CACHE_NAME = 'rg-broadcast-shell-20260827-5';
+const CACHE_NAME = 'rg-broadcast-shell-20260827-6';
 const APP_SHELL = '/music/broadcast/index.html';
 const PRECACHE_URLS = [
     '/music/broadcast/',
     APP_SHELL,
     '/music/broadcast/manifest.webmanifest?v=20260827-ios2',
-    '/music/broadcast/pwa.js?v=20260827-2',
+    '/music/broadcast/pwa.js?v=20260827-radio1',
     '/css/styles.css',
     '/css/broadcast.css?v=20260827-ios2',
     '/css/radio-surfaces.css',
     '/js/site.js',
-    '/js/radio-surfaces.js',
-    '/js/broadcast.js?v=20260827-ios2',
+    '/js/broadcast.js?v=20260827-radio1',
     '/music/broadcast/icons/rg-broadcast-180.png?v=20260827-ios2',
     '/music/broadcast/icons/rg-broadcast-192.png?v=20260827-ios2',
     '/music/broadcast/icons/rg-broadcast-512.png?v=20260827-ios2',
