@@ -2047,6 +2047,6 @@ stationHome.addEventListener('click', event => {
 bindMediaSession();
 updateFavoriteControls();
 setActivePreset('top20');
-loadStations({ kind: 'top20' });
 selectInitialStation();
+loadStations({ kind: 'top20' });
 discoverServers();

@@ -202,6 +202,26 @@ not remove a station or change playback.
   that support file sharing receive the PNG in the native share sheet; other
   browsers download it and copy the station link when clipboard access is
   available. No image service, tracking call, or remote artwork is involved.
+- Carries a Broadcast-only web-app manifest with `/music/broadcast/` as its ID,
+  start URL, and scope. The service worker lives inside that directory, so it
+  cannot control the rest of RG HQ. It caches fourteen same-origin shell files:
+  the receiver page, its local CSS and JavaScript, the manifest, and the four
+  referenced radio icons. Remote station audio, live-title APIs, Radio Browser,
+  and every other cross-origin response are always left to the network.
+- Uses network-first navigation with the cached receiver as a fallback. The
+  offline shell keeps the embedded Top 20 and Personal lists readable and says
+  plainly that live stations need a connection; it does not imply cached or
+  downloadable radio playback.
+- Shows `ADD APP` only when iOS can use the Home Screen instructions or a
+  supporting browser supplies `beforeinstallprompt`. The instructions open only
+  after a tap, the browser-native prompt is never invoked automatically, and the
+  action disappears in standalone mode or after installation.
+- On phone-sized viewports, the existing previous/play/next controls become a
+  safe-area-aware receiver dock with station and program text. Its single lock
+  line follows tuning, playing, and error state. Search focus moves the dock out
+  of the keyboard's way, while larger tablets and desktops retain the original
+  receiver/directory layout. Reduced motion removes the lock sweep and state
+  transitions.
 
 ### Curated stream additions checked August 24–26, 2026
 

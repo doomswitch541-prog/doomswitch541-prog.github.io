@@ -1,0 +1,33 @@
+{
+  "id": "/music/broadcast/",
+  "name": "RG Broadcast",
+  "short_name": "RG Broadcast",
+  "description": "A dark open-web receiver for live internet radio.",
+  "start_url": "/music/broadcast/",
+  "scope": "/music/broadcast/",
+  "display": "standalone",
+  "background_color": "#0a0b0b",
+  "theme_color": "#0a0b0b",
+  "orientation": "any",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "/music/broadcast/icons/rg-broadcast-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/music/broadcast/icons/rg-broadcast-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/music/broadcast/icons/rg-broadcast-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

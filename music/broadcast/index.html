@@ -2,14 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.api.radio-browser.info https://public.radio.co https://somafm.com https://kathy.torontocast.com:2005 https://radio.streemlion.com:4405 https://c22.radioboss.fm:18364 https://scream.behindthesch3m3s.com https://podradio.us https://c23.radioboss.fm https://r.bgp.rodeo https://cors.eu.org https://api.live365.com; media-src https:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.api.radio-browser.info https://public.radio.co https://somafm.com https://kathy.torontocast.com:2005 https://radio.streemlion.com:4405 https://c22.radioboss.fm:18364 https://scream.behindthesch3m3s.com https://podradio.us https://c23.radioboss.fm https://r.bgp.rodeo https://cors.eu.org https://api.live365.com; media-src https:; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
     <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0a0b0b">
     <meta name="description" content="Find and play real internet radio stations.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RG Broadcast">
     <title>RG Broadcast</title>
+    <link rel="manifest" href="/music/broadcast/manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260827-pwa1">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
@@ -17,8 +23,15 @@
     <header class="broadcast-head">
         <a class="back-link" href="/music" aria-label="Back to Listen">RG / LISTEN</a>
         <span class="head-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span class="head-source">INTERNET RADIO</span>
+        <div class="head-actions">
+            <button class="install-app" id="install-app" type="button" hidden>ADD APP</button>
+            <span class="head-source">INTERNET RADIO</span>
+        </div>
     </header>
+
+    <p class="connection-status" id="connection-status" role="status" aria-live="polite" hidden>
+        OFFLINE SHELL <span aria-hidden="true">·</span> LIVE STATIONS NEED A CONNECTION
+    </p>
 
     <main class="broadcast-shell">
         <section class="receiver" aria-labelledby="broadcast-title">
@@ -46,6 +59,11 @@
                     </dl>
                 </div>
                 <div class="player-controls">
+                    <div class="mini-player-lock" aria-hidden="true"><span></span></div>
+                    <div class="mini-player-copy" aria-hidden="true">
+                        <span id="dock-current-name">Choose a station</span>
+                        <strong id="dock-current-program">Waiting for a station</strong>
+                    </div>
                     <button class="transport transport--small" id="previous-station" type="button" aria-label="Previous station" disabled>&larr;</button>
                     <button class="transport transport--play" id="play-toggle" type="button" aria-label="Play station" disabled>
                         <span class="play-icon" aria-hidden="true"></span>
@@ -149,12 +167,30 @@
         </section>
     </main>
 
+    <dialog class="install-sheet" id="install-sheet" aria-labelledby="install-sheet-title">
+        <div class="install-sheet-panel">
+            <div class="install-sheet-head">
+                <div>
+                    <span>RG BROADCAST</span>
+                    <h2 id="install-sheet-title">Add the receiver to your Home Screen</h2>
+                </div>
+                <button type="button" data-install-close aria-label="Close install instructions">&times;</button>
+            </div>
+            <ol>
+                <li>Tap <strong>Share</strong> in Safari.</li>
+                <li>Choose <strong>Add to Home Screen</strong>.</li>
+                <li>Leave <strong>Open as Web App</strong> enabled, then tap <strong>Add</strong>.</li>
+            </ol>
+        </div>
+    </dialog>
+
     <footer class="broadcast-foot">
         <span>Station data: Radio Browser + direct feeds</span>
         <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">OPEN DIRECTORY</a>
     </footer>
 
     <script src="/js/site.js"></script>
-    <script type="module" src="/js/broadcast.js?v=20260827-1"></script>
+    <script type="module" src="/js/broadcast.js?v=20260827-2"></script>
+    <script type="module" src="/music/broadcast/pwa.js?v=20260827-1"></script>
 </body>
 </html>
