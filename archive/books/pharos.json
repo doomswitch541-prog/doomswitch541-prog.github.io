@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "source": "pharos",
+  "updatedAt": "2026-08-27T02:07:06.895Z",
+  "books": [
+    {
+      "date": "2026-08-26",
+      "identifier": "PunjabiToEngDict",
+      "title": "Punjabi To Eng Dict",
+      "creator": "PUNJABAUDIT.BLOGSPOT.COM",
+      "published": "Uncatalogued",
+      "description": "PUNJABI TO ENGLISH DICTIONARY",
+      "shelf": "Reference",
+      "archivedAt": "2026-08-26T07:41:37.515Z"
+    },
+    {
+      "date": "2026-08-25",
+      "identifier": "CharlesAtlas_201601",
+      "title": "Charles Atlas",
+      "creator": "Creator not listed",
+      "published": "Uncatalogued",
+      "description": "Charles Atlas",
+      "shelf": "Maps & Atlases",
+      "archivedAt": "2026-08-25T07:39:56.802Z"
+    },
+    {
+      "date": "2026-08-24",
+      "identifier": "kamandakiyanitis00kamarich",
+      "title": "Kamandakiya Nitisara; or, The elements of polity, in English;",
+      "creator": "Kamandaki",
+      "published": "1869",
+      "description": "[2], vi, 2, 245 p",
+      "shelf": "Science",
+      "archivedAt": "2026-08-25T04:36:24.232Z"
+    },
+    {
+      "date": "2026-08-23",
+      "identifier": "annalsofplatteco00paxt",
+      "title": "Annals of Platte County, Missouri, from its exploration down to June 1, 1897; with genealogies of its noted families, and sketches of its pioneers and distinguished people ..",
+      "creator": "Paxton, W. M. (William McClung), 1819-",
+      "published": "1897",
+      "description": "1 p. l., 1182 p. 25 cm",
+      "shelf": "History",
+      "archivedAt": "2026-08-25T04:36:32.400Z"
+    },
+    {
+      "date": "2026-08-22",
+      "identifier": "EnglishToUrduDictionary_201601",
+      "title": "English To Urdu Dictionary",
+      "creator": "Creator not listed",
+      "published": "Uncatalogued",
+      "description": "English To Urdu Dictionary",
+      "shelf": "Reference",
+      "archivedAt": "2026-08-25T04:36:34.632Z"
+    },
+    {
+      "date": "2026-08-21",
+      "identifier": "CompleteAtlasOfTheWorld2012",
+      "title": "Complete Atlas Of The World (2012)",
+      "creator": "Creator not listed",
+      "published": "2019-05-27",
+      "description": "Complete Atlas Of The World (2012)",
+      "shelf": "Maps & Atlases",
+      "archivedAt": "2026-08-25T04:36:37.224Z"
+    },
+    {
+      "date": "2026-08-20",
+      "identifier": "boletindelaacade21acad",
+      "title": "Boletin de la Academia Nacional de Ciencias",
+      "creator": "Academia Nacional de Ciencias (Crdoba, Argentina)",
+      "published": "1874",
+      "description": "Indexes: Vols. 1-10, in v. 10; vols. 1-20, in v. 20; vols. 1-30, in v. 30",
+      "shelf": "Science",
+      "archivedAt": "2026-08-25T04:36:40.352Z"
+    },
+    {
+      "date": "2026-08-19",
+      "identifier": "thescienceoflogi01coffuoft",
+      "title": "The science of logic; an inquiry into the principles of accurate thought and scientific method",
+      "creator": "Coffey, Peter, 1876-",
+      "published": "1912",
+      "description": "Vol. 1",
+      "shelf": "Science",
+      "archivedAt": "2026-08-25T04:36:42.659Z"
+    },
+    {
+      "date": "2026-08-18",
+      "identifier": "listofgeographic04libr",
+      "title": "A list of geographical atlases in the Library of Congress, with bibliographical notes",
+      "creator": "Library of Congress. Map Division",
+      "published": "1909",
+      "description": "At head of title, v. 1-4: Library of Congress",
+      "shelf": "Maps & Atlases",
+      "archivedAt": "2026-08-25T04:36:44.578Z"
+    },
+    {
+      "date": "2026-08-17",
+      "identifier": "EncyclopediaOfOccultSciences",
+      "title": "Encyclopedia Of Occult Sciences",
+      "creator": "Creator not listed",
+      "published": "Uncatalogued",
+      "description": "A dictionary of Occult Sciences",
+      "shelf": "Reference",
+      "archivedAt": "2026-08-25T04:36:48.475Z"
+    },
+    {
+      "date": "2026-08-16",
+      "identifier": "historyofwestern02scha",
+      "title": "History of western Maryland : being a history of Frederick, Montgomery, Carroll, Washington, Allegany, and Garrett counties from the earliest period to the present day ; including biographical sketches of their representative men",
+      "creator": "Scharf, J. Thomas (John Thomas), 1843-1898. 1n",
+      "published": "1882",
+      "description": "2 v. ; 29 cm",
+      "shelf": "History",
+      "archivedAt": "2026-08-25T04:36:51.614Z"
+    },
+    {
+      "date": "2026-08-15",
+      "identifier": "proceedingsofamer07amer",
+      "title": "Proceedings of the American Philosophical Society held at Philadelphia for promoting useful knowledge",
+      "creator": "American Philosophical Society",
+      "published": "1859-1861",
+      "description": "Chemical abstracts",
+      "shelf": "Science",
+      "archivedAt": "2026-08-25T04:36:53.295Z"
+    },
+    {
+      "date": "2026-08-14",
+      "identifier": "lifeofmaulaviabd031133mbp",
+      "title": "Life Of Maulavi Abdul Karim",
+      "creator": "Azam, Md. Ali.",
+      "published": "1939",
+      "description": "Life Of Maulavi Abdul Karim",
+      "shelf": "Maps & Atlases",
+      "archivedAt": "2026-08-25T04:36:55.176Z"
+    }
+  ]
+}

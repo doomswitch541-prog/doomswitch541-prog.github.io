@@ -3,6 +3,9 @@
 
     const RAW_HISTORY_URL = 'https://raw.githubusercontent.com/doomswitch541-prog/doomswitch541-prog.github.io/main/archive/books/books.json';
     const LOCAL_HISTORY_URL = '/archive/books/books.json';
+    // Pharos publishes its curated Internet Archive books here (complements the daily pull).
+    const PHAROS_RAW_URL = 'https://raw.githubusercontent.com/doomswitch541-prog/doomswitch541-prog.github.io/main/archive/books/pharos.json';
+    const PHAROS_LOCAL_URL = '/archive/books/pharos.json';
     const CACHE_KEY = 'rg-archive-books-history-v1';
     const REQUEST_TIMEOUT_MS = 9000;
     const STALE_RETRY_MS = 15 * 60 * 1000;
@@ -124,6 +127,32 @@
         const cached = readCachedHistory();
         if (cached) return cached;
         throw new Error('No archive history source was available');
+    }
+
+    // Pharos's curated shelf — optional. If it's missing or malformed, the daily shelf stands
+    // alone; it never blocks the page.
+    async function readPharos() {
+        const cacheBust = `v=${Date.now()}`;
+        for (const source of [`${PHAROS_RAW_URL}?${cacheBust}`, `${PHAROS_LOCAL_URL}?${cacheBust}`]) {
+            try {
+                const history = await fetchJson(source);
+                return history.books;
+            } catch {
+                // Try the local copy, then give up quietly.
+            }
+        }
+        return [];
+    }
+
+    function mergeBooks(base, extra) {
+        const seen = new Set(base.map((book) => book.identifier));
+        const merged = base.slice();
+        for (const book of extra) {
+            if (seen.has(book.identifier)) continue;
+            seen.add(book.identifier);
+            merged.push(book);
+        }
+        return merged.sort((a, b) => b.date.localeCompare(a.date));
     }
 
     function showBook(book) {
@@ -255,9 +284,16 @@
 
         try {
             const history = await readHistory();
-            latestArchiveDate = history.books[0].date;
-            showBook(history.books[0]);
-            showHistory(history.books);
+            let books = history.books;
+            const pharos = await readPharos();
+            if (pharos.length) {
+                books = mergeBooks(books, pharos);
+                const powered = document.getElementById('books-powered');
+                if (powered) powered.hidden = false;
+            }
+            latestArchiveDate = books[0].date;
+            showBook(books[0]);
+            showHistory(books);
         } catch (error) {
             showError(error);
         } finally {
