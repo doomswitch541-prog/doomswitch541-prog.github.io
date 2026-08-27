@@ -1595,15 +1595,17 @@ button:hover:not(:disabled) {
 @media (max-width: 640px), (max-width: 980px) and (max-height: 520px) {
     .mini-player-handle {
         position: absolute;
-        top: -22px;
+        top: -24px;
         left: 50%;
         z-index: 2;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 64px;
+        gap: 0.28rem;
+        width: 108px;
         min-width: 44px;
-        height: 44px;
+        height: 48px;
         padding: 0;
         border: 1px solid var(--line-strong);
         border-bottom: 0;
@@ -1617,34 +1619,56 @@ button:hover:not(:disabled) {
 
     .mini-player-handle span {
         width: 24px;
-        height: 3px;
+        height: 2px;
         background: currentColor;
-        box-shadow: 0 -6px 0 -1px var(--line-strong);
     }
 
-    .player-controls.dock-expanded .mini-player-handle span {
-        background: var(--amber);
+    .mini-player-handle b {
+        font-family: var(--font-data);
+        font-size: 0.48rem;
+        font-weight: 400;
+        letter-spacing: 0.09em;
     }
 
-    .car-dock-panel:not([hidden]) {
+    .player-controls.dock-expanded .mini-player-handle {
+        color: var(--amber);
+    }
+
+    .car-dock-panel {
+        position: absolute;
+        right: 0;
+        bottom: 100%;
+        left: 0;
+        z-index: 1;
         display: flex;
-        grid-column: 1 / -1;
-        grid-row: 1;
         flex-direction: column;
         height: min(62dvh, 520px);
         min-height: 0;
-        margin: -9px -10px 0;
         padding: 1.15rem max(1rem, env(safe-area-inset-right)) 1rem max(1rem, env(safe-area-inset-left));
         overflow-y: auto;
         overscroll-behavior: contain;
+        border-top: 1px solid var(--line-strong);
         border-bottom: 1px solid var(--line-strong);
         background: #0d0f0f;
+        box-shadow: 0 -1.4rem 3.2rem rgba(0, 0, 0, 0.42);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(18px);
+        transition:
+            transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 180ms ease,
+            visibility 0s linear 280ms;
+        will-change: transform, opacity;
         scrollbar-color: var(--amber) transparent;
     }
 
-    .player-controls.dock-expanded .mini-player-copy,
-    .player-controls.dock-expanded .transport {
-        grid-row: 2;
+    .player-controls.dock-expanded .car-dock-panel {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+        transition-delay: 0s;
     }
 }
 
@@ -2148,9 +2172,11 @@ body.car-mode-active .mini-player-handle {
     left: 50%;
     z-index: 2;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 96px;
+    gap: 0.35rem;
+    width: 148px;
     min-width: 64px;
     min-height: 64px;
     padding: 0;
@@ -2166,9 +2192,19 @@ body.car-mode-active .mini-player-handle {
 
 body.car-mode-active .mini-player-handle span {
     width: 32px;
-    height: 4px;
+    height: 2px;
     background: currentColor;
-    box-shadow: 0 -7px 0 -1px var(--line-strong);
+}
+
+body.car-mode-active .mini-player-handle b {
+    font-family: var(--font-data);
+    font-size: 0.58rem;
+    font-weight: 400;
+    letter-spacing: 0.11em;
+}
+
+body.car-mode-active .player-controls.dock-expanded .mini-player-handle {
+    color: var(--amber);
 }
 
 body.car-mode-active .player-controls .transport {
@@ -2186,24 +2222,40 @@ body.car-mode-active .player-controls .transport-label {
     display: none;
 }
 
-body.car-mode-active .car-dock-panel:not([hidden]) {
+body.car-mode-active .car-dock-panel {
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    left: 0;
+    z-index: 1;
     display: flex;
-    grid-column: 1 / -1;
-    grid-row: 1;
     flex-direction: column;
     height: min(62dvh, 520px);
     min-height: 0;
-    margin: -14px -14px 0;
     padding: 1.2rem max(1rem, env(safe-area-inset-right)) 1rem max(1rem, env(safe-area-inset-left));
     overflow-y: auto;
     overscroll-behavior: contain;
+    border-top: 1px solid var(--line-strong);
     border-bottom: 1px solid var(--line-strong);
     background: #0d0f0f;
+    box-shadow: 0 -1.4rem 3.2rem rgba(0, 0, 0, 0.42);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(18px);
+    transition:
+        transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms ease,
+        visibility 0s linear 280ms;
+    will-change: transform, opacity;
 }
 
-body.car-mode-active .player-controls.dock-expanded .mini-player-copy,
-body.car-mode-active .player-controls.dock-expanded .transport {
-    grid-row: 2;
+body.car-mode-active .player-controls.dock-expanded .car-dock-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
 }
 
 body.car-mode-active .car-saved-track button,

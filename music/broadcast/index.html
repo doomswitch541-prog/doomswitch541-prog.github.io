@@ -11,11 +11,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="RG Broadcast">
     <title>RG Broadcast</title>
-    <link rel="manifest" href="/music/broadcast/manifest.webmanifest">
-    <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png">
+    <link rel="manifest" href="/music/broadcast/manifest.webmanifest?v=20260827-ios2">
+    <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png?v=20260827-ios2">
+    <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png?v=20260827-ios2">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260827-car1">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260827-ios2">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
@@ -66,9 +66,9 @@
                 </div>
                 <div class="player-controls">
                     <button class="mini-player-handle" id="dock-toggle" type="button" aria-expanded="false" aria-controls="car-dock-panel" aria-label="Expand receiver dock">
-                        <span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span><b aria-hidden="true">SIGNAL DOCK</b>
                     </button>
-                    <div class="car-dock-panel" id="car-dock-panel" hidden>
+                    <div class="car-dock-panel" id="car-dock-panel" aria-hidden="true" inert>
                         <div class="car-dock-status">
                             <span>RECEIVER STATE</span>
                             <strong id="car-dock-state">STANDBY</strong>
@@ -276,7 +276,7 @@
     </footer>
 
     <script src="/js/site.js"></script>
-    <script type="module" src="/js/broadcast.js?v=20260827-car1"></script>
+    <script type="module" src="/js/broadcast.js?v=20260827-ios2"></script>
     <script type="module" src="/music/broadcast/pwa.js?v=20260827-2"></script>
 </body>
 </html>

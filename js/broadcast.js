@@ -24,8 +24,8 @@ const MEDIA_SESSION_MESSAGES = [
     'RG OPEN-WEB RADIO 🌐📻'
 ];
 const MEDIA_SESSION_ARTWORK = [
-    { src: '/music/broadcast/icons/rg-broadcast-192.png', sizes: '192x192', type: 'image/png' },
-    { src: '/music/broadcast/icons/rg-broadcast-512.png', sizes: '512x512', type: 'image/png' }
+    { src: '/music/broadcast/icons/rg-broadcast-192.png?v=20260827-ios2', sizes: '192x192', type: 'image/png' },
+    { src: '/music/broadcast/icons/rg-broadcast-512.png?v=20260827-ios2', sizes: '512x512', type: 'image/png' }
 ];
 const BAND_FREQUENCIES = [
     87.9, 88.9, 90.0, 91.0, 92.0,
@@ -514,15 +514,16 @@ function setDockExpanded(expanded) {
     playerControls.classList.toggle('dock-expanded', dockExpanded);
     dockToggle.setAttribute('aria-expanded', String(dockExpanded));
     dockToggle.setAttribute('aria-label', dockExpanded ? 'Collapse receiver dock' : 'Expand receiver dock');
+    dockToggle.querySelector('b').textContent = dockExpanded ? 'CLOSE DOCK' : 'SIGNAL DOCK';
+    carDockPanel.setAttribute('aria-hidden', String(!dockExpanded));
+    carDockPanel.inert = !dockExpanded;
     if (dockExpanded) {
-        carDockPanel.hidden = false;
         scopeVisible = true;
         requestScopeFrame();
         return;
     }
 
     if (carDockPanel.contains(document.activeElement)) dockToggle.focus({ preventScroll: true });
-    carDockPanel.hidden = true;
     scopeVisible = false;
     if (scopeFrame !== null) cancelAnimationFrame(scopeFrame);
     scopeFrame = null;
@@ -697,7 +698,7 @@ function resetCarText() {
 function scopeShouldAnimate() {
     const state = effectiveCarState();
     return scopeVisible
-        && !carDockPanel.hidden
+        && dockExpanded
         && document.visibilityState === 'visible'
         && !reducedMotionQuery.matches
         && (state === 'loading' || state === 'playing');
@@ -827,7 +828,7 @@ function initializeCarMode() {
 
     if ('IntersectionObserver' in window) {
         const scopeObserver = new IntersectionObserver(entries => {
-            scopeVisible = Boolean(entries[0]?.isIntersecting) && !carDockPanel.hidden;
+            scopeVisible = Boolean(entries[0]?.isIntersecting) && dockExpanded;
             requestScopeFrame();
         });
         scopeObserver.observe(carSignalCanvas);
@@ -2247,13 +2248,28 @@ function moveStation(direction) {
 }
 
 function publishMediaSession(station) {
-    if (!('mediaSession' in navigator) || !('MediaMetadata' in window)) return;
-    navigator.mediaSession.metadata = new MediaMetadata({
+    if (!('mediaSession' in navigator) || !('MediaMetadata' in window)) {
+        syncCarDisplay();
+        return;
+    }
+
+    const metadata = {
         title: mediaSessionProgramTitle || stationFormat(station),
         artist: station.name,
-        album: currentCarMessage(),
-        artwork: MEDIA_SESSION_ARTWORK
-    });
+        album: currentCarMessage()
+    };
+    try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            ...metadata,
+            artwork: MEDIA_SESSION_ARTWORK
+        });
+    } catch {
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata(metadata);
+        } catch {
+            // Vehicle and lock-screen metadata must never interrupt the receiver.
+        }
+    }
     syncCarDisplay();
 }
 
@@ -2629,10 +2645,14 @@ stationHome.addEventListener('click', event => {
     if (stationHome.getAttribute('aria-disabled') === 'true') event.preventDefault();
 });
 
-bindMediaSession();
-updateFavoriteControls();
 setActivePreset('top20');
-selectInitialStation();
-initializeCarMode();
 loadStations({ kind: 'top20' });
+updateFavoriteControls();
+selectInitialStation();
+try {
+    initializeCarMode();
+} catch (error) {
+    console.warn('RG Broadcast Car Mode initialization was skipped', error);
+}
+bindMediaSession();
 discoverServers();
