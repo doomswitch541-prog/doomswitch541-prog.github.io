@@ -12,19 +12,19 @@
   "categories": ["music", "entertainment"],
   "icons": [
     {
-      "src": "/music/broadcast/icons/rg-broadcast-192.png?v=20260827-ios2",
+      "src": "/music/broadcast/icons/rg-broadcast-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/music/broadcast/icons/rg-broadcast-512.png?v=20260827-ios2",
+      "src": "/music/broadcast/icons/rg-broadcast-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/music/broadcast/icons/rg-broadcast-maskable-512.png?v=20260827-ios2",
+      "src": "/music/broadcast/icons/rg-broadcast-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
