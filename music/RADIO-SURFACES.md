@@ -139,16 +139,24 @@ not remove a station or change playback.
   audience lock rather than a click-count chart: Behind the Sch3m3s, Alex Jones,
   U7 Art Bell / Coast to Coast, Ground Zero Plus, Free People of the Cosmos,
   Dr. J Radio, KHNC, and K-Star occupy the first eight positions. The music side
-  favors grunge, emo, shoegaze, psychedelic/freeform, and spacey late-night
+  favors grunge, emo, shoegaze, psychedelic rock, and spacey late-night
   listening. K-Star Talk Radio Network and Static: 90s & 2000s Alt Rock replace
-  Radio BipTunia and Secret Agent. Every exact HTTPS stream remains visible in
-  the surface monitor and is still tested by the listener's browser.
-- Organizes discovery into six restrained bands: Top 20, News Desk, Conspiracy,
-  Rock, Trippy, and Follow the Night. The broad US Live band was removed because
-  it duplicated search, and Ambient was folded into Trippy. World, Talk, Jazz,
+  Radio BipTunia and Secret Agent, while CapRadio News 90.9 KXJZ replaces WFMU
+  Freeform with Sacramento local news. Every exact HTTPS stream remains visible
+  in the surface monitor and is still tested by the listener's browser.
+- Organizes discovery into seven restrained bands: Top 20, News Desk,
+  Conspiracy, Rock, Trippy, Follow the Night, and Personal. The broad US Live
+  band was removed because it duplicated search, and Ambient was folded into
+  Trippy. World, Talk, Jazz,
   and Classical remain out. All ordinary directory/search bands are US-filtered;
   Follow the Night remains geographically open because its actual function is
   finding stations currently broadcasting after dark.
+- Keeps **Personal** at the end of the band navigation. It combines RG's
+  metadata-rich conspiracy, emo, grunge, shoegaze, psychedelic, and space-radio
+  picks with four Sacramento signals: CapRadio News, CapRadio Music, 106.9 KUEL,
+  and Sacramento's K-ZAP. Nine of its twelve stations have browser-readable
+  current-song or current-program data; the other three retain honest format
+  fallbacks.
 - Rock merges live US directory searches for rock, grunge, shoegaze,
   alternative rock, emo, screamo, and post-hardcore, then leads with matching
   curated stations. HearMe.fm — Screamo Emo and Static appear in both Rock and
@@ -168,14 +176,21 @@ not remove a station or change playback.
   shows a plain-language description, genre, origin, stream quality, and source.
   The station list repeats a shorter description plus technical signal facts so
   listeners can choose without opening the debugger.
-- Media Session keeps the current song/program as its title, the station as its
-  artist, and `RG Broadcast 🦝` as its album label so supporting phone, Bluetooth,
-  and vehicle displays have a chance to carry the raccoon mark.
+- Media Session keeps the current song/program as its title and the station as
+  its artist. Its album line rotates every 45 seconds between
+  `RG Broadcast 🦝🦝 📻🛰️`, `RG NIGHT SIGNAL 🌙📡`, and
+  `RG OPEN-WEB RADIO 🌐📻`, giving supporting phone, Bluetooth, and vehicle
+  displays a changing RG signature without overwriting real now-playing data.
+  The rotation is ordinary browser JavaScript served by the static site; it
+  requires no server timer. A playback-progress check backs up the interval for
+  background audio, while the phone OS remains free to delay exact timing.
 - Loads the Broadcast module through a release-versioned URL and canonicalizes
-  saved Top 20 records on startup. Renamed stations immediately use their current
-  label, while the retired Radio BipTunia and Secret Agent records resolve to
-  K-Star and Static across the player, saved view, direct station links, and
-  share-card state instead of surviving in device storage.
+  saved Top 20 records on startup. A normal visit selects Top 20 station number
+  one, Behind the Sch3m3s, while an explicit `?station=` listening link still
+  opens its requested station. Renamed stations immediately use their current
+  label, while retired Radio BipTunia, Secret Agent, and WFMU records resolve to
+  K-Star, Static, and CapRadio News across the player, saved view, direct station
+  links, and share-card state instead of surviving in device storage.
 - For stations that publish browser-readable metadata, the player polls a
   keyless, read-only now-playing surface every 30 seconds and shows the current
   song or program. Stations that do not publish a usable browser endpoint stay
@@ -204,6 +219,15 @@ not remove a station or change playback.
 | Static: 90s & 2000s Alt Rock | Alternative rock, grunge, and post-grunge | `https://r.bgp.rodeo/listen/static/radio.mp3` | HTTP 200, `audio/mpeg`, 320 kbps stream returned |
 | DKFM Edge | New shoegaze and dream pop | `https://radio.streemlion.com:4405/stream` | HTTP 200, `audio/aacp`, audio bytes returned |
 
+### Sacramento streams checked August 27, 2026
+
+| Station | Personal-feed role | Direct HTTPS media | Check |
+| --- | --- | --- | --- |
+| CapRadio News 90.9 KXJZ | Sacramento local news, California reporting, and NPR | `https://playerservices.streamtheworld.com/api/livestream-redirect/KXJZ.mp3` | HTTP 206, `audio/mpeg`, CORS `*`, audio bytes returned |
+| CapRadio Music 88.9 KXPR | Sacramento public-radio music, jazz, and classical | `https://playerservices.streamtheworld.com/api/livestream-redirect/KXPR.mp3` | HTTP 206, `audio/mpeg`, CORS `*`, audio bytes returned |
+| 106.9 KUEL FM — The Soul of Sacramento | Community voices, jazzhop, jazz, gospel, and R&B | `https://streaming.live365.com/a81915` | HTTP 200, `audio/mpeg`, CORS `*`, audio bytes returned |
+| Sacramento's K-ZAP 93.3 | Listener-supported Sacramento true rock | `https://ice9.securenetsystems.net/KZHP` | HTTP 200, `audio/aacp`, CORS `*`, audio bytes returned |
+
 ### Browser-readable now-playing surfaces
 
 | Station group | Read-only endpoint | Browser result |
@@ -218,11 +242,17 @@ not remove a station or change playback.
 | DKFM Shoegaze Radio | `https://kathy.torontocast.com:2005/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
 | DKFM Edge | `https://radio.streemlion.com:4405/status-json.xsl` | Icecast JSON with CORS, current title, genre, and listener count |
 | HEADY | `https://c22.radioboss.fm:18364/status-json.xsl` | Icecast JSON with CORS and current title |
+| 106.9 KUEL FM | `https://api.live365.com/station/a81915` | Official Live365 JSON with CORS, current artist, title, artwork, timing, and listening URLs |
 
 These hosts are explicitly allowed in the page and shared hosting CSP. The
 endpoints require no API key, receive no RG identity, and are requested only for
 the currently selected station. U7 and KHNC did not expose a browser-readable
 CORS endpoint during this check, so their player state uses the format fallback.
+CapRadio's first-party player returns station and now-playing data but does not
+grant cross-origin browser access to the static Broadcast page; CapRadio News
+and Music therefore use the same honest format fallback. K-ZAP publishes a
+current title on its own listening page but did not expose a browser-readable
+official metadata endpoint during this check, so it also stays on format data.
 HearMe.fm — Screamo Emo publishes the official Icecast station name `Screamo
 Emo` and an accurate current title but omits CORS; the public read bridge is
 therefore best-effort. A bridge error, blank title, generic placeholder, or

@@ -7,12 +7,17 @@ const FALLBACK_SERVERS = [
     'https://at1.api.radio-browser.info'
 ];
 const FAVORITES_KEY = 'rg-broadcast-favorites-v1';
-const LAST_STATION_KEY = 'rg-broadcast-last-station-v1';
 const RESULT_LIMIT = 50;
 const SIGNAL_TEST_LIMIT = 30;
 const SIGNAL_TEST_TIMEOUT = 9000;
 const SIGNAL_TEST_CONCURRENCY = 4;
 const NOW_PLAYING_REFRESH = 30000;
+const MEDIA_SESSION_MESSAGE_REFRESH = 45000;
+const MEDIA_SESSION_MESSAGES = [
+    'RG Broadcast 🦝🦝 📻🛰️',
+    'RG NIGHT SIGNAL 🌙📡',
+    'RG OPEN-WEB RADIO 🌐📻'
+];
 const BAND_FREQUENCIES = [
     87.9, 88.9, 90.0, 91.0, 92.0,
     93.1, 94.1, 95.1, 96.2, 97.2,
@@ -48,6 +53,43 @@ const OFFICIAL_NEWS_STATIONS = [{
     source: 'official',
     description: 'Live Infowars network programming and alternative news.'
 }];
+const CAPRADIO_NEWS = {
+    stationuuid: 'official-capradio-news-kxjz',
+    name: 'CapRadio News 90.9 KXJZ',
+    url_resolved: 'https://playerservices.streamtheworld.com/api/livestream-redirect/KXJZ.mp3',
+    homepage: 'https://www.capradio.org/stream/listen-live',
+    state: 'CA', countrycode: 'US', codec: 'MP3', bitrate: 96,
+    tags: 'sacramento,local news,public radio,npr', hls: false, lastcheckok: true, source: 'official',
+    description: 'Sacramento public radio for local reporting, California news, and NPR programming.'
+};
+const CAPRADIO_MUSIC = {
+    stationuuid: 'official-capradio-music-kxpr',
+    name: 'CapRadio Music 88.9 KXPR',
+    url_resolved: 'https://playerservices.streamtheworld.com/api/livestream-redirect/KXPR.mp3',
+    homepage: 'https://www.capradio.org/stream/listen-live',
+    state: 'CA', countrycode: 'US', codec: 'MP3', bitrate: 96,
+    tags: 'sacramento,music,jazz,classical,public radio', hls: false, lastcheckok: true, source: 'official',
+    description: 'Sacramento public radio mixing locally hosted music, jazz, and classical programming.'
+};
+const KUEL = {
+    stationuuid: 'official-kuel-1069',
+    name: '106.9 KUEL FM — The Soul of Sacramento',
+    url_resolved: 'https://streaming.live365.com/a81915',
+    homepage: 'https://www.kuelfm.com/',
+    state: 'CA', countrycode: 'US', codec: 'MP3', bitrate: 128,
+    tags: 'sacramento,jazzhop,jazz,gospel,community', hls: false, lastcheckok: true, source: 'official',
+    description: 'Sacramento community radio with jazzhop, jazz, gospel, local voices, and open dialogue.',
+    now_playing: { type: 'live365', url: 'https://api.live365.com/station/a81915' }
+};
+const KZAP = {
+    stationuuid: 'official-kzap-933-kzhp',
+    name: "Sacramento's K-ZAP 93.3",
+    url_resolved: 'https://ice9.securenetsystems.net/KZHP',
+    homepage: 'https://k-zap.org/waystolisten',
+    state: 'CA', countrycode: 'US', codec: 'AAC+', bitrate: 64,
+    tags: 'sacramento,true rock,classic rock,new music', hls: false, lastcheckok: true, source: 'official',
+    description: "Sacramento's listener-supported true-rock signal, mixing deep favorites with new music."
+};
 const CURATED_TOP_STATIONS = [
     BEHIND_THE_SCHEMES,
     OFFICIAL_NEWS_STATIONS[0],
@@ -116,13 +158,7 @@ const CURATED_TOP_STATIONS = [
         hls: false, lastcheckok: true, source: 'curated',
         description: 'Seattle-led alternative, indie, punk, and left-field new music.'
     },
-    {
-        stationuuid: '021e14a0-ddda-4ed5-bf37-3f5744b65eeb', name: 'WFMU Freeform',
-        url_resolved: 'https://stream0.wfmu.org/freeform-extrahigh-primary.aac', homepage: 'https://wfmu.org/',
-        countrycode: 'US', codec: 'AAC+', bitrate: 256, tags: 'experimental,freeform',
-        hls: false, lastcheckok: true, source: 'curated',
-        description: 'Listener-supported freeform radio with experimental programming and no fixed format.'
-    },
+    CAPRADIO_NEWS,
     {
         stationuuid: '96187609-0601-11e8-ae97-52543be04c81', name: '181.FM The Eagle',
         url_resolved: 'https://listen.181fm.com/181-eagle_128k.mp3', homepage: 'https://www.181.fm/',
@@ -207,18 +243,41 @@ const CURATED_TOP_STATIONS = [
     }
 ];
 
+const PERSONAL_STATION_UUIDS = [
+    '15dced36-90ba-4c50-bc06-8156fe53433f',
+    '1e8febb5-722e-4975-aade-c3e07d4ac6ba',
+    'official-hearme-screamo-emo',
+    '2887dc93-4c30-4981-8f60-a87d25a4386f',
+    'b5585301-1987-4605-9c4d-86da2488c0ad',
+    '960d3f6f-0601-11e8-ae97-52543be04c81',
+    '70133397-5845-4524-bcda-701da75f46fa'
+];
+const PERSONAL_STATIONS = [
+    BEHIND_THE_SCHEMES,
+    CAPRADIO_NEWS,
+    CAPRADIO_MUSIC,
+    KUEL,
+    KZAP,
+    ...PERSONAL_STATION_UUIDS.map(uuid => CURATED_TOP_STATIONS.find(station => station.stationuuid === uuid))
+].filter(Boolean);
+const ALL_CURATED_STATIONS = [...new Map(
+    [...CURATED_TOP_STATIONS, ...PERSONAL_STATIONS].map(station => [station.stationuuid, station])
+).values()];
+
 const LEGACY_TOP_STATION_REPLACEMENTS = new Map([
     // Retired experimental slot -> K-Star Talk Radio Network
     ['43ea0516-a17e-4b65-8999-61791c800ca6', '1e8febb5-722e-4975-aade-c3e07d4ac6ba'],
     // Retired lounge slot -> Static: 90s & 2000s Alt Rock
-    ['960c7c81-0601-11e8-ae97-52543be04c81', '2887dc93-4c30-4981-8f60-a87d25a4386f']
+    ['960c7c81-0601-11e8-ae97-52543be04c81', '2887dc93-4c30-4981-8f60-a87d25a4386f'],
+    // Retired freeform slot -> Sacramento local news
+    ['021e14a0-ddda-4ed5-bf37-3f5744b65eeb', CAPRADIO_NEWS.stationuuid]
 ]);
 
 function canonicalStoredStation(station) {
     const storedUuid = String(station?.stationuuid || '');
     if (!storedUuid) return station;
     const canonicalUuid = LEGACY_TOP_STATION_REPLACEMENTS.get(storedUuid) || storedUuid;
-    return CURATED_TOP_STATIONS.find(item => item.stationuuid === canonicalUuid) || station;
+    return ALL_CURATED_STATIONS.find(item => item.stationuuid === canonicalUuid) || station;
 }
 
 const audio = document.getElementById('radio-audio');
@@ -283,6 +342,10 @@ let bandStations = [];
 let bandPointerStart = null;
 let nowPlayingRun = 0;
 let nowPlayingTimer = null;
+let mediaSessionMessageIndex = 0;
+let mediaSessionProgramTitle = '';
+let mediaSessionMessageTimer = null;
+let mediaSessionMessageChangedAt = 0;
 const signalResults = new Map();
 const supportsNativeHls = audio.canPlayType('application/vnd.apple.mpegurl') !== '';
 
@@ -419,7 +482,7 @@ function curatedMatches(terms) {
         .map(term => String(term).trim().toLowerCase())
         .filter(Boolean);
     if (!needles.length) return [];
-    return CURATED_TOP_STATIONS.filter(station => {
+    return ALL_CURATED_STATIONS.filter(station => {
         const haystack = `${station.name} ${station.tags || ''}`.toLowerCase();
         return needles.some(needle => haystack.includes(needle));
     });
@@ -639,6 +702,17 @@ function parseNowPlaying(station, config, data) {
                 ? [artist, title].filter(Boolean).join('  /  ')
                 : data?.nowplaying || data?.currenttrack;
         return programResult(station, display, 'RADIOBOSS LIVE DATA');
+    }
+
+    if (config.type === 'live365') {
+        const track = data?.['current-track'];
+        const rawArtist = cleanProgramText(track?.artist);
+        const artist = rawArtist.toLowerCase() === 'untitled artist' ? '' : rawArtist;
+        const title = cleanProgramText(track?.title);
+        const album = cleanProgramText(track?.album);
+        const display = [artist, title].filter(Boolean).join('  /  ');
+        const note = album ? `${album.toUpperCase()}  /  LIVE365 CURRENT TRACK` : 'LIVE365 CURRENT TRACK';
+        return programResult(station, display, note);
     }
 
     return null;
@@ -1379,6 +1453,7 @@ function setActivePreset(name = '', emptyLabel = 'CUSTOM LIST') {
 
 function requestForPreset(preset) {
     if (preset === 'top20') return { kind: 'top20' };
+    if (preset === 'personal') return { kind: 'personal' };
     if (preset === 'news') return { kind: 'news' };
     if (preset === 'conspiracy') return { kind: 'conspiracy' };
     if (preset === 'rock') return { kind: 'rock' };
@@ -1415,6 +1490,8 @@ async function loadStations(request = lastRequest) {
     let label;
     if (request.kind === 'top20') {
         label = 'TOP 20';
+    } else if (request.kind === 'personal') {
+        label = 'PERSONAL';
     } else if (request.kind === 'news') {
         label = 'NEWS DESK';
     } else if (request.kind === 'conspiracy') {
@@ -1444,11 +1521,14 @@ async function loadStations(request = lastRequest) {
         let data;
         if (request.kind === 'top20') {
             data = CURATED_TOP_STATIONS;
+        } else if (request.kind === 'personal') {
+            data = PERSONAL_STATIONS;
         } else if (request.kind === 'news') {
             const responses = await Promise.allSettled(NEWS_TERMS.map(term => radioBrowser(
                 `/json/stations/search?name=${encodeURIComponent(term)}&countrycode=US&is_https=true&hidebroken=true&order=clickcount&reverse=true&limit=9`
             )));
             data = [
+                CAPRADIO_NEWS,
                 ...OFFICIAL_NEWS_STATIONS,
                 ...responses.flatMap(response => response.status === 'fulfilled' ? response.value.data : [])
             ];
@@ -1577,6 +1657,8 @@ function updateTransportAvailability() {
 function setCurrentStation(station, index = stations.findIndex(item => item.stationuuid === station.stationuuid)) {
     currentStation = station;
     currentIndex = index;
+    mediaSessionMessageIndex = 0;
+    mediaSessionMessageChangedAt = Date.now();
     currentName.textContent = station.name.trim();
     currentDescription.textContent = stationDescription(station);
     currentGenre.textContent = stationFormat(station);
@@ -1605,11 +1687,6 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     const params = new URLSearchParams(location.search);
     params.set('station', station.stationuuid);
     history.replaceState(null, '', `${location.pathname}?${params}`);
-    try {
-        localStorage.setItem(LAST_STATION_KEY, JSON.stringify(compactStation(station)));
-    } catch {
-        // The selected station still works without persistence.
-    }
 
     updateFavoriteControls();
     updateCurrentRow();
@@ -1686,13 +1763,31 @@ function moveStation(direction) {
     playStation(stations[next], next);
 }
 
-function updateMediaSession(station, programTitle = '') {
+function publishMediaSession(station) {
     if (!('mediaSession' in navigator) || !('MediaMetadata' in window)) return;
     navigator.mediaSession.metadata = new MediaMetadata({
-        title: programTitle || station.name,
-        artist: programTitle ? station.name : stationFormat(station),
-        album: 'RG Broadcast 🦝'
+        title: mediaSessionProgramTitle || station.name,
+        artist: mediaSessionProgramTitle ? station.name : stationFormat(station),
+        album: MEDIA_SESSION_MESSAGES[mediaSessionMessageIndex]
     });
+}
+
+function updateMediaSession(station, programTitle = '') {
+    mediaSessionProgramTitle = programTitle;
+    publishMediaSession(station);
+}
+
+function rotateMediaSessionMessage() {
+    if (!currentStation || audio.paused) return;
+    mediaSessionMessageIndex = (mediaSessionMessageIndex + 1) % MEDIA_SESSION_MESSAGES.length;
+    mediaSessionMessageChangedAt = Date.now();
+    publishMediaSession(currentStation);
+}
+
+function rotateMediaSessionMessageIfDue() {
+    if (Date.now() - mediaSessionMessageChangedAt >= MEDIA_SESSION_MESSAGE_REFRESH) {
+        rotateMediaSessionMessage();
+    }
 }
 
 function bindMediaSession() {
@@ -1710,13 +1805,16 @@ function bindMediaSession() {
             // Some browsers expose Media Session without every action.
         }
     });
+    if (mediaSessionMessageTimer === null) {
+        mediaSessionMessageTimer = window.setInterval(rotateMediaSessionMessage, MEDIA_SESSION_MESSAGE_REFRESH);
+    }
 }
 
-function restoreLastStation() {
+function selectInitialStation() {
     const requestedUuid = new URLSearchParams(location.search).get('station');
     if (requestedUuid) {
         const canonicalUuid = LEGACY_TOP_STATION_REPLACEMENTS.get(requestedUuid) || requestedUuid;
-        const curated = CURATED_TOP_STATIONS.find(station => station.stationuuid === canonicalUuid);
+        const curated = ALL_CURATED_STATIONS.find(station => station.stationuuid === canonicalUuid);
         if (curated) {
             setCurrentStation(curated, topStationIndex(curated));
             setPlayerState('idle', 'STANDBY', 'Press play to connect.');
@@ -1731,15 +1829,8 @@ function restoreLastStation() {
         return;
     }
 
-    try {
-        const stored = JSON.parse(localStorage.getItem(LAST_STATION_KEY) || 'null');
-        if (stored?.stationuuid && String(stored.url_resolved || '').startsWith('https://')) {
-            setCurrentStation(canonicalStoredStation(stored));
-            setPlayerState('idle', 'STANDBY', 'Press play to reconnect.');
-        }
-    } catch {
-        // Start empty if the saved station cannot be read.
-    }
+    setCurrentStation(CURATED_TOP_STATIONS[0], 0);
+    setPlayerState('idle', 'STANDBY', 'Press play to connect to the number one station.');
 }
 
 stationList.addEventListener('click', event => {
@@ -1919,6 +2010,8 @@ audio.addEventListener('playing', () => {
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 });
 
+audio.addEventListener('timeupdate', rotateMediaSessionMessageIfDue);
+
 audio.addEventListener('pause', () => {
     if (!currentStation || playPending || nowPlaying.dataset.state === 'error') return;
     if (nowPlaying.dataset.state !== 'paused') {
@@ -1955,5 +2048,5 @@ bindMediaSession();
 updateFavoriteControls();
 setActivePreset('top20');
 loadStations({ kind: 'top20' });
-restoreLastStation();
+selectInitialStation();
 discoverServers();
