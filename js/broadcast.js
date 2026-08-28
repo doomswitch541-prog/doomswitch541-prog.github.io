@@ -1,31 +1,4 @@
-function createBroadcastSurfaceMonitor({ summary }) {
-    const summaryNode = document.getElementById(summary);
-    const entries = new Map();
-
-    function renderSummary() {
-        if (!summaryNode) return;
-        const values = [...entries.values()];
-        const ready = values.filter(entry => entry.state === 'ready').length;
-        const checking = values.filter(entry => entry.state === 'checking').length;
-        const failed = values.filter(entry => entry.state === 'error').length;
-        if (checking) summaryNode.textContent = `${checking} CHECKING`;
-        else if (ready || failed) summaryNode.textContent = `${ready} LIVE / ${failed} FAIL`;
-        else summaryNode.textContent = `${values.length} KNOWN`;
-    }
-
-    return {
-        report(id, update) {
-            entries.set(id, { ...(entries.get(id) || {}), ...update });
-            renderSummary();
-        },
-        clear(prefix = '') {
-            [...entries.keys()].forEach(id => {
-                if (!prefix || id.startsWith(prefix)) entries.delete(id);
-            });
-            renderSummary();
-        }
-    };
-}
+import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -349,7 +322,8 @@ const stationList = document.getElementById('station-list');
 const directoryMessage = document.getElementById('directory-message');
 const directoryMessageCopy = document.getElementById('directory-message-copy');
 const retryButton = document.getElementById('retry-directory');
-const surfaceMonitor = createBroadcastSurfaceMonitor({
+const surfaceMonitor = createRadioSurfaceMonitor({
+    root: 'broadcast-surface-list',
     summary: 'broadcast-surface-summary'
 });
 
@@ -374,10 +348,6 @@ let mediaSessionMessageTimer = null;
 let mediaSessionMessageChangedAt = 0;
 const signalResults = new Map();
 const supportsNativeHls = audio.canPlayType('application/vnd.apple.mpegurl') !== '';
-
-stations = sanitizeStations(CURATED_TOP_STATIONS);
-renderStations();
-resultsLabel.textContent = `TOP 20  |  ${stations.length}`;
 
 function timeoutSignal(milliseconds) {
     if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
