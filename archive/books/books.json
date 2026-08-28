@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-27T16:33:24.706Z",
+  "updatedAt": "2026-08-28T17:28:16.687Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -42,6 +42,16 @@
       "description": "",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-08-27T16:33:24.706Z"
+    },
+    {
+      "date": "2026-08-28",
+      "identifier": "illustratedcatal00sout",
+      "title": "Illustrated catalogue of the art gallery of the Southern Exposition, Louisville, Ky., August 16-October 25, 1884",
+      "creator": "Southern Exposition (1884 : Louisville, Ky.)",
+      "published": "1884",
+      "description": "97, xliv p. 20 cm",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-08-28T17:28:16.687Z"
     }
   ]
 }
