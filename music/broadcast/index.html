@@ -11,11 +11,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="RG Broadcast">
     <title>RG Broadcast</title>
-    <link rel="manifest" href="/music/broadcast/manifest.webmanifest?v=20260827-ios2">
-    <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png?v=20260827-ios2">
-    <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png?v=20260827-ios2">
+    <link rel="manifest" href="/music/broadcast/manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260827-car2">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260827-pwa1">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
@@ -26,12 +26,6 @@
         <div class="head-actions">
             <button class="install-app" id="install-app" type="button" hidden>ADD APP</button>
             <span class="head-source">INTERNET RADIO</span>
-            <button class="car-mode-button" id="car-mode-toggle" type="button" aria-controls="car-mode" aria-expanded="false" aria-label="Enter Car Mode">
-                <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-                    <path d="M7.2 13.1 9.6 7h12.8l2.4 6.1 2.2 1.5v8.7h-3.2v2.4h-3.1v-2.4h-9.4v2.4H8.2v-2.4H5v-8.7l2.2-1.5Zm3.9-3.3-1.3 3.3h12.4l-1.3-3.3h-9.8Zm-2.5 6.1a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm14.8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
-                </svg>
-                <span class="car-mode-button-label">CAR MODE</span>
-            </button>
         </div>
     </header>
 
@@ -65,42 +59,6 @@
                     </dl>
                 </div>
                 <div class="player-controls">
-                    <button class="mini-player-handle" id="dock-toggle" type="button" aria-expanded="false" aria-controls="car-dock-panel" aria-label="Expand receiver dock">
-                        <span aria-hidden="true"></span><b aria-hidden="true">SIGNAL DOCK</b>
-                    </button>
-                    <div class="car-dock-panel" id="car-dock-panel" aria-hidden="true" inert>
-                        <div class="car-dock-status">
-                            <span>RECEIVER STATE</span>
-                            <strong id="car-dock-state">STANDBY</strong>
-                            <p id="car-dock-message">Receiver ready.</p>
-                        </div>
-                        <figure class="signal-scope" data-state="idle">
-                            <figcaption>
-                                <span>STATE-DRIVEN SIGNAL</span>
-                                <b>NOT AUDIO ANALYSIS</b>
-                            </figcaption>
-                            <canvas id="car-signal-scope" width="900" height="180" role="img" aria-label="Visual trace of the current receiver state"></canvas>
-                        </figure>
-                        <section class="car-saved" aria-labelledby="car-saved-title">
-                            <div class="car-dock-section-head">
-                                <h2 id="car-saved-title">Saved stations</h2>
-                                <span id="car-saved-count">0 SAVED</span>
-                            </div>
-                            <div class="car-saved-track" id="car-saved-track"></div>
-                            <p class="car-saved-empty" id="car-saved-empty">Save stations in the ordinary receiver and they will wait here.</p>
-                        </section>
-                        <div class="car-dock-options">
-                            <button class="car-dock-control" id="car-text-open" type="button">
-                                <span>CAR TEXT</span><small id="car-text-state">RG ROTATION</small>
-                            </button>
-                            <button class="car-dock-control" id="car-awake-toggle" type="button" aria-pressed="false">
-                                <span>KEEP AWAKE</span><small id="car-awake-state">OFF</small>
-                            </button>
-                            <button class="car-dock-control" id="car-dim-toggle" type="button" aria-pressed="false">
-                                <span>DIM</span><small id="car-dim-state">OFF</small>
-                            </button>
-                        </div>
-                    </div>
                     <div class="mini-player-lock" aria-hidden="true"><span></span></div>
                     <div class="mini-player-copy" aria-hidden="true">
                         <span id="dock-current-name">Choose a station</span>
@@ -209,26 +167,6 @@
         </section>
     </main>
 
-    <section class="car-mode" id="car-mode" data-state="idle" aria-labelledby="car-mode-title" aria-hidden="true" hidden>
-        <div class="car-mode-field" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <div class="car-mode-readout">
-            <div class="car-mode-station">
-                <span>LIVE STATION</span>
-                <strong id="car-mode-station">Choose a station</strong>
-            </div>
-            <div class="car-mode-program">
-                <span id="car-mode-program-label">ON THIS SIGNAL</span>
-                <h1 id="car-mode-title">WAITING FOR A STATION</h1>
-            </div>
-            <p class="car-mode-message" id="car-mode-message">RG Broadcast</p>
-            <div class="car-mode-state" role="status" aria-live="polite">
-                <i aria-hidden="true"></i>
-                <strong id="car-mode-state">STANDBY</strong>
-                <span id="car-mode-status">Receiver ready.</span>
-            </div>
-        </div>
-    </section>
-
     <dialog class="install-sheet" id="install-sheet" aria-labelledby="install-sheet-title">
         <div class="install-sheet-panel">
             <div class="install-sheet-head">
@@ -246,30 +184,6 @@
         </div>
     </dialog>
 
-    <dialog class="car-text-sheet" id="car-text-sheet" aria-labelledby="car-text-title">
-        <form class="car-text-panel" id="car-text-form">
-            <div class="car-text-head">
-                <div>
-                    <span>VEHICLE DISPLAY</span>
-                    <h2 id="car-text-title">Choose the third line</h2>
-                </div>
-                <button type="button" id="car-text-close" aria-label="Close Car Text">&times;</button>
-            </div>
-            <label for="car-text-input">Car text <span id="car-text-count">0 / 48</span></label>
-            <input id="car-text-input" name="car-text" type="text" maxlength="48" autocomplete="off" enterkeyhint="done" aria-describedby="car-text-note" placeholder="RG NIGHT SIGNAL">
-            <div class="car-text-preview" aria-label="Vehicle display preview">
-                <span id="car-text-preview-title">WAITING FOR A STATION</span>
-                <strong id="car-text-preview-artist">Choose a station</strong>
-                <small id="car-text-preview-album">RG Broadcast</small>
-            </div>
-            <p class="car-text-note" id="car-text-note" role="status" aria-live="polite">Stored only on this device.</p>
-            <div class="car-text-actions">
-                <button type="button" id="car-text-reset">RESTORE RG ROTATION</button>
-                <button type="submit">SAVE TEXT</button>
-            </div>
-        </form>
-    </dialog>
-
     <footer class="broadcast-foot">
         <span>Station data: Radio Browser + direct feeds</span>
         <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">OPEN DIRECTORY</a>
@@ -277,7 +191,6 @@
 
     <script src="/js/site.js"></script>
     <script type="module" src="/js/broadcast.js?v=20260827-2"></script>
-    <script type="module" src="/js/broadcast-car.js?v=20260827-car2"></script>
-    <script type="module" src="/music/broadcast/pwa.js?v=20260827-2"></script>
+    <script type="module" src="/music/broadcast/pwa.js?v=20260827-1"></script>
 </body>
 </html>
