@@ -650,12 +650,14 @@ function initialize() {
     [nowPlaying, airLabel, currentName, currentProgramLabel, currentProgram, playerStatus, favoriteCount]
         .filter(Boolean)
         .forEach(node => {
-            const options = { childList: true, characterData: true, subtree: true };
             if (node === nowPlaying) {
-                options.attributes = true;
-                options.attributeFilter = ['data-state'];
+                observer.observe(node, {
+                    attributes: true,
+                    attributeFilter: ['data-state']
+                });
+                return;
             }
-            observer.observe(node, options);
+            observer.observe(node, { childList: true, characterData: true, subtree: true });
         });
 
     if ('IntersectionObserver' in window) {
