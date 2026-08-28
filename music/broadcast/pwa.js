@@ -109,13 +109,28 @@ searchQuery?.addEventListener('blur', () => {
 
 updateInstallAvailability();
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/music/broadcast/sw.js', {
-            scope: '/music/broadcast/',
-            updateViaCache: 'none'
-        }).catch(() => {
-            // Playback and the ordinary page remain available without the app shell.
-        });
-    }, { once: true });
+async function retireBroadcastWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations
+                .filter(registration => new URL(registration.scope).pathname.startsWith('/music/broadcast/'))
+                .map(registration => registration.unregister()));
+        } catch {
+            // The online receiver does not depend on worker cleanup.
+        }
+    }
+
+    if ('caches' in window) {
+        try {
+            const keys = await caches.keys();
+            await Promise.all(keys
+                .filter(key => key.startsWith('rg-broadcast-shell-'))
+                .map(key => caches.delete(key)));
+        } catch {
+            // Cache cleanup must never interrupt the receiver.
+        }
+    }
 }
+
+window.addEventListener('load', retireBroadcastWorker, { once: true });
