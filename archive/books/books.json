@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-28T17:28:16.687Z",
+  "updatedAt": "2026-08-29T11:41:18.013Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -52,6 +52,16 @@
       "description": "97, xliv p. 20 cm",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-08-28T17:28:16.687Z"
+    },
+    {
+      "date": "2026-08-29",
+      "identifier": "taxandriatijdsc01unkngoog",
+      "title": "Taxandria : tijdschrift voor Noordbrabantsche geschiedenis en volkskunde",
+      "creator": "Creator not listed",
+      "published": "1894",
+      "description": "Book digitized by Google from the library of the University of Michigan and uploaded to the Internet Archive by user tpb.",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-08-29T11:41:18.013Z"
     }
   ]
 }
