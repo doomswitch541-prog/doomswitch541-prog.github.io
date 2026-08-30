@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-29T11:41:18.013Z",
+  "updatedAt": "2026-08-30T10:30:11.066Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -62,6 +62,16 @@
       "description": "Book digitized by Google from the library of the University of Michigan and uploaded to the Internet Archive by user tpb.",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-08-29T11:41:18.013Z"
+    },
+    {
+      "date": "2026-08-30",
+      "identifier": "VictorianNatura113Fiel",
+      "title": "The victorian naturalist",
+      "creator": "Field Naturalists Club of Victoria",
+      "published": "1884",
+      "description": "Museum Victoria hold: Duplicate set on shelf 3162 (Invertebrate library level 3 East).",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-08-30T10:30:11.066Z"
     }
   ]
 }
