@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-30T10:30:11.066Z",
+  "updatedAt": "2026-08-31T11:38:46.896Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -72,6 +72,16 @@
       "description": "Museum Victoria hold: Duplicate set on shelf 3162 (Invertebrate library level 3 East).",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-08-30T10:30:11.066Z"
+    },
+    {
+      "date": "2026-08-31",
+      "identifier": "arsorientalis36372009univ",
+      "title": "Ars orientalis; the arts of Islam and the East",
+      "creator": "University of Michigan. Center for Chinese Studies",
+      "published": "1954",
+      "description": "Issued by the Freer Gallery of Art, Smithsonian Institution and Department of the History of Art, University of Michigan",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-08-31T11:38:46.896Z"
     }
   ]
 }
