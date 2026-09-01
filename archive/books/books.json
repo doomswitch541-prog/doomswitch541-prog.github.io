@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-08-31T11:38:46.896Z",
+  "updatedAt": "2026-09-01T10:11:23.320Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -82,6 +82,16 @@
       "description": "Issued by the Freer Gallery of Art, Smithsonian Institution and Department of the History of Art, University of Michigan",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-08-31T11:38:46.896Z"
+    },
+    {
+      "date": "2026-09-01",
+      "identifier": "cienciadelamito00siergoog",
+      "title": "Ciencia de la mitología, el gran mito chtónico-solar",
+      "creator": "Guichot y Sierra, Alejandro, 1859-1941",
+      "published": "1903",
+      "description": "Book digitized by Google from the library of the University of California and uploaded to the Internet Archive by user tpb.",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-01T10:11:23.320Z"
     }
   ]
 }
