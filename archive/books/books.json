@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-01T10:11:23.320Z",
+  "updatedAt": "2026-09-02T09:41:40.175Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -92,6 +92,16 @@
       "description": "Book digitized by Google from the library of the University of California and uploaded to the Internet Archive by user tpb.",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-01T10:11:23.320Z"
+    },
+    {
+      "date": "2026-09-02",
+      "identifier": "analesdelasocied231894soci",
+      "title": "Anales de la Sociedad Española de Historia Natural",
+      "creator": "Sociedad Española de Historia Natural",
+      "published": "1894",
+      "description": "",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-02T09:41:40.175Z"
     }
   ]
 }
