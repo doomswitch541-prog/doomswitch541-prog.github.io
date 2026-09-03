@@ -219,8 +219,7 @@ button {
 }
 
 .receiver {
-    position: sticky;
-    top: 0;
+    position: relative;
     align-self: start;
     min-height: calc(100dvh - 108px - env(safe-area-inset-top));
     border-right: 1px solid var(--line);
@@ -628,6 +627,189 @@ button {
     color: var(--paper);
     font-size: 0.66rem;
     letter-spacing: 0.055em;
+}
+
+.receiver-instruments {
+    position: relative;
+    margin: 0;
+    padding: 1rem 0 1.1rem;
+    border-top: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line);
+    background:
+        repeating-linear-gradient(0deg, transparent 0 7px, rgba(230, 220, 195, 0.018) 8px),
+        linear-gradient(135deg, rgba(230, 160, 74, 0.035), transparent 48%);
+}
+
+.receiver-instruments::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 4.5rem;
+    height: 1px;
+    background: var(--amber);
+    box-shadow: 0 0 0.7rem rgba(230, 160, 74, 0.35);
+}
+
+.receiver-instruments[data-source="live"]::before {
+    background: var(--green);
+    box-shadow: 0 0 0.7rem rgba(134, 181, 156, 0.45);
+}
+
+.receiver-instruments-head,
+.receiver-instrument figcaption,
+.receiver-analysis-readout,
+.receiver-analysis-bands > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.receiver-instruments-head {
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+}
+
+.receiver-instruments-head span,
+.receiver-instrument figcaption,
+.receiver-analysis-bands span,
+.receiver-analysis-bands output,
+.receiver-analysis-level span {
+    color: var(--muted);
+    font-family: var(--font-data);
+    font-size: 0.56rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.receiver-instruments-head h2 {
+    margin: 0.18rem 0 0;
+    font-family: var(--font-display);
+    font-size: 1.28rem;
+    font-stretch: condensed;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.receiver-instruments-head strong {
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-family: var(--font-data);
+    font-size: 0.56rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    line-height: 1;
+    text-align: center;
+}
+
+.receiver-instruments[data-source="live"] .receiver-instruments-head strong {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.receiver-instrument-grid {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.receiver-instrument {
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: rgba(4, 5, 5, 0.54);
+}
+
+.receiver-instrument figcaption {
+    min-height: 30px;
+    padding: 0 0.65rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.receiver-instrument figcaption b {
+    color: var(--amber);
+    font: inherit;
+}
+
+.receiver-instruments[data-source="live"] .receiver-instrument figcaption b {
+    color: var(--green);
+}
+
+.receiver-instrument canvas {
+    display: block;
+    width: 100%;
+    height: 88px;
+}
+
+.receiver-spectrum canvas {
+    height: 62px;
+}
+
+.receiver-analysis-readout {
+    gap: 1rem;
+    padding-top: 0.65rem;
+}
+
+.receiver-analysis-bands {
+    display: grid;
+    flex: 1;
+    gap: 0.34rem;
+}
+
+.receiver-analysis-bands > div {
+    gap: 0.45rem;
+}
+
+.receiver-analysis-bands span {
+    width: 3.8rem;
+}
+
+.receiver-analysis-bands i {
+    flex: 1;
+    height: 4px;
+    overflow: hidden;
+    background: rgba(230, 220, 195, 0.12);
+}
+
+.receiver-analysis-bands i b {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--amber);
+    box-shadow: 0 0 0.4rem rgba(230, 160, 74, 0.45);
+    transition: width 90ms linear;
+}
+
+.receiver-instruments[data-source="live"] .receiver-analysis-bands i b {
+    background: var(--green);
+    box-shadow: 0 0 0.4rem rgba(134, 181, 156, 0.52);
+}
+
+.receiver-analysis-bands output {
+    width: 1.4rem;
+    color: var(--paper);
+    text-align: right;
+}
+
+.receiver-analysis-level {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 5.7rem;
+    padding-left: 1rem;
+    border-left: 1px solid var(--line);
+    text-align: right;
+}
+
+.receiver-analysis-level strong {
+    color: var(--paper);
+    font-family: var(--font-data);
+    font-size: 1.55rem;
+    font-weight: 400;
+    letter-spacing: -0.06em;
+    line-height: 1;
 }
 
 .player-controls {
@@ -1418,6 +1600,39 @@ button:hover:not(:disabled) {
     .station-actions a {
         grid-column: 1 / -1;
         border-top: 1px solid var(--line);
+    }
+
+    .receiver-instruments-head {
+        align-items: flex-end;
+    }
+
+    .receiver-instruments-head strong {
+        max-width: 8.5rem;
+    }
+
+    .receiver-instrument canvas {
+        height: 96px;
+    }
+
+    .receiver-spectrum canvas {
+        height: 68px;
+    }
+
+    .receiver-analysis-readout {
+        align-items: stretch;
+    }
+
+    .receiver-analysis-bands span {
+        width: 3.2rem;
+    }
+
+    .receiver-analysis-level {
+        min-width: 4.8rem;
+        padding-left: 0.75rem;
+    }
+
+    .receiver-analysis-level strong {
+        font-size: 1.3rem;
     }
 
     .results-meta {

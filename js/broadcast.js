@@ -1,4 +1,5 @@
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260903-1';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -282,6 +283,7 @@ function canonicalStoredStation(station) {
 
 const audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
+const receiverInstruments = createBroadcastInstruments({ audio, nowPlaying });
 const airLabel = document.getElementById('air-label');
 const currentName = document.getElementById('current-name');
 const currentDescription = document.getElementById('current-description');
@@ -1130,6 +1132,7 @@ function clearBandSelection() {
     stopNowPlayingUpdates();
     currentStation = null;
     currentIndex = -1;
+    receiverInstruments.setStation(null);
     currentName.textContent = 'Quiet band';
     currentDescription.textContent = 'No station occupies this part of the current internet band.';
     currentProgramLabel.textContent = 'ON THIS SIGNAL';
@@ -1627,6 +1630,7 @@ function setPlayerState(state, label, message) {
     nowPlaying.dataset.state = state;
     airLabel.textContent = label;
     playerStatus.textContent = message;
+    receiverInstruments.setState({ state, label, message });
     updatePlayControl(state, label);
     if (!currentStation) {
         if (state === 'idle') setBandState('static', label === 'STATIC' ? 'STATIC' : 'STANDBY', 0);
@@ -1657,6 +1661,7 @@ function updateTransportAvailability() {
 function setCurrentStation(station, index = stations.findIndex(item => item.stationuuid === station.stationuuid)) {
     currentStation = station;
     currentIndex = index;
+    receiverInstruments.setStation(station);
     mediaSessionMessageIndex = 0;
     mediaSessionMessageChangedAt = Date.now();
     currentName.textContent = station.name.trim();

@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png?v=20260828-7">
     <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png?v=20260828-7">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260828-7">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260903-8">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
@@ -64,6 +64,33 @@
                         <div><dt>Source</dt><dd id="current-source">—</dd></div>
                     </dl>
                 </div>
+                <section class="receiver-instruments" id="receiver-instruments" data-source="state" aria-labelledby="receiver-instruments-title">
+                    <header class="receiver-instruments-head">
+                        <div>
+                            <span>INPUT SOURCE</span>
+                            <h2 id="receiver-instruments-title">Signal instruments</h2>
+                        </div>
+                        <strong id="receiver-analysis-source">RECEIVER STATE</strong>
+                    </header>
+                    <div class="receiver-instrument-grid">
+                        <figure class="receiver-instrument receiver-waveform">
+                            <figcaption><span id="receiver-waveform-label">RECEIVER STATE TRACE</span><b id="receiver-waveform-state">STANDBY</b></figcaption>
+                            <canvas id="receiver-waveform-canvas" width="720" height="180" role="img" aria-label="Receiver state trace"></canvas>
+                        </figure>
+                        <figure class="receiver-instrument receiver-spectrum">
+                            <figcaption><span id="receiver-spectrum-label">SIGNAL HEALTH</span><b id="receiver-spectrum-state">CONNECTION</b></figcaption>
+                            <canvas id="receiver-spectrum-canvas" width="720" height="132" role="img" aria-label="Receiver connection health"></canvas>
+                        </figure>
+                    </div>
+                    <div class="receiver-analysis-readout">
+                        <div class="receiver-analysis-bands" aria-label="Signal measurements">
+                            <div><span id="receiver-band-low-label">LOCK</span><i><b id="receiver-band-low"></b></i><output id="receiver-band-low-value">00</output></div>
+                            <div><span id="receiver-band-mid-label">LINK</span><i><b id="receiver-band-mid"></b></i><output id="receiver-band-mid-value">00</output></div>
+                            <div><span id="receiver-band-high-label">BUF</span><i><b id="receiver-band-high"></b></i><output id="receiver-band-high-value">00</output></div>
+                        </div>
+                        <div class="receiver-analysis-level"><span id="receiver-level-label">STATE LEVEL</span><strong id="receiver-level">00%</strong></div>
+                    </div>
+                </section>
                 <div class="player-controls">
                     <button class="mini-player-handle" id="dock-toggle" type="button" aria-expanded="false" aria-controls="car-dock-panel" aria-label="Expand receiver dock">
                         <span aria-hidden="true"></span><b aria-hidden="true">SIGNAL DOCK</b>
@@ -276,7 +303,7 @@
     </footer>
 
     <script src="/js/site.js"></script>
-    <script type="module" src="/js/broadcast.js?v=20260828-7"></script>
+    <script type="module" src="/js/broadcast.js?v=20260903-8"></script>
     <script type="module" src="/js/broadcast-car.js?v=20260828-7"></script>
     <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
