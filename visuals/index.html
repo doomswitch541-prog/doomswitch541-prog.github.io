@@ -74,6 +74,15 @@
             line-height: 1;
             transition: transform var(--transition-base);
         }
+        .gallery-item .icon svg {
+            width: 2.35rem;
+            height: 2.35rem;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.15;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
         .gallery-item:hover .icon { transform: scale(1.12); }
         .gallery-item .page-title {
             font-size: 0.95rem;
@@ -144,6 +153,13 @@
                     <div class="icon">🌐</div>
                     <span class="page-title">Screensaver</span>
                     <span class="page-tag">Rotating globe</span>
+                </a>
+            </div>
+            <div class="gallery-item">
+                <a href="https://doomswitch541-prog.github.io/rg-player/" class="gallery-link" target="_blank" rel="noopener">
+                    <div class="icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M9 3.5h14a3.5 3.5 0 0 1 3.5 3.5v18a3.5 3.5 0 0 1-3.5 3.5H9A3.5 3.5 0 0 1 5.5 25V7A3.5 3.5 0 0 1 9 3.5Z"/><path d="M10 7.5h12v7H10z"/><circle cx="16" cy="21.5" r="4.3"/><path d="M16 18.7v1.1M13.2 21.5h1.1M17.7 21.5h1.1M16 23.2v1.1"/></svg></div>
+                    <span class="page-title">RG Player</span>
+                    <span class="page-tag">Audio-reactive rooms ↗</span>
                 </a>
             </div>
         </div>
