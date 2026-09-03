@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-02T09:41:40.175Z",
+  "updatedAt": "2026-09-03T09:54:35.428Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -102,6 +102,16 @@
       "description": "",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-02T09:41:40.175Z"
+    },
+    {
+      "date": "2026-09-03",
+      "identifier": "arsorientalisart81970univ",
+      "title": "Ars orientalis; the arts of Islam and the East",
+      "creator": "University of Michigan. Center for Chinese Studies",
+      "published": "1954",
+      "description": "Issued by the Freer Gallery of Art, Smithsonian Institution and Department of the History of Art, University of Michigan",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-03T09:54:35.428Z"
     }
   ]
 }
