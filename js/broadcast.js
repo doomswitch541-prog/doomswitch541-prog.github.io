@@ -1,5 +1,5 @@
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260904-2';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260904-3';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [

@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png?v=20260828-7">
     <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png?v=20260828-7">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260904-2">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260904-3">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
@@ -69,7 +69,7 @@
                         <h2 id="receiver-instruments-title">Live signal</h2>
                         <strong id="receiver-analysis-source" aria-live="polite">READY</strong>
                     </header>
-                    <canvas id="receiver-waveform-canvas" width="720" height="144" role="img" aria-label="Live audio waveform"></canvas>
+                    <canvas id="receiver-waveform-canvas" width="720" height="144" role="img" aria-label="Live radio waveform, spectral field, and carrier"></canvas>
                     <div class="signal-bands" aria-label="Live bass, mid, and treble energy">
                         <div><span>BASS</span><i><b id="receiver-band-low"></b></i></div>
                         <div><span>MID</span><i><b id="receiver-band-mid"></b></i></div>
@@ -87,7 +87,7 @@
                                 <h2 id="dock-instruments-title">Live signal</h2>
                                 <strong id="dock-analysis-source" aria-live="polite">READY</strong>
                             </header>
-                            <canvas id="dock-waveform-canvas" width="720" height="144" role="img" aria-label="Live audio waveform"></canvas>
+                            <canvas id="dock-waveform-canvas" width="720" height="144" role="img" aria-label="Live radio waveform, spectral field, and carrier"></canvas>
                             <div class="signal-bands" aria-label="Live bass, mid, and treble energy">
                                 <div><span>BASS</span><i><b id="dock-band-low"></b></i></div>
                                 <div><span>MID</span><i><b id="dock-band-mid"></b></i></div>
@@ -290,8 +290,8 @@
     </footer>
 
     <script src="/js/site.js"></script>
-    <script type="module" src="/js/broadcast.js?v=20260904-2"></script>
-    <script type="module" src="/js/broadcast-car.js?v=20260904-2"></script>
+    <script type="module" src="/js/broadcast.js?v=20260904-3"></script>
+    <script type="module" src="/js/broadcast-car.js?v=20260904-3"></script>
     <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
 </html>

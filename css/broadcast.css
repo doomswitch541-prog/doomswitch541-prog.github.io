@@ -632,6 +632,9 @@ button {
 .signal-instrument {
     --signal-ink: rgba(147, 142, 130, 0.72);
     --signal-line: rgba(230, 220, 195, 0.12);
+    --signal-fill: rgba(147, 142, 130, 0.055);
+    --signal-energy: 0;
+    --signal-impact: 0;
     position: relative;
     margin: 0;
     padding: 0.82rem 0 0.88rem;
@@ -651,14 +654,17 @@ button {
 
 .signal-instrument[data-analysis="listening"] {
     --signal-ink: var(--amber);
+    --signal-fill: rgba(230, 160, 74, 0.065);
 }
 
 .signal-instrument[data-analysis="live"] {
     --signal-ink: var(--green);
+    --signal-fill: rgba(134, 181, 156, calc(0.045 + var(--signal-energy) * 0.13));
 }
 
 .signal-instrument[data-analysis="error"] {
     --signal-ink: var(--red);
+    --signal-fill: rgba(211, 79, 63, 0.055);
 }
 
 .signal-instrument[data-analysis="listening"]::before,
@@ -705,6 +711,7 @@ button {
     height: 5px;
     background: var(--signal-ink);
     border-radius: 50%;
+    box-shadow: 0 0 calc(var(--signal-impact) * 0.7rem) var(--signal-ink);
 }
 
 .signal-instrument[data-analysis="listening"] .signal-instrument-head strong,
@@ -720,7 +727,14 @@ button {
     margin-top: 0.45rem;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: rgba(4, 5, 5, 0.48);
+    background:
+        radial-gradient(circle at 50% 50%, var(--signal-fill), transparent 46%),
+        rgba(4, 5, 5, 0.48);
+    transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.signal-instrument[data-analysis="live"] canvas {
+    border-color: rgba(134, 181, 156, calc(0.14 + var(--signal-energy) * 0.22));
 }
 
 .signal-bands {
@@ -754,7 +768,8 @@ button {
     width: 0;
     height: 100%;
     background: var(--signal-ink);
-    transition: width 80ms linear;
+    box-shadow: 0 0 calc(var(--signal-impact) * 0.4rem) var(--signal-ink);
+    transition: width 90ms linear;
 }
 
 .signal-instrument-note {

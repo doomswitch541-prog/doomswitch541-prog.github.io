@@ -1,4 +1,12 @@
 const clamp = (value, minimum = 0, maximum = 1) => Math.max(minimum, Math.min(maximum, value));
+export const BROADCAST_SIGNAL_CONTRACT = Object.freeze({
+    carrier: 'overall energy with positive spectral impact',
+    spectrumField: 'live low-to-high frequency contour',
+    waveform: 'time-domain amplitude from the playing station',
+    bands: 'adaptively normalized low, mid, and high energy',
+    impact: 'positive spectral flux with a fast attack and restrained release'
+});
+
 const CORS_ANALYSIS_STATIONS = new Set([
     'official-alex-jones-network',
     '15dced36-90ba-4c50-bc06-8156fe53433f',
@@ -19,17 +27,33 @@ const CORS_ANALYSIS_STATIONS = new Set([
     '70133397-5845-4524-bcda-701da75f46fa'
 ]);
 
-function averageRange(data, analyser, minimumHz, maximumHz) {
+function rangeStats(data, analyser, minimumHz, maximumHz) {
     const binHz = analyser.context.sampleRate / analyser.fftSize;
     const start = Math.max(0, Math.floor(minimumHz / binHz));
     const end = Math.min(data.length - 1, Math.ceil(maximumHz / binHz));
     let total = 0;
+    let squareTotal = 0;
+    let peak = 0;
     let count = 0;
     for (let index = start; index <= end; index += 1) {
-        total += data[index];
+        const value = data[index] / 255;
+        total += value;
+        squareTotal += value * value;
+        peak = Math.max(peak, value);
         count += 1;
     }
-    return count ? total / count / 255 : 0;
+    return count
+        ? { average: total / count, rms: Math.sqrt(squareTotal / count), peak }
+        : { average: 0, rms: 0, peak: 0 };
+}
+
+function bandSignal(data, analyser, minimumHz, maximumHz) {
+    const stats = rangeStats(data, analyser, minimumHz, maximumHz);
+    return stats.average * 0.56 + stats.rms * 0.29 + stats.peak * 0.15;
+}
+
+function followSignal(current, target, attack, release) {
+    return current + (target - current) * (target > current ? attack : release);
 }
 
 function canvasMetrics(canvas) {
@@ -87,7 +111,17 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         audibleFrames: 0,
         validationFrames: 0,
         sampleFrame: 0,
+        rawBands: [0, 0, 0],
         smoothedBands: [0, 0, 0],
+        bandFloors: [0, 0, 0],
+        bandCeilings: [0.18, 0.18, 0.18],
+        rangesReady: false,
+        previousBands: [0, 0, 0],
+        previousEnergy: 0,
+        energy: 0,
+        flux: 0,
+        impact: 0,
+        carrier: 0,
         lastBands: [0, 0, 0],
         lastRenderAt: 0
     };
@@ -97,6 +131,11 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
             surface.root.dataset.analysis = state;
             surface.root.dataset.sampleFrame = String(model.sampleFrame);
             surface.root.dataset.contextState = model.audioContext?.state || 'none';
+            surface.root.dataset.energy = model.energy.toFixed(3);
+            surface.root.dataset.flux = model.flux.toFixed(3);
+            surface.root.dataset.impact = model.impact.toFixed(3);
+            surface.root.style.setProperty('--signal-energy', model.energy.toFixed(3));
+            surface.root.style.setProperty('--signal-impact', model.impact.toFixed(3));
             surface.status.textContent = label;
             surface.note.textContent = note;
             surface.note.hidden = !note;
@@ -116,7 +155,17 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         model.audibleFrames = 0;
         model.validationFrames = 0;
         model.sampleFrame = 0;
+        model.rawBands = [0, 0, 0];
         model.smoothedBands = [0, 0, 0];
+        model.bandFloors = [0, 0, 0];
+        model.bandCeilings = [0.18, 0.18, 0.18];
+        model.rangesReady = false;
+        model.previousBands = [0, 0, 0];
+        model.previousEnergy = 0;
+        model.energy = 0;
+        model.flux = 0;
+        model.impact = 0;
+        model.carrier = 0;
         model.lastBands = [0, 0, 0];
         model.displayTimeData?.fill(0);
         setAnalysisState('waiting', 'READY');
@@ -134,7 +183,9 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         if (!context || !stream?.getAudioTracks().length) return false;
         const analyser = context.createAnalyser();
         analyser.fftSize = 1024;
-        analyser.smoothingTimeConstant = 0.72;
+        analyser.smoothingTimeConstant = 0.58;
+        analyser.minDecibels = -100;
+        analyser.maxDecibels = -8;
         const source = context.createMediaStreamSource(stream);
         const sink = context.createGain();
         sink.gain.value = 0;
@@ -234,17 +285,70 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         }
         if (!model.liveValidated) return null;
 
-        model.sampleFrame += 1;
-        const bands = [
-            clamp(averageRange(model.frequencyData, model.analyser, 20, 250) * 1.55),
-            clamp(averageRange(model.frequencyData, model.analyser, 250, 2500) * 1.42),
-            clamp(averageRange(model.frequencyData, model.analyser, 2500, 10000) * 1.72)
+        const rawBands = [
+            bandSignal(model.frequencyData, model.analyser, 20, 250),
+            bandSignal(model.frequencyData, model.analyser, 250, 2500),
+            bandSignal(model.frequencyData, model.analyser, 2500, 10000)
         ];
-        model.lastBands = bands;
+        const weights = [0.46, 0.34, 0.2];
+        const rawEnergy = rawBands.reduce((total, value, index) => total + value * weights[index], 0);
+        let bandDeltas = rawBands.map((value, index) => value - model.previousBands[index]);
+
+        if (!model.rangesReady && rawEnergy > 0.012) {
+            model.bandFloors = rawBands.map(value => Math.max(0, value - 0.06));
+            model.bandCeilings = rawBands.map(value => Math.min(1, value + 0.12));
+            model.previousBands = [...rawBands];
+            model.previousEnergy = rawEnergy;
+            model.rangesReady = true;
+            bandDeltas = [0, 0, 0];
+        }
+
+        model.bandFloors = model.bandFloors.map((floor, index) => (
+            floor + (rawBands[index] - floor) * (rawBands[index] < floor ? 0.1 : 0.0015)
+        ));
+        model.bandCeilings = model.bandCeilings.map((ceiling, index) => (
+            ceiling + (rawBands[index] - ceiling) * (rawBands[index] > ceiling ? 0.08 : 0.0025)
+        ));
+
+        const relativeBands = rawBands.map((value, index) => clamp(
+            (value - model.bandFloors[index]) / Math.max(0.1, model.bandCeilings[index] - model.bandFloors[index])
+        ));
+        const positiveBands = bandDeltas.map(delta => Math.max(0, delta));
+        const responsiveBands = rawBands.map((value, index) => clamp(
+            value * 0.48 + relativeBands[index] * 0.34 + positiveBands[index] * 1.35
+        ));
+        const attacks = [0.34, 0.32, 0.4];
+        const releases = [0.11, 0.13, 0.17];
+        model.smoothedBands = model.smoothedBands.map((value, index) => (
+            followSignal(value, responsiveBands[index], attacks[index], releases[index])
+        ));
+
+        const positiveFlux = positiveBands.reduce((total, value, index) => total + value * weights[index], 0);
+        const fluxTarget = Math.max(0, rawEnergy - model.previousEnergy) + positiveFlux * 0.72;
+        model.flux = followSignal(model.flux, fluxTarget, 0.46, 0.1);
+        model.impact = followSignal(model.impact, clamp(positiveFlux * 5 + model.flux * 3.4), 0.52, 0.09);
+        const energyTarget = model.smoothedBands.reduce((total, value, index) => total + value * weights[index], 0);
+        model.energy = followSignal(model.energy, energyTarget, 0.28, 0.08);
+        model.carrier = followSignal(
+            model.carrier,
+            clamp(model.energy * 0.72 + model.impact * 0.52 + model.flux * 1.8),
+            0.36,
+            0.07
+        );
+        model.rawBands = rawBands;
+        model.previousBands = rawBands;
+        model.previousEnergy = rawEnergy;
+        model.lastBands = [...model.smoothedBands];
+        model.sampleFrame += 1;
         surfaces.forEach(surface => {
             surface.root.dataset.sampleFrame = String(model.sampleFrame);
+            surface.root.dataset.energy = model.energy.toFixed(3);
+            surface.root.dataset.flux = model.flux.toFixed(3);
+            surface.root.dataset.impact = model.impact.toFixed(3);
+            surface.root.style.setProperty('--signal-energy', model.energy.toFixed(3));
+            surface.root.style.setProperty('--signal-impact', model.impact.toFixed(3));
         });
-        return bands;
+        return model.smoothedBands;
     }
 
     function drawWaveform(surface) {
@@ -256,20 +360,57 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         const styles = getComputedStyle(surface.root);
         const line = styles.getPropertyValue('--signal-line').trim() || 'rgba(230, 220, 195, 0.14)';
         const ink = styles.getPropertyValue('--signal-ink').trim() || 'rgba(147, 142, 130, 0.72)';
+        const fill = styles.getPropertyValue('--signal-fill').trim() || 'rgba(134, 181, 156, 0.08)';
         const center = Math.round(height / 2) + 0.5;
+
+        context.save();
         context.strokeStyle = line;
         context.lineWidth = density;
+        for (let index = 1; index < 8; index += 1) {
+            const x = Math.round(width * index / 8) + 0.5;
+            context.beginPath();
+            context.moveTo(x, 0);
+            context.lineTo(x, height);
+            context.stroke();
+        }
         context.beginPath();
         context.moveTo(0, center);
         context.lineTo(width, center);
         context.stroke();
+
+        if (model.liveValidated && model.frequencyData) {
+            const points = 72;
+            context.beginPath();
+            context.moveTo(0, center);
+            for (let index = 0; index <= points; index += 1) {
+                const normalized = index / points;
+                const sourceIndex = Math.min(
+                    model.frequencyData.length - 1,
+                    Math.floor(Math.pow(normalized, 1.72) * model.frequencyData.length)
+                );
+                const energy = model.frequencyData[sourceIndex] / 255;
+                context.lineTo(normalized * width, center - Math.pow(energy, 1.18) * height * 0.31);
+            }
+            for (let index = points; index >= 0; index -= 1) {
+                const normalized = index / points;
+                const sourceIndex = Math.min(
+                    model.frequencyData.length - 1,
+                    Math.floor(Math.pow(normalized, 1.72) * model.frequencyData.length)
+                );
+                const energy = model.frequencyData[sourceIndex] / 255;
+                context.lineTo(normalized * width, center + Math.pow(energy, 1.18) * height * 0.31);
+            }
+            context.closePath();
+            context.fillStyle = fill;
+            context.fill();
+        }
 
         context.beginPath();
         if (model.liveValidated && model.displayTimeData) {
             for (let index = 0; index < model.displayTimeData.length; index += 1) {
                 const x = index / Math.max(1, model.displayTimeData.length - 1) * width;
                 const normalized = model.displayTimeData[index];
-                const y = height / 2 + normalized * height * 0.39;
+                const y = height / 2 + normalized * height * (0.26 + model.energy * 0.13);
                 if (index === 0) context.moveTo(x, y);
                 else context.lineTo(x, y);
             }
@@ -278,18 +419,34 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
             context.lineTo(width, center);
         }
         context.strokeStyle = ink;
-        context.lineWidth = Math.max(density, 1.25 * density);
+        context.lineWidth = Math.max(density, (1.1 + model.energy * 0.75) * density);
+        context.shadowColor = ink;
+        context.shadowBlur = model.liveValidated ? (2 + model.energy * 8) * density : 0;
         context.stroke();
+
+        const carrierX = Math.round(width / 2) + 0.5;
+        const carrierHeight = model.liveValidated
+            ? height * (0.16 + model.carrier * 0.56)
+            : height * 0.14;
+        context.beginPath();
+        context.moveTo(carrierX, center - carrierHeight / 2);
+        context.lineTo(carrierX, center + carrierHeight / 2);
+        context.strokeStyle = ink;
+        context.lineWidth = Math.max(density, (0.9 + model.impact * 1.6) * density);
+        context.shadowColor = ink;
+        context.shadowBlur = model.liveValidated ? (4 + model.impact * 18) * density : 0;
+        context.stroke();
+        context.beginPath();
+        context.arc(carrierX, center, Math.max(1.5 * density, (1.5 + model.impact * 2.8) * density), 0, Math.PI * 2);
+        context.fillStyle = ink;
+        context.fill();
+        context.restore();
     }
 
     function updateBands(values) {
-        const speed = model.liveValidated ? 0.14 : 0.2;
-        model.smoothedBands = model.smoothedBands.map((value, index) => (
-            value + (values[index] - value) * speed
-        ));
         surfaces.forEach(surface => {
             surface.bandFills.forEach((element, index) => {
-                element.style.width = `${Math.round(model.smoothedBands[index] * 100)}%`;
+                element.style.width = `${Math.round(values[index] * 100)}%`;
             });
         });
     }
@@ -301,7 +458,14 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         }
         model.lastRenderAt = time;
         const liveBands = readLiveSignal();
-        const values = liveBands || (audio.paused && model.liveValidated ? model.lastBands : [0, 0, 0]);
+        if (!liveBands && !audio.paused && !model.liveValidated) {
+            model.smoothedBands = model.smoothedBands.map(value => followSignal(value, 0, 0.2, 0.18));
+            model.energy = followSignal(model.energy, 0, 0.2, 0.12);
+            model.flux = followSignal(model.flux, 0, 0.2, 0.16);
+            model.impact = followSignal(model.impact, 0, 0.2, 0.14);
+            model.carrier = followSignal(model.carrier, 0, 0.2, 0.1);
+        }
+        const values = liveBands || (audio.paused && model.liveValidated ? model.lastBands : model.smoothedBands);
         surfaces.forEach(drawWaveform);
         updateBands(values);
         requestAnimationFrame(render);

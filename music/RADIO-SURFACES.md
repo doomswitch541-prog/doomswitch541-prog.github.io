@@ -226,11 +226,16 @@ not remove a station or change playback.
   removes the lock sweep and state transitions.
 - The signal instrument is audio-reactive only when the browser exposes actual
   media samples. One captured stream from the existing `radio-audio` element
-  feeds an `AnalyserNode`: the line is time-domain amplitude, while Bass, Mid,
-  and Treble are averages from 20–250 Hz, 250–2500 Hz, and 2500–10000 Hz. Both
-  visible surfaces draw the same measured frame at a restrained 30 fps with
-  temporal smoothing. No receiver state, station seed, random number, or title
-  metadata creates motion.
+  feeds an `AnalyserNode`. Its visual contract is radio-specific: the waveform
+  is time-domain amplitude; the mirrored field is the live low-to-high spectrum;
+  the central carrier follows overall energy; a brief carrier flare follows
+  positive spectral flux; and the Bass, Mid, and Treble rails represent
+  adaptively normalized 20–250 Hz, 250–2500 Hz, and 2500–10000 Hz energy. Each
+  band combines average, RMS, and peak energy, then uses separate attack and
+  release speeds so quiet and loud streams remain legible without constant
+  busyness. Both visible surfaces draw the same measured frame at a restrained
+  30 fps. No receiver state, station seed, random number, or title metadata
+  creates audio-like motion.
 - Sample capture is armed synchronously by the listener's play gesture. Stations
   whose audio endpoints returned permissive CORS in the September 4, 2026 audit
   load in anonymous CORS mode; all other streams keep ordinary direct playback.
