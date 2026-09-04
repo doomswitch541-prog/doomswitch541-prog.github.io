@@ -35,10 +35,6 @@ const carModeState = document.getElementById('car-mode-state');
 const carModeStatus = document.getElementById('car-mode-status');
 const dockToggle = document.getElementById('dock-toggle');
 const carDockPanel = document.getElementById('car-dock-panel');
-const carDockState = document.getElementById('car-dock-state');
-const carDockMessage = document.getElementById('car-dock-message');
-const carSignalFigure = document.querySelector('.signal-scope');
-const carSignalCanvas = document.getElementById('car-signal-scope');
 const carSavedTrack = document.getElementById('car-saved-track');
 const carSavedCount = document.getElementById('car-saved-count');
 const carSavedEmpty = document.getElementById('car-saved-empty');
@@ -62,7 +58,7 @@ const carTextPreviewAlbum = document.getElementById('car-text-preview-album');
 const requiredNodes = [
     audio, nowPlaying, airLabel, currentName, currentProgramLabel, currentProgram,
     playerStatus, stationList, playerControls, carModeToggle, carMode, dockToggle,
-    carDockPanel, carSignalCanvas, carSavedTrack, carTextSheet
+    carDockPanel, carSavedTrack, carTextSheet
 ];
 
 let initialized = false;
@@ -76,12 +72,7 @@ let wakeLockSentinel = null;
 let wakeLockReleasing = false;
 let dockPointerStart = null;
 let suppressDockClick = false;
-let scopeFrame = null;
-let scopeVisible = false;
-let scopePhase = 0;
-let previousScopeState = 'idle';
 let metadataRefreshAt = 0;
-const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function readStoredFlag(key) {
     try {
@@ -177,7 +168,6 @@ function syncCarDisplay() {
         : playerStatus.textContent;
 
     carMode.dataset.state = state;
-    carSignalFigure.dataset.state = state;
     playerControls.dataset.carState = state;
     carModeStation.textContent = currentName.textContent;
     carModeProgramLabel.textContent = currentProgramLabel.textContent;
@@ -185,14 +175,11 @@ function syncCarDisplay() {
     carModeMessage.textContent = currentMessage();
     carModeState.textContent = stateLabel;
     carModeStatus.textContent = status;
-    carDockState.textContent = stateLabel;
-    carDockMessage.textContent = status;
     carTextState.textContent = customCarMessage
         ? (customCarMessageStored ? 'CUSTOM' : 'THIS VISIT')
         : 'RG ROTATION';
     if (carTextSheet.open) syncCarTextPreview();
     renderFavorites();
-    requestScopeFrame();
 }
 
 function publishVehicleMetadata({ resetAlbum = false } = {}) {
@@ -219,21 +206,16 @@ function setDockExpanded(expanded) {
     dockExpanded = Boolean(expanded);
     playerControls.classList.toggle('dock-expanded', dockExpanded);
     dockToggle.setAttribute('aria-expanded', String(dockExpanded));
-    dockToggle.setAttribute('aria-label', dockExpanded ? 'Collapse receiver dock' : 'Expand receiver dock');
+    dockToggle.setAttribute('aria-label', dockExpanded ? 'Close live signal' : 'Open live signal');
     const label = dockToggle.querySelector('b');
-    if (label) label.textContent = dockExpanded ? 'CLOSE DOCK' : 'SIGNAL DOCK';
+    if (label) label.textContent = dockExpanded ? 'CLOSE SIGNAL' : 'LIVE SIGNAL';
     carDockPanel.setAttribute('aria-hidden', String(!dockExpanded));
     carDockPanel.inert = !dockExpanded;
     if (dockExpanded) {
-        scopeVisible = true;
         syncCarDisplay();
-        requestScopeFrame();
         return;
     }
     if (carDockPanel.contains(document.activeElement)) dockToggle.focus({ preventScroll: true });
-    scopeVisible = false;
-    if (scopeFrame !== null) cancelAnimationFrame(scopeFrame);
-    scopeFrame = null;
 }
 
 function setCarRegionsInert(active) {
@@ -312,7 +294,6 @@ function applyDimPreference() {
     document.body.classList.toggle('car-mode-dim', dimPreference);
     carDimToggle.setAttribute('aria-pressed', String(dimPreference));
     carDimState.textContent = dimPreference ? 'ON' : 'OFF';
-    requestScopeFrame();
 }
 
 function enterCarMode({ persist = true } = {}) {
@@ -416,124 +397,11 @@ function playSavedStation(uuid) {
     }
     const select = row?.querySelector('.station-select');
     if (!select) {
-        carDockMessage.textContent = 'Open Saved stations in the receiver and try again.';
+        playerStatus.textContent = 'Open Saved stations in the receiver and try again.';
         return;
     }
     setDockExpanded(false);
     select.click();
-}
-
-function scopeShouldAnimate() {
-    const state = effectiveState();
-    return scopeVisible
-        && dockExpanded
-        && document.visibilityState === 'visible'
-        && !reducedMotionQuery.matches
-        && (state === 'loading' || state === 'playing');
-}
-
-function drawScopeLine(context, points, color, width = 2) {
-    context.beginPath();
-    points.forEach(([x, y], index) => {
-        if (index === 0) context.moveTo(x, y);
-        else context.lineTo(x, y);
-    });
-    context.strokeStyle = color;
-    context.lineWidth = width;
-    context.stroke();
-}
-
-function drawSignalScope(now = performance.now()) {
-    const bounds = carSignalCanvas.getBoundingClientRect();
-    const width = Math.round(bounds.width);
-    const height = Math.round(bounds.height);
-    if (width < 2 || height < 2) return;
-    const context = carSignalCanvas.getContext('2d');
-    if (!context) return;
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    const pixelWidth = Math.round(width * ratio);
-    const pixelHeight = Math.round(height * ratio);
-    if (carSignalCanvas.width !== pixelWidth || carSignalCanvas.height !== pixelHeight) {
-        carSignalCanvas.width = pixelWidth;
-        carSignalCanvas.height = pixelHeight;
-    }
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    context.clearRect(0, 0, width, height);
-    context.strokeStyle = 'rgba(230, 220, 195, 0.10)';
-    context.lineWidth = 1;
-    [0.25, 0.5, 0.75].forEach(mark => {
-        context.beginPath();
-        context.moveTo(0, Math.round(height * mark) + 0.5);
-        context.lineTo(width, Math.round(height * mark) + 0.5);
-        context.stroke();
-    });
-
-    const state = effectiveState();
-    const center = height / 2;
-    const reduced = reducedMotionQuery.matches;
-    if (state === 'playing' && !reduced) scopePhase = now / 1000;
-    if (previousScopeState === 'playing' && state === 'paused' && !scopePhase) scopePhase = now / 1000;
-    previousScopeState = state;
-
-    if (state === 'offline' || state === 'error') {
-        const red = getComputedStyle(document.body).getPropertyValue('--red').trim() || '#d34f3f';
-        [
-            [[0, center], [width * 0.16, center], [width * 0.23, center - 18]],
-            [[width * 0.31, center + 14], [width * 0.47, center - 6]],
-            [[width * 0.57, center + 11], [width * 0.7, center + 11], [width * 0.76, center - 20]],
-            [[width * 0.85, center + 17], [width, center + 17]]
-        ].forEach(points => drawScopeLine(context, points, red, 2));
-        return;
-    }
-
-    if (state === 'loading') {
-        const phase = reduced ? 0.42 : (now / 1100) % 1;
-        const pulseX = phase * (width + 80) - 40;
-        const points = [];
-        for (let x = 0; x <= width; x += 4) {
-            const distance = (x - pulseX) / 34;
-            const pulse = Math.exp(-(distance * distance)) * 27;
-            points.push([x, center - pulse + Math.sin(x * 0.08) * pulse * 0.18]);
-        }
-        const amber = getComputedStyle(document.body).getPropertyValue('--amber').trim() || '#e6a04a';
-        drawScopeLine(context, points, amber, 2);
-        return;
-    }
-
-    if (state === 'playing' || state === 'paused') {
-        const phase = reduced ? 0.8 : (scopePhase || 0.8);
-        const points = [];
-        for (let x = 0; x <= width; x += 3) {
-            const envelope = 0.45 + 0.55 * Math.sin((x / Math.max(width, 1)) * Math.PI);
-            const wave = Math.sin(x * 0.075 + phase * 3.2) * 12
-                + Math.sin(x * 0.021 - phase * 1.7) * 7
-                + Math.sin(x * 0.19 + phase) * 3;
-            points.push([x, center + wave * envelope]);
-        }
-        const styles = getComputedStyle(document.body);
-        const green = styles.getPropertyValue('--green').trim() || '#86b59c';
-        const amber = styles.getPropertyValue('--amber').trim() || '#e6a04a';
-        const gradient = context.createLinearGradient(0, 0, width, 0);
-        gradient.addColorStop(0, green);
-        gradient.addColorStop(0.78, green);
-        gradient.addColorStop(1, amber);
-        drawScopeLine(context, points, gradient, state === 'paused' ? 1.5 : 2);
-        return;
-    }
-
-    const baseline = [];
-    for (let x = 0; x <= width; x += 5) baseline.push([x, center + Math.sin(x * 0.04) * 1.25]);
-    drawScopeLine(context, baseline, 'rgba(147, 142, 130, 0.72)', 1);
-}
-
-function runScopeFrame(now) {
-    scopeFrame = null;
-    drawSignalScope(now);
-    if (scopeShouldAnimate()) scopeFrame = requestAnimationFrame(runScopeFrame);
-}
-
-function requestScopeFrame() {
-    if (scopeFrame === null) scopeFrame = requestAnimationFrame(runScopeFrame);
 }
 
 function bindInteraction() {
@@ -611,15 +479,9 @@ function bindInteraction() {
         if (document.visibilityState === 'hidden') await releaseWakeLock();
         else if (carModeActive && awakePreference) await requestWakeLock();
         updateWakeLockControl();
-        requestScopeFrame();
     });
     window.addEventListener('online', syncCarDisplay);
     window.addEventListener('offline', syncCarDisplay);
-    if (typeof reducedMotionQuery.addEventListener === 'function') {
-        reducedMotionQuery.addEventListener('change', requestScopeFrame);
-    } else if (typeof reducedMotionQuery.addListener === 'function') {
-        reducedMotionQuery.addListener(requestScopeFrame);
-    }
     audio.addEventListener('timeupdate', () => {
         const now = Date.now();
         if (now - metadataRefreshAt < 2000) return;
@@ -660,17 +522,6 @@ function initialize() {
             observer.observe(node, { childList: true, characterData: true, subtree: true });
         });
 
-    if ('IntersectionObserver' in window) {
-        const scopeObserver = new IntersectionObserver(entries => {
-            scopeVisible = Boolean(entries[0]?.isIntersecting) && dockExpanded;
-            requestScopeFrame();
-        });
-        scopeObserver.observe(carSignalCanvas);
-    }
-    if ('ResizeObserver' in window) {
-        const resizeObserver = new ResizeObserver(requestScopeFrame);
-        resizeObserver.observe(carSignalCanvas);
-    }
     if (readStoredFlag(CAR_MODE_KEY)) enterCarMode({ persist: false });
 }
 

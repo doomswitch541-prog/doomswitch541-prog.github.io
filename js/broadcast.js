@@ -1,5 +1,5 @@
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260903-1';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260904-2';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -1729,27 +1729,48 @@ async function playStation(station, index) {
         audio.dataset.uuid = station.stationuuid;
         audio.src = station.url_resolved;
     }
+    receiverInstruments.arm();
 
     setPlayerState('loading', 'TUNING', `Connecting to ${station.name}...`);
     reportMediaSurface(station, 'checking', 'TUNING', 'Main receiver is opening this direct HTTPS stream.');
+    let playbackError = null;
     try {
         await audio.play();
         if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
         recordPlay(station);
+        return;
     } catch (error) {
         if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
-        playPending = false;
         if (error?.name === 'NotAllowedError') {
+            playPending = false;
             setPlayerState('error', 'PLAY BLOCKED', 'The browser blocked playback. Tap RETRY once.');
             reportMediaSurface(station, 'error', 'PLAY BLOCKED', 'The browser rejected the playback gesture.');
             return;
         }
-        const detail = mediaErrorDetail(audio, error);
-        reportMediaSurface(station, 'error', signalFailureLabel(detail), detail);
-        setSignalResult(station, { state: 'dead', label: signalFailureLabel(detail), detail });
-        setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
-        console.warn('RG Broadcast playback failed', error);
+        playbackError = error;
     }
+
+    if (receiverInstruments.fallbackToPlayback()) {
+        setPlayerState('loading', 'TUNING', `Opening ${station.name} without the live meter...`);
+        audio.src = station.url_resolved;
+        receiverInstruments.arm();
+        try {
+            await audio.play();
+            if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
+            recordPlay(station);
+            return;
+        } catch (error) {
+            if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
+            playbackError = error;
+        }
+    }
+
+    playPending = false;
+    const detail = mediaErrorDetail(audio, playbackError);
+    reportMediaSurface(station, 'error', signalFailureLabel(detail), detail);
+    setSignalResult(station, { state: 'dead', label: signalFailureLabel(detail), detail });
+    setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
+    console.warn('RG Broadcast playback failed', playbackError);
 }
 
 function pauseStation() {
@@ -2031,6 +2052,7 @@ audio.addEventListener('waiting', () => {
 
 audio.addEventListener('error', () => {
     if (!currentStation || !audio.getAttribute('src') || audio.dataset.uuid !== currentStation.stationuuid) return;
+    if (playPending && audio.crossOrigin === 'anonymous') return;
     playPending = false;
     const detail = mediaErrorDetail(audio);
     reportMediaSurface(currentStation, 'error', signalFailureLabel(detail), detail);

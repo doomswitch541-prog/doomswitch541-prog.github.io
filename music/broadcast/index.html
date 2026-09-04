@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png?v=20260828-7">
     <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png?v=20260828-7">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260903-8">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260904-2">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
@@ -64,50 +64,37 @@
                         <div><dt>Source</dt><dd id="current-source">—</dd></div>
                     </dl>
                 </div>
-                <section class="receiver-instruments" id="receiver-instruments" data-source="state" aria-labelledby="receiver-instruments-title">
-                    <header class="receiver-instruments-head">
-                        <div>
-                            <span>INPUT SOURCE</span>
-                            <h2 id="receiver-instruments-title">Signal instruments</h2>
-                        </div>
-                        <strong id="receiver-analysis-source">RECEIVER STATE</strong>
+                <section class="signal-instrument" id="receiver-instruments" data-analysis="waiting" aria-labelledby="receiver-instruments-title">
+                    <header class="signal-instrument-head">
+                        <h2 id="receiver-instruments-title">Live signal</h2>
+                        <strong id="receiver-analysis-source" aria-live="polite">READY</strong>
                     </header>
-                    <div class="receiver-instrument-grid">
-                        <figure class="receiver-instrument receiver-waveform">
-                            <figcaption><span id="receiver-waveform-label">RECEIVER STATE TRACE</span><b id="receiver-waveform-state">STANDBY</b></figcaption>
-                            <canvas id="receiver-waveform-canvas" width="720" height="180" role="img" aria-label="Receiver state trace"></canvas>
-                        </figure>
-                        <figure class="receiver-instrument receiver-spectrum">
-                            <figcaption><span id="receiver-spectrum-label">SIGNAL HEALTH</span><b id="receiver-spectrum-state">CONNECTION</b></figcaption>
-                            <canvas id="receiver-spectrum-canvas" width="720" height="132" role="img" aria-label="Receiver connection health"></canvas>
-                        </figure>
+                    <canvas id="receiver-waveform-canvas" width="720" height="144" role="img" aria-label="Live audio waveform"></canvas>
+                    <div class="signal-bands" aria-label="Live bass, mid, and treble energy">
+                        <div><span>BASS</span><i><b id="receiver-band-low"></b></i></div>
+                        <div><span>MID</span><i><b id="receiver-band-mid"></b></i></div>
+                        <div><span>TREBLE</span><i><b id="receiver-band-high"></b></i></div>
                     </div>
-                    <div class="receiver-analysis-readout">
-                        <div class="receiver-analysis-bands" aria-label="Signal measurements">
-                            <div><span id="receiver-band-low-label">LOCK</span><i><b id="receiver-band-low"></b></i><output id="receiver-band-low-value">00</output></div>
-                            <div><span id="receiver-band-mid-label">LINK</span><i><b id="receiver-band-mid"></b></i><output id="receiver-band-mid-value">00</output></div>
-                            <div><span id="receiver-band-high-label">BUF</span><i><b id="receiver-band-high"></b></i><output id="receiver-band-high-value">00</output></div>
-                        </div>
-                        <div class="receiver-analysis-level"><span id="receiver-level-label">STATE LEVEL</span><strong id="receiver-level">00%</strong></div>
-                    </div>
+                    <p class="signal-instrument-note" id="receiver-analysis-note" hidden></p>
                 </section>
                 <div class="player-controls">
-                    <button class="mini-player-handle" id="dock-toggle" type="button" aria-expanded="false" aria-controls="car-dock-panel" aria-label="Expand receiver dock">
-                        <span aria-hidden="true"></span><b aria-hidden="true">SIGNAL DOCK</b>
+                    <button class="mini-player-handle" id="dock-toggle" type="button" aria-expanded="false" aria-controls="car-dock-panel" aria-label="Open live signal">
+                        <b>LIVE SIGNAL</b><span aria-hidden="true"></span>
                     </button>
                     <div class="car-dock-panel" id="car-dock-panel" aria-hidden="true" inert>
-                        <div class="car-dock-status">
-                            <span>RECEIVER STATE</span>
-                            <strong id="car-dock-state">STANDBY</strong>
-                            <p id="car-dock-message">Receiver ready.</p>
-                        </div>
-                        <figure class="signal-scope" data-state="idle">
-                            <figcaption>
-                                <span>STATE-DRIVEN SIGNAL</span>
-                                <b>NOT AUDIO ANALYSIS</b>
-                            </figcaption>
-                            <canvas id="car-signal-scope" width="900" height="180" role="img" aria-label="Visual trace of the current receiver state"></canvas>
-                        </figure>
+                        <section class="signal-instrument signal-instrument--dock" id="dock-instruments" data-analysis="waiting" aria-labelledby="dock-instruments-title">
+                            <header class="signal-instrument-head">
+                                <h2 id="dock-instruments-title">Live signal</h2>
+                                <strong id="dock-analysis-source" aria-live="polite">READY</strong>
+                            </header>
+                            <canvas id="dock-waveform-canvas" width="720" height="144" role="img" aria-label="Live audio waveform"></canvas>
+                            <div class="signal-bands" aria-label="Live bass, mid, and treble energy">
+                                <div><span>BASS</span><i><b id="dock-band-low"></b></i></div>
+                                <div><span>MID</span><i><b id="dock-band-mid"></b></i></div>
+                                <div><span>TREBLE</span><i><b id="dock-band-high"></b></i></div>
+                            </div>
+                            <p class="signal-instrument-note" id="dock-analysis-note" hidden></p>
+                        </section>
                         <section class="car-saved" aria-labelledby="car-saved-title">
                             <div class="car-dock-section-head">
                                 <h2 id="car-saved-title">Saved stations</h2>
@@ -303,8 +290,8 @@
     </footer>
 
     <script src="/js/site.js"></script>
-    <script type="module" src="/js/broadcast.js?v=20260903-8"></script>
-    <script type="module" src="/js/broadcast-car.js?v=20260828-7"></script>
+    <script type="module" src="/js/broadcast.js?v=20260904-2"></script>
+    <script type="module" src="/js/broadcast-car.js?v=20260904-2"></script>
     <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
 </html>

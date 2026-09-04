@@ -217,11 +217,30 @@ not remove a station or change playback.
   after a tap, the browser-native prompt is never invoked automatically, and the
   action disappears in standalone mode or after installation.
 - On phone-sized viewports, the existing previous/play/next controls become a
-  safe-area-aware receiver dock with station and program text. Its single lock
-  line follows tuning, playing, and error state. Search focus moves the dock out
-  of the keyboard's way, while larger tablets and desktops retain the original
-  receiver/directory layout. Reduced motion removes the lock sweep and state
-  transitions.
+  safe-area-aware receiver dock with station and program text. A full-width
+  `LIVE SIGNAL` disclosure row sits inside the rounded glass player instead of
+  overlapping its transport. The opened sheet is separated from the player and
+  repeats the same waveform and three band meters used by the receiver face.
+  Search focus moves the dock out of the keyboard's way, while larger tablets
+  and desktops retain the original receiver/directory layout. Reduced motion
+  removes the lock sweep and state transitions.
+- The signal instrument is audio-reactive only when the browser exposes actual
+  media samples. One captured stream from the existing `radio-audio` element
+  feeds an `AnalyserNode`: the line is time-domain amplitude, while Bass, Mid,
+  and Treble are averages from 20–250 Hz, 250–2500 Hz, and 2500–10000 Hz. Both
+  visible surfaces draw the same measured frame at a restrained 30 fps with
+  temporal smoothing. No receiver state, station seed, random number, or title
+  metadata creates motion.
+- Sample capture is armed synchronously by the listener's play gesture. Stations
+  whose audio endpoints returned permissive CORS in the September 4, 2026 audit
+  load in anonymous CORS mode; all other streams keep ordinary direct playback.
+  If an audited CORS stream rejects that request, the receiver retries it once
+  as ordinary direct audio and disables only the meter. When capture, CORS, or
+  Web Audio is unavailable, the waveform stays flat, the meters stay at zero,
+  and the UI says `METER UNAVAILABLE` without interrupting radio. Behind the
+  Sch3m3s, U7 Radio, Free People of the Cosmos, Dr. J Radio,
+  HearMe.fm Screamo Emo, and Static lacked audio-stream CORS in that audit. The
+  receiver still contains exactly one audio element and no relay.
 
 ### Curated stream additions checked August 24–26, 2026
 
