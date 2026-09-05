@@ -11,17 +11,17 @@
     <meta property="og:title" content="RG Broadcast — Live internet radio">
     <meta property="og:description" content="Tune a handcrafted receiver built around real stations, live program information, and a focused driving view.">
     <meta property="og:url" content="https://doomswitch541-prog.github.io/music/broadcast/">
-    <meta property="og:image" content="https://doomswitch541-prog.github.io/music/broadcast/icons/rg-broadcast-512.png">
+    <meta property="og:image" content="https://doomswitch541-prog.github.io/music/broadcast/icons/rg-broadcast-v2-512.png">
     <meta name="twitter:card" content="summary">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="RG Broadcast">
     <title>RG Broadcast</title>
-    <link rel="manifest" href="/music/broadcast/manifest.webmanifest?v=20260828-7">
-    <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-192.png?v=20260828-7">
-    <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-180.png?v=20260828-7">
+    <link rel="manifest" href="/music/broadcast/manifest.webmanifest?v=20260905-1">
+    <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-v2-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-v2-180.png">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260904-4">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260905-1">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body>
@@ -88,6 +88,10 @@
                         <b>LIVE SIGNAL</b><span aria-hidden="true"></span>
                     </button>
                     <div class="car-dock-panel" id="car-dock-panel" aria-hidden="true" inert>
+                        <div class="signal-now-playing">
+                            <span id="signal-current-name">Choose a station</span>
+                            <strong id="signal-current-program">Waiting for a station</strong>
+                        </div>
                         <section class="signal-instrument signal-instrument--dock" id="dock-instruments" data-analysis="waiting" aria-labelledby="dock-instruments-title">
                             <header class="signal-instrument-head">
                                 <h2 id="dock-instruments-title">Live signal</h2>
@@ -102,22 +106,26 @@
                             <p class="signal-instrument-note" id="dock-analysis-note" hidden></p>
                         </section>
                         <section class="car-saved" aria-labelledby="car-saved-title">
+                            <div class="dock-station-actions">
+                                <button id="dock-save-station" type="button" aria-pressed="false" disabled>Save this station</button>
+                                <button id="dock-browse-stations" type="button">Browse stations</button>
+                            </div>
                             <div class="car-dock-section-head">
                                 <h2 id="car-saved-title">Saved stations</h2>
                                 <span id="car-saved-count">0 SAVED</span>
                             </div>
                             <div class="car-saved-track" id="car-saved-track"></div>
-                            <p class="car-saved-empty" id="car-saved-empty">Save stations in the ordinary receiver and they will wait here.</p>
+                            <p class="car-saved-empty" id="car-saved-empty">Save a station here for one-tap listening next time.</p>
                         </section>
                         <div class="car-dock-options">
                             <button class="car-dock-control" id="car-text-open" type="button">
-                                <span>CAR TEXT</span><small id="car-text-state">RG ROTATION</small>
+                                <span>Car text</span><small id="car-text-state">RG ROTATION</small>
                             </button>
                             <button class="car-dock-control" id="car-awake-toggle" type="button" aria-pressed="false">
-                                <span>KEEP AWAKE</span><small id="car-awake-state">OFF</small>
+                                <span>Keep awake</span><small id="car-awake-state">OFF</small>
                             </button>
                             <button class="car-dock-control" id="car-dim-toggle" type="button" aria-pressed="false">
-                                <span>DIM</span><small id="car-dim-state">OFF</small>
+                                <span>Dim</span><small id="car-dim-state">OFF</small>
                             </button>
                         </div>
                     </div>
@@ -296,8 +304,8 @@
     </footer>
 
     <script src="/js/site.js"></script>
-    <script type="module" src="/js/broadcast.js?v=20260904-4"></script>
-    <script type="module" src="/js/broadcast-car.js?v=20260904-4"></script>
+    <script type="module" src="/js/broadcast.js?v=20260905-1"></script>
+    <script type="module" src="/js/broadcast-car.js?v=20260905-1"></script>
     <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
 </html>

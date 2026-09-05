@@ -203,30 +203,31 @@ not remove a station or change playback.
   browsers download it and copy the station link when clipboard access is
   available. No image service, tracking call, or remote artwork is involved.
 - Carries a Broadcast-only web-app manifest with `/music/broadcast/` as its ID,
-  start URL, and scope. The service worker lives inside that directory, so it
-  cannot control the rest of RG HQ. It caches fourteen same-origin shell files:
-  the receiver page, its local CSS and JavaScript, the manifest, and the four
-  referenced radio icons. Remote station audio, live-title APIs, Radio Browser,
-  and every other cross-origin response are always left to the network.
-- Uses network-first navigation with the cached receiver as a fallback. The
-  offline shell keeps the embedded Top 20 and Personal lists readable and says
-  plainly that live stations need a connection; it does not imply cached or
-  downloadable radio playback.
+  start URL, and scope. The former service worker was retired by the August 28
+  direct-loading pass (`62c2ab5`). `pwa.js` unregisters only Broadcast-scoped
+  workers and clears only `rg-broadcast-shell-*` caches on load. The retained
+  `sw.js` file is historical, not an active offline-shell guarantee. Page code,
+  live streams, and metadata load from the network; offline playback is not
+  provided. September 5 audio/dock work preserves that retirement.
 - Shows `ADD APP` only when iOS can use the Home Screen instructions or a
   supporting browser supplies `beforeinstallprompt`. The instructions open only
   after a tap, the browser-native prompt is never invoked automatically, and the
   action disappears in standalone mode or after installation.
 - On phone-sized viewports, the existing previous/play/next controls become a
   safe-area-aware receiver dock with synchronized station and current
-  song/program text across the top row. A `Signal` disclosure button shares the
-  lower row with the transport. The opened sheet is separated from the player and
-  repeats the same waveform and three band meters used by the receiver face.
+  song/program text. A centered full-width `Signal` disclosure sits above the
+  station/title and transport rows. The opened glass sheet is separated from the
+  player, repeats station/title, and shares the waveform and three band meters
+  used by the receiver face. Its maximum height follows the available viewport;
+  short portrait screens tighten the Car Mode readout to keep controls clear.
   Search focus moves the dock out of the keyboard's way, while larger tablets
   and desktops retain the original receiver/directory layout. Reduced motion
   removes the lock sweep, state transitions, and continuous signal motion.
 - The signal instrument is audio-reactive only when the browser exposes actual
-  media samples. One captured stream from the existing `radio-audio` element
-  feeds an `AnalyserNode`. Its visual contract is radio-specific: the waveform
+  media samples. Like RG Player and cf-vizualizer, the playing `radio-audio`
+  element feeds an `AnalyserNode` through `createMediaElementSource`, then the
+  audio destination. This does not depend on Safari's unsupported media-element
+  `captureStream` API. Its visual contract is radio-specific: the waveform
   is time-domain amplitude; the mirrored field is the live low-to-high spectrum;
   the central carrier follows overall energy; a brief carrier flare follows
   positive spectral flux; and the Bass, Mid, and Treble rails represent
@@ -236,7 +237,8 @@ not remove a station or change playback.
   busyness. Both visible surfaces draw the same measured frame at a restrained
   30 fps. No station seed, random number, or title metadata creates measured
   audio motion; the explicitly labeled receiver fallback is kept separate.
-- Sample capture is armed synchronously by the listener's play gesture. Pause,
+- Audio analysis is armed synchronously by the listener's play gesture. Native
+  playback is not rerouted until the AudioContext is running. Pause,
   resume, opening, and buffering are tracked as separate receiver phases so a
   late media event cannot make a stopped player look as though it is still
   buffering. Resuming also resumes the existing AudioContext before the meter
@@ -245,15 +247,42 @@ not remove a station or change playback.
   load in anonymous CORS mode; all other streams keep ordinary direct playback.
   If an audited CORS stream rejects that request, the receiver retries it once
   as ordinary direct audio and disables only the meter. When capture, CORS, or
-  Web Audio is unavailable, the meters remain at zero while the waveform shows
-  a restrained deterministic receiver-state cadence for tuning, playing, and
-  paused states; pausing freezes the cadence. It is explicitly labeled
+  Web Audio is unavailable, the unmeasured band rails are hidden while the waveform shows
+  a travelling amber carrier with two faint phosphor echoes. The same deterministic
+  phase drives both surfaces, with a tighter, faster tuning trace, a slow flowing
+  playing trace, and a frozen paused trace. Reduced motion keeps the trace static.
+  No frequency grid or measuring cursor is drawn in fallback mode. It is explicitly labeled
   `RECEIVER SIGNAL` and never presented
   as measured audio. This keeps the instrument legible without fabricating
   music reactivity or interrupting radio. Behind the
   Sch3m3s, U7 Radio, Free People of the Cosmos, Dr. J Radio,
   HearMe.fm Screamo Emo, and Static lacked audio-stream CORS in that audit. The
-  receiver still contains exactly one audio element and no relay.
+  receiver still contains exactly one active audio element and no relay.
+- A MediaElementSource permanently owns its media element. When changing a
+  routed station, recovering from CORS failure, losing the audio context, or
+  receiving no usable samples during validation, the receiver retires that
+  element and replaces it with one native element. Old event handlers are
+  detached, volume/mute are preserved, and receiver + Car Mode subscriptions
+  bind to the replacement. There are never two simultaneously playing elements.
+  Automatic native recovery goes through the ordinary playback/error handler.
+- September 5 local verification: Firefox responsive layouts and metadata/text
+  input checks, deterministic routing tests, and simulated-media browser
+  handoffs passed. Live Web Audio verification remains incomplete on this host:
+  Firefox reported `OnMediaSinkAudioError` before graph attachment and its
+  AudioContext stayed suspended. Simulated signal values are QA-only, never
+  imported by the public receiver; physical Safari/audio-output QA is separate.
+- The dock includes Save this station and Browse stations. Save uses the existing
+  receiver favorite action and storage; Browse closes the dock, exits Car Mode
+  if needed, and returns focus to station search without changing playback.
+  Saved presets retain their DOM nodes across metadata refreshes so keyboard
+  focus is not lost. The active preset remains marked with `aria-current`.
+- The v2 receiver artwork is shared by the iOS 180px touch icon, Android 192px
+  and 512px manifest icons, social fallback image, and both Media Session metadata
+  writers. A separately padded 512px maskable icon accommodates Android masks.
+  Versioned filenames avoid reusing the older artwork URL; existing installed
+  home-screen icons may require re-adding the shortcut. These are Broadcast-only
+  assets, not replacements for the site's shared icons. Station artwork is not
+  automatically substituted.
 
 ### Curated stream additions checked August 24–26, 2026
 

@@ -12,7 +12,7 @@
     --red: #d34f3f;
     --green: #86b59c;
     --receiver-glass: rgba(17, 19, 19, 0.9);
-    --broadcast-dock-height: 116px;
+    --broadcast-dock-height: 166px;
     --font-display: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
     --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
     --font-data: "Courier New", Courier, monospace;
@@ -658,8 +658,12 @@ button {
 }
 
 .signal-instrument[data-analysis="fallback"] {
-    --signal-ink: rgba(230, 220, 195, 0.68);
-    --signal-fill: rgba(230, 220, 195, 0.035);
+    --signal-ink: rgba(239, 185, 115, 0.86);
+    --signal-fill: rgba(230, 160, 74, 0.045);
+}
+
+.signal-instrument:is([data-analysis="fallback"], [data-analysis="listening"], [data-analysis="error"], [data-analysis="waiting"]) .signal-bands {
+    display: none;
 }
 
 .signal-instrument[data-analysis="live"] {
@@ -1609,26 +1613,27 @@ button:hover:not(:disabled) {
         bottom: max(8px, env(safe-area-inset-bottom));
         left: max(8px, env(safe-area-inset-left));
         z-index: 1000;
-        grid-template-columns: minmax(0, 1fr) 46px 56px 46px;
-        grid-template-rows: 38px 56px;
+        grid-template-columns: 1fr 64px 1fr;
+        grid-template-rows: 44px 42px 56px;
         align-items: center;
         gap: 0.25rem;
         min-height: var(--broadcast-dock-height);
         padding: 6px 8px 8px;
         overflow: visible;
-        border: 1px solid var(--line-strong);
-        border-radius: 22px;
-        background: var(--receiver-glass);
-        box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.42);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 30px;
+        background: linear-gradient(155deg, rgba(255,255,255,0.055), transparent 54%), var(--receiver-glass);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0.8rem 2.8rem rgba(0, 0, 0, 0.42);
         transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease, visibility 160ms ease;
     }
 
     .mini-player-copy {
         display: block;
         grid-column: 1 / -1;
-        grid-row: 1;
+        grid-row: 2;
         min-width: 0;
         padding: 0 0.35rem;
+        text-align: center;
         touch-action: pan-x;
     }
 
@@ -1642,21 +1647,21 @@ button:hover:not(:disabled) {
 
     .mini-player-copy span {
         color: var(--muted);
-        font-family: var(--font-data);
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
         font-size: 0.57rem;
         letter-spacing: 0.075em;
         line-height: 1.35;
-        text-transform: uppercase;
+        text-transform: none;
     }
 
     .mini-player-copy strong {
         margin-top: 0.18rem;
         color: var(--paper);
-        font-family: var(--font-display);
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
         font-size: 0.96rem;
         letter-spacing: -0.01em;
         line-height: 1.05;
-        text-transform: uppercase;
+        text-transform: none;
     }
 
     .mini-player-lock {
@@ -1699,12 +1704,13 @@ button:hover:not(:disabled) {
     }
 
     .player-controls .transport {
-        grid-row: 2;
+        grid-row: 3;
+        justify-self: center;
         width: 46px;
         min-width: 44px;
         min-height: 48px;
         padding: 0;
-        border-radius: 13px;
+        border-radius: 999px;
     }
 
     .player-controls .transport--play {
@@ -1762,19 +1768,18 @@ button:hover:not(:disabled) {
         position: static;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        grid-column: 1;
-        grid-row: 2;
+        justify-content: center;
+        grid-column: 1 / -1;
+        grid-row: 1;
         gap: 0.7rem;
         width: 100%;
         min-width: 44px;
-        height: 38px;
-        min-height: 38px;
+        height: 44px;
+        min-height: 44px;
         padding: 0 0.7rem;
         border: 0;
-        border-bottom: 1px solid var(--line);
         border-radius: 999px;
-        background: rgba(230, 220, 195, 0.035);
+        background: rgba(255, 255, 255, 0.045);
         color: var(--muted);
         cursor: pointer;
         touch-action: none;
@@ -1839,15 +1844,15 @@ button:hover:not(:disabled) {
         display: flex;
         flex-direction: column;
         height: auto;
-        max-height: min(56dvh, 430px);
+        max-height: min(56dvh, calc(100dvh - var(--broadcast-dock-height) - 38px), 430px);
         min-height: 0;
         padding: 1rem;
         overflow-y: auto;
         overscroll-behavior: contain;
-        border: 1px solid var(--line-strong);
-        border-radius: 22px;
-        background: rgba(13, 15, 15, 0.985);
-        box-shadow: 0 1.2rem 3.6rem rgba(0, 0, 0, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 30px;
+        background: rgba(17, 21, 22, 0.94);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 1.2rem 3.6rem rgba(0, 0, 0, 0.52);
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -2022,7 +2027,7 @@ button:hover:not(:disabled) {
     display: grid;
     place-items: center;
     height: 100dvh;
-    padding: calc(92px + env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) calc(156px + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    padding: calc(92px + env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) calc(206px + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     overflow: hidden;
     background:
         radial-gradient(circle at 50% 43%, rgba(255, 255, 255, 0.025), transparent 32%),
@@ -2030,6 +2035,128 @@ button:hover:not(:disabled) {
     color: var(--paper);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
     isolation: isolate;
+}
+
+/* The open sheet keeps the same station context as the compact player. */
+.signal-now-playing {
+    flex: 0 0 auto;
+    padding: 0.3rem 0.35rem 1rem;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+
+.signal-now-playing span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+.signal-now-playing strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--paper);
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.car-dock-panel {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+
+.car-dock-panel .signal-instrument-head h2,
+.car-dock-panel .car-dock-section-head h2 {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.car-dock-panel .car-dock-control {
+    font-family: inherit;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.045);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.045);
+}
+
+.car-dock-panel .car-dock-control span {
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.car-dock-panel .car-saved-empty {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    line-height: 1.45;
+    text-transform: none;
+}
+
+.car-dock-panel .signal-instrument-note {
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.dock-station-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.dock-station-actions button {
+    min-height: 44px;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid rgba(230, 220, 195, 0.16);
+    border-radius: 14px;
+    color: var(--paper);
+    background: rgba(255,255,255,0.045);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.055);
+    font: 500 0.75rem -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    cursor: pointer;
+}
+
+.dock-station-actions button[aria-pressed="true"] {
+    color: var(--green);
+    border-color: rgba(134, 181, 156, 0.3);
+}
+
+.dock-station-actions button:disabled { opacity: 0.4; cursor: default; }
+.dock-station-actions button:active { background: rgba(255,255,255,0.1); }
+.dock-station-actions button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+.car-dock-panel .car-saved-track button {
+    flex-basis: min(56vw, 200px);
+    border-radius: 16px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.3;
+    text-transform: none;
+}
+
+.player-controls .mini-player-handle b {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.player-controls .mini-player-lock { display: none; }
+
+@media (prefers-reduced-transparency: reduce) {
+    .player-controls, .car-dock-panel, .car-mode-readout {
+        background: #111313 !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
 }
 
 .car-mode[hidden] {
@@ -2094,7 +2221,7 @@ button:hover:not(:disabled) {
     flex-direction: column;
     justify-content: center;
     width: min(100%, 980px);
-    min-height: min(58dvh, 560px);
+    min-height: min(52dvh, 510px);
     margin: 0 auto;
     padding: clamp(1.4rem, 4vw, 3.4rem);
     overflow: hidden;
@@ -2304,16 +2431,16 @@ body.car-mode-active .player-controls {
     left: max(8px, env(safe-area-inset-left));
     z-index: 1200;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 68px 84px 68px;
-    grid-template-rows: 44px 72px;
+    grid-template-columns: 1fr 92px 1fr;
+    grid-template-rows: 44px 44px 72px;
     align-items: center;
     gap: 0.45rem;
-    min-height: 134px;
+    min-height: 190px;
     padding: 6px 12px 10px;
     overflow: visible;
     border: 1px solid rgba(255, 255, 255, 0.11);
     border-color: color-mix(in srgb, var(--car-control-accent) 24%, rgba(255, 255, 255, 0.1));
-    border-radius: 28px;
+    border-radius: 34px;
     background: rgba(16, 20, 21, 0.72);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.09),
@@ -2350,9 +2477,10 @@ body.car-mode-active .player-controls::before {
 body.car-mode-active .mini-player-copy {
     display: block;
     grid-column: 1 / -1;
-    grid-row: 1;
+    grid-row: 2;
     min-width: 0;
     padding: 0 0.45rem;
+    text-align: center;
 }
 
 body.car-mode-active .mini-player-copy span,
@@ -2360,7 +2488,7 @@ body.car-mode-active .mini-player-copy strong {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-transform: uppercase;
+    text-transform: none;
     white-space: nowrap;
 }
 
@@ -2383,7 +2511,7 @@ body.car-mode-active .mini-player-lock {
     top: 50px;
     right: 12px;
     left: 12px;
-    display: block;
+    display: none;
     height: 1px;
     overflow: hidden;
     background: var(--line);
@@ -2404,9 +2532,9 @@ body.car-mode-active .mini-player-handle {
     position: static;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    grid-column: 1;
-    grid-row: 2;
+    justify-content: center;
+    grid-column: 1 / -1;
+    grid-row: 1;
     gap: 0.7rem;
     width: 100%;
     min-width: 0;
@@ -2434,10 +2562,10 @@ body.car-mode-active .mini-player-handle b {
     display: inline-flex;
     align-items: center;
     gap: 0.52rem;
-    font-family: var(--font-data);
-    font-size: 0.58rem;
-    font-weight: 400;
-    letter-spacing: 0.025em;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0;
 }
 
 body.car-mode-active .mini-player-handle b::before {
@@ -2465,7 +2593,8 @@ body.car-mode-active .player-controls.dock-expanded .mini-player-handle span {
 }
 
 body.car-mode-active .player-controls .transport {
-    grid-row: 2;
+    grid-row: 3;
+    justify-self: center;
     width: 68px;
     min-width: 64px;
     min-height: 72px;
@@ -2506,7 +2635,7 @@ body.car-mode-active .car-dock-panel {
     display: flex;
     flex-direction: column;
     height: auto;
-    max-height: min(54dvh, 440px);
+    max-height: min(54dvh, calc(100dvh - 222px - env(safe-area-inset-bottom)), 440px);
     min-height: 0;
     padding: 1rem;
     overflow-y: auto;
@@ -2734,7 +2863,7 @@ body.car-mode-active.car-mode-dim {
     }
 
     .car-mode-readout {
-        min-height: min(57dvh, 510px);
+        min-height: min(48dvh, 460px);
         padding: 1.35rem;
         border-radius: 26px;
     }
@@ -2744,7 +2873,7 @@ body.car-mode-active.car-mode-dim {
     }
 
     body.car-mode-active .player-controls {
-        grid-template-columns: minmax(0, 1fr) 64px 76px 64px;
+        grid-template-columns: 1fr 84px 1fr;
         gap: 0.25rem;
         padding-right: 8px;
         padding-left: 8px;
@@ -2763,9 +2892,37 @@ body.car-mode-active.car-mode-dim {
     }
 }
 
+@media (orientation: portrait) and (max-height: 700px) {
+    .car-mode-readout {
+        min-height: 0;
+        max-height: 100%;
+        padding: 1rem 1.2rem;
+    }
+    .car-mode-program { margin-top: 0.7rem; }
+    .car-mode-program h1 {
+        font-size: clamp(1.65rem, 5vh, 2.25rem);
+        line-height: 0.98;
+        -webkit-line-clamp: 2;
+    }
+    .car-mode-message { margin-top: 0.7rem; }
+    .car-mode-state { margin-top: 0.7rem; padding: 0.6rem 0.7rem; }
+}
+
 @media (orientation: landscape) and (max-height: 600px) {
+    body.car-mode-active .player-controls {
+        grid-template-rows: 44px 36px 56px;
+        min-height: 158px;
+        gap: 0.15rem;
+        padding-top: 4px;
+        padding-bottom: 6px;
+    }
+
+    body.car-mode-active .mini-player-handle { min-height: 44px; height: 44px; }
+    body.car-mode-active .player-controls .transport { min-height: 56px; }
+    body.car-mode-active .car-dock-panel { max-height: calc(100dvh - 192px - env(safe-area-inset-bottom)); }
+
     .car-mode {
-        padding: calc(78px + env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) calc(148px + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+        padding: calc(78px + env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) calc(178px + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     }
 
     .car-mode-field {
@@ -2780,7 +2937,7 @@ body.car-mode-active.car-mode-dim {
         gap: 1rem 2rem;
         min-height: 0;
         height: 100%;
-        padding: 1rem 1.35rem;
+        padding: 0.85rem 1.35rem;
         border-radius: 24px;
     }
 

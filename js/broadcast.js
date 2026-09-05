@@ -1,5 +1,5 @@
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260904-4';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260905-1';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -281,9 +281,38 @@ function canonicalStoredStation(station) {
     return ALL_CURATED_STATIONS.find(item => item.stationuuid === canonicalUuid) || station;
 }
 
-const audio = document.getElementById('radio-audio');
+let audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
-const receiverInstruments = createBroadcastInstruments({ audio, nowPlaying });
+let receiverAudioEvents;
+const receiverInstruments = createBroadcastInstruments({
+    audio, nowPlaying, replaceAudio: replaceReceiverAudio,
+    resumePlayback() {
+        playPending = false;
+        void playStation(currentStation, currentIndex);
+    }
+});
+
+// A MediaElementSource permanently owns its element. Retire that element before
+// returning to direct playback; never leave a non-CORS station in a silent graph.
+function replaceReceiverAudio() {
+    const previous = audio;
+    const replacement = previous.cloneNode(false);
+    replacement.removeAttribute('src');
+    replacement.removeAttribute('crossorigin');
+    replacement.volume = previous.volume;
+    replacement.muted = previous.muted;
+    replacement.playbackRate = previous.playbackRate;
+    receiverAudioEvents?.abort();
+    previous.pause();
+    previous.removeAttribute('src');
+    previous.load();
+    previous.replaceWith(replacement);
+    audio = replacement;
+    lastPlaybackTime = 0;
+    bindReceiverAudio();
+    window.dispatchEvent(new CustomEvent('broadcast:audio-replaced', { detail: { audio } }));
+    return audio;
+}
 const airLabel = document.getElementById('air-label');
 const currentName = document.getElementById('current-name');
 const currentDescription = document.getElementById('current-description');
@@ -1838,7 +1867,11 @@ function publishMediaSession(station) {
     navigator.mediaSession.metadata = new MediaMetadata({
         title: mediaSessionProgramTitle || station.name,
         artist: mediaSessionProgramTitle ? station.name : stationFormat(station),
-        album: MEDIA_SESSION_MESSAGES[mediaSessionMessageIndex]
+        album: MEDIA_SESSION_MESSAGES[mediaSessionMessageIndex],
+        artwork: [
+            { src: '/music/broadcast/icons/rg-broadcast-v2-192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/music/broadcast/icons/rg-broadcast-v2-512.png', sizes: '512x512', type: 'image/png' }
+        ]
     });
 }
 
@@ -2076,63 +2109,70 @@ shareButton.addEventListener('click', async () => {
     }
 });
 
-audio.addEventListener('playing', () => {
-    playbackIntent = 'playing';
-    playPending = false;
-    setSignalResult(currentStation, {
-        state: 'ready',
-        label: 'READY',
-        detail: 'Playable audio confirmed by this receiver.'
-    });
-    setPlayerState('playing', 'ON AIR', `Playing ${currentStation?.name || 'station'}.`);
-    reportMediaSurface(currentStation, 'ready', 'ON AIR', 'Playable audio confirmed by the main receiver.');
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
-});
-
-audio.addEventListener('timeupdate', () => {
-    const progressed = audio.currentTime > lastPlaybackTime;
-    lastPlaybackTime = audio.currentTime;
-    if (progressed && currentStation && playbackIntent === 'playing' && !audio.paused
-        && audio.readyState >= 3 && nowPlaying.dataset.state === 'loading') {
+function bindReceiverAudio() {
+    receiverAudioEvents?.abort();
+    receiverAudioEvents = new AbortController();
+    const listen = (name, callback) => audio.addEventListener(name, callback, { signal: receiverAudioEvents.signal });
+    listen('playing', () => {
+        playbackIntent = 'playing';
         playPending = false;
-        setPlayerState('playing', 'ON AIR', `Playing ${currentStation.name}.`);
+        setSignalResult(currentStation, {
+            state: 'ready',
+            label: 'READY',
+            detail: 'Playable audio confirmed by this receiver.'
+        });
+        setPlayerState('playing', 'ON AIR', `Playing ${currentStation?.name || 'station'}.`);
+        reportMediaSurface(currentStation, 'ready', 'ON AIR', 'Playable audio confirmed by the main receiver.');
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
-    }
-    rotateMediaSessionMessageIfDue();
-});
+    });
 
-audio.addEventListener('pause', () => {
-    if (!currentStation || playPending || nowPlaying.dataset.state === 'error') return;
-    playbackIntent = 'paused';
-    if (nowPlaying.dataset.state !== 'paused') {
-        setPlayerState('paused', 'PAUSED', `${currentStation.name} paused.`);
-    }
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
-});
+    listen('timeupdate', () => {
+        const progressed = audio.currentTime > lastPlaybackTime;
+        lastPlaybackTime = audio.currentTime;
+        if (progressed && currentStation && playbackIntent === 'playing' && !audio.paused
+            && audio.readyState >= 3 && nowPlaying.dataset.state === 'loading') {
+            playPending = false;
+            setPlayerState('playing', 'ON AIR', `Playing ${currentStation.name}.`);
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+        }
+        rotateMediaSessionMessageIfDue();
+    });
 
-audio.addEventListener('waiting', () => {
-    if (currentStation && playbackIntent === 'playing' && !audio.paused) {
-        setPlayerState('loading', 'BUFFERING', `Buffering ${currentStation.name}...`);
-    }
-});
+    listen('pause', () => {
+        if (!currentStation || playPending || nowPlaying.dataset.state === 'error') return;
+        playbackIntent = 'paused';
+        if (nowPlaying.dataset.state !== 'paused') {
+            setPlayerState('paused', 'PAUSED', `${currentStation.name} paused.`);
+        }
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+    });
 
-audio.addEventListener('error', () => {
-    if (!currentStation || !audio.getAttribute('src') || audio.dataset.uuid !== currentStation.stationuuid) return;
-    if (playPending && audio.crossOrigin === 'anonymous') return;
-    playbackIntent = 'paused';
-    playPending = false;
-    const detail = mediaErrorDetail(audio);
-    reportMediaSurface(currentStation, 'error', signalFailureLabel(detail), detail);
-    setSignalResult(currentStation, { state: 'dead', label: signalFailureLabel(detail), detail });
-    setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
-});
+    listen('waiting', () => {
+        if (currentStation && playbackIntent === 'playing' && !audio.paused) {
+            setPlayerState('loading', 'BUFFERING', `Buffering ${currentStation.name}...`);
+        }
+    });
 
-audio.addEventListener('stalled', () => {
-    if (currentStation && playbackIntent === 'playing' && !audio.paused && audio.readyState < 3) {
-        setPlayerState('loading', 'BUFFERING', `${currentStation.name} is taking longer than expected...`);
-    }
-});
+    listen('error', () => {
+        if (!currentStation || !audio.getAttribute('src') || audio.dataset.uuid !== currentStation.stationuuid) return;
+        if (playPending && audio.crossOrigin === 'anonymous') return;
+        playbackIntent = 'paused';
+        playPending = false;
+        const detail = mediaErrorDetail(audio);
+        reportMediaSurface(currentStation, 'error', signalFailureLabel(detail), detail);
+        setSignalResult(currentStation, { state: 'dead', label: signalFailureLabel(detail), detail });
+        setPlayerState('error', 'NO SIGNAL', `${detail}. Choose another station or test the list.`);
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+    });
+
+    listen('stalled', () => {
+        if (currentStation && playbackIntent === 'playing' && !audio.paused && audio.readyState < 3) {
+            setPlayerState('loading', 'BUFFERING', `${currentStation.name} is taking longer than expected...`);
+        }
+    });
+
+}
+bindReceiverAudio();
 
 stationHome.addEventListener('click', event => {
     if (stationHome.getAttribute('aria-disabled') === 'true') event.preventDefault();

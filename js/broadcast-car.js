@@ -10,11 +10,11 @@ const CAR_MESSAGES = [
     'RG OPEN-WEB RADIO 🌐📻'
 ];
 const CAR_ARTWORK = [
-    { src: '/music/broadcast/icons/rg-broadcast-192.png', sizes: '192x192', type: 'image/png' },
-    { src: '/music/broadcast/icons/rg-broadcast-512.png', sizes: '512x512', type: 'image/png' }
+    { src: '/music/broadcast/icons/rg-broadcast-v2-192.png', sizes: '192x192', type: 'image/png' },
+    { src: '/music/broadcast/icons/rg-broadcast-v2-512.png', sizes: '512x512', type: 'image/png' }
 ];
 
-const audio = document.getElementById('radio-audio');
+let audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
 const airLabel = document.getElementById('air-label');
 const currentName = document.getElementById('current-name');
@@ -23,6 +23,9 @@ const currentProgram = document.getElementById('current-program');
 const playerStatus = document.getElementById('player-status');
 const dockCurrentName = document.getElementById('dock-current-name');
 const dockCurrentProgram = document.getElementById('dock-current-program');
+const signalCurrentName = document.getElementById('signal-current-name');
+const signalCurrentProgram = document.getElementById('signal-current-program');
+let carAudioEvents;
 const favoriteCount = document.getElementById('favorite-count');
 const favoritesFilter = document.getElementById('favorites-filter');
 const stationList = document.getElementById('station-list');
@@ -40,6 +43,10 @@ const carDockPanel = document.getElementById('car-dock-panel');
 const carSavedTrack = document.getElementById('car-saved-track');
 const carSavedCount = document.getElementById('car-saved-count');
 const carSavedEmpty = document.getElementById('car-saved-empty');
+const dockSaveStation = document.getElementById('dock-save-station');
+const dockBrowseStations = document.getElementById('dock-browse-stations');
+const receiverSaveStation = document.getElementById('favorite-toggle');
+let favoritesRenderKey = '';
 const carTextOpen = document.getElementById('car-text-open');
 const carTextState = document.getElementById('car-text-state');
 const carAwakeToggle = document.getElementById('car-awake-toggle');
@@ -59,7 +66,8 @@ const carTextPreviewAlbum = document.getElementById('car-text-preview-album');
 
 const requiredNodes = [
     audio, nowPlaying, airLabel, currentName, currentProgramLabel, currentProgram,
-    playerStatus, dockCurrentName, dockCurrentProgram, stationList, playerControls, carModeToggle, carMode, dockToggle,
+    playerStatus, dockCurrentName, dockCurrentProgram, signalCurrentName, signalCurrentProgram,
+    stationList, playerControls, carModeToggle, carMode, dockToggle,
     carDockPanel, carSavedTrack, carTextSheet
 ];
 
@@ -139,6 +147,16 @@ function effectiveState() {
 
 function renderFavorites() {
     const favorites = readFavorites();
+    if (dockSaveStation && receiverSaveStation) {
+        const saved = receiverSaveStation.getAttribute('aria-pressed') === 'true';
+        dockSaveStation.disabled = receiverSaveStation.disabled;
+        dockSaveStation.setAttribute('aria-pressed', String(saved));
+        dockSaveStation.textContent = saved ? 'Saved station ✓' : 'Save this station';
+    }
+    // Playback metadata refreshes frequently. Do not replace focused preset buttons.
+    const key = JSON.stringify([audio.dataset.uuid, favorites.map(station => [station.stationuuid, station.name])]);
+    if (key === favoritesRenderKey) return;
+    favoritesRenderKey = key;
     const fragment = document.createDocumentFragment();
     favorites.forEach(station => {
         const button = document.createElement('button');
@@ -150,7 +168,7 @@ function renderFavorites() {
         fragment.appendChild(button);
     });
     carSavedTrack.replaceChildren(fragment);
-    carSavedCount.textContent = `${favorites.length} SAVED`;
+    carSavedCount.textContent = String(favorites.length);
     carSavedEmpty.hidden = favorites.length > 0;
 }
 
@@ -181,6 +199,8 @@ function syncCarDisplay() {
     carModeStatus.textContent = status;
     dockCurrentName.textContent = currentName.textContent;
     dockCurrentProgram.textContent = currentProgram.textContent;
+    signalCurrentName.textContent = currentName.textContent;
+    signalCurrentProgram.textContent = currentProgram.textContent;
     carTextState.textContent = customCarMessage
         ? (customCarMessageStored ? 'CUSTOM' : 'THIS VISIT')
         : 'RG ROTATION';
@@ -423,7 +443,7 @@ function bindInteraction() {
         setDockExpanded(!dockExpanded);
     });
     playerControls.addEventListener('pointerdown', event => {
-        if (event.pointerType === 'mouse' || event.target.closest('.transport, .car-dock-control, .car-saved-track button')) return;
+        if (event.pointerType === 'mouse' || event.target.closest('button:not(.mini-player-handle), input')) return;
         dockPointerStart = {
             pointerId: event.pointerId,
             x: event.clientX,
@@ -447,6 +467,18 @@ function bindInteraction() {
     carSavedTrack.addEventListener('click', event => {
         const button = event.target.closest('button[data-uuid]');
         if (button) playSavedStation(button.dataset.uuid);
+    });
+    dockSaveStation?.addEventListener('click', () => {
+        receiverSaveStation?.click();
+        renderFavorites();
+    });
+    dockBrowseStations?.addEventListener('click', async () => {
+        if (carModeActive) await exitCarMode({ restoreFocus: false });
+        else setDockExpanded(false);
+        const search = document.getElementById('search-query');
+        const target = search || stationList.querySelector('button');
+        target?.focus({ preventScroll: true });
+        document.querySelector('.directory')?.scrollIntoView({ block: 'start', behavior: 'instant' });
     });
     carTextOpen.addEventListener('click', openCarTextSheet);
     carTextClose.addEventListener('click', closeCarTextSheet);
@@ -488,15 +520,27 @@ function bindInteraction() {
     });
     window.addEventListener('online', syncCarDisplay);
     window.addEventListener('offline', syncCarDisplay);
+    bindCarAudio();
+    window.addEventListener('broadcast:audio-replaced', event => {
+        audio = event.detail.audio;
+        bindCarAudio();
+        syncCarDisplay();
+    });
+}
+
+function bindCarAudio() {
+    carAudioEvents?.abort();
+    carAudioEvents = new AbortController();
+    const options = { signal: carAudioEvents.signal };
     audio.addEventListener('timeupdate', () => {
         const now = Date.now();
         if (now - metadataRefreshAt < 2000) return;
         metadataRefreshAt = now;
         publishVehicleMetadata();
         syncCarDisplay();
-    });
+    }, options);
     ['playing', 'pause', 'waiting', 'error', 'stalled'].forEach(eventName => {
-        audio.addEventListener(eventName, () => window.setTimeout(syncCarDisplay, 0));
+        audio.addEventListener(eventName, () => window.setTimeout(syncCarDisplay, 0), options);
     });
 }
 
@@ -514,6 +558,9 @@ function initialize() {
     const observer = new MutationObserver(() => {
         syncCarDisplay();
         publishVehicleMetadata();
+    });
+    if (receiverSaveStation) observer.observe(receiverSaveStation, {
+        attributes: true, attributeFilter: ['aria-pressed', 'disabled']
     });
     [nowPlaying, airLabel, currentName, currentProgramLabel, currentProgram, playerStatus, favoriteCount]
         .filter(Boolean)
