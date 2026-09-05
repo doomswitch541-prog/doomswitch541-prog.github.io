@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-04T09:42:52.493Z",
+  "updatedAt": "2026-09-05T09:08:02.096Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -122,6 +122,16 @@
       "description": "Vol. 4 \"unter mitwirkung von Elisabeth Kutzer und Bernhard Heller\"; v. 5 \"unter mitwirkung von Walter Anderson, Max Böhm, Reidar Th. Christiansen, Robert Gragger, Bernhard Heller, Georg Horák\"",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-04T09:42:52.493Z"
+    },
+    {
+      "date": "2026-09-05",
+      "identifier": "boletndelasoci05soci",
+      "title": "Boletín de la Sociedad Española de Historia Natural",
+      "creator": "Sociedad Española de Historia Natural",
+      "published": "1905",
+      "description": "Suspended July 1937-Dec. 1939",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-05T09:08:02.096Z"
     }
   ]
 }
