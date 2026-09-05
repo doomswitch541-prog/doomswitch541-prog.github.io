@@ -1,5 +1,5 @@
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260904-3';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260904-4';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -338,6 +338,8 @@ let favoritesOnly = false;
 let favorites = loadFavorites();
 let playbackRun = 0;
 let playPending = false;
+let playbackIntent = 'paused';
+let lastPlaybackTime = 0;
 let signalTestRun = 0;
 let stationRequestRun = 0;
 let bandStations = [];
@@ -826,6 +828,21 @@ function wrapCanvasText(context, text, maxWidth, maxLines) {
     return lines;
 }
 
+function roundedCanvasPath(context, x, y, width, height, radius) {
+    const corner = Math.min(radius, width / 2, height / 2);
+    context.beginPath();
+    context.moveTo(x + corner, y);
+    context.lineTo(x + width - corner, y);
+    context.quadraticCurveTo(x + width, y, x + width, y + corner);
+    context.lineTo(x + width, y + height - corner);
+    context.quadraticCurveTo(x + width, y + height, x + width - corner, y + height);
+    context.lineTo(x + corner, y + height);
+    context.quadraticCurveTo(x, y + height, x, y + height - corner);
+    context.lineTo(x, y + corner);
+    context.quadraticCurveTo(x, y, x + corner, y);
+    context.closePath();
+}
+
 function shareCardSignal(station) {
     if (currentStation?.stationuuid === station.stationuuid && nowPlaying.dataset.state === 'playing') {
         return { label: 'ON AIR', bars: 5, color: 'green' };
@@ -851,22 +868,30 @@ function stationCardBlob(station, slotIndex) {
     const signal = shareCardSignal(station);
     const listenUrl = stationListenUrl(station);
     const displayUrl = listenUrl.replace(/^https?:\/\//, '');
-    const tags = String(station.tags || 'live internet radio')
-        .split(',')
-        .map(tag => tag.trim().toUpperCase())
-        .filter(Boolean)
-        .slice(0, 3)
-        .join(' / ');
+    const format = stationFormat(station);
+    const origin = stationOrigin(station);
+    const description = stationDescription(station);
 
     context.fillStyle = colors.black;
     context.fillRect(0, 0, canvas.width, canvas.height);
+    const atmosphere = context.createRadialGradient(930, 160, 0, 930, 160, 520);
+    atmosphere.addColorStop(0, signal.color === 'green' ? 'rgba(134,181,156,0.16)' : 'rgba(230,160,74,0.14)');
+    atmosphere.addColorStop(1, 'rgba(10,11,11,0)');
+    context.fillStyle = atmosphere;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    roundedCanvasPath(context, 36, 36, canvas.width - 72, canvas.height - 72, 34);
     context.fillStyle = colors.panel;
-    context.fillRect(36, 36, canvas.width - 72, canvas.height - 72);
+    context.fill();
     context.strokeStyle = colors.line;
     context.lineWidth = 2;
-    context.strokeRect(36, 36, canvas.width - 72, canvas.height - 72);
-    context.fillStyle = colors.amber;
-    context.fillRect(36, 36, canvas.width - 72, 7);
+    context.stroke();
+    const edge = context.createLinearGradient(246, 0, 954, 0);
+    edge.addColorStop(0, 'rgba(230,160,74,0)');
+    edge.addColorStop(0.5, colors.amber);
+    edge.addColorStop(1, 'rgba(230,160,74,0)');
+    context.fillStyle = edge;
+    context.fillRect(246, 36, 708, 3);
 
     context.textBaseline = 'alphabetic';
     context.fillStyle = colors.paper;
@@ -886,17 +911,22 @@ function stationCardBlob(station, slotIndex) {
     context.textAlign = 'left';
 
     context.fillStyle = colors.paper;
-    context.font = '900 78px "Arial Narrow", "Helvetica Neue", Arial, sans-serif';
+    context.font = '900 72px "Arial Narrow", "Helvetica Neue", Arial, sans-serif';
     const nameLines = wrapCanvasText(context, station.name, 1020, 2);
-    nameLines.forEach((line, index) => context.fillText(line, 74, 242 + index * 82));
+    nameLines.forEach((line, index) => context.fillText(line, 74, 225 + index * 72));
 
+    const detailY = nameLines.length > 1 ? 386 : 320;
+    context.fillStyle = colors.amber;
+    context.font = '700 18px "Courier New", monospace';
+    context.fillText(`${format}  /  ${origin}`, 76, detailY);
     context.fillStyle = colors.muted;
-    context.font = '700 20px "Courier New", monospace';
-    context.fillText(tags, 76, 391);
+    context.font = '21px "Helvetica Neue", Arial, sans-serif';
+    const descriptionLines = wrapCanvasText(context, description, 1000, nameLines.length > 1 ? 1 : 2);
+    descriptionLines.forEach((line, index) => context.fillText(line, 76, detailY + 36 + index * 28));
 
     const bandStart = 76;
     const bandEnd = 1124;
-    const bandY = 461;
+    const bandY = 466;
     context.fillStyle = colors.line;
     context.fillRect(bandStart, bandY - 1, bandEnd - bandStart, 2);
     BAND_FREQUENCIES.forEach((value, index) => {
@@ -909,14 +939,14 @@ function stationCardBlob(station, slotIndex) {
     for (let index = 0; index < 5; index += 1) {
         const height = 8 + index * 6;
         context.fillStyle = index < signal.bars ? colors[signal.color] : colors.line;
-        context.fillRect(76 + index * 12, 529 - height, 7, height);
+        context.fillRect(76 + index * 12, 535 - height, 7, height);
     }
     context.fillStyle = colors.paper;
     context.font = '700 17px "Courier New", monospace';
-    context.fillText(signal.label, 151, 527);
+    context.fillText(signal.label, 151, 533);
     context.textAlign = 'right';
     context.fillStyle = colors.amber;
-    context.fillText(`${String(slotIndex + 1).padStart(2, '0')} / 20`, 1123, 527);
+    context.fillText(`${String(slotIndex + 1).padStart(2, '0')} / 20`, 1123, 533);
     context.textAlign = 'left';
 
     context.fillStyle = colors.muted;
@@ -1627,7 +1657,16 @@ function updatePlayControl(state, label) {
 }
 
 function setPlayerState(state, label, message) {
+    const bufferState = state === 'loading'
+        ? (label === 'BUFFERING' ? 'buffering' : 'opening')
+        : state === 'playing'
+            ? 'ready'
+            : state === 'paused'
+                ? 'paused'
+                : state === 'error' ? 'error' : 'idle';
     nowPlaying.dataset.state = state;
+    nowPlaying.dataset.bufferState = bufferState;
+    audio.dataset.bufferState = bufferState;
     airLabel.textContent = label;
     playerStatus.textContent = message;
     receiverInstruments.setState({ state, label, message });
@@ -1720,6 +1759,8 @@ async function playStation(station, index) {
 
     const run = ++playbackRun;
     const changed = currentStation?.stationuuid !== station.stationuuid;
+    playbackIntent = 'playing';
+    lastPlaybackTime = audio.currentTime;
     playPending = true;
     if (changed) {
         audio.pause();
@@ -1742,6 +1783,7 @@ async function playStation(station, index) {
     } catch (error) {
         if (run !== playbackRun || currentStation?.stationuuid !== station.stationuuid) return;
         if (error?.name === 'NotAllowedError') {
+            playbackIntent = 'paused';
             playPending = false;
             setPlayerState('error', 'PLAY BLOCKED', 'The browser blocked playback. Tap RETRY once.');
             reportMediaSurface(station, 'error', 'PLAY BLOCKED', 'The browser rejected the playback gesture.');
@@ -1766,6 +1808,7 @@ async function playStation(station, index) {
     }
 
     playPending = false;
+    playbackIntent = 'paused';
     const detail = mediaErrorDetail(audio, playbackError);
     reportMediaSurface(station, 'error', signalFailureLabel(detail), detail);
     setSignalResult(station, { state: 'dead', label: signalFailureLabel(detail), detail });
@@ -1775,6 +1818,7 @@ async function playStation(station, index) {
 
 function pauseStation() {
     playbackRun += 1;
+    playbackIntent = 'paused';
     playPending = false;
     audio.pause();
     if (currentStation) setPlayerState('paused', 'PAUSED', `${currentStation.name} paused.`);
@@ -1980,8 +2024,16 @@ shareButton.addEventListener('click', async () => {
     const slotIndex = topStationIndex(station);
     if (!station || slotIndex < 0) return;
     const url = stationListenUrl(station);
+    const liveTitle = currentProgram.closest('.program-readout')?.dataset.state === 'live'
+        ? currentProgram.textContent.trim()
+        : '';
     const title = `${station.name} | RG Broadcast`;
-    const text = `Listen to ${station.name} on RG Broadcast.`;
+    const text = [
+        `Listen to ${station.name} on RG Broadcast.`,
+        stationFormat(station),
+        stationDescription(station),
+        liveTitle ? `Now playing: ${liveTitle}` : ''
+    ].filter(Boolean).join('\n');
     shareButton.disabled = true;
     shareButton.setAttribute('aria-busy', 'true');
     playerStatus.textContent = 'Capturing tuner card...';
@@ -2025,6 +2077,7 @@ shareButton.addEventListener('click', async () => {
 });
 
 audio.addEventListener('playing', () => {
+    playbackIntent = 'playing';
     playPending = false;
     setSignalResult(currentStation, {
         state: 'ready',
@@ -2036,10 +2089,21 @@ audio.addEventListener('playing', () => {
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 });
 
-audio.addEventListener('timeupdate', rotateMediaSessionMessageIfDue);
+audio.addEventListener('timeupdate', () => {
+    const progressed = audio.currentTime > lastPlaybackTime;
+    lastPlaybackTime = audio.currentTime;
+    if (progressed && currentStation && playbackIntent === 'playing' && !audio.paused
+        && audio.readyState >= 3 && nowPlaying.dataset.state === 'loading') {
+        playPending = false;
+        setPlayerState('playing', 'ON AIR', `Playing ${currentStation.name}.`);
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+    }
+    rotateMediaSessionMessageIfDue();
+});
 
 audio.addEventListener('pause', () => {
     if (!currentStation || playPending || nowPlaying.dataset.state === 'error') return;
+    playbackIntent = 'paused';
     if (nowPlaying.dataset.state !== 'paused') {
         setPlayerState('paused', 'PAUSED', `${currentStation.name} paused.`);
     }
@@ -2047,12 +2111,15 @@ audio.addEventListener('pause', () => {
 });
 
 audio.addEventListener('waiting', () => {
-    if (currentStation) setPlayerState('loading', 'BUFFERING', `Buffering ${currentStation.name}...`);
+    if (currentStation && playbackIntent === 'playing' && !audio.paused) {
+        setPlayerState('loading', 'BUFFERING', `Buffering ${currentStation.name}...`);
+    }
 });
 
 audio.addEventListener('error', () => {
     if (!currentStation || !audio.getAttribute('src') || audio.dataset.uuid !== currentStation.stationuuid) return;
     if (playPending && audio.crossOrigin === 'anonymous') return;
+    playbackIntent = 'paused';
     playPending = false;
     const detail = mediaErrorDetail(audio);
     reportMediaSurface(currentStation, 'error', signalFailureLabel(detail), detail);
@@ -2062,7 +2129,7 @@ audio.addEventListener('error', () => {
 });
 
 audio.addEventListener('stalled', () => {
-    if (currentStation && !audio.paused) {
+    if (currentStation && playbackIntent === 'playing' && !audio.paused && audio.readyState < 3) {
         setPlayerState('loading', 'BUFFERING', `${currentStation.name} is taking longer than expected...`);
     }
 });

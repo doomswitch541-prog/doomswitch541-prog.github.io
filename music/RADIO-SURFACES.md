@@ -217,13 +217,13 @@ not remove a station or change playback.
   after a tap, the browser-native prompt is never invoked automatically, and the
   action disappears in standalone mode or after installation.
 - On phone-sized viewports, the existing previous/play/next controls become a
-  safe-area-aware receiver dock with station and program text. A full-width
-  `LIVE SIGNAL` disclosure row sits inside the rounded glass player instead of
-  overlapping its transport. The opened sheet is separated from the player and
+  safe-area-aware receiver dock with synchronized station and current
+  song/program text across the top row. A `Signal` disclosure button shares the
+  lower row with the transport. The opened sheet is separated from the player and
   repeats the same waveform and three band meters used by the receiver face.
   Search focus moves the dock out of the keyboard's way, while larger tablets
   and desktops retain the original receiver/directory layout. Reduced motion
-  removes the lock sweep and state transitions.
+  removes the lock sweep, state transitions, and continuous signal motion.
 - The signal instrument is audio-reactive only when the browser exposes actual
   media samples. One captured stream from the existing `radio-audio` element
   feeds an `AnalyserNode`. Its visual contract is radio-specific: the waveform
@@ -234,15 +234,23 @@ not remove a station or change playback.
   band combines average, RMS, and peak energy, then uses separate attack and
   release speeds so quiet and loud streams remain legible without constant
   busyness. Both visible surfaces draw the same measured frame at a restrained
-  30 fps. No receiver state, station seed, random number, or title metadata
-  creates audio-like motion.
-- Sample capture is armed synchronously by the listener's play gesture. Stations
+  30 fps. No station seed, random number, or title metadata creates measured
+  audio motion; the explicitly labeled receiver fallback is kept separate.
+- Sample capture is armed synchronously by the listener's play gesture. Pause,
+  resume, opening, and buffering are tracked as separate receiver phases so a
+  late media event cannot make a stopped player look as though it is still
+  buffering. Resuming also resumes the existing AudioContext before the meter
+  reports live samples again. Stations
   whose audio endpoints returned permissive CORS in the September 4, 2026 audit
   load in anonymous CORS mode; all other streams keep ordinary direct playback.
   If an audited CORS stream rejects that request, the receiver retries it once
   as ordinary direct audio and disables only the meter. When capture, CORS, or
-  Web Audio is unavailable, the waveform stays flat, the meters stay at zero,
-  and the UI says `METER UNAVAILABLE` without interrupting radio. Behind the
+  Web Audio is unavailable, the meters remain at zero while the waveform shows
+  a restrained deterministic receiver-state cadence for tuning, playing, and
+  paused states; pausing freezes the cadence. It is explicitly labeled
+  `RECEIVER SIGNAL` and never presented
+  as measured audio. This keeps the instrument legible without fabricating
+  music reactivity or interrupting radio. Behind the
   Sch3m3s, U7 Radio, Free People of the Cosmos, Dr. J Radio,
   HearMe.fm Screamo Emo, and Static lacked audio-stream CORS in that audit. The
   receiver still contains exactly one audio element and no relay.
@@ -303,6 +311,32 @@ therefore best-effort. A bridge error, blank title, generic placeholder, or
 station-name-only value immediately restores the honest format fallback and also
 clears that title from the browser Media Session. Its former channel page now
 returns 404, so the station-site control uses the working HearMe.fm network home.
+
+### Car surface scope
+
+- Car Mode is an in-browser, glanceable driving surface for RG Broadcast. It
+  shares the one existing audio element, station selection, live title, saved
+  stations, and transport state with the ordinary receiver.
+- When a browser and vehicle expose compatible media controls, Media Session can
+  provide the real station, current song/program when published, RG car text,
+  artwork, and play/pause/skip actions. Support belongs to that browser/vehicle
+  combination; the page does not claim native CarPlay or Android Auto status.
+- Installed Home Screen mode removes ordinary browser framing but remains a web
+  app. Keep-awake and Dim are best-effort browser features, and live radio still
+  requires a network connection.
+- The glass driving view improves readability and touch targeting inside the
+  page. It does not replace the vehicle's own safety controls or head-unit UI.
+
+### Station sharing
+
+- The browser share action includes the selected station, format, authored or
+  derived description, and the current song/program when valid live metadata is
+  available. Its generated 1200 by 630 tuner card carries the same station
+  identity and direct listen URL.
+- GitHub Pages serves one static Open Graph description for link crawlers. The
+  station-specific text and image are supplied through the browser share action;
+  a crawler-specific station preview would require generated per-station HTML or
+  a server endpoint.
 
 ## Public-surface rules
 

@@ -89,6 +89,8 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         createSurface('receiver', 'receiver-instruments'),
         createSurface('dock', 'dock-instruments')
     ].filter(Boolean);
+    const carMode = document.getElementById('car-mode');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     if (!audio || !surfaces.length) {
         return { arm() {}, fallbackToPlayback() { return false; }, setState() {}, setStation() {} };
@@ -96,6 +98,7 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
 
     const model = {
         receiverState: nowPlaying?.dataset.state || 'idle',
+        receiverLabel: '',
         audioContext: null,
         analyser: null,
         capturedStream: null,
@@ -106,6 +109,7 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         frequencyData: null,
         analysisAllowed: false,
         captureAttempted: false,
+        captureRun: 0,
         captureFailed: false,
         liveValidated: false,
         audibleFrames: 0,
@@ -123,6 +127,9 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         impact: 0,
         carrier: 0,
         lastBands: [0, 0, 0],
+        fallbackPhase: 0,
+        fallbackLastAt: 0,
+        reducedFrameKey: '',
         lastRenderAt: 0
     };
 
@@ -140,13 +147,29 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
             surface.note.textContent = note;
             surface.note.hidden = !note;
         });
+        if (carMode) {
+            carMode.style.setProperty('--car-signal-energy', reducedMotion.matches ? '0' : model.energy.toFixed(3));
+            carMode.style.setProperty('--car-signal-impact', reducedMotion.matches ? '0' : model.impact.toFixed(3));
+        }
     }
 
     function analysisUnavailable() {
+        model.liveValidated = false;
+        model.smoothedBands = [0, 0, 0];
+        model.lastBands = [0, 0, 0];
+        model.energy = model.flux = model.impact = model.carrier = 0;
+        const state = model.receiverState;
+        const label = state === 'loading'
+            ? (model.receiverLabel === 'BUFFERING' ? 'BUFFERING' : 'TUNING')
+            : state === 'playing'
+                ? 'RECEIVER SIGNAL'
+                : state === 'paused'
+                    ? 'PAUSED SIGNAL'
+                    : 'READY';
         setAnalysisState(
-            'unavailable',
-            'METER UNAVAILABLE',
-            'Audio keeps playing; this browser cannot inspect this signal.'
+            'fallback',
+            label,
+            'Showing playback state. Audio levels unavailable in this browser.'
         );
     }
 
@@ -167,6 +190,8 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         model.impact = 0;
         model.carrier = 0;
         model.lastBands = [0, 0, 0];
+        model.fallbackPhase = 0;
+        model.fallbackLastAt = 0;
         model.displayTimeData?.fill(0);
         setAnalysisState('waiting', 'READY');
     }
@@ -174,7 +199,22 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
     function ensureAudioContext() {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return null;
-        if (!model.audioContext) model.audioContext = new AudioContextClass();
+        if (!model.audioContext) {
+            model.audioContext = new AudioContextClass();
+            model.audioContext.addEventListener('statechange', () => {
+                if (!model.analyser || !model.analysisAllowed || audio.paused || model.receiverState !== 'playing') return;
+                if (model.audioContext.state === 'running') {
+                    model.captureFailed = false;
+                    model.liveValidated = false;
+                    model.audibleFrames = 0;
+                    model.validationFrames = 0;
+                    setAnalysisState('listening', 'LISTENING');
+                } else {
+                    model.captureFailed = true;
+                    analysisUnavailable();
+                }
+            });
+        }
         return model.audioContext;
     }
 
@@ -203,6 +243,7 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
     }
 
     function releaseCapturedStream() {
+        model.captureRun += 1;
         try { model.streamSource?.disconnect(); } catch {}
         try { model.analyser?.disconnect(); } catch {}
         try { model.sinkGain?.disconnect(); } catch {}
@@ -218,10 +259,11 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
     }
 
     async function attemptCapture() {
-        if (model.captureAttempted || audio.paused) return;
-        model.captureAttempted = true;
+        if (audio.paused || (model.captureAttempted && !model.analyser)) return;
+        const run = model.captureRun;
+        if (!model.captureAttempted) model.captureAttempted = true;
         model.captureFailed = false;
-        setAnalysisState('listening', 'OPENING AUDIO');
+        setAnalysisState('listening', model.analyser ? 'RESUMING AUDIO' : 'OPENING AUDIO');
         const capture = audio.captureStream || audio.mozCaptureStream;
         if (!capture || !(window.AudioContext || window.webkitAudioContext)) {
             model.captureFailed = true;
@@ -239,18 +281,56 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
                 }
             }
             if (model.audioContext?.state === 'suspended') {
-                await model.audioContext.resume();
+                let timer;
+                try {
+                    await Promise.race([
+                        model.audioContext.resume(),
+                        new Promise(resolve => { timer = window.setTimeout(resolve, 1800); })
+                    ]);
+                } finally {
+                    window.clearTimeout(timer);
+                }
             }
-            setAnalysisState('listening', 'LISTENING');
+            if (run !== model.captureRun || audio.paused) return;
+            if (model.audioContext?.state !== 'running') {
+                model.captureFailed = true;
+                analysisUnavailable();
+                return;
+            }
+            if (model.receiverState !== 'playing') return;
+            setAnalysisState(model.liveValidated ? 'live' : 'listening', model.liveValidated ? 'LIVE AUDIO' : 'LISTENING');
         } catch (error) {
+            if (run !== model.captureRun || audio.paused) return;
             model.captureFailed = true;
             analysisUnavailable();
             console.info('RG Broadcast audio samples are unavailable in this browser.', error?.name || error);
         }
     }
 
+    function drawReceiverFallback(context, width, height, center) {
+        const state = model.receiverState;
+        if (!model.captureFailed || !['loading', 'playing', 'paused'].includes(state)) return false;
+        const amplitude = state === 'loading' ? height * 0.105 : height * 0.07;
+        const speed = state === 'loading' ? 1.75 : 0.72;
+        const points = 72;
+        context.beginPath();
+        for (let index = 0; index <= points; index += 1) {
+            const normalized = index / points;
+            const envelope = Math.sin(Math.PI * normalized);
+            const carrier = Math.sin(normalized * Math.PI * 3 + model.fallbackPhase * speed);
+            const harmonic = Math.sin(normalized * Math.PI * 8 - model.fallbackPhase * 0.42) * 0.24;
+            const y = center + (carrier + harmonic) * amplitude * envelope;
+            const x = normalized * width;
+            if (index === 0) context.moveTo(x, y);
+            else context.lineTo(x, y);
+        }
+        return true;
+    }
+
     function readLiveSignal() {
-        if (model.captureFailed || !model.analyser || !model.timeData || !model.frequencyData || audio.paused) return null;
+        if (model.captureFailed || !model.analyser || !model.timeData || !model.frequencyData
+            || audio.paused || model.receiverState !== 'playing'
+            || model.audioContext?.state !== 'running') return null;
         model.analyser.getByteTimeDomainData(model.timeData);
         model.analyser.getByteFrequencyData(model.frequencyData);
 
@@ -348,6 +428,10 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
             surface.root.style.setProperty('--signal-energy', model.energy.toFixed(3));
             surface.root.style.setProperty('--signal-impact', model.impact.toFixed(3));
         });
+        if (carMode) {
+            carMode.style.setProperty('--car-signal-energy', reducedMotion.matches ? '0' : model.energy.toFixed(3));
+            carMode.style.setProperty('--car-signal-impact', reducedMotion.matches ? '0' : model.impact.toFixed(3));
+        }
         return model.smoothedBands;
     }
 
@@ -414,6 +498,8 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
                 if (index === 0) context.moveTo(x, y);
                 else context.lineTo(x, y);
             }
+        } else if (drawReceiverFallback(context, width, height, center)) {
+            // The fallback is deliberately keyed to receiver state, never presented as audio data.
         } else {
             context.moveTo(0, center);
             context.lineTo(width, center);
@@ -421,13 +507,20 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
         context.strokeStyle = ink;
         context.lineWidth = Math.max(density, (1.1 + model.energy * 0.75) * density);
         context.shadowColor = ink;
-        context.shadowBlur = model.liveValidated ? (2 + model.energy * 8) * density : 0;
+        context.shadowBlur = model.liveValidated
+            ? (2 + model.energy * 8) * density
+            : model.captureFailed && model.receiverState === 'playing' ? 3 * density : 0;
         context.stroke();
 
         const carrierX = Math.round(width / 2) + 0.5;
+        const fallbackCarrier = model.captureFailed
+            ? model.receiverState === 'loading'
+                ? 0.22 + (Math.sin(model.fallbackPhase) + 1) * 0.045
+                : model.receiverState === 'playing' ? 0.18 : 0.08
+            : 0;
         const carrierHeight = model.liveValidated
             ? height * (0.16 + model.carrier * 0.56)
-            : height * 0.14;
+            : height * (0.14 + fallbackCarrier);
         context.beginPath();
         context.moveTo(carrierX, center - carrierHeight / 2);
         context.lineTo(carrierX, center + carrierHeight / 2);
@@ -452,11 +545,16 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
     }
 
     function render(time = 0) {
-        if (time - model.lastRenderAt < 33) {
+        if (document.hidden || time - model.lastRenderAt < 33) {
             requestAnimationFrame(render);
             return;
         }
         model.lastRenderAt = time;
+        const fallbackDelta = model.fallbackLastAt ? Math.min(100, time - model.fallbackLastAt) : 0;
+        model.fallbackLastAt = time;
+        if (!reducedMotion.matches && !document.hidden && model.captureFailed && !audio.paused && ['loading', 'playing'].includes(model.receiverState)) {
+            model.fallbackPhase += fallbackDelta * (model.receiverState === 'loading' ? 0.006 : 0.0018);
+        }
         const liveBands = readLiveSignal();
         if (!liveBands && !audio.paused && !model.liveValidated) {
             model.smoothedBands = model.smoothedBands.map(value => followSignal(value, 0, 0.2, 0.18));
@@ -466,24 +564,29 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
             model.carrier = followSignal(model.carrier, 0, 0.2, 0.1);
         }
         const values = liveBands || (audio.paused && model.liveValidated ? model.lastBands : model.smoothedBands);
-        surfaces.forEach(drawWaveform);
-        updateBands(values);
+        const frameKey = `${model.receiverState}:${model.liveValidated}:${model.captureFailed}:${surfaces.map(surface => `${surface.waveform.clientWidth},${surface.waveform.clientHeight}`).join(':')}`;
+        if (!reducedMotion.matches || frameKey !== model.reducedFrameKey) {
+            surfaces.forEach(drawWaveform);
+            updateBands(values);
+        }
+        model.reducedFrameKey = reducedMotion.matches ? frameKey : '';
         requestAnimationFrame(render);
     }
 
     audio.addEventListener('playing', () => {
-        if (model.liveValidated) {
-            setAnalysisState('live', 'LIVE AUDIO');
-            return;
-        }
         if (model.captureFailed) {
             analysisUnavailable();
             return;
         }
-        void attemptCapture();
+        if (model.audioContext?.state === 'suspended' || !model.liveValidated) {
+            void attemptCapture();
+            return;
+        }
+        setAnalysisState('live', 'LIVE AUDIO');
     });
     audio.addEventListener('pause', () => {
         if (model.liveValidated) setAnalysisState('paused', 'PAUSED');
+        else if (model.captureFailed) analysisUnavailable();
     });
     audio.addEventListener('loadstart', () => {
         model.liveValidated = false;
@@ -502,11 +605,13 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
     requestAnimationFrame(render);
 
     return {
-        setState({ state }) {
+        setState({ state, label }) {
             model.receiverState = state || 'idle';
+            model.receiverLabel = label || '';
             if (state === 'error') setAnalysisState('error', 'NO SIGNAL');
-            else if (state === 'loading' && model.captureFailed) analysisUnavailable();
-            else if (state === 'loading' && !model.liveValidated) setAnalysisState('listening', 'TUNING');
+            else if (model.captureFailed) analysisUnavailable();
+            else if (state === 'loading') setAnalysisState('listening', label === 'BUFFERING' ? 'BUFFERING' : 'TUNING');
+            else if (state === 'playing' && model.liveValidated && model.audioContext?.state === 'running') setAnalysisState('live', 'LIVE AUDIO');
             else if (state === 'paused' && model.liveValidated) setAnalysisState('paused', 'PAUSED');
             else if (state === 'idle' && !audio.getAttribute('src')) resetSignal();
         },
@@ -527,13 +632,18 @@ export function createBroadcastInstruments({ audio, nowPlaying }) {
             return true;
         },
         arm() {
-            const context = ensureAudioContext();
-            if (context?.state === 'suspended') {
-                const unlock = context.createBufferSource();
-                unlock.buffer = context.createBuffer(1, 1, 22050);
-                unlock.connect(context.destination);
-                unlock.start(0);
-                void context.resume();
+            try {
+                const context = ensureAudioContext();
+                if (context?.state === 'suspended') {
+                    const unlock = context.createBufferSource();
+                    unlock.buffer = context.createBuffer(1, 1, 22050);
+                    unlock.connect(context.destination);
+                    unlock.start(0);
+                    void context.resume().catch(() => {});
+                }
+            } catch {
+                model.captureFailed = true;
+                analysisUnavailable();
             }
         }
     };

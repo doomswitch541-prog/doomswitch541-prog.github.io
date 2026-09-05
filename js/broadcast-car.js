@@ -21,6 +21,8 @@ const currentName = document.getElementById('current-name');
 const currentProgramLabel = document.getElementById('current-program-label');
 const currentProgram = document.getElementById('current-program');
 const playerStatus = document.getElementById('player-status');
+const dockCurrentName = document.getElementById('dock-current-name');
+const dockCurrentProgram = document.getElementById('dock-current-program');
 const favoriteCount = document.getElementById('favorite-count');
 const favoritesFilter = document.getElementById('favorites-filter');
 const stationList = document.getElementById('station-list');
@@ -57,7 +59,7 @@ const carTextPreviewAlbum = document.getElementById('car-text-preview-album');
 
 const requiredNodes = [
     audio, nowPlaying, airLabel, currentName, currentProgramLabel, currentProgram,
-    playerStatus, stationList, playerControls, carModeToggle, carMode, dockToggle,
+    playerStatus, dockCurrentName, dockCurrentProgram, stationList, playerControls, carModeToggle, carMode, dockToggle,
     carDockPanel, carSavedTrack, carTextSheet
 ];
 
@@ -92,8 +94,10 @@ function writeStoredFlag(key, enabled) {
     }
 }
 
-function normalizeCarMessage(value) {
-    return Array.from(String(value || '').replace(/\s+/g, ' ').trim())
+function normalizeCarMessage(value, { final = true } = {}) {
+    const collapsed = String(value || '').replace(/\s+/g, ' ');
+    const normalized = final ? collapsed.trim() : collapsed.trimStart();
+    return Array.from(normalized)
         .slice(0, CAR_MESSAGE_LIMIT)
         .join('');
 }
@@ -151,7 +155,7 @@ function renderFavorites() {
 }
 
 function syncCarTextPreview() {
-    const candidate = normalizeCarMessage(carTextInput.value);
+    const candidate = normalizeCarMessage(carTextInput.value, { final: false });
     if (candidate !== carTextInput.value) carTextInput.value = candidate;
     carTextCount.textContent = `${Array.from(candidate).length} / ${CAR_MESSAGE_LIMIT}`;
     carTextPreviewTitle.textContent = currentProgram.textContent;
@@ -175,6 +179,8 @@ function syncCarDisplay() {
     carModeMessage.textContent = currentMessage();
     carModeState.textContent = stateLabel;
     carModeStatus.textContent = status;
+    dockCurrentName.textContent = currentName.textContent;
+    dockCurrentProgram.textContent = currentProgram.textContent;
     carTextState.textContent = customCarMessage
         ? (customCarMessageStored ? 'CUSTOM' : 'THIS VISIT')
         : 'RG ROTATION';
@@ -208,7 +214,7 @@ function setDockExpanded(expanded) {
     dockToggle.setAttribute('aria-expanded', String(dockExpanded));
     dockToggle.setAttribute('aria-label', dockExpanded ? 'Close live signal' : 'Open live signal');
     const label = dockToggle.querySelector('b');
-    if (label) label.textContent = dockExpanded ? 'CLOSE SIGNAL' : 'LIVE SIGNAL';
+    if (label) label.textContent = dockExpanded ? 'Close signal' : 'Signal';
     carDockPanel.setAttribute('aria-hidden', String(!dockExpanded));
     carDockPanel.inert = !dockExpanded;
     if (dockExpanded) {
