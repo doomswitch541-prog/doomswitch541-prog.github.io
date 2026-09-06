@@ -21,7 +21,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-v2-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-v2-180.png">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260905-2">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260906-1">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body class="broadcast-app">
@@ -35,13 +35,23 @@
   <nav id="broadcast-site-menu" class="broadcast-site-menu" aria-label="Site navigation" hidden inert><a href="/">Home</a><a href="/music">Listen</a></nav>
  </header>
  <p id="connection-status" class="connection-status" role="status" hidden>Offline · Live stations need a connection</p>
+ <section class="station-field" id="station-field" aria-label="Current radio transmission">
+  <article class="station-object" id="station-object">
+   <svg class="beacon" id="station-beacon" viewBox="0 0 200 200" aria-hidden="true">
+    <path class="beacon-frame" d="M32 62V32h30m76 0h30v30m0 76v30h-30m-76 0H32v-30"/>
+    <g class="beacon-orbits"><circle cx="100" cy="100" r="72"/><circle cx="100" cy="100" r="54"/></g>
+    <g class="beacon-stars"><circle r="2"/><circle r="2"/><circle r="2"/><circle r="2"/><circle r="2"/></g>
+    <g class="beacon-core"><path d="M100 85v30m-7 4h14M88 85a17 17 0 0 0 0 24m24-24a17 17 0 0 1 0 24M79 76a30 30 0 0 0 0 42m42-42a30 30 0 0 1 0 42"/><circle cx="100" cy="81" r="3"/></g>
+    <path class="beacon-bearing" d="M96 17l4-6 4 6M183 96l6 4-6 4M104 183l-4 6-4-6M17 104l-6-4 6-4"/>
+   </svg>
+   <div class="field-readout"><span id="field-station">Choose a station</span><strong id="field-program">Your receiver is ready</strong><p id="field-format"></p><div class="field-state"><i aria-hidden="true"></i><span id="field-state">Ready</span><span id="field-analysis">Receiver animation</span></div></div>
+  </article>
+ </section>
+ <div class="receiver-toast" id="receiver-toast" role="status" hidden></div>
  <main class="broadcast-shell">
   <section class="radio-console" id="now-playing" data-state="idle" data-view="channels" data-expanded="true" aria-label="RG Broadcast receiver">
-   <button id="dock-toggle" class="console-handle" type="button" aria-expanded="true" aria-controls="console-panes" aria-label="Contract radio"><span></span></button>
-   <div class="console-panes" id="console-panes">
-    <section class="console-pane directory" id="pane-channels" aria-labelledby="tab-channels">
-     <div class="channel-tools">
-      <form class="station-search" id="station-search"><label class="sr-only" for="search-query">Search US stations by name or genre</label><div class="station-search-controls"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="search-query" name="query" type="search" autocomplete="off" enterkeyhint="search" placeholder="Find a station or a sound"><button type="submit">Search</button></div></form>
+   <div class="dock-head"><button id="dock-toggle" class="console-handle" type="button" aria-expanded="true" aria-controls="console-panes"><span id="dock-toggle-label">Close</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg></button><span id="car-mode-indicator" class="car-mode-indicator" hidden>Car mode</span><button id="search-toggle" type="button" aria-expanded="false" aria-controls="station-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><span>Search</span></button></div>
+   <div class="discovery-tools" id="discovery-tools">
       <section class="station-mode-selector" aria-label="Station categories"><div class="quick-tunes" id="station-mode-track">
        <button type="button" data-preset="top20" aria-pressed="true" aria-controls="station-list">Top 20</button>
 <button type="button" data-preset="news" aria-pressed="false" aria-controls="station-list">News Desk</button>
@@ -52,8 +62,11 @@
 <button type="button" data-preset="personal" aria-pressed="false" aria-controls="station-list">Personal</button>
        <button id="favorites-filter" type="button" aria-pressed="false" aria-controls="station-list">Saved <span id="favorite-count">0</span></button>
       </div></section>
-      <div class="results-meta"><span id="results-label" role="status">Connecting</span><button id="random-station" type="button" disabled>Surprise me</button></div>
-     </div>
+      <form class="station-search" id="station-search" hidden><label class="sr-only" for="search-query">Search US stations by name or genre</label><div class="station-search-controls"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="search-query" name="query" type="search" autocomplete="off" enterkeyhint="search" placeholder="Find a station or a sound"><button type="submit">Search</button></div></form>
+   </div>
+   <div class="console-panes" id="console-panes">
+    <section class="console-pane directory" id="pane-channels" aria-labelledby="tab-channels">
+     <div class="results-meta"><span id="results-label" role="status">Connecting</span></div>
      <ol class="station-list" id="station-list" aria-busy="true"></ol>
      <div id="directory-message" class="directory-message" hidden><p id="directory-message-copy">The directory could not be reached.</p><button id="retry-directory" type="button">Try again</button></div>
     </section>
@@ -65,11 +78,13 @@
  <div class="signal-bands"><div><span>Bass</span><i><b id="receiver-band-low"></b></i></div><div><span>Mid</span><i><b id="receiver-band-mid"></b></i></div><div><span>Treble</span><i><b id="receiver-band-high"></b></i></div></div>
  <p class="signal-instrument-note" id="receiver-analysis-note" hidden></p>
  </section>
-     <p class="signal-caption">A little light from whatever you’re listening to.</p>
+     <p id="signal-description" class="signal-description"></p>
+     <dl class="signal-facts"><div><dt>From</dt><dd id="signal-origin">—</dd></div><div><dt>Stream</dt><dd id="signal-quality">—</dd></div><div><dt>Playback</dt><dd id="signal-playback">Ready</dd></div><div><dt>Visual source</dt><dd id="signal-method">Receiver state</dd></div></dl>
+     <p id="signal-explanation" class="signal-explanation">Select a station to begin.</p>
     </section>
     <section class="console-pane more-pane" id="pane-more" aria-labelledby="tab-more" hidden inert>
      <div class="more-heading"><h2>Your receiver</h2><p id="current-description">Choose a station to begin.</p></div>
-     <div class="receiver-actions"><button id="share-station" type="button" disabled>Share station</button><a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">Station site</a>
+     <div class="receiver-actions"><button id="random-station" type="button" disabled>Surprise me</button><button id="share-station" type="button" disabled>Share station</button><a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">Station site</a>
       <button class="car-mode-button" id="car-mode-toggle" type="button" aria-pressed="false" aria-label="Enter Car Mode"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 9 2-5h10l2 5 2 2v7H3v-7zM3 10h18M6 18v3M18 18v3M6 14h2M16 14h2"/></svg><span class="car-mode-button-label">Car Mode</span></button>
       <button class="install-app" id="install-app" type="button" hidden>Add app</button>
      </div>
@@ -138,9 +153,9 @@
 
 
  <script src="/assets/vendor/three/three.min.js" defer></script>
- <script type="module" src="/js/broadcast-console.js?v=20260905-2"></script>
- <script type="module" src="/js/broadcast.js?v=20260905-2"></script>
- <script type="module" src="/js/broadcast-car.js?v=20260905-2"></script>
+ <script type="module" src="/js/broadcast-console.js?v=20260906-1"></script>
+ <script type="module" src="/js/broadcast.js?v=20260906-1"></script>
+ <script type="module" src="/js/broadcast-car.js?v=20260906-1"></script>
  <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
 </html>

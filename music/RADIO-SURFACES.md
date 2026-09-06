@@ -214,19 +214,35 @@ not remove a station or change playback.
   Channels opens expanded; selecting a station tunes without closing the browser.
   Channels, Signal and More replace one upper pane above persistent station/title,
   bookmark and previous/play/next controls. Hidden panes are inert, retain their
-  scroll positions and restore focus when contracted. Search/category controls
-  stay sticky; short portrait screens use a horizontally scrollable category row.
+  scroll positions and restore focus when contracted. Categories occupy one
+  horizontally scrollable rail outside the station-list scroller, so rows never
+  pass underneath the controls. Search is an explicit disclosure; submitting or
+  choosing a category closes it. The dock has visible Open/Close text.
   VisualViewport sizing keeps the console above the software keyboard.
 - Car Mode enlarges the same console instead of creating another overlay or
   player. Car Text, Dim, Keep Awake, install, station website and sharing live in
   More. Car Text retains spaces during input and normalizes only on save.
   A small top-bar site menu retains Home/Listen navigation, and a separate
   always-visible Car Mode shortcut enters/exits that same receiver mode.
+  Car Mode now has a persistent badge and brief activation/deactivation toast,
+  sparse glyph controls and a radio-beacon HUD instead of only enlarged type.
 - Local Anime.js supplies optional pane/height transitions. Local Three.js draws
   a sparse, noninteractive star field. It receives one normalized signal frame
   from the existing instrument, with subtle measured-energy brightness only when
   analysis is live. Ordinary playback has slow ambient drift. Reduced motion
   keeps the field still; missing libraries or WebGL leave the HTML receiver usable.
+- The field contains a code-native station beacon: cut receiving arcs, five
+  station-name-seeded points and real station/program information. A station
+  change triggers one restrained Anime.js transition; metadata refreshes do not.
+  Measured energy controls the core only when actual analysis is validated.
+  Otherwise a subtle receiver-state animation remains explicitly unmeasured.
+  The beacon fits the space above the console, becoming compact or hidden when
+  browsing/keyboard space takes priority. Car Mode removes secondary text and
+  emphasizes the sparse radial glyph. There is no decorative radial-gradient wash.
+- Signal combines a small trace with station description, origin, stream quality,
+  playback state and visual-source explanation. It distinguishes stations not
+  enabled for analysis, an unavailable audio context and missing usable samples
+  without treating the lack of an allowlist entry as a newly verified CORS failure.
 - The signal instrument is audio-reactive only when the browser exposes actual
   media samples. Like RG Player and cf-vizualizer, the playing `radio-audio`
   element feeds an `AnalyserNode` through `createMediaElementSource`, then the
@@ -252,9 +268,9 @@ not remove a station or change playback.
   If an audited CORS stream rejects that request, the receiver retries it once
   as ordinary direct audio and disables only the meter. When capture, CORS, or
   Web Audio is unavailable, the unmeasured band rails are hidden and the instrument
-  shows eighteen quiet sage/pale-blue radio bars. A shared deterministic rhythm
-  drives both surfaces; tuning is faster, pause holds the frame, and idle/error
-  settles to a still low silhouette. Reduced motion keeps the bars static.
+  shows small pilot marks and a slowly travelling receiver point. A shared
+  deterministic phase drives both surfaces; tuning is faster, pause holds the
+  frame, and idle/error settles to a still center point. Reduced motion is static.
   No frequency grid or measuring cursor is drawn in fallback mode. It is labeled
   `PLAYBACK ANIMATION` and never presented
   as measured audio. This keeps the instrument legible without fabricating

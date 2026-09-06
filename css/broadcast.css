@@ -10,7 +10,7 @@
 }
 *,*::before,*::after {box-sizing:border-box}
 html {min-width:320px;background:var(--black);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
-body.broadcast-app {margin:0;height:100dvh;overflow:hidden;color:var(--paper);background:radial-gradient(ellipse at 50% 8%,rgba(115,157,171,.075),transparent 57%),var(--black)}
+body.broadcast-app {margin:0;height:100dvh;overflow:hidden;color:var(--paper);background:var(--black)}
 button,input,a { -webkit-tap-highlight-color:transparent }
 button,input {font:inherit}
 button,a {touch-action:manipulation}
@@ -35,31 +35,28 @@ button svg, a svg, .station-search svg {width:21px;height:21px;fill:none;stroke:
 .broadcast-site-menu a:hover {background:rgba(184,217,222,.08)}
 .connection-status {position:fixed;top:49px;left:0;right:0;text-align:center;font-size:11px;color:var(--amber);margin:0}
 .broadcast-shell {position:fixed;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:calc(max(12px,env(safe-area-inset-bottom)) + var(--keyboard-offset));display:flex;justify-content:center;pointer-events:none}
-.radio-console {position:relative;display:flex;flex-direction:column;width:100%;max-width:760px;height:min(760px,calc(var(--view-height) - 80px));max-height:calc(var(--view-height) - 80px);min-height:0;overflow:hidden;border:1px solid rgba(184,217,222,.24);border-radius:30px;background:rgba(14,19,21,.91);-webkit-backdrop-filter:blur(24px) saturate(135%);backdrop-filter:blur(24px) saturate(135%);box-shadow:0 24px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.075);isolation:isolate;pointer-events:auto}
+.radio-console {position:relative;display:flex;flex-direction:column;width:100%;max-width:760px;height:min(640px,calc(var(--view-height) - 80px));max-height:calc(var(--view-height) - 80px);min-height:0;overflow:hidden;border:1px solid rgba(184,217,222,.24);border-radius:30px;background:rgba(14,19,21,.91);-webkit-backdrop-filter:blur(24px) saturate(135%);backdrop-filter:blur(24px) saturate(135%);box-shadow:0 24px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.075);isolation:isolate;pointer-events:auto}
 .radio-console::before {content:"";position:absolute;top:0;left:18%;right:18%;height:1px;background:linear-gradient(90deg,transparent,var(--ice),transparent);opacity:.7;pointer-events:none;z-index:3}
 .radio-console[data-expanded="false"] {height:auto}
 .radio-console:is([data-view="signal"],[data-view="more"])[data-expanded="true"] {height:auto}
 .radio-console:is([data-view="signal"],[data-view="more"]) .console-panes {flex:0 1 auto}
 .radio-console .signal-pane,.radio-console .more-pane {height:auto;max-height:min(520px,calc(var(--view-height) - var(--controls-height,210px) - var(--console-clearance)))}
 .radio-console .signal-pane {max-height:min(460px,calc(var(--view-height) - var(--controls-height,210px) - var(--console-clearance)))}
-.console-handle {flex:0 0 44px;min-height:44px;width:100%;border:0;border-radius:0;background:transparent;display:grid;place-items:center;touch-action:none}
-.console-handle span {width:34px;height:3px;background:rgba(184,217,222,.4);border-radius:8px}
 .console-handle:focus-visible {outline-offset:-5px}
 .console-panes {flex:1;min-height:0;overflow:hidden;position:relative}
 .console-pane {height:100%;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(184,217,222,.3) transparent}
-.channel-tools {position:sticky;top:0;z-index:2;padding:2px 20px 0;background:rgba(16,22,24,.97);box-shadow:0 10px 20px rgba(16,22,24,.35)}
 .station-search-controls {display:flex;align-items:center;gap:9px;padding:0 4px 0 13px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.035)}
 .station-search svg {color:var(--muted);width:18px}
 .station-search input {width:100%;min-width:0;min-height:46px;background:none;border:0;color:var(--paper);padding:8px 0;font-size:16px;outline-offset:0}
 .station-search input::placeholder {color:#a0acad}
 .station-search button {border:0;background:transparent;color:var(--ice);min-height:44px;padding:0 10px;font-size:13px;font-weight:500}
-.quick-tunes {display:flex;flex-wrap:wrap;gap:5px;padding:12px 0 6px}
-.quick-tunes button {min-height:44px;padding:7px 13px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}
+.quick-tunes {display:flex;flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:0 0 7px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+.quick-tunes button {flex-shrink:0;min-height:44px;padding:7px 13px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}
 .quick-tunes button[aria-pressed="true"] {color:var(--paper);border-color:rgba(184,217,222,.3);background:rgba(184,217,222,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.055)}
 #favorite-count {margin-left:3px;opacity:.7;font-size:11px}
 .results-meta {display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}
 .results-meta button {padding:8px 0 8px 10px;min-height:44px;background:none;border:0;font-size:12px;color:var(--ice)}
-.station-list {margin:0;padding:0 20px 12px;list-style:none}
+.station-list {min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent;margin:0;padding:0 20px 12px;list-style:none}
 .station-row {display:grid;grid-template-columns:28px 1fr;align-items:center;position:relative;border-bottom:1px solid rgba(230,223,205,.065);border-radius:0}
 .station-number {font-variant-numeric:tabular-nums;font-size:11px;color:rgba(184,217,222,.45);align-self:start;padding-top:21px}
 .station-select {width:100%;min-width:0;min-height:76px;padding:15px 12px 15px 7px;border:0;background:none;text-align:left;display:flex;flex-direction:column;gap:4px}
@@ -101,14 +98,14 @@ button svg, a svg, .station-search svg {width:21px;height:21px;fill:none;stroke:
 .console-tabs svg {width:18px;height:18px}
 .signal-pane {padding:24px;display:flex;flex-direction:column;justify-content:flex-start;justify-content:safe center}
 .signal-pane > * {flex-shrink:0}
-.signal-now-playing {display:flex;flex-direction:column;gap:8px;margin-bottom:30px}
+.signal-now-playing {display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
 .signal-now-playing span {font-size:14px;color:var(--muted)}
-.signal-now-playing strong {font-size:clamp(20px,4vw,28px);font-weight:500;line-height:1.25;overflow-wrap:anywhere}
+.signal-now-playing strong {font-size:19px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}
 .signal-instrument {--signal-line:rgba(184,217,222,.09);--signal-ink:#b8d9de;--signal-fill:rgba(134,181,156,.075);min-width:0}
 .signal-instrument-head {display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
 .signal-instrument-head h2 {font-size:13px;font-weight:500;margin:0}
 .signal-instrument-head strong {font-size:10px;font-weight:500;color:var(--muted)}
-.signal-instrument canvas {display:block;width:100%;height:110px}
+.signal-instrument canvas {display:block;width:100%;height:48px}
 .signal-instrument[data-analysis="live"] {--signal-ink:#bce0ce}
 .signal-instrument[data-analysis="error"] {--signal-ink:#d34f3f}
 .signal-bands {display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
@@ -143,9 +140,9 @@ button svg, a svg, .station-search svg {width:21px;height:21px;fill:none;stroke:
 body.car-mode-active .radio-console {border-color:rgba(184,217,222,.4);box-shadow:0 24px 70px rgba(0,0,0,.5),0 0 32px rgba(134,181,156,.055)}
 body.car-mode-active .transport {min-width:58px;height:58px}
 body.car-mode-active .transport--play {width:72px;height:72px}
-body.car-mode-active #current-program {font-size:23px}
+body.car-mode-active #current-program {font-size:20px}
 body.car-mode-active #current-name {font-size:15px}
-body.car-mode-active .station-select {min-height:86px}
+body.car-mode-active .station-select {min-height:76px}
 body.car-mode-active.car-mode-dim .radio-console {background:rgba(7,10,11,.98);color:#c3c9c6}
 body.car-mode-active.car-mode-dim #broadcast-stars {opacity:.25}
 .radio-console[data-keyboard="true"] {max-height:calc(var(--view-height) - 16px);height:calc(var(--view-height) - 16px)}
@@ -175,12 +172,12 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
 .install-sheet-panel li {margin:14px 0;font-size:14px;line-height:1.5}
 @media(min-width:700px) {
  .broadcast-head {left:calc(50% - min(380px,45vw));right:calc(50% - min(380px,45vw))}
- .channel-tools {padding-inline:28px}.station-list {padding-inline:28px}
+ .discovery-tools {padding-inline:28px}.station-list {padding-inline:28px}
  .now-copy {max-width:600px;margin:auto}.player-controls {padding-inline:28px}
  .signal-pane {padding:40px 52px}
 }
 @media(max-width:370px) {
- .channel-tools {padding-inline:12px}.station-list {padding-inline:12px}
+ .discovery-tools {padding-inline:12px}.station-list {padding-inline:12px}
  .quick-tunes {gap:2px}.quick-tunes button {padding-inline:10px;font-size:12px}
  .player-controls {padding-inline:12px}.now-copy {gap:8px}
  .transport-row {gap:8px}.transports {gap:8px}.signal-mini {max-width:48px}
@@ -203,10 +200,9 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
  body.car-mode-active .transport--play {width:52px;height:52px}
  body.car-mode-active #current-program {font-size:17px}
  .quick-tunes {padding-top:5px}
- .channel-tools {padding-bottom:0}
  .results-meta {display:none}
  .signal-pane {padding:12px 28px}.signal-now-playing {margin-bottom:10px}.signal-caption {display:none}
- .signal-instrument canvas {height:70px}
+ .signal-instrument canvas {height:48px}
 }
 @media(max-height:700px) and (orientation:portrait) {
  .quick-tunes {flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent;padding-bottom:8px}
@@ -223,6 +219,82 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
  button:active {background-color:rgba(184,217,222,.14)}
 }
 @media(prefers-reduced-transparency:reduce) {
- .radio-console,.channel-tools {background:#11191b;-webkit-backdrop-filter:none;backdrop-filter:none}
+ .radio-console,.discovery-tools {background:#11191b;-webkit-backdrop-filter:none;backdrop-filter:none}
  dialog::backdrop {-webkit-backdrop-filter:none;backdrop-filter:none}
 }
+
+
+/* The dock selects; the field gives the station a presence. */
+.dock-head {display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 16px;min-height:44px;flex-shrink:0}
+.dock-head button {display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;background:none;padding:0 8px;color:var(--muted);font-size:12px}
+.dock-head .console-handle {width:auto;touch-action:none;border-radius:10px}
+.console-handle svg {width:16px;height:16px}
+.radio-console[data-expanded="false"] .console-handle svg {transform:rotate(180deg)}
+.car-mode-indicator {font-size:10px;color:var(--ice);border:1px solid var(--line-strong);border-radius:5px;padding:3px 7px}
+#search-toggle svg {width:16px;height:16px}
+#search-toggle[aria-expanded="true"] {color:var(--ice)}
+.discovery-tools {flex-shrink:0;padding:0 20px;background:transparent}
+.station-search {padding:2px 0 10px}
+.radio-console .directory {display:flex;flex-direction:column;overflow:hidden}
+.directory .results-meta {flex-shrink:0;min-height:25px;margin:0 20px;font-size:10px;border:0}
+.station-select {padding-block:13px}
+.station-description {font-size:13px}
+.signal-description,.signal-explanation {color:var(--muted);font-size:13px;line-height:1.5;margin:16px 0 0}
+.signal-facts {display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0 0}
+.signal-facts dt {font-size:11px;color:var(--muted);margin-bottom:5px}
+.signal-facts dd {font-size:13px;margin:0;line-height:1.4}
+.signal-instrument-head h2 {font-size:12px}
+.signal-pane .signal-instrument-note {display:none}
+.signal-pane {justify-content:flex-start}
+.station-field {position:fixed;top:70px;left:22px;right:22px;bottom:var(--field-bottom,680px);display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none}
+.station-field[data-space="none"] {visibility:hidden}
+.station-object {display:flex;flex-direction:column;align-items:center;gap:12px;max-width:460px;width:100%;--beacon-strength:.5}
+.beacon {width:190px;height:190px;flex-shrink:0;fill:none;stroke:var(--ice);stroke-width:1;overflow:visible}
+.beacon-frame {opacity:.28}
+.beacon-orbits {transform-origin:100px 100px}
+.beacon-orbits circle:first-child {stroke-dasharray:92 38 12 58;opacity:.4}
+.beacon-orbits circle:last-child {stroke-dasharray:4 12;opacity:.22}
+.beacon-core {stroke:var(--green);stroke-width:1.4;transform-origin:100px 100px;opacity:var(--beacon-strength)}
+.beacon-core circle,.beacon-stars circle {fill:var(--ice);stroke:none}
+.beacon-stars {opacity:.8}
+.beacon-bearing {opacity:.4;stroke-width:1}
+.field-readout {text-align:center;width:100%;max-width:410px}
+#field-station {font-size:13px;color:var(--muted)}
+#field-program {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:21px;line-height:1.3;font-weight:500;margin:7px 0}
+#field-format {color:var(--muted);font-size:12px;line-height:1.5;margin:0;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.field-state {display:flex;justify-content:center;align-items:center;gap:7px;margin-top:12px;font-size:10px;color:var(--muted)}
+.field-state i {width:4px;height:4px;background:var(--muted);border-radius:50%}
+#field-analysis {margin-left:8px;opacity:.75}
+.station-object[data-state="playing"] .field-state i {background:var(--green)}
+.station-object[data-state="loading"] .field-state i {background:var(--amber)}
+.station-object[data-state="error"] .field-state i {background:var(--red)}
+.station-field[data-space="compact"] .station-object {flex-direction:row;max-width:500px;gap:18px}
+.station-field[data-space="compact"] .beacon {width:100px;height:100px}
+.station-field[data-space="compact"] .field-readout {text-align:left}
+.station-field[data-space="compact"] .field-state {justify-content:flex-start}
+.station-field[data-space="compact"] #field-program {font-size:16px}
+.station-field[data-space="compact"] #field-format {display:none}
+.receiver-toast {position:fixed;z-index:8;left:50%;top:76px;transform:translateX(-50%);padding:10px 17px;border:1px solid var(--line-strong);border-radius:999px;background:#152023;color:var(--ice);font-size:12px;box-shadow:0 8px 24px #0005}
+body.car-mode-active .beacon {width:220px;height:220px}
+body.car-mode-active .station-field[data-space="compact"] .beacon {width:100px;height:100px}
+body.car-mode-active .beacon-frame {opacity:.65;stroke-dasharray:8 5 35}
+body.car-mode-active .beacon-orbits circle:first-child {stroke-dasharray:2 4 2 4 65 32;opacity:.6}
+body.car-mode-active #field-format,body.car-mode-active #field-analysis {display:none}
+body.car-mode-active .receiver-art {display:none}
+body.car-mode-active .now-copy {grid-template-columns:1fr 44px}
+body.car-mode-active .signal-mini {opacity:.5}
+body.car-mode-active .transport {border-color:var(--line-strong);border-radius:18px;background:transparent}
+body.car-mode-active .transport--play {border-radius:50%;border-style:dashed;background:rgba(184,217,222,.055)}
+body.car-mode-active .console-tabs {border:0}
+body.car-mode-active .radio-console[data-expanded="false"] {border-radius:24px;background:rgba(10,16,18,.88)}
+@media(min-width:700px) and (min-height:700px) {
+ .radio-console {height:min(590px,calc(var(--view-height) - 300px))}
+}
+@media(max-height:550px) and (orientation:landscape) {
+ .station-field {top:56px}
+ .station-object {flex-direction:row;max-width:540px}
+ .station-object .beacon,body.car-mode-active .station-object .beacon {width:115px;height:115px}
+ .field-readout {text-align:left}.field-state {justify-content:flex-start}
+ #field-program {font-size:18px}
+}
+@media(prefers-reduced-transparency:reduce) {.radio-console {background:#11191b}}

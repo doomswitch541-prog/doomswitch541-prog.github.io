@@ -331,24 +331,28 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
     }
 
     function drawReceiverFallback(context, width, height, center) {
-        const state = model.receiverState;
-        const active = ['loading', 'playing', 'paused'].includes(state);
+        const active = ['loading', 'playing', 'paused'].includes(model.receiverState);
         const phase = model.fallbackPhase;
-        const step = width / 18;
-        const barWidth = Math.max(1, step * 0.42);
-        // A shared, deliberately composed rhythm, not synthetic frequency data.
-        // Pause freezes the phase; reduced motion keeps a still receiver silhouette.
-        for (let index = 0; index < 18; index += 1) {
-            const edge = Math.sin(Math.PI * (index + 0.5) / 18);
-            const rhythm = 0.5 + 0.3 * Math.sin(phase + index * 0.63)
-                + 0.2 * Math.sin(phase * 0.71 - index * 0.91);
-            const amount = active ? (0.12 + edge * (0.2 + rhythm * 0.56)) : 0.055;
-            const barHeight = Math.max(2, height * amount);
-            context.fillStyle = index % 3 === 0
-                ? `rgba(183, 219, 230, ${active ? 0.8 : 0.23})`
-                : `rgba(168, 204, 185, ${active ? 0.68 : 0.18})`;
-            context.fillRect((index + 0.5) * step - barWidth / 2, center - barHeight / 2, barWidth, barHeight);
+        // Pilot marks describe receiver activity, never frequency magnitudes.
+        // Both surfaces share this phase; pause holds it and reduced motion stops it.
+        const step = width / 12;
+        context.strokeStyle = 'rgba(184, 217, 222, 0.14)';
+        context.lineWidth = Math.max(1, height / 48);
+        context.beginPath();
+        context.moveTo(step, center);
+        context.lineTo(width - step, center);
+        context.stroke();
+        for (let i = 1; i < 12; i += 1) {
+            const emphasis = active ? 0.25 + 0.35 * Math.pow(0.5 + Math.sin(phase * 0.65 - i * 0.6) * 0.5, 3) : 0.15;
+            context.fillStyle = `rgba(184, 217, 222, ${emphasis})`;
+            const tickHeight = height * (i % 3 === 0 ? 0.19 : 0.08);
+            context.fillRect(i * step, center - tickHeight / 2, Math.max(1, width / 350), tickHeight);
         }
+        const position = active ? 0.5 + Math.sin(phase * 0.23) * 0.28 : 0.5;
+        context.fillStyle = active ? '#86b59c' : 'rgba(134, 181, 156, 0.25)';
+        context.beginPath();
+        context.arc(width * position, center, Math.max(2, height * 0.045), 0, Math.PI * 2);
+        context.fill();
         return true;
     }
 
@@ -593,6 +597,8 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
         const values = liveBands || (audio.paused && model.liveValidated ? model.lastBands : model.smoothedBands);
         onSignalFrame({
             mode: model.liveValidated ? 'audio-analysis' : 'receiver-state',
+            phase: model.fallbackPhase, analysisAllowed: model.analysisAllowed,
+            contextState: model.audioContext?.state || 'none', captureFailed: model.captureFailed,
             state: model.receiverState, level: model.energy,
             bass: values[0], mid: values[1], treble: values[2], transient: model.impact
         });
