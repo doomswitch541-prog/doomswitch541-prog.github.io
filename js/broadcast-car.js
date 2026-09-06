@@ -1,4 +1,4 @@
-const FAVORITES_KEY = 'rg-broadcast-favorites-v1';
+import { setConsoleCarMode } from '/js/broadcast-console.js?v=20260905-2';
 const CAR_MODE_KEY = 'rg-broadcast-car-mode-v1';
 const CAR_DIM_KEY = 'rg-broadcast-car-dim-v1';
 const CAR_AWAKE_KEY = 'rg-broadcast-car-awake-v1';
@@ -14,39 +14,15 @@ const CAR_ARTWORK = [
     { src: '/music/broadcast/icons/rg-broadcast-v2-512.png', sizes: '512x512', type: 'image/png' }
 ];
 
+
 let audio = document.getElementById('radio-audio');
 const nowPlaying = document.getElementById('now-playing');
-const airLabel = document.getElementById('air-label');
 const currentName = document.getElementById('current-name');
-const currentProgramLabel = document.getElementById('current-program-label');
 const currentProgram = document.getElementById('current-program');
 const playerStatus = document.getElementById('player-status');
-const dockCurrentName = document.getElementById('dock-current-name');
-const dockCurrentProgram = document.getElementById('dock-current-program');
-const signalCurrentName = document.getElementById('signal-current-name');
-const signalCurrentProgram = document.getElementById('signal-current-program');
-let carAudioEvents;
-const favoriteCount = document.getElementById('favorite-count');
-const favoritesFilter = document.getElementById('favorites-filter');
-const stationList = document.getElementById('station-list');
-const playerControls = document.querySelector('.player-controls');
 const carModeToggle = document.getElementById('car-mode-toggle');
-const carMode = document.getElementById('car-mode');
-const carModeStation = document.getElementById('car-mode-station');
-const carModeProgramLabel = document.getElementById('car-mode-program-label');
-const carModeTitle = document.getElementById('car-mode-title');
+const carModeShortcut = document.getElementById('car-mode-shortcut');
 const carModeMessage = document.getElementById('car-mode-message');
-const carModeState = document.getElementById('car-mode-state');
-const carModeStatus = document.getElementById('car-mode-status');
-const dockToggle = document.getElementById('dock-toggle');
-const carDockPanel = document.getElementById('car-dock-panel');
-const carSavedTrack = document.getElementById('car-saved-track');
-const carSavedCount = document.getElementById('car-saved-count');
-const carSavedEmpty = document.getElementById('car-saved-empty');
-const dockSaveStation = document.getElementById('dock-save-station');
-const dockBrowseStations = document.getElementById('dock-browse-stations');
-const receiverSaveStation = document.getElementById('favorite-toggle');
-let favoritesRenderKey = '';
 const carTextOpen = document.getElementById('car-text-open');
 const carTextState = document.getElementById('car-text-state');
 const carAwakeToggle = document.getElementById('car-awake-toggle');
@@ -64,25 +40,16 @@ const carTextPreviewTitle = document.getElementById('car-text-preview-title');
 const carTextPreviewArtist = document.getElementById('car-text-preview-artist');
 const carTextPreviewAlbum = document.getElementById('car-text-preview-album');
 
-const requiredNodes = [
-    audio, nowPlaying, airLabel, currentName, currentProgramLabel, currentProgram,
-    playerStatus, dockCurrentName, dockCurrentProgram, signalCurrentName, signalCurrentProgram,
-    stationList, playerControls, carModeToggle, carMode, dockToggle,
-    carDockPanel, carSavedTrack, carTextSheet
-];
 
-let initialized = false;
 let carModeActive = false;
-let dockExpanded = false;
 let customCarMessage = readStoredMessage();
 let customCarMessageStored = Boolean(customCarMessage);
 let dimPreference = readStoredFlag(CAR_DIM_KEY);
 let awakePreference = readStoredFlag(CAR_AWAKE_KEY);
 let wakeLockSentinel = null;
 let wakeLockReleasing = false;
-let dockPointerStart = null;
-let suppressDockClick = false;
 let metadataRefreshAt = 0;
+let carAudioEvents;
 
 function readStoredFlag(key) {
     try {
@@ -118,21 +85,6 @@ function readStoredMessage() {
     }
 }
 
-function readFavorites() {
-    try {
-        const favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-        if (!Array.isArray(favorites)) return [];
-        const seen = new Set();
-        return favorites.filter(station => {
-            const uuid = String(station?.stationuuid || '');
-            if (!uuid || !station?.url_resolved || seen.has(uuid)) return false;
-            seen.add(uuid);
-            return true;
-        });
-    } catch {
-        return [];
-    }
-}
 
 function currentMessage() {
     if (customCarMessage) return customCarMessage;
@@ -140,37 +92,6 @@ function currentMessage() {
     return String(album || CAR_MESSAGES[0]);
 }
 
-function effectiveState() {
-    if (navigator.onLine === false) return 'offline';
-    return nowPlaying.dataset.state || 'idle';
-}
-
-function renderFavorites() {
-    const favorites = readFavorites();
-    if (dockSaveStation && receiverSaveStation) {
-        const saved = receiverSaveStation.getAttribute('aria-pressed') === 'true';
-        dockSaveStation.disabled = receiverSaveStation.disabled;
-        dockSaveStation.setAttribute('aria-pressed', String(saved));
-        dockSaveStation.textContent = saved ? 'Saved station ✓' : 'Save this station';
-    }
-    // Playback metadata refreshes frequently. Do not replace focused preset buttons.
-    const key = JSON.stringify([audio.dataset.uuid, favorites.map(station => [station.stationuuid, station.name])]);
-    if (key === favoritesRenderKey) return;
-    favoritesRenderKey = key;
-    const fragment = document.createDocumentFragment();
-    favorites.forEach(station => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.dataset.uuid = station.stationuuid;
-        button.textContent = station.name;
-        button.setAttribute('aria-label', `Play saved station ${station.name}`);
-        button.setAttribute('aria-current', String(station.stationuuid === audio.dataset.uuid));
-        fragment.appendChild(button);
-    });
-    carSavedTrack.replaceChildren(fragment);
-    carSavedCount.textContent = String(favorites.length);
-    carSavedEmpty.hidden = favorites.length > 0;
-}
 
 function syncCarTextPreview() {
     const candidate = normalizeCarMessage(carTextInput.value, { final: false });
@@ -181,31 +102,15 @@ function syncCarTextPreview() {
     carTextPreviewAlbum.textContent = candidate || currentMessage();
 }
 
-function syncCarDisplay() {
-    const state = effectiveState();
-    const offline = state === 'offline';
-    const stateLabel = offline ? 'OFFLINE' : airLabel.textContent;
-    const status = offline
-        ? 'Live stations need a connection. The receiver remains available.'
-        : playerStatus.textContent;
 
-    carMode.dataset.state = state;
-    playerControls.dataset.carState = state;
-    carModeStation.textContent = currentName.textContent;
-    carModeProgramLabel.textContent = currentProgramLabel.textContent;
-    carModeTitle.textContent = currentProgram.textContent;
+function syncCarDisplay() {
+    carModeShortcut.setAttribute('aria-pressed', String(carModeActive));
+    carModeShortcut.setAttribute('aria-label', carModeActive ? 'Exit Car Mode' : 'Enter Car Mode');
+    carModeShortcut.title = carModeActive ? 'Exit Car Mode' : 'Car Mode';
     carModeMessage.textContent = currentMessage();
-    carModeState.textContent = stateLabel;
-    carModeStatus.textContent = status;
-    dockCurrentName.textContent = currentName.textContent;
-    dockCurrentProgram.textContent = currentProgram.textContent;
-    signalCurrentName.textContent = currentName.textContent;
-    signalCurrentProgram.textContent = currentProgram.textContent;
     carTextState.textContent = customCarMessage
-        ? (customCarMessageStored ? 'CUSTOM' : 'THIS VISIT')
-        : 'RG ROTATION';
+        ? (customCarMessageStored ? 'Custom' : 'This visit') : 'RG rotation';
     if (carTextSheet.open) syncCarTextPreview();
-    renderFavorites();
 }
 
 function publishVehicleMetadata({ resetAlbum = false } = {}) {
@@ -228,39 +133,6 @@ function publishVehicleMetadata({ resetAlbum = false } = {}) {
     }
 }
 
-function setDockExpanded(expanded) {
-    dockExpanded = Boolean(expanded);
-    playerControls.classList.toggle('dock-expanded', dockExpanded);
-    dockToggle.setAttribute('aria-expanded', String(dockExpanded));
-    dockToggle.setAttribute('aria-label', dockExpanded ? 'Close live signal' : 'Open live signal');
-    const label = dockToggle.querySelector('b');
-    if (label) label.textContent = dockExpanded ? 'Close signal' : 'Signal';
-    carDockPanel.setAttribute('aria-hidden', String(!dockExpanded));
-    carDockPanel.inert = !dockExpanded;
-    if (dockExpanded) {
-        syncCarDisplay();
-        return;
-    }
-    if (carDockPanel.contains(document.activeElement)) dockToggle.focus({ preventScroll: true });
-}
-
-function setCarRegionsInert(active) {
-    [
-        '.radio-nav-anchor',
-        '.connection-status',
-        '.receiver-title',
-        '.now-playing > .on-air',
-        '.now-playing > .station-readout',
-        '.now-playing > .station-actions',
-        '.now-playing > .player-status',
-        '.now-playing > .band-console',
-        '.directory',
-        '.broadcast-foot'
-    ].forEach(selector => {
-        const element = document.querySelector(selector);
-        if (element) element.inert = active;
-    });
-}
 
 async function releaseWakeLock() {
     const sentinel = wakeLockSentinel;
@@ -322,40 +194,32 @@ function applyDimPreference() {
     carDimState.textContent = dimPreference ? 'ON' : 'OFF';
 }
 
+
 function enterCarMode({ persist = true } = {}) {
     if (carModeActive) return;
     carModeActive = true;
-    setDockExpanded(false);
-    carMode.hidden = false;
-    carMode.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('car-mode-active');
-    document.body.classList.remove('search-active');
-    carModeToggle.setAttribute('aria-expanded', 'true');
+    carModeToggle.setAttribute('aria-pressed', 'true');
     carModeToggle.setAttribute('aria-label', 'Exit Car Mode');
-    carModeToggle.querySelector('.car-mode-button-label').textContent = 'EXIT CAR MODE';
-    setCarRegionsInert(true);
+    carModeToggle.querySelector('.car-mode-button-label').textContent = 'Exit Car Mode';
     if (persist) writeStoredFlag(CAR_MODE_KEY, true);
+    setConsoleCarMode(true);
     applyDimPreference();
     syncCarDisplay();
     publishVehicleMetadata();
-    requestWakeLock();
+    void requestWakeLock();
 }
 
-async function exitCarMode({ persist = true, restoreFocus = true } = {}) {
+async function exitCarMode() {
     if (!carModeActive) return;
     carModeActive = false;
-    setDockExpanded(false);
-    await releaseWakeLock();
-    carMode.hidden = true;
-    carMode.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('car-mode-active');
-    carModeToggle.setAttribute('aria-expanded', 'false');
+    carModeToggle.setAttribute('aria-pressed', 'false');
     carModeToggle.setAttribute('aria-label', 'Enter Car Mode');
-    carModeToggle.querySelector('.car-mode-button-label').textContent = 'CAR MODE';
-    setCarRegionsInert(false);
-    if (persist) writeStoredFlag(CAR_MODE_KEY, false);
+    carModeToggle.querySelector('.car-mode-button-label').textContent = 'Car Mode';
+    writeStoredFlag(CAR_MODE_KEY, false);
+    setConsoleCarMode(false);
+    syncCarDisplay();
+    await releaseWakeLock();
     updateWakeLockControl();
-    if (restoreFocus) carModeToggle.focus({ preventScroll: true });
 }
 
 function openCarTextSheet() {
@@ -413,72 +277,15 @@ function resetCarText() {
     closeCarTextSheet();
 }
 
-function playSavedStation(uuid) {
-    const findRow = () => [...stationList.querySelectorAll('.station-row')]
-        .find(candidate => candidate.dataset.uuid === uuid);
-    let row = findRow();
-    if (!row && favoritesFilter?.getAttribute('aria-pressed') !== 'true') {
-        favoritesFilter?.click();
-        row = findRow();
-    }
-    const select = row?.querySelector('.station-select');
-    if (!select) {
-        playerStatus.textContent = 'Open Saved stations in the receiver and try again.';
-        return;
-    }
-    setDockExpanded(false);
-    select.click();
-}
 
 function bindInteraction() {
-    carModeToggle.addEventListener('click', () => {
-        if (carModeActive) exitCarMode();
+    carModeShortcut.addEventListener('click', () => {
+        if (carModeActive) void exitCarMode();
         else enterCarMode();
     });
-    dockToggle.addEventListener('click', () => {
-        if (suppressDockClick) {
-            suppressDockClick = false;
-            return;
-        }
-        setDockExpanded(!dockExpanded);
-    });
-    playerControls.addEventListener('pointerdown', event => {
-        if (event.pointerType === 'mouse' || event.target.closest('button:not(.mini-player-handle), input')) return;
-        dockPointerStart = {
-            pointerId: event.pointerId,
-            x: event.clientX,
-            y: event.clientY,
-            fromHandle: Boolean(event.target.closest('.mini-player-handle'))
-        };
-    });
-    playerControls.addEventListener('pointerup', event => {
-        const start = dockPointerStart;
-        dockPointerStart = null;
-        if (!start || start.pointerId !== event.pointerId) return;
-        const xDistance = event.clientX - start.x;
-        const yDistance = event.clientY - start.y;
-        if (Math.abs(yDistance) < 42 || Math.abs(yDistance) <= Math.abs(xDistance) * 1.15) return;
-        setDockExpanded(yDistance < 0);
-        suppressDockClick = start.fromHandle;
-    });
-    playerControls.addEventListener('pointercancel', () => {
-        dockPointerStart = null;
-    });
-    carSavedTrack.addEventListener('click', event => {
-        const button = event.target.closest('button[data-uuid]');
-        if (button) playSavedStation(button.dataset.uuid);
-    });
-    dockSaveStation?.addEventListener('click', () => {
-        receiverSaveStation?.click();
-        renderFavorites();
-    });
-    dockBrowseStations?.addEventListener('click', async () => {
-        if (carModeActive) await exitCarMode({ restoreFocus: false });
-        else setDockExpanded(false);
-        const search = document.getElementById('search-query');
-        const target = search || stationList.querySelector('button');
-        target?.focus({ preventScroll: true });
-        document.querySelector('.directory')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    carModeToggle.addEventListener('click', () => {
+        if (carModeActive) void exitCarMode();
+        else enterCarMode();
     });
     carTextOpen.addEventListener('click', openCarTextSheet);
     carTextClose.addEventListener('click', closeCarTextSheet);
@@ -492,7 +299,7 @@ function bindInteraction() {
         if (event.target === carTextSheet) closeCarTextSheet();
     });
     carTextSheet.addEventListener('close', () => {
-        if (dockExpanded) carTextOpen.focus({ preventScroll: true });
+        carTextOpen.focus({ preventScroll: true });
     });
     carAwakeToggle.addEventListener('click', async () => {
         awakePreference = !awakePreference;
@@ -509,7 +316,7 @@ function bindInteraction() {
         applyDimPreference();
     });
     document.addEventListener('keydown', event => {
-        if (event.key !== 'Escape' || !carModeActive || carTextSheet.open) return;
+        if (event.defaultPrevented || event.key !== 'Escape' || !carModeActive || carTextSheet.open) return;
         event.preventDefault();
         exitCarMode();
     });
@@ -528,6 +335,7 @@ function bindInteraction() {
     });
 }
 
+
 function bindCarAudio() {
     carAudioEvents?.abort();
     carAudioEvents = new AbortController();
@@ -544,49 +352,20 @@ function bindCarAudio() {
     });
 }
 
-function initialize() {
-    if (initialized || requiredNodes.some(node => !node)) return;
-    initialized = true;
-    setDockExpanded(false);
-    applyDimPreference();
-    updateWakeLockControl();
-    bindInteraction();
-    renderFavorites();
+
+applyDimPreference();
+updateWakeLockControl();
+bindInteraction();
+syncCarDisplay();
+publishVehicleMetadata();
+
+// Observe only source text and state attributes, never the subtree we update.
+const observer = new MutationObserver(() => {
     syncCarDisplay();
     publishVehicleMetadata();
-
-    const observer = new MutationObserver(() => {
-        syncCarDisplay();
-        publishVehicleMetadata();
-    });
-    if (receiverSaveStation) observer.observe(receiverSaveStation, {
-        attributes: true, attributeFilter: ['aria-pressed', 'disabled']
-    });
-    [nowPlaying, airLabel, currentName, currentProgramLabel, currentProgram, playerStatus, favoriteCount]
-        .filter(Boolean)
-        .forEach(node => {
-            if (node === nowPlaying) {
-                observer.observe(node, {
-                    attributes: true,
-                    attributeFilter: ['data-state']
-                });
-                return;
-            }
-            observer.observe(node, { childList: true, characterData: true, subtree: true });
-        });
-
-    if (readStoredFlag(CAR_MODE_KEY)) enterCarMode({ persist: false });
-}
-
-if (requiredNodes.every(Boolean)) {
-    if (stationList.getAttribute('aria-busy') === 'false' || stationList.children.length) {
-        initialize();
-    } else {
-        const receiverObserver = new MutationObserver(() => {
-            if (stationList.getAttribute('aria-busy') !== 'false' && !stationList.children.length) return;
-            receiverObserver.disconnect();
-            initialize();
-        });
-        receiverObserver.observe(stationList, { attributes: true, childList: true });
-    }
-}
+});
+observer.observe(nowPlaying, {attributes:true, attributeFilter:['data-state']});
+[currentName, currentProgram, playerStatus].forEach(node => {
+    observer.observe(node, {childList:true, characterData:true, subtree:true});
+});
+if (readStoredFlag(CAR_MODE_KEY)) enterCarMode({persist:false});

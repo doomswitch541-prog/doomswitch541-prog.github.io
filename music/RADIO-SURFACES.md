@@ -166,16 +166,13 @@ not remove a station or change playback.
 - Search has one field. Each query checks both Radio Browser `name` and `tag`
   results with `countrycode=US`, merges them, removes duplicate UUIDs/streams,
   and keeps only HTTPS candidates with a positive directory health check.
-- Maps the first twenty active results onto an explicitly labeled **RG internet
-  band**. Band positions are interaction slots, not terrestrial frequencies.
-- Keeps quiet gaps between positions so `STATIC`, `ACQUIRING`, `LOCKED`,
-  `TESTING`, `READY`, `PAUSED`, `ON AIR`, and `NO SIGNAL` are visible receiver
-  states. Dragging can cross those gaps; tapping the range snaps to the nearest
-  occupied station slot. The tuner sits below the primary music-player controls.
+- Uses named station navigation instead of a simulated FM range. All station
+  data, order, stream URLs and category queries are preserved. Historical display
+  positions remain only in the generated share-card artwork.
 - The main player separates station identity from program data. Every station
   shows a plain-language description, genre, origin, stream quality, and source.
-  The station list repeats a shorter description plus technical signal facts so
-  listeners can choose without opening the debugger.
+  The station list repeats a shorter description; detailed technical facts and
+  the collapsed surface debugger live in More.
 - Media Session keeps the current song/program as its title and the station as
   its artist. Its album line rotates every 45 seconds between
   `RG Broadcast 🦝🦝 📻🛰️`, `RG NIGHT SIGNAL 🌙📡`, and
@@ -213,16 +210,23 @@ not remove a station or change playback.
   supporting browser supplies `beforeinstallprompt`. The instructions open only
   after a tap, the browser-native prompt is never invoked automatically, and the
   action disappears in standalone mode or after installation.
-- On phone-sized viewports, the existing previous/play/next controls become a
-  safe-area-aware receiver dock with synchronized station and current
-  song/program text. A centered full-width `Signal` disclosure sits above the
-  station/title and transport rows. The opened glass sheet is separated from the
-  player, repeats station/title, and shares the waveform and three band meters
-  used by the receiver face. Its maximum height follows the available viewport;
-  short portrait screens tighten the Car Mode readout to keep controls clear.
-  Search focus moves the dock out of the keyboard's way, while larger tablets
-  and desktops retain the original receiver/directory layout. Reduced motion
-  removes the lock sweep, state transitions, and continuous signal motion.
+- One bottom-anchored glass console is the interface at every viewport size.
+  Channels opens expanded; selecting a station tunes without closing the browser.
+  Channels, Signal and More replace one upper pane above persistent station/title,
+  bookmark and previous/play/next controls. Hidden panes are inert, retain their
+  scroll positions and restore focus when contracted. Search/category controls
+  stay sticky; short portrait screens use a horizontally scrollable category row.
+  VisualViewport sizing keeps the console above the software keyboard.
+- Car Mode enlarges the same console instead of creating another overlay or
+  player. Car Text, Dim, Keep Awake, install, station website and sharing live in
+  More. Car Text retains spaces during input and normalizes only on save.
+  A small top-bar site menu retains Home/Listen navigation, and a separate
+  always-visible Car Mode shortcut enters/exits that same receiver mode.
+- Local Anime.js supplies optional pane/height transitions. Local Three.js draws
+  a sparse, noninteractive star field. It receives one normalized signal frame
+  from the existing instrument, with subtle measured-energy brightness only when
+  analysis is live. Ordinary playback has slow ambient drift. Reduced motion
+  keeps the field still; missing libraries or WebGL leave the HTML receiver usable.
 - The signal instrument is audio-reactive only when the browser exposes actual
   media samples. Like RG Player and cf-vizualizer, the playing `radio-audio`
   element feeds an `AnalyserNode` through `createMediaElementSource`, then the
@@ -247,12 +251,12 @@ not remove a station or change playback.
   load in anonymous CORS mode; all other streams keep ordinary direct playback.
   If an audited CORS stream rejects that request, the receiver retries it once
   as ordinary direct audio and disables only the meter. When capture, CORS, or
-  Web Audio is unavailable, the unmeasured band rails are hidden while the waveform shows
-  a travelling amber carrier with two faint phosphor echoes. The same deterministic
-  phase drives both surfaces, with a tighter, faster tuning trace, a slow flowing
-  playing trace, and a frozen paused trace. Reduced motion keeps the trace static.
-  No frequency grid or measuring cursor is drawn in fallback mode. It is explicitly labeled
-  `RECEIVER SIGNAL` and never presented
+  Web Audio is unavailable, the unmeasured band rails are hidden and the instrument
+  shows eighteen quiet sage/pale-blue radio bars. A shared deterministic rhythm
+  drives both surfaces; tuning is faster, pause holds the frame, and idle/error
+  settles to a still low silhouette. Reduced motion keeps the bars static.
+  No frequency grid or measuring cursor is drawn in fallback mode. It is labeled
+  `PLAYBACK ANIMATION` and never presented
   as measured audio. This keeps the instrument legible without fabricating
   music reactivity or interrupting radio. Behind the
   Sch3m3s, U7 Radio, Free People of the Cosmos, Dr. J Radio,
@@ -271,11 +275,10 @@ not remove a station or change playback.
   Firefox reported `OnMediaSinkAudioError` before graph attachment and its
   AudioContext stayed suspended. Simulated signal values are QA-only, never
   imported by the public receiver; physical Safari/audio-output QA is separate.
-- The dock includes Save this station and Browse stations. Save uses the existing
-  receiver favorite action and storage; Browse closes the dock, exits Car Mode
-  if needed, and returns focus to station search without changing playback.
-  Saved presets retain their DOM nodes across metadata refreshes so keyboard
-  focus is not lost. The active preset remains marked with `aria-current`.
+- Saved is a single category alongside the existing seven discovery categories.
+  One bookmark beside the current station uses the original favorite storage;
+  duplicate row saves and preset strips are removed. The active station remains
+  marked with `aria-current`.
 - The v2 receiver artwork is shared by the iOS 180px touch icon, Android 192px
   and 512px manifest icons, social fallback image, and both Media Session metadata
   writers. A separately padded 512px maskable icon accommodates Android masks.

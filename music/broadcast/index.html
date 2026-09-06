@@ -21,243 +21,81 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-v2-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-v2-180.png">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260905-1">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260905-2">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
-<body>
-    <div class="navbar radio-nav-anchor" aria-label="RG HQ navigation"></div>
-    <header class="broadcast-head">
-        <a class="back-link" href="/music" aria-label="Back to Listen">RG / LISTEN</a>
-        <span class="head-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-        <div class="head-actions">
-            <button class="install-app" id="install-app" type="button" hidden>ADD APP</button>
-            <span class="head-source">INTERNET RADIO</span>
-            <button class="car-mode-button" id="car-mode-toggle" type="button" aria-controls="car-mode" aria-expanded="false" aria-label="Enter Car Mode">
-                <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-                    <path d="M7.2 13.1 9.6 7h12.8l2.4 6.1 2.2 1.5v8.7h-3.2v2.4h-3.1v-2.4h-9.4v2.4H8.2v-2.4H5v-8.7l2.2-1.5Zm3.9-3.3-1.3 3.3h12.4l-1.3-3.3h-9.8Zm-2.5 6.1a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm14.8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
-                </svg>
-                <span class="car-mode-button-label">CAR MODE</span>
-            </button>
-        </div>
-    </header>
-
-    <p class="connection-status" id="connection-status" role="status" aria-live="polite" hidden>
-        OFFLINE SHELL <span aria-hidden="true">·</span> LIVE STATIONS NEED A CONNECTION
-    </p>
-
-    <main class="broadcast-shell">
-        <section class="receiver" aria-labelledby="broadcast-title">
-            <div class="receiver-title">
-                <p class="kicker">RG Broadcast</p>
-                <h1 id="broadcast-title">Find something<br>worth hearing.</h1>
-            </div>
-
-            <div class="now-playing" id="now-playing" data-state="idle">
-                <div class="on-air" aria-hidden="true"><span></span><b id="air-label">STANDBY</b></div>
-                <div class="station-readout">
-                    <span class="readout-label">Live station</span>
-                    <strong id="current-name">Choose a station</strong>
-                    <p class="current-description" id="current-description">Start with Top 20 or search by station name or genre.</p>
-                    <div class="program-readout" data-state="format">
-                        <span class="program-label"><i aria-hidden="true"></i><b id="current-program-label">ON THIS SIGNAL</b></span>
-                        <strong id="current-program">WAITING FOR A STATION</strong>
-                        <span id="current-program-note">LIVE TITLES APPEAR HERE WHEN A STATION PUBLISHES THEM</span>
-                    </div>
-                    <dl class="station-facts" aria-label="Selected station details">
-                        <div><dt>Genre</dt><dd id="current-genre">—</dd></div>
-                        <div><dt>From</dt><dd id="current-origin">—</dd></div>
-                        <div><dt>Quality</dt><dd id="current-quality">—</dd></div>
-                        <div><dt>Source</dt><dd id="current-source">—</dd></div>
-                    </dl>
-                </div>
-                <section class="signal-instrument" id="receiver-instruments" data-analysis="waiting" aria-labelledby="receiver-instruments-title">
-                    <header class="signal-instrument-head">
-                        <h2 id="receiver-instruments-title">Live signal</h2>
-                        <strong id="receiver-analysis-source" aria-live="polite">READY</strong>
-                    </header>
-                    <canvas id="receiver-waveform-canvas" width="720" height="144" role="img" aria-label="Live radio waveform, spectral field, and carrier"></canvas>
-                    <div class="signal-bands" aria-label="Live bass, mid, and treble energy">
-                        <div><span>BASS</span><i><b id="receiver-band-low"></b></i></div>
-                        <div><span>MID</span><i><b id="receiver-band-mid"></b></i></div>
-                        <div><span>TREBLE</span><i><b id="receiver-band-high"></b></i></div>
-                    </div>
-                    <p class="signal-instrument-note" id="receiver-analysis-note" hidden></p>
-                </section>
-                <div class="player-controls">
-                    <button class="mini-player-handle" id="dock-toggle" type="button" aria-expanded="false" aria-controls="car-dock-panel" aria-label="Open live signal">
-                        <b>LIVE SIGNAL</b><span aria-hidden="true"></span>
-                    </button>
-                    <div class="car-dock-panel" id="car-dock-panel" aria-hidden="true" inert>
-                        <div class="signal-now-playing">
-                            <span id="signal-current-name">Choose a station</span>
-                            <strong id="signal-current-program">Waiting for a station</strong>
-                        </div>
-                        <section class="signal-instrument signal-instrument--dock" id="dock-instruments" data-analysis="waiting" aria-labelledby="dock-instruments-title">
-                            <header class="signal-instrument-head">
-                                <h2 id="dock-instruments-title">Live signal</h2>
-                                <strong id="dock-analysis-source" aria-live="polite">READY</strong>
-                            </header>
-                            <canvas id="dock-waveform-canvas" width="720" height="144" role="img" aria-label="Live radio waveform, spectral field, and carrier"></canvas>
-                            <div class="signal-bands" aria-label="Live bass, mid, and treble energy">
-                                <div><span>BASS</span><i><b id="dock-band-low"></b></i></div>
-                                <div><span>MID</span><i><b id="dock-band-mid"></b></i></div>
-                                <div><span>TREBLE</span><i><b id="dock-band-high"></b></i></div>
-                            </div>
-                            <p class="signal-instrument-note" id="dock-analysis-note" hidden></p>
-                        </section>
-                        <section class="car-saved" aria-labelledby="car-saved-title">
-                            <div class="dock-station-actions">
-                                <button id="dock-save-station" type="button" aria-pressed="false" disabled>Save this station</button>
-                                <button id="dock-browse-stations" type="button">Browse stations</button>
-                            </div>
-                            <div class="car-dock-section-head">
-                                <h2 id="car-saved-title">Saved stations</h2>
-                                <span id="car-saved-count">0 SAVED</span>
-                            </div>
-                            <div class="car-saved-track" id="car-saved-track"></div>
-                            <p class="car-saved-empty" id="car-saved-empty">Save a station here for one-tap listening next time.</p>
-                        </section>
-                        <div class="car-dock-options">
-                            <button class="car-dock-control" id="car-text-open" type="button">
-                                <span>Car text</span><small id="car-text-state">RG ROTATION</small>
-                            </button>
-                            <button class="car-dock-control" id="car-awake-toggle" type="button" aria-pressed="false">
-                                <span>Keep awake</span><small id="car-awake-state">OFF</small>
-                            </button>
-                            <button class="car-dock-control" id="car-dim-toggle" type="button" aria-pressed="false">
-                                <span>Dim</span><small id="car-dim-state">OFF</small>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mini-player-lock" aria-hidden="true"><span></span></div>
-                    <div class="mini-player-copy">
-                        <span id="dock-current-name">Choose a station</span>
-                        <strong id="dock-current-program">Waiting for a station</strong>
-                    </div>
-                    <button class="transport transport--small" id="previous-station" type="button" aria-label="Previous station" disabled>&larr;</button>
-                    <button class="transport transport--play" id="play-toggle" type="button" aria-label="Play station" disabled>
-                        <span class="play-icon" aria-hidden="true"></span>
-                        <span class="transport-label" id="play-state-label" aria-hidden="true">PLAY</span>
-                    </button>
-                    <button class="transport transport--small" id="next-station" type="button" aria-label="Next station" disabled>&rarr;</button>
-                </div>
-                <div class="station-actions">
-                    <button id="favorite-toggle" type="button" disabled aria-pressed="false">SAVE</button>
-                    <button id="share-station" type="button" disabled title="Share cards are available for Top 20 stations">SHARE CARD</button>
-                    <a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">STATION SITE</a>
-                </div>
-                <p class="player-status" id="player-status" role="status" aria-live="polite">Receiver ready.</p>
-                <audio id="radio-audio" preload="none" playsinline></audio>
-                <div class="band-console" id="band-console" data-state="idle">
-                    <div class="band-readout">
-                        <div>
-                            <span class="readout-label">RG internet band</span>
-                            <strong><output id="band-frequency" for="band-tuner">97.5</output><small> FM</small></strong>
-                        </div>
-                        <div class="band-meter" aria-hidden="true">
-                            <i></i><i></i><i></i><i></i><i></i>
-                        </div>
-                        <b id="band-state">STANDBY</b>
-                    </div>
-                    <div class="band-track-wrap">
-                        <div class="band-labels" aria-hidden="true"><span>87.5</span><span>US INTERNET SIGNALS</span><span>108.0</span></div>
-                        <div class="band-track">
-                            <div class="band-markers" id="band-markers" aria-hidden="true"></div>
-                            <input id="band-tuner" type="range" min="875" max="1080" step="1" value="975" aria-label="Tune the RG internet band" aria-describedby="band-note">
-                        </div>
-                        <p id="band-note">TAP TO SNAP · DRAG THROUGH STATIC · DISPLAY SCALE ONLY</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="directory" aria-labelledby="directory-title">
-            <div class="directory-head">
-                <div>
-                    <p class="kicker">Live directory</p>
-                    <h2 id="directory-title">Stations</h2>
-                </div>
-                <button class="favorites-filter" id="favorites-filter" type="button" aria-pressed="false">
-                    SAVED <span id="favorite-count">0</span>
-                </button>
-            </div>
-
-            <form class="station-search" id="station-search">
-                <label for="search-query">Search US stations <span>by name or genre</span></label>
-                <div class="station-search-controls">
-                    <input id="search-query" name="query" type="search" autocomplete="off" placeholder="Art Bell, emo, grunge, shoegaze...">
-                    <button type="submit">SEARCH</button>
-                </div>
-            </form>
-
-            <section class="station-mode-selector" aria-labelledby="station-mode-title">
-                <div class="mode-strip-head">
-                    <h3 id="station-mode-title">Bands</h3>
-                    <output id="station-mode-position" aria-live="polite">1 OF 7 &middot; TOP 20</output>
-                </div>
-                <div class="mode-carousel">
-                    <button class="mode-carousel-arrow" id="previous-station-mode" type="button" aria-label="Previous station band" aria-controls="station-list" disabled>
-                        <span aria-hidden="true">&larr;</span><small>BACK</small>
-                    </button>
-                    <div class="quick-tunes" id="station-mode-track" role="group" aria-label="Station bands">
-                        <button type="button" data-preset="top20" aria-pressed="true" aria-controls="station-list">TOP 20</button>
-                        <button type="button" data-preset="news" aria-pressed="false" aria-controls="station-list">NEWS DESK</button>
-                        <button type="button" data-preset="conspiracy" aria-pressed="false" aria-controls="station-list">CONSPIRACY</button>
-                        <button type="button" data-preset="rock" aria-pressed="false" aria-controls="station-list">ROCK</button>
-                        <button type="button" data-preset="trippy" aria-pressed="false" aria-controls="station-list">TRIPPY</button>
-                        <button type="button" data-preset="night" aria-pressed="false" aria-controls="station-list">FOLLOW THE NIGHT</button>
-                        <button type="button" data-preset="personal" aria-pressed="false" aria-controls="station-list">PERSONAL</button>
-                    </div>
-                    <button class="mode-carousel-arrow" id="next-station-mode" type="button" aria-label="Next station band" aria-controls="station-list">
-                        <span aria-hidden="true">&rarr;</span><small>NEXT</small>
-                    </button>
-                </div>
-            </section>
-
-            <div class="results-meta">
-                <span id="results-label">CONNECTING</span>
-                <div class="results-actions">
-                    <button id="test-signals" type="button" disabled>TEST SIGNALS</button>
-                    <button id="random-station" type="button" disabled>SURPRISE ME</button>
-                </div>
-            </div>
-
-            <ol class="station-list" id="station-list" aria-busy="true"></ol>
-
-            <div class="directory-message" id="directory-message" hidden>
-                <p id="directory-message-copy">The station directory could not be reached.</p>
-                <button id="retry-directory" type="button">TRY AGAIN</button>
-            </div>
-
-            <details class="radio-surfaces" id="broadcast-surfaces">
-                <summary><span>API + MEDIA SURFACES</span><b id="broadcast-surface-summary" role="status" aria-live="polite">0 KNOWN</b></summary>
-                <p class="radio-surfaces-intro">Keyless directory calls and direct HTTPS audio touched by this browser.</p>
-                <div class="radio-surfaces-list" id="broadcast-surface-list"></div>
-            </details>
-        </section>
-    </main>
-
-    <section class="car-mode" id="car-mode" data-state="idle" aria-labelledby="car-mode-title" aria-hidden="true" hidden>
-        <div class="car-mode-field" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <div class="car-mode-readout">
-            <div class="car-mode-station">
-                <span>LIVE STATION</span>
-                <strong id="car-mode-station">Choose a station</strong>
-            </div>
-            <div class="car-mode-program">
-                <span id="car-mode-program-label">ON THIS SIGNAL</span>
-                <h1 id="car-mode-title">WAITING FOR A STATION</h1>
-            </div>
-            <p class="car-mode-message" id="car-mode-message">RG Broadcast</p>
-            <div class="car-mode-state" role="status" aria-live="polite">
-                <i aria-hidden="true"></i>
-                <strong id="car-mode-state">STANDBY</strong>
-                <span id="car-mode-status">Receiver ready.</span>
-            </div>
-        </div>
+<body class="broadcast-app">
+ <canvas id="broadcast-stars" aria-hidden="true"></canvas>
+ <header class="broadcast-head">
+  <a href="/music" class="back-link" aria-label="Back to Listen">RG<span aria-hidden="true"> / </span>Listen</a><h1>Broadcast</h1>
+  <div class="head-controls">
+   <button id="car-mode-shortcut" type="button" aria-label="Enter Car Mode" aria-pressed="false" title="Car Mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 10 2-5h10l2 5M4 10h16v8H4zM6 18v2m12-2v2M7 14h2m6 0h2"/></svg></button>
+   <button id="site-menu-toggle" type="button" aria-label="Site menu" aria-expanded="false" aria-controls="broadcast-site-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h14"/></svg></button>
+  </div>
+  <nav id="broadcast-site-menu" class="broadcast-site-menu" aria-label="Site navigation" hidden inert><a href="/">Home</a><a href="/music">Listen</a></nav>
+ </header>
+ <p id="connection-status" class="connection-status" role="status" hidden>Offline · Live stations need a connection</p>
+ <main class="broadcast-shell">
+  <section class="radio-console" id="now-playing" data-state="idle" data-view="channels" data-expanded="true" aria-label="RG Broadcast receiver">
+   <button id="dock-toggle" class="console-handle" type="button" aria-expanded="true" aria-controls="console-panes" aria-label="Contract radio"><span></span></button>
+   <div class="console-panes" id="console-panes">
+    <section class="console-pane directory" id="pane-channels" aria-labelledby="tab-channels">
+     <div class="channel-tools">
+      <form class="station-search" id="station-search"><label class="sr-only" for="search-query">Search US stations by name or genre</label><div class="station-search-controls"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="search-query" name="query" type="search" autocomplete="off" enterkeyhint="search" placeholder="Find a station or a sound"><button type="submit">Search</button></div></form>
+      <section class="station-mode-selector" aria-label="Station categories"><div class="quick-tunes" id="station-mode-track">
+       <button type="button" data-preset="top20" aria-pressed="true" aria-controls="station-list">Top 20</button>
+<button type="button" data-preset="news" aria-pressed="false" aria-controls="station-list">News Desk</button>
+<button type="button" data-preset="conspiracy" aria-pressed="false" aria-controls="station-list">Conspiracy</button>
+<button type="button" data-preset="rock" aria-pressed="false" aria-controls="station-list">Rock</button>
+<button type="button" data-preset="trippy" aria-pressed="false" aria-controls="station-list">Trippy</button>
+<button type="button" data-preset="night" aria-pressed="false" aria-controls="station-list">Follow the Night</button>
+<button type="button" data-preset="personal" aria-pressed="false" aria-controls="station-list">Personal</button>
+       <button id="favorites-filter" type="button" aria-pressed="false" aria-controls="station-list">Saved <span id="favorite-count">0</span></button>
+      </div></section>
+      <div class="results-meta"><span id="results-label" role="status">Connecting</span><button id="random-station" type="button" disabled>Surprise me</button></div>
+     </div>
+     <ol class="station-list" id="station-list" aria-busy="true"></ol>
+     <div id="directory-message" class="directory-message" hidden><p id="directory-message-copy">The directory could not be reached.</p><button id="retry-directory" type="button">Try again</button></div>
     </section>
-
-    <dialog class="install-sheet" id="install-sheet" aria-labelledby="install-sheet-title">
+    <section class="console-pane signal-pane" id="pane-signal" aria-labelledby="tab-signal" hidden inert>
+     <div class="signal-now-playing"><span id="signal-current-name">Choose a station</span><strong id="signal-current-program">Waiting for a station</strong></div>
+     <section class="signal-instrument " id="receiver-instruments" data-analysis="waiting" aria-label="Signal display">
+ <header class="signal-instrument-head"><h2>On this signal</h2><strong id="receiver-analysis-source" aria-live="polite">Ready</strong></header>
+ <canvas id="receiver-waveform-canvas" width="720" height="144" role="img" aria-label="Receiver state"></canvas>
+ <div class="signal-bands"><div><span>Bass</span><i><b id="receiver-band-low"></b></i></div><div><span>Mid</span><i><b id="receiver-band-mid"></b></i></div><div><span>Treble</span><i><b id="receiver-band-high"></b></i></div></div>
+ <p class="signal-instrument-note" id="receiver-analysis-note" hidden></p>
+ </section>
+     <p class="signal-caption">A little light from whatever you’re listening to.</p>
+    </section>
+    <section class="console-pane more-pane" id="pane-more" aria-labelledby="tab-more" hidden inert>
+     <div class="more-heading"><h2>Your receiver</h2><p id="current-description">Choose a station to begin.</p></div>
+     <div class="receiver-actions"><button id="share-station" type="button" disabled>Share station</button><a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">Station site</a>
+      <button class="car-mode-button" id="car-mode-toggle" type="button" aria-pressed="false" aria-label="Enter Car Mode"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 9 2-5h10l2 5 2 2v7H3v-7zM3 10h18M6 18v3M18 18v3M6 14h2M16 14h2"/></svg><span class="car-mode-button-label">Car Mode</span></button>
+      <button class="install-app" id="install-app" type="button" hidden>Add app</button>
+     </div>
+     <div class="car-dock-options"><button class="car-dock-control" id="car-text-open" type="button"><span>Car text</span><small id="car-text-state">RG rotation</small></button><button class="car-dock-control" id="car-awake-toggle" type="button" aria-pressed="false"><span>Keep awake</span><small id="car-awake-state">Off</small></button><button class="car-dock-control" id="car-dim-toggle" type="button" aria-pressed="false"><span>Dim</span><small id="car-dim-state">Off</small></button></div>
+     <p id="car-mode-message" class="car-message">RG Broadcast</p>
+     <dl class="station-facts"><div><dt>Genre</dt><dd id="current-genre">—</dd></div><div><dt>From</dt><dd id="current-origin">—</dd></div><div><dt>Quality</dt><dd id="current-quality">—</dd></div><div><dt>Source</dt><dd id="current-source">—</dd></div></dl>
+     <p id="current-program-label" class="detail-label">On this signal</p><p id="current-program-note">Live titles appear when the station provides them.</p>
+     <p id="player-status" class="player-status" role="status" aria-live="polite">Receiver ready.</p>
+     <details class="radio-surfaces" id="broadcast-surfaces"><summary><span>Connection details</span><b id="broadcast-surface-summary" role="status">0 known</b></summary><button id="test-signals" type="button" disabled>Test current stations</button><div class="radio-surfaces-list" id="broadcast-surface-list"></div></details>
+     <a class="directory-credit" href="https://www.radio-browser.info/" target="_blank" rel="noopener">Station directory by Radio Browser</a>
+    </section>
+   </div>
+   <div class="player-controls">
+    <div class="now-copy"><img class="receiver-art" src="/music/broadcast/icons/rg-broadcast-v2-192.png" alt="" width="46" height="46"><div class="program-readout" data-state="format"><span id="current-name">Choose a station</span><strong id="current-program">Waiting for a station</strong></div><button class="bookmark" id="favorite-toggle" type="button" aria-pressed="false" aria-label="Save current station" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button></div>
+    <div class="transport-row"><section class="signal-instrument signal-mini" id="dock-instruments" data-analysis="waiting" aria-label="Receiver status">
+ <header class="signal-instrument-head"><h2>Signal</h2><strong id="dock-analysis-source" aria-live="off">Ready</strong></header>
+ <canvas id="dock-waveform-canvas" width="720" height="144" role="img" aria-label="Receiver state"></canvas>
+ <div class="signal-bands"><div><span>Bass</span><i><b id="dock-band-low"></b></i></div><div><span>Mid</span><i><b id="dock-band-mid"></b></i></div><div><span>Treble</span><i><b id="dock-band-high"></b></i></div></div>
+ <p class="signal-instrument-note" id="dock-analysis-note" hidden></p>
+ </section><div class="transports"><button class="transport transport--small" id="previous-station" type="button" aria-label="Previous station" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5v14M19 5l-10 7 10 7z"/></svg></button><button class="transport transport--play" id="play-toggle" type="button" aria-label="Play station" disabled><span class="play-icon" aria-hidden="true"></span><span class="sr-only" id="play-state-label">Play</span></button><button class="transport transport--small" id="next-station" type="button" aria-label="Next station" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 5v14M5 5l10 7-10 7z"/></svg></button></div><b id="air-label" class="air-label">Ready</b></div>
+    <nav class="console-tabs" aria-label="Receiver views"><button id="tab-channels" data-console-view="channels" type="button" aria-controls="pane-channels" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="19" r="2"/></svg><span>Channels</span></button><button id="tab-signal" data-console-view="signal" type="button" aria-controls="pane-signal" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 13h3l2-7 4 13 3-15 3 9h3"/></svg><span>Signal</span></button><button id="tab-more" data-console-view="more" type="button" aria-controls="pane-more" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>More</span></button></nav>
+   </div>
+   <audio id="radio-audio" preload="none" playsinline></audio>
+  </section>
+ </main>
+     <dialog class="install-sheet" id="install-sheet" aria-labelledby="install-sheet-title">
         <div class="install-sheet-panel">
             <div class="install-sheet-head">
                 <div>
@@ -298,14 +136,11 @@
         </form>
     </dialog>
 
-    <footer class="broadcast-foot">
-        <span>Station data: Radio Browser + direct feeds</span>
-        <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">OPEN DIRECTORY</a>
-    </footer>
 
-    <script src="/js/site.js"></script>
-    <script type="module" src="/js/broadcast.js?v=20260905-1"></script>
-    <script type="module" src="/js/broadcast-car.js?v=20260905-1"></script>
-    <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
+ <script src="/assets/vendor/three/three.min.js" defer></script>
+ <script type="module" src="/js/broadcast-console.js?v=20260905-2"></script>
+ <script type="module" src="/js/broadcast.js?v=20260905-2"></script>
+ <script type="module" src="/js/broadcast-car.js?v=20260905-2"></script>
+ <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
 </html>

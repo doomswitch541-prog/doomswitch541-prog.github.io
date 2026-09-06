@@ -84,12 +84,11 @@ function createSurface(prefix, rootId) {
     return { root, waveform, status, note, bandFills };
 }
 
-export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, resumePlayback }) {
+export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, resumePlayback, onSignalFrame = () => {} }) {
     const surfaces = [
         createSurface('receiver', 'receiver-instruments'),
         createSurface('dock', 'dock-instruments')
     ].filter(Boolean);
-    const carMode = document.getElementById('car-mode');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     if (!audio || !surfaces.length) {
@@ -150,10 +149,6 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
             surface.note.textContent = note;
             surface.note.hidden = !note;
         });
-        if (carMode) {
-            carMode.style.setProperty('--car-signal-energy', reducedMotion.matches ? '0' : model.energy.toFixed(3));
-            carMode.style.setProperty('--car-signal-impact', reducedMotion.matches ? '0' : model.impact.toFixed(3));
-        }
     }
 
     function analysisUnavailable() {
@@ -166,9 +161,9 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
             ? (model.receiverLabel === 'BUFFERING' ? 'BUFFERING' : 'TUNING')
             : state === 'error' ? 'NO SIGNAL'
             : state === 'playing'
-                ? 'RECEIVER SIGNAL'
+                ? 'PLAYBACK ANIMATION'
                 : state === 'paused'
-                    ? 'PAUSED SIGNAL'
+                    ? 'PAUSED'
                     : 'READY';
         setAnalysisState(
             state === 'error' ? 'error' : 'fallback',
@@ -337,33 +332,22 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
 
     function drawReceiverFallback(context, width, height, center) {
         const state = model.receiverState;
-        if (model.liveValidated || !['loading', 'playing', 'paused'].includes(state)) return false;
-        const tuning = state === 'loading';
-        const amplitude = height * (tuning ? 0.13 : 0.19);
-        const points = 128;
-        // A travelling carrier and two faint phosphor echoes, not synthetic FFT data.
-        // The same phase drives both canvases; pause holds it and reduced motion disables it.
-        for (let echo = 2; echo >= 0; echo -= 1) {
-            const phase = model.fallbackPhase - echo * 0.23;
-            const focus = 0.5 + Math.sin(phase * 0.31) * 0.19;
-            context.beginPath();
-            for (let index = 0; index <= points; index += 1) {
-                const x = index / points;
-                const edge = Math.pow(Math.sin(Math.PI * x), 1.5);
-                const envelope = (0.3 + 0.7 * Math.exp(-Math.pow((x - focus) / 0.27, 2))) * edge;
-                const carrier = Math.sin(x * Math.PI * (tuning ? 10 : 6) - phase);
-                const undertone = Math.sin(x * Math.PI * 3 + phase * 0.37) * 0.22;
-                const y = center + (carrier + undertone) * amplitude * envelope;
-                if (index === 0) context.moveTo(0, y);
-                else context.lineTo(x * width, y);
-            }
-            if (echo) {
-                context.save();
-                context.strokeStyle = `rgba(230, 160, 74, ${echo === 1 ? 0.16 : 0.07})`;
-                context.lineWidth = height / 72;
-                context.stroke();
-                context.restore();
-            }
+        const active = ['loading', 'playing', 'paused'].includes(state);
+        const phase = model.fallbackPhase;
+        const step = width / 18;
+        const barWidth = Math.max(1, step * 0.42);
+        // A shared, deliberately composed rhythm, not synthetic frequency data.
+        // Pause freezes the phase; reduced motion keeps a still receiver silhouette.
+        for (let index = 0; index < 18; index += 1) {
+            const edge = Math.sin(Math.PI * (index + 0.5) / 18);
+            const rhythm = 0.5 + 0.3 * Math.sin(phase + index * 0.63)
+                + 0.2 * Math.sin(phase * 0.71 - index * 0.91);
+            const amount = active ? (0.12 + edge * (0.2 + rhythm * 0.56)) : 0.055;
+            const barHeight = Math.max(2, height * amount);
+            context.fillStyle = index % 3 === 0
+                ? `rgba(183, 219, 230, ${active ? 0.8 : 0.23})`
+                : `rgba(168, 204, 185, ${active ? 0.68 : 0.18})`;
+            context.fillRect((index + 0.5) * step - barWidth / 2, center - barHeight / 2, barWidth, barHeight);
         }
         return true;
     }
@@ -471,10 +455,6 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
             surface.root.style.setProperty('--signal-energy', model.energy.toFixed(3));
             surface.root.style.setProperty('--signal-impact', model.impact.toFixed(3));
         });
-        if (carMode) {
-            carMode.style.setProperty('--car-signal-energy', reducedMotion.matches ? '0' : model.energy.toFixed(3));
-            carMode.style.setProperty('--car-signal-impact', reducedMotion.matches ? '0' : model.impact.toFixed(3));
-        }
         return model.smoothedBands;
     }
 
@@ -491,6 +471,11 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
         const center = Math.round(height / 2) + 0.5;
 
         context.save();
+        if (!model.liveValidated) {
+            drawReceiverFallback(context, width, height, center);
+            context.restore();
+            return;
+        }
         context.strokeStyle = line;
         context.lineWidth = density;
         for (let index = 1; index < 8 && model.liveValidated; index += 1) {
@@ -606,6 +591,11 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
             model.carrier = followSignal(model.carrier, 0, 0.2, 0.1);
         }
         const values = liveBands || (audio.paused && model.liveValidated ? model.lastBands : model.smoothedBands);
+        onSignalFrame({
+            mode: model.liveValidated ? 'audio-analysis' : 'receiver-state',
+            state: model.receiverState, level: model.energy,
+            bass: values[0], mid: values[1], treble: values[2], transient: model.impact
+        });
         const frameKey = `${model.receiverState}:${model.liveValidated}:${model.captureFailed}:${surfaces.map(surface => `${surface.waveform.clientWidth},${surface.waveform.clientHeight}`).join(':')}`;
         if (!reducedMotion.matches || frameKey !== model.reducedFrameKey) {
             surfaces.forEach(drawWaveform);

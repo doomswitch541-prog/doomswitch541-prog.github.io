@@ -1,5 +1,6 @@
+import { publishSignalFrame } from '/js/broadcast-console.js?v=20260905-2';
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260905-1';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260905-2';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -25,7 +26,6 @@ const BAND_FREQUENCIES = [
     98.2, 99.3, 100.3, 101.3, 102.4,
     103.4, 104.4, 105.5, 106.5, 107.5
 ];
-const BAND_LOCK_DISTANCE = 0.42;
 const NEWS_TERMS = ['Bloomberg', 'CNN', 'Fox News'];
 const CONSPIRACY_TAGS = ['conspiracy', 'conspiracy theories', 'paranormal', 'ufo', 'uap'];
 const ROCK_TAGS = ['rock', 'grunge', 'shoegaze', 'alternative rock', 'emo', 'screamo', 'post-hardcore'];
@@ -286,6 +286,7 @@ const nowPlaying = document.getElementById('now-playing');
 let receiverAudioEvents;
 const receiverInstruments = createBroadcastInstruments({
     audio, nowPlaying, replaceAudio: replaceReceiverAudio,
+    onSignalFrame: publishSignalFrame,
     resumePlayback() {
         playPending = false;
         void playStation(currentStation, currentIndex);
@@ -333,19 +334,10 @@ const favoriteCount = document.getElementById('favorite-count');
 const favoritesFilter = document.getElementById('favorites-filter');
 const shareButton = document.getElementById('share-station');
 const stationHome = document.getElementById('station-home');
-const bandConsole = document.getElementById('band-console');
-const bandFrequency = document.getElementById('band-frequency');
-const bandState = document.getElementById('band-state');
-const bandTuner = document.getElementById('band-tuner');
-const bandMarkers = document.getElementById('band-markers');
-const bandMeter = [...document.querySelectorAll('.band-meter i')];
 const searchForm = document.getElementById('station-search');
 const searchQuery = document.getElementById('search-query');
 const presetButtons = [...document.querySelectorAll('[data-preset]')];
 const presetTrack = document.getElementById('station-mode-track');
-const previousPresetButton = document.getElementById('previous-station-mode');
-const nextPresetButton = document.getElementById('next-station-mode');
-const presetPosition = document.getElementById('station-mode-position');
 const resultsLabel = document.getElementById('results-label');
 const testSignalsButton = document.getElementById('test-signals');
 const randomButton = document.getElementById('random-station');
@@ -371,8 +363,6 @@ let playbackIntent = 'paused';
 let lastPlaybackTime = 0;
 let signalTestRun = 0;
 let stationRequestRun = 0;
-let bandStations = [];
-let bandPointerStart = null;
 let nowPlayingRun = 0;
 let nowPlayingTimer = null;
 let mediaSessionMessageIndex = 0;
@@ -1061,8 +1051,6 @@ function toggleFavorite(station) {
     if (favoritesOnly) {
         stations = [...favorites];
         renderStations();
-    } else {
-        updateRowFavorites();
     }
 }
 
@@ -1070,17 +1058,8 @@ function updateFavoriteControls() {
     favoriteCount.textContent = String(favorites.length);
     const saved = Boolean(currentStation && isFavorite(currentStation.stationuuid));
     favoriteToggle.setAttribute('aria-pressed', String(saved));
-    favoriteToggle.textContent = saved ? 'SAVED' : 'SAVE';
-    updateRowFavorites();
-}
-
-function updateRowFavorites() {
-    stationList.querySelectorAll('.row-save').forEach(button => {
-        const saved = isFavorite(button.dataset.uuid);
-        button.setAttribute('aria-pressed', String(saved));
-        button.setAttribute('aria-label', `${saved ? 'Remove' : 'Save'} ${button.dataset.name}`);
-        button.textContent = saved ? '-' : '+';
-    });
+    favoriteToggle.setAttribute('aria-label', saved ? 'Remove current station from Saved' : 'Save current station');
+    favoriteToggle.title = saved ? 'Remove from Saved' : 'Save station';
 }
 
 function mediaErrorDetail(media, fallbackError) {
@@ -1113,7 +1092,6 @@ function resetSignalTests() {
     signalResults.clear();
     testSignalsButton.disabled = true;
     testSignalsButton.textContent = 'TEST SIGNALS';
-    renderBandMarkers();
 }
 
 function updateSignalRow(uuid) {
@@ -1137,157 +1115,6 @@ function setSignalResult(station, result) {
     if (!station?.stationuuid) return;
     signalResults.set(station.stationuuid, result);
     updateSignalRow(station.stationuuid);
-    renderBandMarkers();
-    if (currentStation?.stationuuid === station.stationuuid) {
-        if (result.state === 'testing') setBandState('testing', 'TESTING', 3);
-        else if (result.state === 'ready' && !audio.paused) setBandState('on-air', 'ON AIR', 5);
-        else if (result.state === 'ready') setBandState('ready', 'READY', 5);
-        else if (result.state === 'dead') setBandState('error', result.label, 1);
-    }
-}
-
-function setBandState(state, label, strength = 0) {
-    bandConsole.dataset.state = state;
-    bandState.textContent = label;
-    bandMeter.forEach((bar, index) => bar.classList.toggle('active', index < strength));
-}
-
-function renderBandMarkers() {
-    bandMarkers.replaceChildren();
-    const fragment = document.createDocumentFragment();
-    bandStations.forEach(slot => {
-        const marker = document.createElement('span');
-        const signal = signalResults.get(slot.station.stationuuid)?.state || 'untested';
-        marker.className = 'band-marker';
-        marker.dataset.signal = signal;
-        marker.style.left = `${((slot.frequency - 87.5) / 20.5) * 100}%`;
-        fragment.appendChild(marker);
-    });
-    bandMarkers.appendChild(fragment);
-}
-
-function syncBandToStation(station, index) {
-    if (!station || !bandStations.length) return;
-    let slot = bandStations.find(item => item.station.stationuuid === station.stationuuid);
-    if (!slot) {
-        const currentFrequency = Number(bandTuner.value) / 10;
-        slot = bandStations.reduce((nearest, item) =>
-            Math.abs(item.frequency - currentFrequency) < Math.abs(nearest.frequency - currentFrequency)
-                ? item : nearest
-        );
-        slot.station = station;
-        slot.index = index;
-        renderBandMarkers();
-    }
-    bandTuner.value = String(Math.round(slot.frequency * 10));
-    bandFrequency.textContent = slot.frequency.toFixed(1);
-    const result = signalResults.get(station.stationuuid);
-    if (result?.state === 'ready') setBandState('ready', 'READY', 5);
-    else if (result?.state === 'dead') setBandState('error', result.label, 1);
-    else setBandState('locked', 'LOCKED', 4);
-}
-
-function clearBandSelection() {
-    stopNowPlayingUpdates();
-    currentStation = null;
-    currentIndex = -1;
-    receiverInstruments.setStation(null);
-    currentName.textContent = 'Quiet band';
-    currentDescription.textContent = 'No station occupies this part of the current internet band.';
-    currentProgramLabel.textContent = 'ON THIS SIGNAL';
-    currentProgram.textContent = 'STATIC';
-    currentProgramNote.textContent = 'MOVE TOWARD A MARKER TO LOCK';
-    currentProgram.closest('.program-readout').dataset.state = 'format';
-    currentGenre.textContent = '—';
-    currentOrigin.textContent = '—';
-    currentQuality.textContent = '—';
-    currentSource.textContent = '—';
-    playToggle.disabled = true;
-    favoriteToggle.disabled = true;
-    shareButton.disabled = true;
-    shareButton.title = 'Share cards are available for Top 20 stations';
-    shareButton.setAttribute('aria-label', 'Share cards are available for Top 20 stations');
-    favoriteToggle.setAttribute('aria-pressed', 'false');
-    stationHome.href = '/music/broadcast';
-    stationHome.setAttribute('aria-disabled', 'true');
-    const params = new URLSearchParams(location.search);
-    params.delete('station');
-    history.replaceState(null, '', [...params].length ? `${location.pathname}?${params}` : location.pathname);
-    updateCurrentRow();
-    updateTransportAvailability();
-    setPlayerState('idle', 'STATIC', 'Quiet band. Move toward a station marker.');
-}
-
-function updateBandFromTuner() {
-    if (!bandStations.length) {
-        setBandState('idle', 'STANDBY', 0);
-        return;
-    }
-    const frequency = Number(bandTuner.value) / 10;
-    bandFrequency.textContent = frequency.toFixed(1);
-    const nearest = bandStations.reduce((best, slot) => {
-        const distance = Math.abs(slot.frequency - frequency);
-        return !best || distance < best.distance ? { slot, distance } : best;
-    }, null);
-
-    if (!nearest || nearest.distance > BAND_LOCK_DISTANCE) {
-        clearBandSelection();
-        return;
-    }
-
-    const strength = Math.max(1, 5 - Math.floor(nearest.distance / 0.09));
-    if (currentStation?.stationuuid !== nearest.slot.station.stationuuid) {
-        setCurrentStation(nearest.slot.station, nearest.slot.index);
-    }
-    if (audio.paused) {
-        setPlayerState('paused', 'LOCKED', `Tuned to ${nearest.slot.station.name}. Press play or test its signal.`);
-    }
-    const result = signalResults.get(nearest.slot.station.stationuuid);
-    if (result?.state === 'ready') setBandState('ready', 'READY', Math.max(strength, 4));
-    else if (result?.state === 'dead') setBandState('error', result.label, 1);
-    else setBandState(
-        nearest.distance < 0.16 ? 'locked' : 'acquiring',
-        nearest.distance < 0.16 ? 'LOCKED' : 'ACQUIRING',
-        strength
-    );
-}
-
-function snapBandToPointer(event) {
-    if (!bandStations.length) return;
-    const bounds = bandTuner.getBoundingClientRect();
-    if (!bounds.width) return;
-    const ratio = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
-    const bandMinimum = Number(bandTuner.min) / 10;
-    const bandMaximum = Number(bandTuner.max) / 10;
-    const clickedFrequency = bandMinimum + ratio * (bandMaximum - bandMinimum);
-    const nearest = bandStations.reduce((best, slot) => (
-        !best || Math.abs(slot.frequency - clickedFrequency) < Math.abs(best.frequency - clickedFrequency)
-            ? slot : best
-    ), null);
-    if (!nearest) return;
-
-    if (!audio.paused || playPending) pauseStation();
-    bandTuner.value = String(Math.round(nearest.frequency * 10));
-    updateBandFromTuner();
-}
-
-function renderBandStations() {
-    bandStations = stations.slice(0, BAND_FREQUENCIES.length).map((station, index) => ({
-        station,
-        index,
-        frequency: BAND_FREQUENCIES[index]
-    }));
-    renderBandMarkers();
-    if (!bandStations.length) {
-        setBandState('idle', 'NO BAND', 0);
-        return;
-    }
-    if (currentStation) syncBandToStation(currentStation, currentIndex);
-    else {
-        const center = bandStations[Math.floor((bandStations.length - 1) / 2)];
-        bandTuner.value = String(Math.round(center.frequency * 10));
-        updateBandFromTuner();
-    }
 }
 
 function probeStationSignal(station) {
@@ -1403,9 +1230,6 @@ function renderStations() {
     directoryMessage.hidden = true;
 
     if (!stations.length) {
-        bandStations = [];
-        renderBandMarkers();
-        setBandState('idle', 'NO BAND', 0);
         const nightSearch = lastRequest.kind === 'night';
         resultsLabel.textContent = favoritesOnly
             ? 'NO SAVED STATIONS'
@@ -1450,20 +1274,13 @@ function renderStations() {
         select.querySelector('.station-description').textContent = stationDescription(station);
         select.querySelector('.station-detail').textContent = stationDetail(station);
         select.setAttribute('aria-label', `Play ${station.name}`);
+        select.setAttribute('aria-current', String(currentStation?.stationuuid === station.stationuuid));
 
-        const save = document.createElement('button');
-        save.type = 'button';
-        save.className = 'row-save';
-        save.dataset.uuid = station.stationuuid;
-        save.dataset.name = station.name;
-
-        item.append(number, select, save);
+        item.append(number, select);
         fragment.appendChild(item);
     });
     stationList.appendChild(fragment);
     stations.forEach(station => updateSignalRow(station.stationuuid));
-    renderBandStations();
-    updateRowFavorites();
     updateTransportAvailability();
 }
 
@@ -1487,30 +1304,10 @@ function showDirectoryError(error) {
     console.warn('RG Broadcast directory request failed', error);
 }
 
-function centerPreset(button) {
-    if (!button) return;
-    const left = button.offsetLeft - ((presetTrack.clientWidth - button.offsetWidth) / 2);
-    presetTrack.scrollTo({
-        left: Math.max(0, left),
-        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
-    });
-}
-
-function setActivePreset(name = '', emptyLabel = 'CUSTOM LIST') {
-    let activeButton = null;
+function setActivePreset(name = '') {
     presetButtons.forEach(button => {
-        const active = button.dataset.preset === name;
-        button.setAttribute('aria-pressed', String(active));
-        if (active) activeButton = button;
+        button.setAttribute('aria-pressed', String(button.dataset.preset === name));
     });
-
-    const index = activeButton ? presetButtons.indexOf(activeButton) : -1;
-    presetPosition.textContent = index >= 0
-        ? `${index + 1} OF ${presetButtons.length} · ${activeButton.textContent.trim()}`
-        : emptyLabel;
-    previousPresetButton.disabled = index === 0;
-    nextPresetButton.disabled = index === presetButtons.length - 1;
-    if (activeButton) centerPreset(activeButton);
 }
 
 function requestForPreset(preset) {
@@ -1531,14 +1328,6 @@ function choosePreset(button, { focus = false } = {}) {
     setActivePreset(preset);
     if (focus) button.focus({ preventScroll: true });
     loadStations(requestForPreset(preset));
-}
-
-function movePreset(direction, options) {
-    const activeIndex = presetButtons.findIndex(button => button.getAttribute('aria-pressed') === 'true');
-    const nextIndex = activeIndex < 0
-        ? direction > 0 ? 0 : presetButtons.length - 1
-        : Math.min(presetButtons.length - 1, Math.max(0, activeIndex + direction));
-    choosePreset(presetButtons[nextIndex], options);
 }
 
 async function loadStations(request = lastRequest) {
@@ -1700,23 +1489,14 @@ function setPlayerState(state, label, message) {
     playerStatus.textContent = message;
     receiverInstruments.setState({ state, label, message });
     updatePlayControl(state, label);
-    if (!currentStation) {
-        if (state === 'idle') setBandState('static', label === 'STATIC' ? 'STATIC' : 'STANDBY', 0);
-        return;
-    }
-    const signal = signalResults.get(currentStation.stationuuid);
-    if (state === 'playing') setBandState('on-air', 'ON AIR', 5);
-    else if (state === 'loading') setBandState('testing', 'TUNING', 3);
-    else if (state === 'error') setBandState('error', 'NO SIGNAL', 0);
-    else if (state === 'paused' && label === 'PAUSED') setBandState('paused', 'PAUSED', 4);
-    else if (signal?.state === 'ready') setBandState('ready', 'READY', 5);
-    else if (signal?.state === 'dead') setBandState('error', signal.label, 1);
-    else setBandState('locked', state === 'paused' ? 'LOCKED' : 'STANDBY', 4);
+
 }
 
 function updateCurrentRow() {
     stationList.querySelectorAll('.station-row').forEach(row => {
-        row.classList.toggle('is-current', row.dataset.uuid === currentStation?.stationuuid);
+        const active = row.dataset.uuid === currentStation?.stationuuid;
+        row.classList.toggle('is-current', active);
+        row.querySelector('.station-select')?.setAttribute('aria-current', String(active));
     });
 }
 
@@ -1765,7 +1545,6 @@ function setCurrentStation(station, index = stations.findIndex(item => item.stat
     updateCurrentRow();
     updateTransportAvailability();
     updateMediaSession(station);
-    syncBandToStation(station, index);
     updatePlayControl(nowPlaying.dataset.state || 'idle', airLabel.textContent);
 }
 
@@ -1941,9 +1720,6 @@ stationList.addEventListener('click', event => {
     if (select) {
         const index = Number(select.dataset.index);
         playStation(stations[index], index);
-        if (matchMedia('(max-width: 860px)').matches) {
-            nowPlaying.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
-        }
         return;
     }
 
@@ -1980,32 +1756,29 @@ presetButtons.forEach(button => {
     button.addEventListener('click', () => choosePreset(button));
 });
 
-previousPresetButton.addEventListener('click', () => movePreset(-1));
-nextPresetButton.addEventListener('click', () => movePreset(1));
 
 presetTrack.addEventListener('keydown', event => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
-    if (event.key === 'Home') choosePreset(presetButtons[0], { focus: true });
-    else if (event.key === 'End') choosePreset(presetButtons[presetButtons.length - 1], { focus: true });
-    else movePreset(event.key === 'ArrowRight' ? 1 : -1, { focus: true });
+    const categories = [...presetButtons, favoritesFilter];
+    const index = categories.indexOf(event.target);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? categories.length - 1
+        : Math.max(0, Math.min(categories.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1)));
+    categories[next].focus({ preventScroll: true });
+    categories[next].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    categories[next].click();
 });
 
 favoritesFilter.addEventListener('click', () => {
-    favoritesOnly = !favoritesOnly;
-    favoritesFilter.setAttribute('aria-pressed', String(favoritesOnly));
+    if (favoritesOnly) return;
+    favoritesOnly = true;
+    favoritesFilter.setAttribute('aria-pressed', 'true');
     setActivePreset('', 'SAVED STATIONS');
-    if (favoritesOnly) {
-        stationRequestRun += 1;
-        resetSignalTests();
-        stations = [...favorites];
-        renderStations();
-        resultsLabel.textContent = `SAVED  |  ${stations.length}`;
-    } else {
-        const lastPreset = lastRequest.kind === 'tag' ? lastRequest.value : lastRequest.kind;
-        setActivePreset(presetButtons.some(button => button.dataset.preset === lastPreset) ? lastPreset : '', 'CUSTOM LIST');
-        loadStations(lastRequest);
-    }
+    stationRequestRun += 1;
+    resetSignalTests();
+    stations = [...favorites];
+    renderStations();
+    resultsLabel.textContent = `SAVED  |  ${stations.length}`;
 });
 
 randomButton.addEventListener('click', () => {
@@ -2021,26 +1794,6 @@ randomButton.addEventListener('click', () => {
 });
 
 testSignalsButton.addEventListener('click', testCurrentSignals);
-
-bandTuner.addEventListener('input', () => {
-    if (!audio.paused || playPending) pauseStation();
-    updateBandFromTuner();
-});
-
-bandTuner.addEventListener('pointerdown', event => {
-    bandPointerStart = { x: event.clientX, y: event.clientY };
-});
-
-bandTuner.addEventListener('pointerup', event => {
-    const start = bandPointerStart;
-    bandPointerStart = null;
-    if (!start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) return;
-    snapBandToPointer(event);
-});
-
-bandTuner.addEventListener('pointercancel', () => {
-    bandPointerStart = null;
-});
 
 retryButton.addEventListener('click', () => {
     if (favoritesOnly) {
