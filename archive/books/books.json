@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-05T09:08:02.096Z",
+  "updatedAt": "2026-09-06T09:29:38.633Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -132,6 +132,16 @@
       "description": "Suspended July 1937-Dec. 1939",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-05T09:08:02.096Z"
+    },
+    {
+      "date": "2026-09-06",
+      "identifier": "sportinarticonog00bail",
+      "title": "Sport in art; an iconography of sport during four hundred years from the beginning of the fifteenth of the end of the eighteenth centuries",
+      "creator": "Baillie-Grohman, William A. (William Adolph), 1851-1921",
+      "published": "1913",
+      "description": "Biographical notes of artists: p. 355-410",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-06T09:29:38.633Z"
     }
   ]
 }
