@@ -238,12 +238,13 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
 #search-toggle svg {width:16px;height:16px}
 #search-toggle[aria-expanded="true"] {color:var(--ice)}
 .discovery-tools {flex-shrink:0;padding:0 20px;background:transparent}
-.station-mode-selector {position:relative}
-.station-mode-selector::before,.station-mode-selector::after {position:absolute;top:13px;font-size:15px;line-height:16px;color:var(--ice);opacity:0;pointer-events:none}
-.station-mode-selector::before {content:'‹';left:-12px}
-.station-mode-selector::after {content:'›';right:-12px}
-.station-mode-selector[data-scroll-left="true"]::before,.station-mode-selector[data-scroll-right="true"]::after {opacity:.65}
-.discovery-tools .quick-tunes {scrollbar-width:none}
+.station-mode-selector {position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:3px;margin-inline:-10px}
+.category-step {display:grid;place-items:center;width:36px;height:44px;padding:0;border:1px solid var(--line-strong);border-radius:14px;color:var(--ice);background:rgba(184,217,222,.075);box-shadow:inset 0 1px 0 #ffffff09}
+.category-step svg {width:18px;height:18px}
+.category-step[aria-disabled="true"] {opacity:.22;background:transparent;border-color:transparent;cursor:default}
+.console-tabs button[aria-expanded="true"] {box-shadow:inset 0 1px 0 rgba(184,217,222,.13)}
+.radio-console[data-state="playing"] .transport--play {box-shadow:0 0 15px rgba(134,181,156,.08),inset 0 1px 0 rgba(230,223,205,.08)}
+.discovery-tools .quick-tunes {scrollbar-width:none;min-width:0}
 .discovery-tools .quick-tunes::-webkit-scrollbar {display:none}
 .station-search {padding:2px 0 10px}
 .radio-console .directory {display:flex;flex-direction:column;overflow:hidden}
@@ -260,7 +261,8 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
 .station-field {position:fixed;top:70px;left:22px;right:22px;bottom:var(--field-bottom,680px);display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none}
 .station-field[data-space="none"] {visibility:hidden}
 .station-object {display:flex;flex-direction:column;align-items:center;gap:12px;max-width:460px;width:100%;--beacon-strength:.5}
-.beacon {width:190px;height:190px;flex-shrink:0;fill:none;stroke:var(--ice);stroke-width:1;overflow:visible}
+.beacon {width:220px;height:220px;flex-shrink:0;fill:none;stroke:var(--ice);stroke-width:1;overflow:visible}
+body[data-sky="ready"] .beacon {opacity:0}
 .beacon-frame {opacity:.28}
 .beacon-orbits {transform-origin:100px 100px}
 .beacon-orbits circle:first-child {stroke-dasharray:92 38 12 58;opacity:.4}
@@ -286,7 +288,7 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
 .station-field[data-space="compact"] #field-program {font-size:16px}
 .station-field[data-space="compact"] #field-format {display:none}
 .receiver-toast {position:fixed;z-index:8;left:50%;top:76px;transform:translateX(-50%);padding:10px 17px;border:1px solid var(--line-strong);border-radius:999px;background:#152023;color:var(--ice);font-size:12px;box-shadow:0 8px 24px #0005}
-body.car-mode-active .beacon {width:220px;height:220px}
+body.car-mode-active .beacon {width:250px;height:250px}
 body.car-mode-active .station-field[data-space="compact"] .beacon {width:100px;height:100px}
 body.car-mode-active .beacon-frame {opacity:.65;stroke-dasharray:8 5 35}
 body.car-mode-active .beacon-orbits circle:first-child {stroke-dasharray:2 4 2 4 65 32;opacity:.6}

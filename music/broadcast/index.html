@@ -21,7 +21,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/music/broadcast/icons/rg-broadcast-v2-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/music/broadcast/icons/rg-broadcast-v2-180.png">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/broadcast.css?v=20260906-2">
+    <link rel="stylesheet" href="/css/broadcast.css?v=20260906-3">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
 </head>
 <body class="broadcast-app">
@@ -52,7 +52,7 @@
   <section class="radio-console" id="now-playing" data-state="idle" data-view="channels" data-expanded="true" aria-label="RG Broadcast receiver">
    <div class="dock-head"><button id="dock-toggle" class="console-handle" type="button" aria-expanded="true" aria-controls="console-panes"><span id="dock-toggle-label">Close</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg></button><span id="car-mode-indicator" class="car-mode-indicator" hidden>Car mode</span><button id="search-toggle" type="button" aria-expanded="false" aria-controls="station-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><span>Search</span></button></div>
    <div class="discovery-tools" id="discovery-tools">
-      <section class="station-mode-selector" aria-label="Station categories"><div class="quick-tunes" id="station-mode-track">
+      <section class="station-mode-selector" aria-label="Station categories"><button class="category-step" id="category-back" type="button" aria-label="Scroll categories left" aria-controls="station-mode-track" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 7-5 5 5 5"/></svg></button><div class="quick-tunes" id="station-mode-track">
        <button type="button" data-preset="top20" aria-pressed="true" aria-controls="station-list">Top 20</button>
 <button type="button" data-preset="news" aria-pressed="false" aria-controls="station-list">News Desk</button>
 <button type="button" data-preset="conspiracy" aria-pressed="false" aria-controls="station-list">Conspiracy</button>
@@ -61,7 +61,7 @@
 <button type="button" data-preset="night" aria-pressed="false" aria-controls="station-list">Follow the Night</button>
 <button type="button" data-preset="personal" aria-pressed="false" aria-controls="station-list">Personal</button>
        <button id="favorites-filter" type="button" aria-pressed="false" aria-controls="station-list">Saved <span id="favorite-count">0</span></button>
-      </div></section>
+      </div><button class="category-step" id="category-forward" type="button" aria-label="Scroll categories right" aria-controls="station-mode-track" aria-disabled="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 7 5 5-5 5"/></svg></button></section>
       <form class="station-search" id="station-search" hidden><label class="sr-only" for="search-query">Search US stations by name or genre</label><div class="station-search-controls"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="search-query" name="query" type="search" autocomplete="off" enterkeyhint="search" placeholder="Find a station or a sound"><button type="submit">Search</button></div></form>
    </div>
    <div class="console-panes" id="console-panes">
@@ -153,9 +153,9 @@
 
 
  <script src="/assets/vendor/three/three.min.js" defer></script>
- <script type="module" src="/js/broadcast-console.js?v=20260906-2"></script>
- <script type="module" src="/js/broadcast.js?v=20260906-2"></script>
- <script type="module" src="/js/broadcast-car.js?v=20260906-2"></script>
+ <script type="module" src="/js/broadcast-console.js?v=20260906-3"></script>
+ <script type="module" src="/js/broadcast.js?v=20260906-3"></script>
+ <script type="module" src="/js/broadcast-car.js?v=20260906-3"></script>
  <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
 </html>

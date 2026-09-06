@@ -230,19 +230,29 @@ not remove a station or change playback.
   always-visible Car Mode shortcut enters/exits that same receiver mode.
   Car Mode now has a persistent badge and brief activation/deactivation toast,
   sparse glyph controls and a radio-beacon HUD instead of only enlarged type.
-- Local Anime.js supplies optional pane/height transitions. Local Three.js draws
-  a sparse, noninteractive star field. It receives one normalized signal frame
-  from the existing instrument, with subtle measured-energy brightness only when
-  analysis is live. Ordinary playback has slow ambient drift. Reduced motion
-  keeps the field still; missing libraries or WebGL leave the HTML receiver usable.
-- The field contains a code-native station beacon: cut receiving arcs, five
+- Local Anime.js supplies optional pane/height transitions, search reveal,
+  a one-time category-arrow nudge and brief press/settle feedback on dock controls.
+  The category arrows are real 44px-tall buttons that scroll in either direction;
+  native touch scrolling remains available. Endpoint states are exposed accessibly.
+- Local Three.js renders two Galaxy Radio compositions in `broadcast-sky.js`:
+  a focused stellar source with orbital dust for normal listening, and a broader
+  inclined 14,000-point spiral with uneven dust lanes and one soft core for Car Mode.
+  Both use a stable background sky and local procedural shaders, no network assets.
+  Mode changes crossfade; there is no rotating sky or beat-driven camera movement.
+  The existing instrument supplies the normalized frame: measured energy, bass and
+  treble gently affect light/points only when analysis is live. Direct-stream
+  fallback is explicitly receiver animation, not measured audio. Pause freezes
+  travel; reduced motion keeps the scene still and hidden tabs stop rendering.
+  Rendering is capped at roughly 24fps / 1.5 DPR. Missing WebGL or context loss
+  leaves the SVG receiver beacon and every HTML control usable.
+- The field retains a code-native fallback beacon: cut receiving arcs, five
   station-name-seeded points and real station/program information. A station
   change triggers one restrained Anime.js transition; metadata refreshes do not.
   Measured energy controls the core only when actual analysis is validated.
   Otherwise a subtle receiver-state animation remains explicitly unmeasured.
   The beacon fits the space above the console, becoming compact or hidden when
   browsing/keyboard space takes priority. Car Mode removes secondary text and
-  emphasizes the sparse radial glyph. There is no decorative radial-gradient wash.
+  gives the galaxy more room. There is no decorative radial-gradient wash.
 - Signal combines a small trace with station description, origin, stream quality,
   playback state and visual-source explanation. It distinguishes stations not
   enabled for analysis, an unavailable audio context and missing usable samples

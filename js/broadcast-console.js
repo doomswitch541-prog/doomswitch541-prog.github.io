@@ -43,7 +43,18 @@ let signalSummary = '';
 let stationIdentity = '';
 let stationTransition;
 let searchTransition;
+const controlMotions = new Map();
 const viewScroller = view => document.getElementById(view === 'channels' ? 'station-list' : `pane-${view}`);
+
+// Brief physical feedback on the control that was used, never a looping dock glow.
+consoleRoot.addEventListener('click', event => {
+    const control = event.target.closest('.transport, .bookmark, .console-tabs button, .quick-tunes button, .category-step');
+    if (!control || control.disabled || control.getAttribute('aria-disabled') === 'true' || !animate || reduced.matches) return;
+    controlMotions.get(control)?.cancel();
+    const motion = animate(control, {scale:[.95,1], duration:240, ease:'out(4)',
+        onComplete:() => { control.style.transform = ''; controlMotions.delete(control); }});
+    controlMotions.set(control, motion);
+});
 
 function setSearchOpen(open) {
     const restoreFocus = !open && searchForm.contains(document.activeElement);
@@ -79,10 +90,40 @@ discoveryTools.addEventListener('click', event => {
 });
 const categoryRail = document.getElementById('station-mode-track');
 const categorySelector = categoryRail.parentElement;
+const categoryBack = document.getElementById('category-back');
+const categoryForward = document.getElementById('category-forward');
+let categoryMotion;
+let cueMotion;
+let cueShown = false;
 function updateCategoryCues() {
-    categorySelector.dataset.scrollLeft = String(categoryRail.scrollLeft > 2);
-    categorySelector.dataset.scrollRight = String(categoryRail.scrollWidth - categoryRail.clientWidth - categoryRail.scrollLeft > 2);
+    const left = categoryRail.scrollLeft > 2;
+    const right = categoryRail.scrollWidth - categoryRail.clientWidth - categoryRail.scrollLeft > 2;
+    categorySelector.dataset.scrollLeft = String(left);
+    categorySelector.dataset.scrollRight = String(right);
+    categoryBack.setAttribute('aria-disabled', String(!left));
+    categoryForward.setAttribute('aria-disabled', String(!right));
+    if (right && animate && !reduced.matches && !cueShown) {
+        cueShown = true;
+        cueMotion = animate(categoryForward.querySelector('svg'), {
+            translateX:[-3,3,0], duration:900, ease:'inOut(3)',
+            onComplete:() => { categoryForward.querySelector('svg').style.transform = ''; }
+        });
+    }
 }
+function stepCategories(direction) {
+    const button = direction < 0 ? categoryBack : categoryForward;
+    if (button.getAttribute('aria-disabled') === 'true') return;
+    categoryMotion?.cancel();
+    const target = Math.max(0, Math.min(categoryRail.scrollWidth - categoryRail.clientWidth,
+        categoryRail.scrollLeft + direction * categoryRail.clientWidth * 0.8));
+    if (animate && !reduced.matches) {
+        categoryMotion = animate(categoryRail, {scrollLeft:target, duration:360, ease:'out(4)'});
+    } else categoryRail.scrollLeft = target;
+}
+categoryBack.addEventListener('click', () => stepCategories(-1));
+categoryForward.addEventListener('click', () => stepCategories(1));
+categoryRail.addEventListener('pointerdown', () => categoryMotion?.cancel(), {passive:true});
+categoryRail.addEventListener('wheel', () => categoryMotion?.cancel(), {passive:true});
 categoryRail.addEventListener('scroll', updateCategoryCues, {passive:true});
 const categoryObserver = new ResizeObserver(updateCategoryCues);
 categoryObserver.observe(categoryRail);
@@ -97,7 +138,7 @@ function updateFieldSpace() {
 
 // Optional visuals must not prevent the receiver from initializing.
 void import('/echofield/vendor/animejs/anime.esm.min.js')
-    .then(module => { animate = module.animate; })
+    .then(module => { animate = module.animate; updateCategoryCues(); })
     .catch(() => {});
 
 export function publishSignalFrame(next) {
@@ -244,6 +285,11 @@ window.visualViewport?.addEventListener('scroll', viewportChanged);
 window.addEventListener('resize', viewportChanged);
 viewportChanged();
 reduced.addEventListener('change', () => {
+    controlMotions.forEach((motion, control) => { motion.cancel(); control.style.transform = ''; });
+    controlMotions.clear();
+    categoryMotion?.cancel();
+    cueMotion?.cancel();
+    categoryForward.querySelector('svg').style.transform = '';
     viewportChanged();
     stationTransition?.cancel();
     stationObject.style.opacity = '';
@@ -305,67 +351,9 @@ const controlsObserver = new ResizeObserver(() => {
 controlsObserver.observe(controls);
 
 function initializeStars() {
-    const THREE = window.THREE;
-    const canvas = document.getElementById('broadcast-stars');
-    if (!THREE || !canvas) return;
-    let renderer;
-    try { renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:false, powerPreference:'low-power'}); }
-    catch { return; }
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 40);
-    camera.position.z = 12;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(180 * 3);
-    // Stable star locations; brightness is atmosphere, not pretend audio analysis.
-    let seed = 541;
-    const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-    for (let i = 0; i < positions.length; i += 3) {
-        positions[i] = (random() - 0.5) * 27;
-        positions[i + 1] = (random() - 0.5) * 24;
-        positions[i + 2] = (random() - 0.5) * 10;
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const material = new THREE.PointsMaterial({color:0xb8d9de, size:0.035, transparent:true, opacity:0.43, depthWrite:false});
-    const stars = new THREE.Points(geometry, material);
-    scene.add(stars);
-    let stopped = false;
-    let raf = 0;
-    let last = 0;
-    let dirty = true;
-    let travelPhase = 0;
-    function resize() {
-        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
-        renderer.setSize(innerWidth, innerHeight, false);
-        camera.aspect = innerWidth / innerHeight;
-        camera.updateProjectionMatrix();
-        dirty = true;
-    }
-    function render(time) {
-        if (stopped || document.hidden) return;
-        raf = requestAnimationFrame(render);
-        if (time - last < 42) return;
-        const delta = Math.min(time - last, 100);
-        last = time;
-        const playing = frame.state === 'playing' && !reduced.matches;
-        if (playing) {
-            // Slow forward drift reads as a receiving field, not a spinning sky.
-            travelPhase += delta * 0.00003;
-            stars.position.z = Math.sin(travelPhase) * (state.car ? 0.6 : 0.2);
-            material.opacity = (state.car ? 0.52 : 0.43) + (frame.mode === 'audio-analysis' ? frame.level * 0.12 : 0);
-        }
-        if (playing || dirty) { renderer.render(scene, camera); dirty = false; }
-    }
-    canvas.addEventListener('webglcontextlost', event => {
-        event.preventDefault(); stopped = true; cancelAnimationFrame(raf); canvas.hidden = true;
-    });
-    window.addEventListener('resize', resize);
-    document.addEventListener('visibilitychange', () => {
-        cancelAnimationFrame(raf);
-        if (!document.hidden && !stopped) { last = 0; dirty = true; raf = requestAnimationFrame(render); }
-    });
-    reduced.addEventListener('change', () => { dirty = true; });
-    resize();
-    raf = requestAnimationFrame(render);
+    void import('./broadcast-sky.js?v=20260906-3')
+        .then(module => module.createBroadcastSky({getFrame:() => frame, getCarMode:() => state.car, reduced}))
+        .catch(() => { delete document.body.dataset.sky; });
 }
 if (document.readyState === 'complete') initializeStars();
 else window.addEventListener('load', initializeStars, {once:true});

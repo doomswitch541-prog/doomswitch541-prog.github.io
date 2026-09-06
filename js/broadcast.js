@@ -1,4 +1,4 @@
-import { publishSignalFrame } from '/js/broadcast-console.js?v=20260906-2';
+import { publishSignalFrame } from '/js/broadcast-console.js?v=20260906-3';
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
 import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260906-2';
 
