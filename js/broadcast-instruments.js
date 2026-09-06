@@ -125,6 +125,7 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
         carrier: 0,
         lastBands: [0, 0, 0],
         fallbackPhase: 0,
+        fallbackPlaybackMs: 0,
         fallbackLastAt: 0,
         reducedFrameKey: '',
         lastRenderAt: 0
@@ -191,6 +192,7 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
         model.carrier = 0;
         model.lastBands = [0, 0, 0];
         model.fallbackPhase = 0;
+        model.fallbackPlaybackMs = 0;
         model.fallbackLastAt = 0;
         model.displayTimeData?.fill(0);
         setAnalysisState('waiting', 'READY');
@@ -331,6 +333,41 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
     }
 
     function drawReceiverFallback(context, width, height, center) {
+        const active = ['loading', 'playing', 'paused'].includes(model.receiverState);
+        const elapsed = model.fallbackPlaybackMs % 28000;
+        const fade = clamp((elapsed - 26400) / 1600);
+        const eased = fade * fade * (3 - 2 * fade);
+        const bars = active ? (Math.floor(model.fallbackPlaybackMs / 28000) % 2 ? 1 - eased : eased) : 0;
+        if (bars < 1) {
+            context.save();
+            context.globalAlpha = 1 - bars;
+            drawPilotFallback(context, width, height, center);
+            context.restore();
+        }
+        if (bars > 0) {
+            context.save();
+            context.globalAlpha = bars;
+            drawBarFallback(context, width, height, center);
+            context.restore();
+        }
+        return true;
+    }
+
+    function drawBarFallback(context, width, height, center) {
+        const phase = model.fallbackPhase;
+        const step = width / 18;
+        const barWidth = Math.max(1, step * 0.42);
+        for (let index = 0; index < 18; index += 1) {
+            const edge = Math.sin(Math.PI * (index + 0.5) / 18);
+            const rhythm = 0.5 + 0.3 * Math.sin(phase + index * 0.63)
+                + 0.2 * Math.sin(phase * 0.71 - index * 0.91);
+            const barHeight = Math.max(2, height * (0.12 + edge * (0.2 + rhythm * 0.56)));
+            context.fillStyle = index % 3 === 0 ? 'rgba(183,219,230,.8)' : 'rgba(168,204,185,.68)';
+            context.fillRect((index + 0.5) * step - barWidth / 2, center - barHeight / 2, barWidth, barHeight);
+        }
+    }
+
+    function drawPilotFallback(context, width, height, center) {
         const active = ['loading', 'playing', 'paused'].includes(model.receiverState);
         const phase = model.fallbackPhase;
         // Pilot marks describe receiver activity, never frequency magnitudes.
@@ -585,6 +622,7 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
         if (!reducedMotion.matches && !model.liveValidated &&
             (model.receiverState === 'loading' || (model.receiverState === 'playing' && !audio.paused))) {
             model.fallbackPhase += fallbackDelta * (model.receiverState === 'loading' ? 0.006 : 0.0018);
+            if (model.receiverState === 'playing' && !audio.paused) model.fallbackPlaybackMs += fallbackDelta;
         }
         const liveBands = readLiveSignal();
         if (!liveBands && !audio.paused && !model.liveValidated) {

@@ -49,6 +49,10 @@ button svg, a svg, .station-search svg {width:21px;height:21px;fill:none;stroke:
 .station-search svg {color:var(--muted);width:18px}
 .station-search input {width:100%;min-width:0;min-height:46px;background:none;border:0;color:var(--paper);padding:8px 0;font-size:16px;outline-offset:0}
 .station-search input::placeholder {color:#a0acad}
+.station-search input {-webkit-appearance:none;appearance:none;border-radius:0}
+.station-search input:focus-visible {outline:none}
+.station-search-controls:focus-within {border-color:var(--ice);box-shadow:0 0 0 1px var(--ice)}
+body.broadcast-app[data-keyboard="true"] .broadcast-head {visibility:hidden;pointer-events:none}
 .station-search button {border:0;background:transparent;color:var(--ice);min-height:44px;padding:0 10px;font-size:13px;font-weight:500}
 .quick-tunes {display:flex;flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:0 0 7px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
 .quick-tunes button {flex-shrink:0;min-height:44px;padding:7px 13px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}
@@ -234,6 +238,13 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
 #search-toggle svg {width:16px;height:16px}
 #search-toggle[aria-expanded="true"] {color:var(--ice)}
 .discovery-tools {flex-shrink:0;padding:0 20px;background:transparent}
+.station-mode-selector {position:relative}
+.station-mode-selector::before,.station-mode-selector::after {position:absolute;top:13px;font-size:15px;line-height:16px;color:var(--ice);opacity:0;pointer-events:none}
+.station-mode-selector::before {content:'‹';left:-12px}
+.station-mode-selector::after {content:'›';right:-12px}
+.station-mode-selector[data-scroll-left="true"]::before,.station-mode-selector[data-scroll-right="true"]::after {opacity:.65}
+.discovery-tools .quick-tunes {scrollbar-width:none}
+.discovery-tools .quick-tunes::-webkit-scrollbar {display:none}
 .station-search {padding:2px 0 10px}
 .radio-console .directory {display:flex;flex-direction:column;overflow:hidden}
 .directory .results-meta {flex-shrink:0;min-height:25px;margin:0 20px;font-size:10px;border:0}

@@ -217,7 +217,11 @@ not remove a station or change playback.
   scroll positions and restore focus when contracted. Categories occupy one
   horizontally scrollable rail outside the station-list scroller, so rows never
   pass underneath the controls. Search is an explicit disclosure; submitting or
-  choosing a category closes it. The dock has visible Open/Close text.
+  choosing a category closes it. Quiet edge chevrons indicate category overflow.
+  The dock has visible Open/Close text. During software-keyboard layout, the site
+  header is hidden to avoid colliding with the raised dock, then restored.
+  Closing the dock hides the category rail/search control and dismisses an open
+  site menu; the basic header and Car Mode shortcut remain available.
   VisualViewport sizing keeps the console above the software keyboard.
 - Car Mode enlarges the same console instead of creating another overlay or
   player. Car Text, Dim, Keep Awake, install, station website and sharing live in
@@ -270,7 +274,10 @@ not remove a station or change playback.
   Web Audio is unavailable, the unmeasured band rails are hidden and the instrument
   shows small pilot marks and a slowly travelling receiver point. A shared
   deterministic phase drives both surfaces; tuning is faster, pause holds the
-  frame, and idle/error settles to a still center point. Reduced motion is static.
+  frame, and idle/error settles to a still center point. During fallback playback,
+  the pilot trace and previous eighteen-bar EQ style alternate every 28 seconds
+  with a 1.6-second crossfade. The cycle clock pauses with playback and does not
+  advance in reduced motion, background tabs, or measured-audio mode.
   No frequency grid or measuring cursor is drawn in fallback mode. It is labeled
   `PLAYBACK ANIMATION` and never presented
   as measured audio. This keeps the instrument legible without fabricating

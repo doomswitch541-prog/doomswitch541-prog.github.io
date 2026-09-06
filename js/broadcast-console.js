@@ -42,14 +42,25 @@ let lastSignalPaint = 0;
 let signalSummary = '';
 let stationIdentity = '';
 let stationTransition;
+let searchTransition;
 const viewScroller = view => document.getElementById(view === 'channels' ? 'station-list' : `pane-${view}`);
 
 function setSearchOpen(open) {
+    const restoreFocus = !open && searchForm.contains(document.activeElement);
+    if (restoreFocus) document.activeElement.blur();
     searchForm.hidden = !open;
     searchToggle.setAttribute('aria-expanded', String(open));
     searchToggle.querySelector('span').textContent = open ? 'Done' : 'Search';
     if (open) document.getElementById('search-query').focus({preventScroll:true});
-    else if (searchForm.contains(document.activeElement)) searchToggle.focus({preventScroll:true});
+    else if (restoreFocus) searchToggle.focus({preventScroll:true});
+    searchTransition?.cancel();
+    searchForm.style.opacity = '';
+    if (open && animate && !reduced.matches) {
+        searchTransition = animate(searchForm, {
+            opacity:[0.5,1], duration:180, ease:'out(3)',
+            onComplete:() => { searchForm.style.opacity = ''; }
+        });
+    }
 }
 searchToggle.addEventListener('click', () => {
     const open = searchForm.hidden;
@@ -66,12 +77,22 @@ discoveryTools.addEventListener('click', event => {
         viewScroller('channels').scrollTop = 0;
     }
 });
+const categoryRail = document.getElementById('station-mode-track');
+const categorySelector = categoryRail.parentElement;
+function updateCategoryCues() {
+    categorySelector.dataset.scrollLeft = String(categoryRail.scrollLeft > 2);
+    categorySelector.dataset.scrollRight = String(categoryRail.scrollWidth - categoryRail.clientWidth - categoryRail.scrollLeft > 2);
+}
+categoryRail.addEventListener('scroll', updateCategoryCues, {passive:true});
+const categoryObserver = new ResizeObserver(updateCategoryCues);
+categoryObserver.observe(categoryRail);
+updateCategoryCues();
 
 function updateFieldSpace() {
     const top = consoleRoot.getBoundingClientRect().top;
     const room = top - 82;
     document.documentElement.style.setProperty('--field-bottom', `${Math.max(0, innerHeight - top + 12)}px`);
-    field.dataset.space = consoleRoot.dataset.keyboard === 'true' || room < 110 ? 'none' : room < 285 ? 'compact' : 'full';
+    field.dataset.space = consoleRoot.dataset.keyboard === 'true' || room < 110 ? 'none' : room < 360 ? 'compact' : 'full';
 }
 
 // Optional visuals must not prevent the receiver from initializing.
@@ -127,8 +148,10 @@ export function setConsoleView(view = state.view, expanded = true) {
     handle.setAttribute('aria-expanded', String(expanded));
     handle.setAttribute('aria-label', expanded ? 'Close radio panels' : 'Open radio panels');
     document.getElementById('dock-toggle-label').textContent = expanded ? 'Close' : 'Open';
-    discoveryTools.hidden = view !== 'channels';
-    discoveryTools.inert = view !== 'channels';
+    discoveryTools.hidden = !expanded || view !== 'channels';
+    discoveryTools.inert = !expanded || view !== 'channels';
+    searchToggle.hidden = !expanded;
+    if (!expanded) closeSiteMenu();
     if (!expanded || view !== 'channels') setSearchOpen(false);
     tabs.forEach(tab => {
         const active = expanded && tab.dataset.consoleView === view;
@@ -210,6 +233,7 @@ function viewportChanged() {
     document.documentElement.style.setProperty('--view-height', `${height}px`);
     document.documentElement.style.setProperty('--keyboard-offset', `${Math.max(0, innerHeight - height - (viewport?.offsetTop || 0))}px`);
     consoleRoot.dataset.keyboard = String(height < innerHeight * 0.75);
+    document.body.dataset.keyboard = consoleRoot.dataset.keyboard;
     ++transitionRun;
     transition?.cancel();
     consoleRoot.style.height = '';
@@ -224,6 +248,8 @@ reduced.addEventListener('change', () => {
     stationTransition?.cancel();
     stationObject.style.opacity = '';
     stationObject.style.transform = '';
+    searchTransition?.cancel();
+    searchForm.style.opacity = '';
     document.querySelectorAll('.console-pane').forEach(pane => {
         pane.style.transform = ''; pane.style.opacity = '';
     });
@@ -239,6 +265,7 @@ function syncSignalTitle() {
     document.getElementById('field-station').textContent = name;
     document.getElementById('field-program').textContent = program;
     document.getElementById('field-format').textContent = text('current-genre');
+    document.getElementById('field-format').hidden = program.trim().toLowerCase() === text('current-genre').trim().toLowerCase();
     document.getElementById('signal-description').textContent = text('current-description');
     document.getElementById('signal-origin').textContent = text('current-origin');
     document.getElementById('signal-quality').textContent = text('current-quality');
