@@ -263,6 +263,12 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
 .station-object {display:flex;flex-direction:column;align-items:center;gap:12px;max-width:460px;width:100%;--beacon-strength:.5}
 .beacon {width:220px;height:220px;flex-shrink:0;fill:none;stroke:var(--ice);stroke-width:1;overflow:visible}
 body[data-sky="ready"] .beacon {opacity:0}
+body[data-sky="ready"] .station-field {pointer-events:auto;touch-action:pinch-zoom}
+body[data-sky="ready"] .beacon {cursor:grab}
+body[data-sky="ready"] .beacon:active {cursor:grabbing}
+@media(prefers-reduced-motion:reduce) {
+ body[data-sky="ready"] .station-field {pointer-events:none;touch-action:auto}
+}
 .beacon-frame {opacity:.28}
 .beacon-orbits {transform-origin:100px 100px}
 .beacon-orbits circle:first-child {stroke-dasharray:92 38 12 58;opacity:.4}

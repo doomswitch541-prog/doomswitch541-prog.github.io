@@ -46,14 +46,48 @@ let searchTransition;
 const controlMotions = new Map();
 const viewScroller = view => document.getElementById(view === 'channels' ? 'station-list' : `pane-${view}`);
 
-// Brief physical feedback on the control that was used, never a looping dock glow.
-consoleRoot.addEventListener('click', event => {
-    const control = event.target.closest('.transport, .bookmark, .console-tabs button, .quick-tunes button, .category-step');
-    if (!control || control.disabled || control.getAttribute('aria-disabled') === 'true' || !animate || reduced.matches) return;
+// Respond to contact itself across the receiver, then settle on release/cancel.
+const pressedControls = new Map();
+const eligibleControl = event => {
+    const control = event.target.closest('button, a');
+    return control && control.closest('.broadcast-app') && !control.disabled
+        && control.getAttribute('aria-disabled') !== 'true' ? control : null;
+};
+function moveControl(control, release, keyboard = false) {
+    if (!animate || reduced.matches) return;
     controlMotions.get(control)?.cancel();
-    const motion = animate(control, {scale:[.95,1], duration:240, ease:'out(4)',
-        onComplete:() => { control.style.transform = ''; controlMotions.delete(control); }});
+    const pressedScale = control.classList.contains('station-select') ? .99 : .975;
+    const motion = animate(control, {
+        scale:keyboard ? [pressedScale,1] : release ? 1 : pressedScale,
+        duration:release ? 230 : 90, ease:'out(3)',
+        onComplete:() => {
+            if (release) control.style.transform = '';
+            controlMotions.delete(control);
+        }
+    });
     controlMotions.set(control, motion);
+}
+document.addEventListener('pointerdown', event => {
+    const control = eligibleControl(event);
+    if (!control || event.button !== 0) return;
+    pressedControls.set(event.pointerId, control);
+    moveControl(control, false);
+}, {passive:true});
+const releaseControl = event => {
+    const control = pressedControls.get(event.pointerId);
+    if (!control) return;
+    pressedControls.delete(event.pointerId);
+    moveControl(control, true);
+};
+document.addEventListener('pointerup', releaseControl, {passive:true});
+document.addEventListener('pointercancel', releaseControl, {passive:true});
+window.addEventListener('blur', () => {
+    pressedControls.forEach(control => moveControl(control,true));
+    pressedControls.clear();
+});
+document.addEventListener('click', event => {
+    const control = eligibleControl(event);
+    if (control && event.detail === 0) moveControl(control,true,true);
 });
 
 function setSearchOpen(open) {
@@ -285,6 +319,8 @@ window.visualViewport?.addEventListener('scroll', viewportChanged);
 window.addEventListener('resize', viewportChanged);
 viewportChanged();
 reduced.addEventListener('change', () => {
+    pressedControls.forEach(control => { control.style.transform = ''; });
+    pressedControls.clear();
     controlMotions.forEach((motion, control) => { motion.cancel(); control.style.transform = ''; });
     controlMotions.clear();
     categoryMotion?.cancel();
@@ -351,7 +387,7 @@ const controlsObserver = new ResizeObserver(() => {
 controlsObserver.observe(controls);
 
 function initializeStars() {
-    void import('./broadcast-sky.js?v=20260906-3')
+    void import('./broadcast-sky.js?v=20260906-4')
         .then(module => module.createBroadcastSky({getFrame:() => frame, getCarMode:() => state.car, reduced}))
         .catch(() => { delete document.body.dataset.sky; });
 }

@@ -231,7 +231,9 @@ not remove a station or change playback.
   Car Mode now has a persistent badge and brief activation/deactivation toast,
   sparse glyph controls and a radio-beacon HUD instead of only enlarged type.
 - Local Anime.js supplies optional pane/height transitions, search reveal,
-  a one-time category-arrow nudge and brief press/settle feedback on dock controls.
+  a one-time category-arrow nudge and brief contact/release feedback on buttons
+  and links across the receiver, including header, station rows and dock controls.
+  Pointer cancellation releases the pressed state; keyboard activation also responds.
   The category arrows are real 44px-tall buttons that scroll in either direction;
   native touch scrolling remains available. Endpoint states are exposed accessibly.
 - Local Three.js renders two Galaxy Radio compositions in `broadcast-sky.js`:
@@ -239,10 +241,18 @@ not remove a station or change playback.
   inclined 14,000-point spiral with uneven dust lanes and one soft core for Car Mode.
   Both use a stable background sky and local procedural shaders, no network assets.
   Mode changes crossfade; there is no rotating sky or beat-driven camera movement.
+  Particle positions and delicate flicker follow independently seeded smooth noise,
+  not a shared pulse, inclination oscillation or repeating animation timeline.
+  Ambient drift runs while ready/tuning/playing; pause/error freezes travel.
   The existing instrument supplies the normalized frame: measured energy, bass and
-  treble gently affect light/points only when analysis is live. Direct-stream
-  fallback is explicitly receiver animation, not measured audio. Pause freezes
-  travel; reduced motion keeps the scene still and hidden tabs stop rendering.
+  treble gently affect local travel/points only when analysis is live. The core
+  light stays steady rather than breathing to bass. Direct-stream fallback remains
+  explicitly receiver animation, not measured audio.
+  A touch or swipe in the field displaces nearby particles with a critically damped
+  impulse response and an 18-CSS-pixel ceiling; the dust reforms without bouncing.
+  Car Mode lowers the impulse strength. Touch works while paused without restarting
+  ambient travel. Native pinch zoom is retained; control gestures do not disturb
+  the field. Reduced motion disables drift/touch effects; hidden tabs stop rendering.
   Rendering is capped at roughly 24fps / 1.5 DPR. Missing WebGL or context loss
   leaves the SVG receiver beacon and every HTML control usable.
 - The field retains a code-native fallback beacon: cut receiving arcs, five

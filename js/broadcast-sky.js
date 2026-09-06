@@ -22,7 +22,9 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     const uniforms = {
         clock:{value:0}, energy:{value:0}, treble:{value:0}, bass:{value:0},
-        galaxy:{value:0}, pixelRatio:{value:1}, light:{value:0.7}
+        galaxy:{value:0}, pixelRatio:{value:1}, light:{value:0.7},
+        touches:{value:Array.from({length:6}, () => new THREE.Vector4(0,0,1,0))},
+        touchFlow:{value:Array.from({length:6}, () => new THREE.Vector2())}
     };
     const vertex = `
         attribute float size;
@@ -31,12 +33,39 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         uniform float pixelRatio;
         uniform float clock;
         uniform float treble;
+        uniform float drift;
+        uniform float touchGain;
+        uniform vec4 touches[6];
+        uniform vec2 touchFlow[6];
         varying vec3 vTint;
         varying float vLight;
+        float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+        float noise(vec2 p) {
+            vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+            return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+1.),f.x),f.y);
+        }
         void main() {
             vTint = tint;
-            vLight = .78 + .22 * sin(phase + clock * .3);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+            // Independent smooth noise: no common pulse, reset or repeating timeline.
+            float seed=phase*91.7;
+            vLight = .73 + .27 * noise(vec2(seed, clock * .38));
+            vec3 local=position;
+            local.xy += drift * vec2(noise(vec2(seed,clock*.17))-.5,
+                noise(vec2(seed+48.3,clock*.13))-.5);
+            vec4 view=modelViewMatrix*vec4(local,1.);
+            vec2 push=vec2(0.);
+            for (int i=0;i<6;i++) {
+                if (touches[i].w>0.) {
+                    vec2 delta=view.xy-touches[i].xy;
+                    float d=length(delta);
+                    float reach=1.-smoothstep(0.,touches[i].z,d);
+                    vec2 away=delta/max(d,2.);
+                    push+=(away*14.+touchFlow[i]*7.)*reach*reach*touches[i].w;
+                }
+            }
+            // All impulses share a displacement ceiling; repeated swipes cannot explode the disc.
+            view.xy += push * min(1.,18./max(length(push),.001)) * touchGain;
+            gl_Position = projectionMatrix * view;
             gl_PointSize = size * pixelRatio * (1. + treble * .2);
         }
     `;
@@ -50,7 +79,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             gl_FragColor = vec4(vTint, core * opacity * vLight);
         }
     `;
-    function points(count, locate, opacity) {
+    function points(count, locate, opacity, drift = .11) {
         const positions = [], sizes = [], phases = [], colors = [];
         for (let i = 0; i < count; i++) {
             const p = locate(i);
@@ -65,7 +94,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         geometry.setAttribute('phase', new THREE.Float32BufferAttribute(phases, 1));
         geometry.setAttribute('tint', new THREE.Float32BufferAttribute(colors, 3));
         const material = new THREE.ShaderMaterial({
-            uniforms:{...uniforms, opacity:{value:opacity}}, vertexShader:vertex, fragmentShader:fragment,
+            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}}, vertexShader:vertex, fragmentShader:fragment,
             transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
         });
         return new THREE.Points(geometry, material);
@@ -74,7 +103,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         position:[(random() - .5) * 2, (random() - .5) * 2, -5 - random() * 5],
         size:random() < .035 ? 3.4 : .8 + random() * 1.5,
         color:[.64 + random() * .18, .77 + random() * .15, .84 + random() * .15]
-    }), .48);
+    }), .48, .008);
+    stars.material.uniforms.touchGain.value = .3;
     background.add(stars);
 
     // Normal listening: a suspended radio source and sharply drawn orbital dust.
@@ -147,8 +177,9 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 float grain=noise(q*12.+clock*.012)*.6+noise(q*29.)*.4;
                 float cloud=exp(-radius*radius*3.) * (.065+.13*lanes) * grain;
                 float core=exp(-radius*radius*900.)*.8+exp(-radius*radius*90.)*.55+exp(-radius*14.)*.2;
-                float normal=(center+flare)*(1.+energy*.2);
-                float car=cloud+core*(1.+bass*.14);
+                // Keep the focal light steady; audio does not make the core breathe.
+                float normal=center+flare;
+                float car=cloud+core;
                 vec3 color=mix(vec3(.65,.86,.9),vec3(.9,.93,.87),exp(-r*25.));
                 float alpha=mix(normal,car,galaxy)*light*(1.-smoothstep(.8,1.,r));
                 gl_FragColor=vec4(color,alpha);
@@ -161,6 +192,67 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     let mix = getCarMode() ? 1 : 0;
     let previousState = '';
     let bounds = null;
+    let gesture = null;
+    let impulseIndex = 0;
+    let lastImpulse = -Infinity;
+    let touchWasActive = false;
+    const impulses = Array.from({length:6}, () => ({born:-Infinity, strength:0}));
+    function clearTouch() {
+        if (gesture && field.hasPointerCapture(gesture.id)) field.releasePointerCapture(gesture.id);
+        gesture = null;
+        impulses.forEach((impulse, i) => {
+            impulse.strength = 0; uniforms.touches.value[i].w = 0;
+        });
+        dirty = true;
+    }
+    function addImpulse(event, dx = 0, dy = 0, force = false) {
+        const now = performance.now();
+        if (!force && now - lastImpulse < 45) return;
+        lastImpulse = now;
+        const i = impulseIndex++ % impulses.length;
+        // Coordinates are camera-plane CSS pixels, so touch reach is consistent at every DPR.
+        uniforms.touches.value[i].set(event.clientX-innerWidth/2, innerHeight/2-event.clientY,
+            Math.min(72, Math.max(40, (bounds?.size || 70)*.55)), 0);
+        uniforms.touchFlow.value[i].set(dx/24, -dy/24).clampLength(0,1);
+        impulses[i] = {born:now, strength:getCarMode() ? .65 : 1};
+        dirty = true;
+    }
+    field.addEventListener('pointerdown', event => {
+        if (reduced.matches || stopped || event.button !== 0 || !event.isPrimary
+            || gesture || event.target.closest('.field-readout')) return;
+        gesture = {id:event.pointerId, x:event.clientX, y:event.clientY};
+        field.setPointerCapture(event.pointerId);
+        addImpulse(event,0,0,true);
+    });
+    field.addEventListener('pointermove', event => {
+        if (!gesture || event.pointerId !== gesture.id) return;
+        const dx = event.clientX-gesture.x, dy = event.clientY-gesture.y;
+        if (Math.hypot(dx,dy)<2) return;
+        if (performance.now()-lastImpulse>=45) {
+            addImpulse(event,dx,dy);
+            gesture.x=event.clientX; gesture.y=event.clientY;
+        }
+    });
+    const releaseGesture = event => {
+        if (event.pointerId !== gesture?.id) return;
+        gesture = null;
+        if (field.hasPointerCapture(event.pointerId)) field.releasePointerCapture(event.pointerId);
+    };
+    field.addEventListener('pointerup', releaseGesture);
+    field.addEventListener('pointercancel', releaseGesture);
+    field.addEventListener('lostpointercapture', releaseGesture);
+    function advanceTouches(now) {
+        let active = false;
+        impulses.forEach((impulse,i) => {
+            const age = Math.max(0,(now-impulse.born)/1000);
+            // Critically damped impulse response t*exp(-w*t): one yield, then rest, no bounce.
+            const response = age<1.8 ? impulse.strength*age*6*Math.exp(1-age*6) : 0;
+            const strength = response>.001 ? response : 0;
+            uniforms.touches.value[i].w = reduced.matches ? 0 : strength;
+            if (strength>.001) active = true;
+        });
+        return active;
+    }
     function layout() {
         const rect = anchor.getBoundingClientRect();
         bounds = {x:rect.x + rect.width / 2 - innerWidth / 2,
@@ -171,6 +263,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         dirty = true;
     }
     function resize() {
+        clearTouch();
         const ratio = Math.min(devicePixelRatio || 1, 1.5);
         renderer.setPixelRatio(ratio);
         renderer.setSize(innerWidth, innerHeight, false);
@@ -200,26 +293,29 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const changing = Math.abs(mix - target) > .001;
         mix = reduced.matches || !changing ? target : mix + (target - mix) * Math.min(1, dt * 5);
         const playing = frame.state === 'playing';
-        const moving = playing && !reduced.matches;
+        const moving = !reduced.matches && frame.state !== 'paused' && frame.state !== 'error';
         if (moving) phase += dt;
-        const live = moving && frame.mode === 'audio-analysis';
+        const live = playing && !reduced.matches && frame.mode === 'audio-analysis';
         uniforms.clock.value = phase;
         uniforms.galaxy.value = mix;
         uniforms.energy.value += ((live ? frame.level || 0 : 0) - uniforms.energy.value) * .15;
         uniforms.bass.value += ((live ? frame.bass || 0 : 0) - uniforms.bass.value) * .15;
         uniforms.treble.value += ((live ? frame.treble || 0 : 0) - uniforms.treble.value) * .15;
         uniforms.light.value = playing ? .95 : .7;
+        // Spectral energy only nudges local travel, never camera motion or core glow.
+        orbitDust.material.uniforms.drift.value = .11 + uniforms.energy.value*.025;
+        galacticDust.material.uniforms.drift.value = .11 + uniforms.bass.value*.02;
         orbitDust.material.uniforms.opacity.value = .6 * (1 - mix);
         rings.forEach((ring, i) => { ring.material.opacity = (i ? .1 : .2) * (1 - mix); });
         galacticDust.material.uniforms.opacity.value = .55 * mix;
         stellar.visible = mix < .999;
         galaxy.visible = mix > .001;
-        // Slow bounded inclination; never rotate the whole sky or accelerate at a beat.
-        galaxy.rotation.y = -.12 + Math.sin(phase * .022) * .035;
-        orbitDust.rotation.y = Math.sin(phase * .035) * .06;
+        const touching = advanceTouches(time);
+        const settled = touchWasActive && !touching;
+        touchWasActive = touching;
         const stateChanged = frame.state !== previousState;
         previousState = frame.state;
-        if (moving || changing || dirty || stateChanged) {
+        if (moving || touching || settled || changing || dirty || stateChanged) {
             renderer.clear();
             renderer.render(background, camera);
             renderer.clearDepth();
@@ -231,14 +327,16 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     }
     canvas.addEventListener('webglcontextlost', event => {
         event.preventDefault(); stopped = true; cancelAnimationFrame(raf);
+        clearTouch();
         canvas.hidden = true; delete document.body.dataset.sky;
     });
     window.addEventListener('resize', resize);
     document.addEventListener('visibilitychange', () => {
         cancelAnimationFrame(raf);
+        clearTouch();
         if (!document.hidden && !stopped) { last = 0; dirty = true; raf = requestAnimationFrame(render); }
     });
-    reduced.addEventListener('change', () => { dirty = true; });
+    reduced.addEventListener('change', clearTouch);
     resize();
     raf = requestAnimationFrame(render);
 }
