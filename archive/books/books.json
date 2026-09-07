@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-06T09:29:38.633Z",
+  "updatedAt": "2026-09-07T10:26:17.158Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -142,6 +142,16 @@
       "description": "Biographical notes of artists: p. 355-410",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-06T09:29:38.633Z"
+    },
+    {
+      "date": "2026-09-07",
+      "identifier": "yorkshirenotesa01turngoog",
+      "title": "Yorkshire notes and queries",
+      "creator": "Turner, J. Horsfall (Joseph Horsfall), b. 1845",
+      "published": "1888",
+      "description": "Book digitized by Google from the library of the New York Public Library and uploaded to the Internet Archive by user tpb.",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-07T10:26:17.158Z"
     }
   ]
 }
