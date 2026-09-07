@@ -66,7 +66,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 float down=smoothstep(-.28,.1,q.y);
                 float shaft=exp(-shaftX*shaftX*7200.)*exp(-q.z*q.z*7.)*down;
                 float sheath=exp(-shaftX*shaftX*105.)*exp(-q.z*q.z*3.)*down;
-                float tip=exp(-dot(q*vec3(1.,1.7,1.),q*vec3(1.,1.7,1.))*95.);
+                float tip=exp(-dot(q*vec3(1.,1.4,1.),q*vec3(1.,1.4,1.))*460.);
                 float spike=exp(-abs(q.y)*260.-abs(q.x)*8.-q.z*q.z*25.);
                 vec3 n=q*1.6+vec3(warp*1.4,clock*.018,0.);
                 float fil=pow(fbm(n*2.4),3.);
@@ -77,8 +77,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 float radius=length(disc),angle=atan(disc.y,disc.x);
                 float arms=pow(.5+.5*sin(angle*3.-radius*6.+warp),3.);
                 float galaxy=exp(-radius*radius*.55)*(.12+arms)*fil*exp(-q.z*q.z*2.);
-                float dust=mix(lane,galaxy,car)*.75;
-                float density=(shaft*1.6+sheath*.035+tip*2.6+spike*.85)*mix(1.,.75,car);
+                float dust=galaxy*car*.055;
+                float density=(shaft*.15+sheath*.004+tip*2.2+spike*.48)*mix(1.,.75,car);
                 float stepSize=3.6/float(samples);
                 sum+=(1.-alpha)*(vec3(.70,.86,.80)*dust+vec3(.77,.94,.95)*density)*stepSize;
                 alpha+= (1.-alpha)*min(.12,(dust+density*.035)*stepSize);
@@ -104,28 +104,30 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     let seed=541;
     const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
     const count=65536,initial=new Float32Array(count*4),indices=new Float32Array(count*2),sizes=new Float32Array(count);
-    const positions=new Float32Array(count*3);
+    const positions=new Float32Array(count*3),galaxyPositions=new Float32Array(count*3),families=new Float32Array(count);
     for(let i=0;i<count;i++){
-
-        // Interleave layers so reducing draw count preserves the complete composition.
-        const layer=i%200;
-        let x,y,z;
-        if(layer<140){
-            y=(random()-.5)*9;const branch=i%3;
-            x=Math.sin(y*.9+branch*2.1)*(.65+branch*.45)+(random()-.5)*(.09+random()*.4);
-            z=Math.cos(y*.7+branch*2.1)*1.2+(random()-.5)*.4;
-        } else {x=(random()-.5)*20;y=(random()-.5)*22;z=layer===199?1.8+random()*2.1:-3-random()*10;}
-        initial.set([x,y,z,random()],i*4);positions.set([x,y,z],i*3);
+        const background=i%16===0, halo=!background&&i%5!==0, a=random()*Math.PI*2;
+        const r=(halo?.36+Math.pow(random(),.7)*.96:.68+random()*.35)*1.42;
+        let x=Math.cos(a)*r,y=Math.sin(a)*r,z=(random()-.5)*(halo?.4:.075);
+        const gr=Math.pow(random(),.65)*2.15;
+        const arm=i%3*Math.PI*2/3,between=random()<.22;
+        const ga=between?random()*Math.PI*2:arm+gr*2.75+(random()-.5)*(.42+gr*.25);
+        const spread=(random()-.5)*.13*gr,central=Math.exp(-gr*2.2);
+        let gx=Math.cos(ga)*gr+spread,gy=Math.sin(ga)*gr+spread,gz=(random()-.5)*(.07+central*.5);
+        if(background){x=(random()-.5)*16;y=(random()-.5)*18;z=-4-random()*10;gx=x;gy=y;gz=z;}
+        initial.set([x,y,z,random()],i*4);positions.set([x,y,z],i*3);galaxyPositions.set([gx,gy,gz],i*3);
+        families[i]=background?0:halo?2:1;
         indices.set([(i%256+.5)/256,(Math.floor(i/256)+.5)/256],i*2);
-        sizes[i]=layer===199?1.5+random()*1.7:.32+random()*.8;
+        sizes[i]=background?.8+random()*1.3:(i%43===0?2.2+random()*1.3:.85+random()*1.15);
     }
     const home=new T.DataTexture(initial,256,256,T.RGBAFormat,T.FloatType);home.needsUpdate=true;
     home.minFilter=home.magFilter=T.NearestFilter;
     let simA=null,simB=null,simReady=false;
+    // Store local displacements so lower simulation resolutions preserve every particle home.
     const simUniforms={source:{value:home},home:{value:home},clock:u.clock,dt:{value:0},reset:{value:1}};
     const sim=material(`varying vec2 vUv;uniform sampler2D source,home;uniform float clock,dt,reset;${noise}
-        void main(){vec4 h=texture2D(home,vUv),p=texture2D(source,vUv);if(reset>.5){gl_FragColor=h;return;}
-            vec3 velocity=curl(p.xyz*.46+vec3(0,clock*.045,h.w*4.))*.075+(h.xyz-p.xyz)*.14;
+        void main(){vec4 h=texture2D(home,vUv),p=texture2D(source,vUv);if(reset>.5){gl_FragColor=vec4(0.,0.,0.,h.w);return;}
+            vec3 velocity=curl((h.xyz+p.xyz)*.46+vec3(0,clock*.045,h.w*4.))*.24-p.xyz*.7;
             p.xyz+=velocity*dt;gl_FragColor=p;}`,simUniforms);
     function resetSimulation(size=256){
         simA?.dispose();simB?.dispose();simA=simB=null;simReady=false;
@@ -136,38 +138,58 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     }
     resetSimulation();
     const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(positions,3));
+    geo.setAttribute('galaxyPosition',new T.BufferAttribute(galaxyPositions,3));geo.setAttribute('family',new T.BufferAttribute(families,1));
     geo.setAttribute('lookup',new T.BufferAttribute(indices,2));geo.setAttribute('size',new T.BufferAttribute(sizes,1));
     const particleUniforms={...u,positions:{value:simA?.texture||null},simulated:{value:simReady?1:0}};
     const particles=new T.ShaderMaterial({uniforms:particleUniforms,transparent:true,depthTest:false,depthWrite:false,blending:T.AdditiveBlending,
-        vertexShader:`attribute vec2 lookup;attribute float size;uniform sampler2D positions;uniform float simulated,clock,car,scale,pixelRatio;
+        vertexShader:`attribute vec2 lookup;attribute vec3 galaxyPosition;attribute float size,family;uniform sampler2D positions;uniform float simulated,clock,car,scale,pixelRatio;
             uniform vec2 focus,viewport;uniform vec4 touches[6];uniform vec2 touchFlow[6];
-            varying float light;varying float depth;${noise}
-            void main(){vec3 p=position;if(simulated>.5)p=texture2D(positions,lookup).xyz;
-                else p+=vec3(noise3(p*.5+clock*.025),noise3(p*.5+17.+clock*.031),0.)*.25;
-                p.y=mix(p.y,p.y*.65-p.x*.23,car);p*=scale;
+            varying float light;varying float depth;varying float density;${noise}
+            void main(){vec3 delta=vec3(0.);if(simulated>.5)delta=texture2D(positions,lookup).xyz;
+                else delta=(vec3(noise3(position*2.+clock*.28),noise3(position*2.+17.+clock*.31),noise3(position*2.+41.+clock*.2))-.5)*.16;
+                vec3 p=mix(position,galaxyPosition,car);
+                if(family>.5){
+                    float turn=clock*(.085/(.65+length(p.xy)))*( .8+.4*hash(position));
+                    p.xy=mat2(cos(turn),-sin(turn),sin(turn),cos(turn))*p.xy;
+                    p+=delta*.36;
+                    float tilt=mix(1.17,.92,car);p.yz=mat2(cos(tilt),-sin(tilt),sin(tilt),cos(tilt))*p.yz;
+                    float bank=mix(-.32,-.28,car);p.xy=mat2(cos(bank),sin(bank),-sin(bank),cos(bank))*p.xy;
+                }
+                p*=scale;
                 vec4 v=modelViewMatrix*vec4(p,1.);vec4 clip=projectionMatrix*v;
                 vec2 screen=clip.xy/clip.w+focus;
                 vec2 px=vec2((screen.x*.5+.5)*viewport.x,(.5-screen.y*.5)*viewport.y);
                 vec2 push=vec2(0.);
-                for(int i=0;i<6;i++){vec2 d=px-touches[i].xy;float reach=1.-smoothstep(0.,80.,length(d));
-                    push+=(d/max(length(d),2.)*18.+touchFlow[i]*9.)*reach*reach*touches[i].w;}
-                push*=min(1.,24./max(length(push),.001))*mix(1.,.6,car)*clamp(5./max(2.,-v.z),.15,1.);
+                for(int i=0;i<6;i++){vec2 d=px-touches[i].xy;float reach=1.-smoothstep(0.,100.,length(d));
+                    push+=(d/max(length(d),2.)*36.+touchFlow[i]*16.)*reach*reach*touches[i].w;}
+                push*=min(1.,32./max(length(push),.001))*mix(1.,.6,car)*clamp(5./max(2.,-v.z),.15,1.);
                 screen+=vec2(push.x,-push.y)*2./viewport;
                 gl_Position=vec4(screen*clip.w,clip.z,clip.w);
-                depth=clamp((-v.z-2.)/15.,0.,1.);
-                light=(.65+.35*noise3(position*2.+vec3(clock*.13)))*exp(-depth*2.1);
-                gl_PointSize=clamp(size*pixelRatio*7./max(2.,-v.z),.6,4.2*pixelRatio);
+                depth=clamp((-v.z-2.)/15.,0.,1.);density=family<.5?.2:mix(family>1.5?.018:.26,.14,car);
+                light=(.65+.35*noise3(position*2.+vec3(clock*.13)))*exp(-depth*1.25);
+                gl_PointSize=clamp(size*pixelRatio*8./max(2.,-v.z),.7,4.5*pixelRatio);
             }`,
-        fragmentShader:`uniform vec2 viewport;uniform vec4 readRect;uniform float dockY,pixelRatio;varying float light,depth;
+        fragmentShader:`uniform vec2 viewport;uniform vec4 readRect;uniform float dockY,pixelRatio;varying float light,depth,density;
             void main(){float d=length(gl_PointCoord-.5)*2.;float a=exp(-d*d*4.)*(1.-smoothstep(.6,1.,d));
                 vec2 px=vec2(gl_FragCoord.x/pixelRatio,viewport.y-gl_FragCoord.y/pixelRatio);
                 vec2 outside=max(max(readRect.xy-px,px-readRect.zw),vec2(0.));
                 float mask=mix(.025,1.,smoothstep(0.,38.,length(outside)));
                 mask*=1.-smoothstep(dockY-8.,dockY+25.,px.y);
                 mask*=smoothstep(48.,85.,px.y);
-                gl_FragColor=vec4(mix(vec3(.40,.64,.50),vec3(.65,.86,.88),depth)*light,a*.20*mask);
+                gl_FragColor=vec4(mix(vec3(.40,.64,.50),vec3(.65,.86,.88),depth)*light,a*density*mask);
             }`});
     const cloud=new T.Points(geo,particles);cloud.frustumCulled=false;scene.add(cloud);
+    const arcMaterial=new T.ShaderMaterial({uniforms:u,transparent:true,depthTest:false,depthWrite:false,blending:T.AdditiveBlending,
+        vertexShader:'uniform float scale;uniform vec2 focus;void main(){vec4 p=projectionMatrix*modelViewMatrix*vec4(position*scale,1.);p.xy+=focus*p.w;gl_Position=p;}',
+        fragmentShader:'uniform float car;void main(){gl_FragColor=vec4(.65,.83,.86,.09*(1.-car));}'});
+    const arcGeometries=[];
+    for(let k=0;k<2;k++){
+        const coords=[];const bank=k?.7:-.32;
+        for(let i=0;i<=240;i++){const a=i/240*Math.PI*2,x=Math.cos(a)*(1.56+k*.23),y=Math.sin(a)*(.65+k*.11);
+            coords.push(x*Math.cos(bank)-y*Math.sin(bank),x*Math.sin(bank)+y*Math.cos(bank),Math.sin(a)*.28);}
+        const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(coords,3));arcGeometries.push(geometry);
+        const line=new T.Line(geometry,arcMaterial);line.frustumCulled=false;scene.add(line);
+    }
     let raf=0,last=0,clock=0,mode=u.car.value,stopped=false,tier=0,badFor=0,warmUntil=performance.now()+5000;
     let gesture=null,impulseIndex=0,lastImpulse=0,dirty=true,previousState='';
     const impulses=Array.from({length:6},()=>({born:-Infinity,strength:0}));
@@ -175,7 +197,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     function layout(){
         const rect=field.getBoundingClientRect(),text=readout.getBoundingClientRect();
         const top=Math.max(65,rect.top),bottom=Math.max(top+80,Math.min(dock.getBoundingClientRect().top,text.top||innerHeight));
-        const center=top+(bottom-top)*.45;
+        const center=top+(bottom-top)*.57;
         u.focus.value.set(0,1-center/innerHeight*2);
         // The world occupies the viewport, independently of the former 100/220px beacon.
         u.scale.value=Math.max(.65,Math.min(1.35,innerWidth/430));
@@ -214,9 +236,9 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const frame=getFrame(),values=targets[frame.state]||targets.idle;
         const smooth=reduced.matches?1:1-Math.exp(-dt*3.5);u.flow.value+=(values[0]*(getCarMode()?.6:1)-u.flow.value)*smooth;u.strength.value+=(values[1]-u.strength.value)*smooth;
         mode+=((getCarMode()?1:0)-mode)*smooth;u.car.value=mode;
-        if(!reduced.matches)clock+=dt*u.flow.value*(1+(frame.mode==='audio-analysis'?Math.min(.1,(frame.level||0)*.1):0));
+        if(!reduced.matches)clock+=dt*(.55+u.flow.value*.65)*(1+(frame.mode==='audio-analysis'?Math.min(.1,(frame.level||0)*.1):0));
         u.clock.value=clock;
-        let touchActive=false;impulses.forEach((x,i)=>{const age=(now-x.born)/1000;const w=age<2?x.strength*age*6*Math.exp(1-age*6):0;
+        let touchActive=false;impulses.forEach((x,i)=>{const age=(now-x.born)/1000;const w=age<2?x.strength*(1+age*5)*Math.exp(-age*5):0;
             u.touches.value[i].w=w>.001&&!reduced.matches?w:0;touchActive ||= u.touches.value[i].w>0;});
         canvas.dataset.touch=touchActive?'active':'settled';
         if(reduced.matches&&!dirty&&frame.state===previousState&&canvas.dataset.scene===(getCarMode()?'galaxy':'stellar'))return;
@@ -241,6 +263,6 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     reduced.addEventListener('change',()=>{clearTouches();dirty=true;});
     window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelAnimationFrame(raf);observer.disconnect();mutation.disconnect();
         [sceneTarget,beamTarget,glowA,glowB,simA,simB].forEach(x=>x?.dispose());
-        [volume,blur,composite,sim,particles,home,geo,plane].forEach(x=>x.dispose());renderer.dispose();});
+        [volume,blur,composite,sim,particles,home,geo,plane,arcMaterial,...arcGeometries].forEach(x=>x.dispose());renderer.dispose();});
     resize();raf=requestAnimationFrame(render);
 }

@@ -236,8 +236,11 @@ not remove a station or change playback.
   Pointer cancellation releases the pressed state; keyboard activation also responds.
   The category arrows are real 44px-tall buttons that scroll in either direction;
   native touch scrolling remains available. Endpoint states are exposed accessibly.
-- Local Three.js renders the Astra transmission in `broadcast-sky.js`: a
-  descending volumetric beam, sage/ice filaments and perspective particle depth.
+- Local Three.js renders the Astra transmission in `broadcast-sky.js`: the
+  original tilted orbital dust and crossing arcs in normal mode, and a broad
+  three-armed galaxy in Car Mode. More particles, differential orbital travel,
+  curl flow and perspective depth extend those formations. A narrow descending
+  light meets the central source, supporting the particle composition.
   Car Mode widens the galactic formation and reduces flow and touch strength.
   The scene follows the viewport and existing readout/dock bounds; the dock and
   all station information remain unchanged. Text and dock regions suppress light.
@@ -248,7 +251,7 @@ not remove a station or change playback.
   Ready, tuning, playing, paused and error states have eased flow/light targets.
   Pause retains quiet ambient motion. Valid analysis nudges flow without pulsing
   the core; receiver animation keeps its existing unmeasured-source label.
-  Touch displaces nearby particles up to 24 CSS pixels and settles with damping;
+  Touch displaces nearby particles up to 32 CSS pixels and settles with damping;
   farther particles respond less, and Car Mode reduces the effect further.
   Native pinch zoom and the existing control gestures remain available.
   Reduced motion renders still state/layout updates; hidden tabs suspend work.
