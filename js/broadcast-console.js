@@ -387,7 +387,7 @@ const controlsObserver = new ResizeObserver(() => {
 controlsObserver.observe(controls);
 
 function initializeStars() {
-    void import('./broadcast-sky.js?v=20260907-2')
+    void import('./broadcast-sky.js?v=20260907-3')
         .then(module => module.createBroadcastSky({getFrame:() => frame, getCarMode:() => state.car, reduced}))
         .catch(() => { delete document.body.dataset.sky; });
 }

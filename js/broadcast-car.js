@@ -1,4 +1,4 @@
-import { setConsoleCarMode } from '/js/broadcast-console.js?v=20260907-2';
+import { setConsoleCarMode } from '/js/broadcast-console.js?v=20260907-3';
 const CAR_MODE_KEY = 'rg-broadcast-car-mode-v1';
 const CAR_DIM_KEY = 'rg-broadcast-car-dim-v1';
 const CAR_AWAKE_KEY = 'rg-broadcast-car-awake-v1';

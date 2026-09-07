@@ -236,31 +236,27 @@ not remove a station or change playback.
   Pointer cancellation releases the pressed state; keyboard activation also responds.
   The category arrows are real 44px-tall buttons that scroll in either direction;
   native touch scrolling remains available. Endpoint states are exposed accessibly.
-- Local Three.js renders the Astra transmission in `broadcast-sky.js`: the
-  original tilted orbital dust and crossing arcs in normal mode, and a broad
-  three-armed galaxy in Car Mode. More particles, differential orbital travel,
-  curl flow and perspective depth extend those formations. A narrow descending
-  light meets the central source, supporting the particle composition.
-  Car Mode widens the galactic formation and reduces flow and touch strength.
-  The scene follows the viewport and existing readout/dock bounds; the dock and
-  all station information remain unchanged. Text and dock regions suppress light.
-  GPU ping-pong textures advect 65,536 particles through curl noise with weak
-  formation attraction; unsupported simulation targets use analytic shader flow.
-  Beam emission has a separate bloom pass; ACES and output conversion occur once.
-  Everything is procedural and same-origin, with no additional network assets.
-  Ready, tuning, playing, paused and error states have eased flow/light targets.
-  Pause retains quiet ambient motion. Valid analysis nudges flow without pulsing
-  the core; receiver animation keeps its existing unmeasured-source label.
-  Touch displaces nearby particles up to 32 CSS pixels and settles with damping;
-  farther particles respond less, and Car Mode reduces the effect further.
-  Native pinch zoom and the existing control gestures remain available.
-  Reduced motion renders still state/layout updates; hidden tabs suspend work.
-  Adaptive tiers reduce volume samples/resolution before particle count, starting
-  at 1.5 DPR, 32 volume samples and 65,536 particles. Sustained slow frames can
-  reduce this to 1 DPR, 16 samples and 32,768 drawn particles. These are quality
-  settings, not a claim of measured iPhone performance.
-  Missing WebGL leaves the SVG and controls usable; context restoration rebuilds
-  simulation targets. Renderer resources are disposed when leaving the page.
+- Local Three.js extends the original Galaxy Radio renderer directly. The original
+  440 background stars, 1,600 orbital particles and 14,000 galactic particles retain
+  their position, size, phase and tint data. Extra layers are generated afterward,
+  bringing the orbital formation to 4,800 and the Car galaxy to 22,000 particles.
+  The two crossing arcs, original seeded flicker and original touch lifecycle remain.
+  A perspective camera and modestly larger framing add depth; faster local drift
+  makes the individual motion clearer. The existing procedural source incorporates
+  a narrow descending light, leaving the particle formation visually central.
+  The dock and all station information remain unchanged. Existing compact/hidden
+  field rules continue to prioritize browsing and keyboard space on small screens.
+  Ready, tuning, playing, paused and error states ease between light/flow targets;
+  pause retains quiet ambient movement. Valid analysis nudges local travel, with
+  the same receiver-animation labels for unmeasured sources.
+  Touch uses the original damped impulse response with a 24-CSS-pixel ceiling,
+  corrected for perspective. Car Mode retains its gentler touch strength.
+  Reduced motion disables ambient/touch movement; hidden tabs suspend rendering.
+  Rendering allows up to 60fps with a 1.5 DPR ceiling. No simulation textures or
+  postprocessing chain are needed by this renderer. Physical iPhone performance
+  remains a device check. Missing WebGL leaves the original SVG and controls
+  usable, and context restoration resumes the renderer. Page exit releases its
+  geometries and materials. All visuals are procedural and use local Three.js.
 - The field retains a code-native fallback beacon: cut receiving arcs, five
   station-name-seeded points and real station/program information. A station
   change triggers one restrained Anime.js transition; metadata refreshes do not.
