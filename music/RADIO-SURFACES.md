@@ -236,15 +236,22 @@ not remove a station or change playback.
   Pointer cancellation releases the pressed state; keyboard activation also responds.
   The category arrows are real 44px-tall buttons that scroll in either direction;
   native touch scrolling remains available. Endpoint states are exposed accessibly.
-- Local Three.js extends the original Galaxy Radio renderer directly. The original
+- Broadcast's local Three.js 0.185.1 modules extend the original Galaxy Radio renderer
+  directly; other pages keep their existing shared library. The original
   440 background stars, 1,600 orbital particles and 14,000 galactic particles retain
   their position, size, phase and tint data. Extra layers are generated afterward,
   bringing the orbital formation to 4,800 and the Car galaxy to 22,000 particles.
   The two crossing arcs, original seeded flicker and original touch lifecycle remain.
-  A perspective camera and modestly larger framing add depth; faster local drift
+  Larger point sprites, perspective sizing, distance fading and a sparse 180-point
+  foreground volume distinguish near and far space. Original orbit sprites scale
+  by 2.6 and galaxy sprites by 1.85 before perspective; original attribute arrays
+  remain intact. A slow observing angle and damped drag parallax reveal the depth.
+  ACES tone mapping and sRGB output are included in the procedural shaders.
+  A perspective camera and larger framing add depth; faster local drift
   makes the individual motion clearer. The existing procedural source incorporates
   a narrow descending light, leaving the particle formation visually central.
-  The dock and all station information remain unchanged. Existing compact/hidden
+  Car Mode preserves the active panel and the dock's open/closed state on both
+  entry and exit. Station information is unchanged. Existing compact/hidden
   field rules continue to prioritize browsing and keyboard space on small screens.
   Ready, tuning, playing, paused and error states ease between light/flow targets;
   pause retains quiet ambient movement. Valid analysis nudges local travel, with
@@ -254,7 +261,7 @@ not remove a station or change playback.
   Reduced motion disables ambient/touch movement; hidden tabs suspend rendering.
   Rendering allows up to 60fps with a 1.5 DPR ceiling. No simulation textures or
   postprocessing chain are needed by this renderer. Physical iPhone performance
-  remains a device check. Missing WebGL leaves the original SVG and controls
+  remains a device check. Missing WebGL2 leaves the original SVG and controls
   usable, and context restoration resumes the renderer. Page exit releases its
   geometries and materials. All visuals are procedural and use local Three.js.
 - The field retains a code-native fallback beacon: cut receiving arcs, five

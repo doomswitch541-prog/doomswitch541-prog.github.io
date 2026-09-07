@@ -259,9 +259,7 @@ export function setConsoleView(view = state.view, expanded = true) {
 export function setConsoleCarMode(enabled) {
     state.car = enabled;
     document.body.classList.toggle('car-mode-active', enabled);
-    if (enabled) setConsoleView('channels', false);
-    else setConsoleView('more', true);
-    if (enabled) handle.focus({preventScroll:true});
+    // Car Mode changes presentation; the listener keeps their panel and dock state.
     document.getElementById('car-mode-indicator').hidden = !enabled;
     toast.textContent = enabled ? 'Car mode on' : 'Car mode off';
     toast.hidden = false;
@@ -387,7 +385,7 @@ const controlsObserver = new ResizeObserver(() => {
 controlsObserver.observe(controls);
 
 function initializeStars() {
-    void import('./broadcast-sky.js?v=20260907-3')
+    void import('./broadcast-sky.js?v=20260907-4')
         .then(module => module.createBroadcastSky({getFrame:() => frame, getCarMode:() => state.car, reduced}))
         .catch(() => { delete document.body.dataset.sky; });
 }
