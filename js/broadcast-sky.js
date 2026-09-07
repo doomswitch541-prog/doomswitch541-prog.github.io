@@ -1,342 +1,246 @@
-// Galaxy Radio: one optional renderer, no audio ownership and no network assets.
-// The two compositions share an instrument frame, not a fabricated audio signal.
+// Astra transmission. Optional, procedural renderer; the receiver owns all audio and UI.
 export function createBroadcastSky({getFrame, getCarMode, reduced}) {
-    const THREE = window.THREE;
-    const canvas = document.getElementById('broadcast-stars');
-    const anchor = document.getElementById('station-beacon');
+    const T = window.THREE, canvas = document.getElementById('broadcast-stars');
     const field = document.getElementById('station-field');
-    if (!THREE || !canvas) return;
+    const readout = document.querySelector('.field-readout');
+    const dock = document.getElementById('now-playing');
+    if (!T || !canvas || !field) return;
     let renderer;
-    try {
-        renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:false, powerPreference:'low-power'});
-    } catch { return; }
-    renderer.setClearColor(0x000000, 0);
+    try { renderer = new T.WebGLRenderer({canvas, alpha:true, antialias:false, powerPreference:'high-performance'}); }
+    catch { return; }
     renderer.autoClear = false;
-    const background = new THREE.Scene();
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 2000);
-    camera.position.z = 1000;
-    const focus = new THREE.Group();
-    scene.add(focus);
-    let seed = 541;
-    const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-    const uniforms = {
-        clock:{value:0}, energy:{value:0}, treble:{value:0}, bass:{value:0},
-        galaxy:{value:0}, pixelRatio:{value:1}, light:{value:0.7},
-        touches:{value:Array.from({length:6}, () => new THREE.Vector4(0,0,1,0))},
-        touchFlow:{value:Array.from({length:6}, () => new THREE.Vector2())}
-    };
-    const vertex = `
-        attribute float size;
-        attribute float phase;
-        attribute vec3 tint;
-        uniform float pixelRatio;
-        uniform float clock;
-        uniform float treble;
-        uniform float drift;
-        uniform float touchGain;
-        uniform vec4 touches[6];
-        uniform vec2 touchFlow[6];
-        varying vec3 vTint;
-        varying float vLight;
-        float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-        float noise(vec2 p) {
-            vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-            return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+1.),f.x),f.y);
-        }
-        void main() {
-            vTint = tint;
-            // Independent smooth noise: no common pulse, reset or repeating timeline.
-            float seed=phase*91.7;
-            vLight = .73 + .27 * noise(vec2(seed, clock * .38));
-            vec3 local=position;
-            local.xy += drift * vec2(noise(vec2(seed,clock*.17))-.5,
-                noise(vec2(seed+48.3,clock*.13))-.5);
-            vec4 view=modelViewMatrix*vec4(local,1.);
-            vec2 push=vec2(0.);
-            for (int i=0;i<6;i++) {
-                if (touches[i].w>0.) {
-                    vec2 delta=view.xy-touches[i].xy;
-                    float d=length(delta);
-                    float reach=1.-smoothstep(0.,touches[i].z,d);
-                    vec2 away=delta/max(d,2.);
-                    push+=(away*14.+touchFlow[i]*7.)*reach*reach*touches[i].w;
-                }
-            }
-            // All impulses share a displacement ceiling; repeated swipes cannot explode the disc.
-            view.xy += push * min(1.,18./max(length(push),.001)) * touchGain;
-            gl_Position = projectionMatrix * view;
-            gl_PointSize = size * pixelRatio * (1. + treble * .2);
-        }
+    renderer.setClearColor(0x000000, 0);
+    // Linear scene targets; ACES and sRGB are applied once in the final composite.
+    renderer.toneMapping = T.NoToneMapping;
+    renderer.outputEncoding = T.LinearEncoding;
+    const quadCamera = new T.Camera(), quadScene = new T.Scene();
+    const plane = new T.PlaneGeometry(2,2), quad = new T.Mesh(plane);
+    quad.frustumCulled = false; quadScene.add(quad);
+    const screenVertex = 'varying vec2 vUv; void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,0.,1.);}';
+    const noise = `
+        float hash(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
+        float noise3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+            return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+        float fbm(vec3 p){return .57*noise3(p)+.28*noise3(p*2.03+9.1)+.15*noise3(p*4.07+3.7);}
+        vec3 potential(vec3 p){return vec3(noise3(p),noise3(p+vec3(31,17,8)),noise3(p+vec3(7,43,21)));}
+        vec3 curl(vec3 p){float e=.13;vec3 dx=potential(p+vec3(e,0,0))-potential(p-vec3(e,0,0));
+            vec3 dy=potential(p+vec3(0,e,0))-potential(p-vec3(0,e,0));
+            vec3 dz=potential(p+vec3(0,0,e))-potential(p-vec3(0,0,e));
+            return vec3(dy.z-dz.y,dz.x-dx.z,dx.y-dy.x)/(2.*e);}
     `;
-    const fragment = `
-        uniform float opacity;
-        varying vec3 vTint;
-        varying float vLight;
-        void main() {
-            float d = length(gl_PointCoord - .5) * 2.;
-            float core = exp(-d * d * 5.) * (1. - smoothstep(.65, 1., d));
-            gl_FragColor = vec4(vTint, core * opacity * vLight);
-        }
-    `;
-    function points(count, locate, opacity, drift = .11) {
-        const positions = [], sizes = [], phases = [], colors = [];
-        for (let i = 0; i < count; i++) {
-            const p = locate(i);
-            positions.push(...p.position);
-            sizes.push(p.size);
-            phases.push(random() * Math.PI * 2);
-            colors.push(...p.color);
-        }
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-        geometry.setAttribute('phase', new THREE.Float32BufferAttribute(phases, 1));
-        geometry.setAttribute('tint', new THREE.Float32BufferAttribute(colors, 3));
-        const material = new THREE.ShaderMaterial({
-            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}}, vertexShader:vertex, fragmentShader:fragment,
-            transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
-        });
-        return new THREE.Points(geometry, material);
+    function material(fragment, uniforms={}) { return new T.ShaderMaterial({vertexShader:screenVertex,fragmentShader:fragment,uniforms,depthTest:false,depthWrite:false}); }
+    function target(w,h,type=T.UnsignedByteType) { return new T.WebGLRenderTarget(w,h,{type,minFilter:type===T.UnsignedByteType?T.LinearFilter:T.NearestFilter,magFilter:type===T.UnsignedByteType?T.LinearFilter:T.NearestFilter,depthBuffer:false,stencilBuffer:false}); }
+    function draw(mat,out,clear=true) {quad.material=mat;renderer.setRenderTarget(out);if(clear)renderer.clear();renderer.render(quadScene,quadCamera);}
+    let floatType = null;
+    // Capability is established by framebuffer completeness, not a browser-name guess.
+    for (const type of [T.FloatType,T.HalfFloatType]) {
+        const probe=target(2,2,type);probe.texture.minFilter=probe.texture.magFilter=T.NearestFilter;
+        renderer.setRenderTarget(probe);
+        const gl=renderer.getContext();
+        const complete=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;
+        renderer.setRenderTarget(null);probe.dispose();
+        if(complete){floatType=type;break;}
     }
-    const stars = points(440, () => ({
-        position:[(random() - .5) * 2, (random() - .5) * 2, -5 - random() * 5],
-        size:random() < .035 ? 3.4 : .8 + random() * 1.5,
-        color:[.64 + random() * .18, .77 + random() * .15, .84 + random() * .15]
-    }), .48, .008);
-    stars.material.uniforms.touchGain.value = .3;
-    background.add(stars);
-
-    // Normal listening: a suspended radio source and sharply drawn orbital dust.
-    const stellar = new THREE.Group();
-    focus.add(stellar);
-    const orbitDust = points(1600, () => {
-        const a = random() * Math.PI * 2;
-        const r = .68 + random() * .35;
-        const jitter = (random() - .5) * .06;
-        return {position:[Math.cos(a) * r, Math.sin(a) * r * .39 + jitter, Math.sin(a) * .2],
-            size:.7 + random() * 1.5, color:[.54, .76 + random() * .2, .83]};
-    }, .55);
-    orbitDust.rotation.z = -.32;
-    stellar.add(orbitDust);
-    const rings = [];
-    for (let i = 0; i < 2; i++) {
-        const coords = [];
-        for (let j = 0; j <= 160; j++) {
-            const a = j / 160 * Math.PI * 2;
-            coords.push(new THREE.Vector3(Math.cos(a) * (1.1 + i * .16), Math.sin(a) * (.46 + i * .08), 0));
-        }
-        const ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(coords),
-            new THREE.LineBasicMaterial({color:0xb8d9de, transparent:true, opacity:i ? .1 : .2, depthWrite:false}));
-        ring.rotation.z = i ? .7 : -.32;
-        stellar.add(ring);
-        rings.push(ring);
-    }
-
-    // Car listening: a broad spiral with real depth and uneven lanes of stardust.
-    const galaxy = new THREE.Group();
-    galaxy.rotation.set(.92, -.12, -.28);
-    focus.add(galaxy);
-    const galacticDust = points(14000, i => {
-        const r = Math.pow(random(), .65) * 1.55;
-        const arm = i % 3 * Math.PI * 2 / 3;
-        const betweenArms = random() < .3;
-        const angle = betweenArms ? random() * Math.PI * 2
-            : arm + r * 3.8 + (random() - .5) * (.8 + r * .5);
-        const spread = (random() - .5) * .18 * r;
-        const central = Math.exp(-r * 3);
-        return {position:[Math.cos(angle) * r + spread, Math.sin(angle) * r + spread, (random() - .5) * (.035 + central * .24)],
-            size:betweenArms ? .7 + random() * 1.1 : .8 + random() * 1.65 + central,
-            color:[.53 + central * .4, .7 + central * .23, .8 + central * .14]};
-    }, .55);
-    galaxy.add(galacticDust);
-
-    // Local procedural light, not a screen-wide gradient or a full-screen bloom pass.
-    const lightMaterial = new THREE.ShaderMaterial({
-        uniforms, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-        vertexShader:`varying vec2 uvLocal; void main() { uvLocal=uv*2.-1.; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
-        fragmentShader:`
-            varying vec2 uvLocal;
-            uniform float galaxy, clock, energy, bass, light;
-            float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-            float noise(vec2 p) {
-                vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-                return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+1.),f.x),f.y);
+    const hdrType=floatType||T.UnsignedByteType;
+    const sceneTarget=target(1,1,hdrType), beamTarget=target(1,1,hdrType);
+    const glowA=target(1,1,hdrType),glowB=target(1,1,hdrType);
+    const u={clock:{value:0},car:{value:getCarMode()?1:0},strength:{value:.65},flow:{value:.3},
+        aspect:{value:1},focus:{value:new T.Vector2(0,0)},scale:{value:1},
+        touches:{value:Array.from({length:6},()=>new T.Vector4(0,0,0,0))},
+        touchFlow:{value:Array.from({length:6},()=>new T.Vector2())},
+        readRect:{value:new T.Vector4()},dockY:{value:0},pixelRatio:{value:1},
+        viewport:{value:new T.Vector2(1,1)},samples:{value:32}};
+    const volume=material(`precision highp float; varying vec2 vUv;
+        uniform float clock,car,strength,aspect,scale,dockY;uniform int samples;
+        uniform vec2 focus,viewport;uniform vec4 readRect;
+        ${noise}
+        void main(){
+            vec2 screen=vUv*2.-1.;vec2 p=(screen-focus)*vec2(aspect,1.)/scale;
+            vec3 sum=vec3(0.);float alpha=0.;
+            // A bounded ray integral through a real density field. Perspective rays diverge with depth.
+            for(int i=0;i<32;i++){if(i>=samples)break;float z=-1.8+3.6*(float(i)+.5)/float(samples);
+                vec3 q=vec3(p*(1.+z*.12),z);q.y+=.06;
+                float warp=fbm(q*1.7+vec3(0.,clock*.028,0.));
+                float shaftX=q.x+.023*sin(q.y*2.1)+.018*(warp-.5);
+                float down=smoothstep(-.28,.1,q.y);
+                float shaft=exp(-shaftX*shaftX*7200.)*exp(-q.z*q.z*7.)*down;
+                float sheath=exp(-shaftX*shaftX*105.)*exp(-q.z*q.z*3.)*down;
+                float tip=exp(-dot(q*vec3(1.,1.7,1.),q*vec3(1.,1.7,1.))*95.);
+                float spike=exp(-abs(q.y)*260.-abs(q.x)*8.-q.z*q.z*25.);
+                vec3 n=q*1.6+vec3(warp*1.4,clock*.018,0.);
+                float fil=pow(fbm(n*2.4),3.);
+                float arc=abs(q.x-(.46*sin(q.y*2.8+warp*1.6)+.38));
+                float arc2=abs(q.x-(-.52*sin(q.y*1.9+1.+warp)-.43));
+                float lane=(exp(-arc*arc*140.)+exp(-arc2*arc2*180.)*.65)*fil*exp(-q.z*q.z*1.8);
+                vec2 disc=vec2(q.x,(q.y+.26*q.x)*2.9);
+                float radius=length(disc),angle=atan(disc.y,disc.x);
+                float arms=pow(.5+.5*sin(angle*3.-radius*6.+warp),3.);
+                float galaxy=exp(-radius*radius*.55)*(.12+arms)*fil*exp(-q.z*q.z*2.);
+                float dust=mix(lane,galaxy,car)*.75;
+                float density=(shaft*1.6+sheath*.035+tip*2.6+spike*.85)*mix(1.,.75,car);
+                float stepSize=3.6/float(samples);
+                sum+=(1.-alpha)*(vec3(.70,.86,.80)*dust+vec3(.77,.94,.95)*density)*stepSize;
+                alpha+= (1.-alpha)*min(.12,(dust+density*.035)*stepSize);
             }
-            void main() {
-                vec2 p=uvLocal;
-                float r=length(p);
-                float center=exp(-r*r*620.) + .22*exp(-r*24.);
-                float flare=exp(-abs(p.y)*180.)*exp(-abs(p.x)*7.)*.38
-                    + exp(-abs(p.x)*230.)*exp(-abs(p.y)*14.)*.18;
-                vec2 q=mat2(.96,-.28,.28,.96)*p;
-                q.y*=2.2;
-                float radius=length(q);
-                float angle=atan(q.y,q.x);
-                float lanes=.5+.5*sin(angle*3.-radius*20.);
-                float grain=noise(q*12.+clock*.012)*.6+noise(q*29.)*.4;
-                float cloud=exp(-radius*radius*3.) * (.065+.13*lanes) * grain;
-                float core=exp(-radius*radius*900.)*.8+exp(-radius*radius*90.)*.55+exp(-radius*14.)*.2;
-                // Keep the focal light steady; audio does not make the core breathe.
-                float normal=center+flare;
-                float car=cloud+core;
-                vec3 color=mix(vec3(.65,.86,.9),vec3(.9,.93,.87),exp(-r*25.));
-                float alpha=mix(normal,car,galaxy)*light*(1.-smoothstep(.8,1.,r));
-                gl_FragColor=vec4(color,alpha);
-            }
-        `
-    });
-    focus.add(new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), lightMaterial));
+            vec2 px=vec2(vUv.x*viewport.x,(1.-vUv.y)*viewport.y);
+            vec2 outside=max(max(readRect.xy-px,px-readRect.zw),vec2(0.));
+            float textMask=mix(.08,1.,smoothstep(0.,48.,length(outside)));
+            float dockMask=smoothstep(dockY-12.,dockY+75.,px.y);
+            sum*=strength*textMask*(1.-dockMask*.94);
+            gl_FragColor=vec4(sum,1.);
+        }`,u);
+    const blur=material(`varying vec2 vUv;uniform sampler2D source;uniform vec2 direction;uniform float threshold;
+        void main(){vec3 c=vec3(0.);for(int i=-4;i<=4;i++){float x=float(i);vec3 s=texture2D(source,vUv+direction*x).rgb;
+            s*=smoothstep(threshold,threshold+.25,max(s.r,max(s.g,s.b)));c+=s*exp(-x*x/7.);}
+            gl_FragColor=vec4(c/4.5408,1.);}`,{source:{value:null},direction:{value:new T.Vector2()},threshold:{value:.55}});
+    const composite=material(`varying vec2 vUv;uniform sampler2D sceneTex,beamTex,glowTex;
+        vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
+        void main(){vec3 c=aces(vec3(.0024,.0027,.0027)+texture2D(sceneTex,vUv).rgb+texture2D(beamTex,vUv).rgb+texture2D(glowTex,vUv).rgb*.5);
+            c=mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(vec3(.0031308),c));gl_FragColor=vec4(c,1.);}`,
+        {sceneTex:{value:sceneTarget.texture},beamTex:{value:beamTarget.texture},glowTex:{value:glowB.texture}});
+    const scene=new T.Scene(),camera=new T.PerspectiveCamera(48,1,.1,100);
+    camera.position.z=7;
+    let seed=541;
+    const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+    const count=65536,initial=new Float32Array(count*4),indices=new Float32Array(count*2),sizes=new Float32Array(count);
+    const positions=new Float32Array(count*3);
+    for(let i=0;i<count;i++){
 
-    let raf = 0, last = 0, phase = 0, stopped = false, dirty = true;
-    let mix = getCarMode() ? 1 : 0;
-    let previousState = '';
-    let bounds = null;
-    let gesture = null;
-    let impulseIndex = 0;
-    let lastImpulse = -Infinity;
-    let touchWasActive = false;
-    const impulses = Array.from({length:6}, () => ({born:-Infinity, strength:0}));
-    function clearTouch() {
-        if (gesture && field.hasPointerCapture(gesture.id)) field.releasePointerCapture(gesture.id);
-        gesture = null;
-        impulses.forEach((impulse, i) => {
-            impulse.strength = 0; uniforms.touches.value[i].w = 0;
-        });
-        dirty = true;
+        // Interleave layers so reducing draw count preserves the complete composition.
+        const layer=i%200;
+        let x,y,z;
+        if(layer<140){
+            y=(random()-.5)*9;const branch=i%3;
+            x=Math.sin(y*.9+branch*2.1)*(.65+branch*.45)+(random()-.5)*(.09+random()*.4);
+            z=Math.cos(y*.7+branch*2.1)*1.2+(random()-.5)*.4;
+        } else {x=(random()-.5)*20;y=(random()-.5)*22;z=layer===199?1.8+random()*2.1:-3-random()*10;}
+        initial.set([x,y,z,random()],i*4);positions.set([x,y,z],i*3);
+        indices.set([(i%256+.5)/256,(Math.floor(i/256)+.5)/256],i*2);
+        sizes[i]=layer===199?1.5+random()*1.7:.32+random()*.8;
     }
-    function addImpulse(event, dx = 0, dy = 0, force = false) {
-        const now = performance.now();
-        if (!force && now - lastImpulse < 45) return;
-        lastImpulse = now;
-        const i = impulseIndex++ % impulses.length;
-        // Coordinates are camera-plane CSS pixels, so touch reach is consistent at every DPR.
-        uniforms.touches.value[i].set(event.clientX-innerWidth/2, innerHeight/2-event.clientY,
-            Math.min(72, Math.max(40, (bounds?.size || 70)*.55)), 0);
-        uniforms.touchFlow.value[i].set(dx/24, -dy/24).clampLength(0,1);
-        impulses[i] = {born:now, strength:getCarMode() ? .65 : 1};
-        dirty = true;
+    const home=new T.DataTexture(initial,256,256,T.RGBAFormat,T.FloatType);home.needsUpdate=true;
+    home.minFilter=home.magFilter=T.NearestFilter;
+    let simA=null,simB=null,simReady=false;
+    const simUniforms={source:{value:home},home:{value:home},clock:u.clock,dt:{value:0},reset:{value:1}};
+    const sim=material(`varying vec2 vUv;uniform sampler2D source,home;uniform float clock,dt,reset;${noise}
+        void main(){vec4 h=texture2D(home,vUv),p=texture2D(source,vUv);if(reset>.5){gl_FragColor=h;return;}
+            vec3 velocity=curl(p.xyz*.46+vec3(0,clock*.045,h.w*4.))*.075+(h.xyz-p.xyz)*.14;
+            p.xyz+=velocity*dt;gl_FragColor=p;}`,simUniforms);
+    function resetSimulation(size=256){
+        simA?.dispose();simB?.dispose();simA=simB=null;simReady=false;
+        if(!floatType||!renderer.capabilities.vertexTextures)return;
+        simA=target(size,size,floatType);simB=target(size,size,floatType);
+        simA.texture.minFilter=simA.texture.magFilter=simB.texture.minFilter=simB.texture.magFilter=T.NearestFilter;
+        simUniforms.reset.value=1;draw(sim,simA);draw(sim,simB);simUniforms.reset.value=0;simReady=true;
     }
-    field.addEventListener('pointerdown', event => {
-        if (reduced.matches || stopped || event.button !== 0 || !event.isPrimary
-            || gesture || event.target.closest('.field-readout')) return;
-        gesture = {id:event.pointerId, x:event.clientX, y:event.clientY};
-        field.setPointerCapture(event.pointerId);
-        addImpulse(event,0,0,true);
-    });
-    field.addEventListener('pointermove', event => {
-        if (!gesture || event.pointerId !== gesture.id) return;
-        const dx = event.clientX-gesture.x, dy = event.clientY-gesture.y;
-        if (Math.hypot(dx,dy)<2) return;
-        if (performance.now()-lastImpulse>=45) {
-            addImpulse(event,dx,dy);
-            gesture.x=event.clientX; gesture.y=event.clientY;
-        }
-    });
-    const releaseGesture = event => {
-        if (event.pointerId !== gesture?.id) return;
-        gesture = null;
-        if (field.hasPointerCapture(event.pointerId)) field.releasePointerCapture(event.pointerId);
-    };
-    field.addEventListener('pointerup', releaseGesture);
-    field.addEventListener('pointercancel', releaseGesture);
-    field.addEventListener('lostpointercapture', releaseGesture);
-    function advanceTouches(now) {
-        let active = false;
-        impulses.forEach((impulse,i) => {
-            const age = Math.max(0,(now-impulse.born)/1000);
-            // Critically damped impulse response t*exp(-w*t): one yield, then rest, no bounce.
-            const response = age<1.8 ? impulse.strength*age*6*Math.exp(1-age*6) : 0;
-            const strength = response>.001 ? response : 0;
-            uniforms.touches.value[i].w = reduced.matches ? 0 : strength;
-            if (strength>.001) active = true;
-        });
-        return active;
+    resetSimulation();
+    const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(positions,3));
+    geo.setAttribute('lookup',new T.BufferAttribute(indices,2));geo.setAttribute('size',new T.BufferAttribute(sizes,1));
+    const particleUniforms={...u,positions:{value:simA?.texture||null},simulated:{value:simReady?1:0}};
+    const particles=new T.ShaderMaterial({uniforms:particleUniforms,transparent:true,depthTest:false,depthWrite:false,blending:T.AdditiveBlending,
+        vertexShader:`attribute vec2 lookup;attribute float size;uniform sampler2D positions;uniform float simulated,clock,car,scale,pixelRatio;
+            uniform vec2 focus,viewport;uniform vec4 touches[6];uniform vec2 touchFlow[6];
+            varying float light;varying float depth;${noise}
+            void main(){vec3 p=position;if(simulated>.5)p=texture2D(positions,lookup).xyz;
+                else p+=vec3(noise3(p*.5+clock*.025),noise3(p*.5+17.+clock*.031),0.)*.25;
+                p.y=mix(p.y,p.y*.65-p.x*.23,car);p*=scale;
+                vec4 v=modelViewMatrix*vec4(p,1.);vec4 clip=projectionMatrix*v;
+                vec2 screen=clip.xy/clip.w+focus;
+                vec2 px=vec2((screen.x*.5+.5)*viewport.x,(.5-screen.y*.5)*viewport.y);
+                vec2 push=vec2(0.);
+                for(int i=0;i<6;i++){vec2 d=px-touches[i].xy;float reach=1.-smoothstep(0.,80.,length(d));
+                    push+=(d/max(length(d),2.)*18.+touchFlow[i]*9.)*reach*reach*touches[i].w;}
+                push*=min(1.,24./max(length(push),.001))*mix(1.,.6,car)*clamp(5./max(2.,-v.z),.15,1.);
+                screen+=vec2(push.x,-push.y)*2./viewport;
+                gl_Position=vec4(screen*clip.w,clip.z,clip.w);
+                depth=clamp((-v.z-2.)/15.,0.,1.);
+                light=(.65+.35*noise3(position*2.+vec3(clock*.13)))*exp(-depth*2.1);
+                gl_PointSize=clamp(size*pixelRatio*7./max(2.,-v.z),.6,4.2*pixelRatio);
+            }`,
+        fragmentShader:`uniform vec2 viewport;uniform vec4 readRect;uniform float dockY,pixelRatio;varying float light,depth;
+            void main(){float d=length(gl_PointCoord-.5)*2.;float a=exp(-d*d*4.)*(1.-smoothstep(.6,1.,d));
+                vec2 px=vec2(gl_FragCoord.x/pixelRatio,viewport.y-gl_FragCoord.y/pixelRatio);
+                vec2 outside=max(max(readRect.xy-px,px-readRect.zw),vec2(0.));
+                float mask=mix(.025,1.,smoothstep(0.,38.,length(outside)));
+                mask*=1.-smoothstep(dockY-8.,dockY+25.,px.y);
+                mask*=smoothstep(48.,85.,px.y);
+                gl_FragColor=vec4(mix(vec3(.40,.64,.50),vec3(.65,.86,.88),depth)*light,a*.20*mask);
+            }`});
+    const cloud=new T.Points(geo,particles);cloud.frustumCulled=false;scene.add(cloud);
+    let raf=0,last=0,clock=0,mode=u.car.value,stopped=false,tier=0,badFor=0,warmUntil=performance.now()+5000;
+    let gesture=null,impulseIndex=0,lastImpulse=0,dirty=true,previousState='';
+    const impulses=Array.from({length:6},()=>({born:-Infinity,strength:0}));
+    const tiers=[{ratio:1.5,volume:.5,samples:32,count:65536,sim:256},{ratio:1.25,volume:.35,samples:24,count:65536,sim:256},{ratio:1,volume:.3,samples:16,count:32768,sim:128}];
+    function layout(){
+        const rect=field.getBoundingClientRect(),text=readout.getBoundingClientRect();
+        const top=Math.max(65,rect.top),bottom=Math.max(top+80,Math.min(dock.getBoundingClientRect().top,text.top||innerHeight));
+        const center=top+(bottom-top)*.45;
+        u.focus.value.set(0,1-center/innerHeight*2);
+        // The world occupies the viewport, independently of the former 100/220px beacon.
+        u.scale.value=Math.max(.65,Math.min(1.35,innerWidth/430));
+        u.readRect.value.set(text.left-12,text.top-10,text.right+12,text.bottom+10);
+        u.dockY.value=dock.getBoundingClientRect().top;
+        warmUntil=performance.now()+2000;dirty=true;
     }
-    function layout() {
-        const rect = anchor.getBoundingClientRect();
-        bounds = {x:rect.x + rect.width / 2 - innerWidth / 2,
-            y:innerHeight / 2 - rect.y - rect.height / 2, size:rect.width * .47};
-        focus.position.set(bounds.x, bounds.y, 0);
-        focus.scale.setScalar(bounds.size);
-        focus.visible = field.dataset.space !== 'none';
-        dirty = true;
+    function resize(){
+        const q=tiers[tier],ratio=Math.min(devicePixelRatio||1,q.ratio);
+        renderer.setPixelRatio(ratio);renderer.setSize(innerWidth,innerHeight,false);
+        u.pixelRatio.value=ratio;u.viewport.value.set(innerWidth,innerHeight);u.aspect.value=innerWidth/innerHeight;
+        camera.aspect=u.aspect.value;camera.updateProjectionMatrix();
+        sceneTarget.setSize(Math.round(innerWidth*ratio),Math.round(innerHeight*ratio));
+        beamTarget.setSize(Math.max(1,Math.round(innerWidth*ratio*q.volume)),Math.max(1,Math.round(innerHeight*ratio*q.volume)));
+        glowA.setSize(Math.max(1,Math.round(innerWidth*ratio*.5)),Math.max(1,Math.round(innerHeight*ratio*.5)));
+        glowB.setSize(glowA.width,glowA.height);u.samples.value=q.samples;geo.setDrawRange(0,q.count);
+        clearTouches();layout();
     }
-    function resize() {
-        clearTouch();
-        const ratio = Math.min(devicePixelRatio || 1, 1.5);
-        renderer.setPixelRatio(ratio);
-        renderer.setSize(innerWidth, innerHeight, false);
-        uniforms.pixelRatio.value = ratio;
-        camera.left = -innerWidth / 2; camera.right = innerWidth / 2;
-        camera.top = innerHeight / 2; camera.bottom = -innerHeight / 2;
-        camera.updateProjectionMatrix();
-        stars.scale.set(innerWidth * .65, innerHeight * .65, 1);
-        layout();
+    function clearTouches(){if(gesture&&field.hasPointerCapture(gesture))field.releasePointerCapture(gesture);gesture=null;
+        impulses.forEach((x,i)=>{x.strength=0;u.touches.value[i].w=0;});dirty=true;}
+    function addTouch(e,dx=0,dy=0){const now=performance.now();if(now-lastImpulse<35)return;lastImpulse=now;
+        const i=impulseIndex++%6;u.touches.value[i].set(e.clientX,e.clientY,80,0);
+        u.touchFlow.value[i].set(dx/20,dy/20).clampLength(0,1);impulses[i]={born:now,strength:1};dirty=true;}
+    let pointerX=0,pointerY=0;
+    field.addEventListener('pointerdown',e=>{if(reduced.matches||stopped||!e.isPrimary||e.button!==0||e.target.closest('.field-readout'))return;
+        gesture=e.pointerId;pointerX=e.clientX;pointerY=e.clientY;field.setPointerCapture(gesture);lastImpulse=0;addTouch(e);});
+    field.addEventListener('pointermove',e=>{if(gesture!==e.pointerId)return;addTouch(e,e.clientX-pointerX,e.clientY-pointerY);pointerX=e.clientX;pointerY=e.clientY;});
+    const release=e=>{if(gesture!==e.pointerId)return;if(field.hasPointerCapture(gesture))field.releasePointerCapture(gesture);gesture=null;};
+    field.addEventListener('pointerup',release);field.addEventListener('pointercancel',release);field.addEventListener('lostpointercapture',release);
+    const observer=new ResizeObserver(layout);observer.observe(field);observer.observe(readout);observer.observe(dock);
+    const mutation=new MutationObserver(layout);mutation.observe(field,{attributes:true,attributeFilter:['data-space']});
+    const targets={idle:[.3,.65],loading:[.55,.8],playing:[1,1],paused:[.25,.65],error:[.15,.45]};
+    function render(now){
+        if(stopped||document.hidden)return;raf=requestAnimationFrame(render);
+        const elapsed=last?now-last:16;last=now;const dt=Math.min(elapsed,50)/1000;
+        const frame=getFrame(),values=targets[frame.state]||targets.idle;
+        const smooth=reduced.matches?1:1-Math.exp(-dt*3.5);u.flow.value+=(values[0]*(getCarMode()?.6:1)-u.flow.value)*smooth;u.strength.value+=(values[1]-u.strength.value)*smooth;
+        mode+=((getCarMode()?1:0)-mode)*smooth;u.car.value=mode;
+        if(!reduced.matches)clock+=dt*u.flow.value*(1+(frame.mode==='audio-analysis'?Math.min(.1,(frame.level||0)*.1):0));
+        u.clock.value=clock;
+        let touchActive=false;impulses.forEach((x,i)=>{const age=(now-x.born)/1000;const w=age<2?x.strength*age*6*Math.exp(1-age*6):0;
+            u.touches.value[i].w=w>.001&&!reduced.matches?w:0;touchActive ||= u.touches.value[i].w>0;});
+        canvas.dataset.touch=touchActive?'active':'settled';
+        if(reduced.matches&&!dirty&&frame.state===previousState&&canvas.dataset.scene===(getCarMode()?'galaxy':'stellar'))return;
+        previousState=frame.state;dirty=false;
+        if(simReady&&!reduced.matches){simUniforms.source.value=simA.texture;simUniforms.dt.value=dt*u.flow.value;
+            draw(sim,simB);[simA,simB]=[simB,simA];particleUniforms.positions.value=simA.texture;}
+        renderer.setRenderTarget(sceneTarget);renderer.clear();renderer.render(scene,camera);
+        draw(volume,beamTarget);
+        blur.uniforms.source.value=beamTarget.texture;blur.uniforms.threshold.value=.55;blur.uniforms.direction.value.set(2/glowA.width,0);draw(blur,glowA);
+        blur.uniforms.source.value=glowA.texture;blur.uniforms.threshold.value=0;blur.uniforms.direction.value.set(0,2/glowA.height);draw(blur,glowB);
+        draw(composite,null);
+        if(renderer.info.programs.some(program=>program.diagnostics && !program.diagnostics.runnable)){stopped=true;cancelAnimationFrame(raf);canvas.hidden=true;delete document.body.dataset.sky;return;}
+        document.body.dataset.sky='ready';canvas.dataset.scene=getCarMode()?'galaxy':'stellar';canvas.dataset.quality=String(tier);canvas.dataset.simulation=simReady?'gpu':'analytic';
+        if(now>warmUntil&&!reduced.matches){badFor=elapsed>34?badFor+Math.min(elapsed,100):Math.max(0,badFor-elapsed*.5);
+            if(badFor>5000&&tier<2){tier++;badFor=0;if(tier===2)resetSimulation(tiers[tier].sim);resize();}}
     }
-    // Bounds change with dock height, title wrapping and compact/full composition.
-    const layoutObserver = new ResizeObserver(layout);
-    layoutObserver.observe(field);
-    layoutObserver.observe(anchor);
-    layoutObserver.observe(document.querySelector('.field-readout'));
-    const modeObserver = new MutationObserver(layout);
-    modeObserver.observe(field, {attributes:true, attributeFilter:['data-space']});
-    modeObserver.observe(document.body, {attributes:true, attributeFilter:['class']});
-    function render(time) {
-        if (stopped || document.hidden) return;
-        raf = requestAnimationFrame(render);
-        if (time - last < 42) return;
-        const dt = Math.min(time - last, 100) / 1000;
-        last = time;
-        const frame = getFrame();
-        const target = getCarMode() ? 1 : 0;
-        const changing = Math.abs(mix - target) > .001;
-        mix = reduced.matches || !changing ? target : mix + (target - mix) * Math.min(1, dt * 5);
-        const playing = frame.state === 'playing';
-        const moving = !reduced.matches && frame.state !== 'paused' && frame.state !== 'error';
-        if (moving) phase += dt;
-        const live = playing && !reduced.matches && frame.mode === 'audio-analysis';
-        uniforms.clock.value = phase;
-        uniforms.galaxy.value = mix;
-        uniforms.energy.value += ((live ? frame.level || 0 : 0) - uniforms.energy.value) * .15;
-        uniforms.bass.value += ((live ? frame.bass || 0 : 0) - uniforms.bass.value) * .15;
-        uniforms.treble.value += ((live ? frame.treble || 0 : 0) - uniforms.treble.value) * .15;
-        uniforms.light.value = playing ? .95 : .7;
-        // Spectral energy only nudges local travel, never camera motion or core glow.
-        orbitDust.material.uniforms.drift.value = .11 + uniforms.energy.value*.025;
-        galacticDust.material.uniforms.drift.value = .11 + uniforms.bass.value*.02;
-        orbitDust.material.uniforms.opacity.value = .6 * (1 - mix);
-        rings.forEach((ring, i) => { ring.material.opacity = (i ? .1 : .2) * (1 - mix); });
-        galacticDust.material.uniforms.opacity.value = .55 * mix;
-        stellar.visible = mix < .999;
-        galaxy.visible = mix > .001;
-        const touching = advanceTouches(time);
-        const settled = touchWasActive && !touching;
-        touchWasActive = touching;
-        const stateChanged = frame.state !== previousState;
-        previousState = frame.state;
-        if (moving || touching || settled || changing || dirty || stateChanged) {
-            renderer.clear();
-            renderer.render(background, camera);
-            renderer.clearDepth();
-            renderer.render(scene, camera);
-            dirty = false;
-            document.body.dataset.sky = 'ready';
-            canvas.dataset.scene = target ? 'galaxy' : 'stellar';
-        }
-    }
-    canvas.addEventListener('webglcontextlost', event => {
-        event.preventDefault(); stopped = true; cancelAnimationFrame(raf);
-        clearTouch();
-        canvas.hidden = true; delete document.body.dataset.sky;
-    });
-    window.addEventListener('resize', resize);
-    document.addEventListener('visibilitychange', () => {
-        cancelAnimationFrame(raf);
-        clearTouch();
-        if (!document.hidden && !stopped) { last = 0; dirty = true; raf = requestAnimationFrame(render); }
-    });
-    reduced.addEventListener('change', clearTouch);
-    resize();
-    raf = requestAnimationFrame(render);
+    canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();stopped=true;cancelAnimationFrame(raf);clearTouches();canvas.hidden=true;delete document.body.dataset.sky;});
+    canvas.addEventListener('webglcontextrestored',()=>{resetSimulation(tiers[tier].sim);particleUniforms.simulated.value=simReady?1:0;particleUniforms.positions.value=simA?.texture||null;
+        stopped=false;canvas.hidden=false;last=0;resize();raf=requestAnimationFrame(render);});
+    window.addEventListener('resize',resize);
+    document.addEventListener('visibilitychange',()=>{cancelAnimationFrame(raf);clearTouches();if(!document.hidden&&!stopped){last=0;dirty=true;raf=requestAnimationFrame(render);}});
+    reduced.addEventListener('change',()=>{clearTouches();dirty=true;});
+    window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelAnimationFrame(raf);observer.disconnect();mutation.disconnect();
+        [sceneTarget,beamTarget,glowA,glowB,simA,simB].forEach(x=>x?.dispose());
+        [volume,blur,composite,sim,particles,home,geo,plane].forEach(x=>x.dispose());renderer.dispose();});
+    resize();raf=requestAnimationFrame(render);
 }

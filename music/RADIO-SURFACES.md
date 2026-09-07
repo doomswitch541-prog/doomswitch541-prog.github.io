@@ -236,25 +236,28 @@ not remove a station or change playback.
   Pointer cancellation releases the pressed state; keyboard activation also responds.
   The category arrows are real 44px-tall buttons that scroll in either direction;
   native touch scrolling remains available. Endpoint states are exposed accessibly.
-- Local Three.js renders two Galaxy Radio compositions in `broadcast-sky.js`:
-  a focused stellar source with orbital dust for normal listening, and a broader
-  inclined 14,000-point spiral with uneven dust lanes and one soft core for Car Mode.
-  Both use a stable background sky and local procedural shaders, no network assets.
-  Mode changes crossfade; there is no rotating sky or beat-driven camera movement.
-  Particle positions and delicate flicker follow independently seeded smooth noise,
-  not a shared pulse, inclination oscillation or repeating animation timeline.
-  Ambient drift runs while ready/tuning/playing; pause/error freezes travel.
-  The existing instrument supplies the normalized frame: measured energy, bass and
-  treble gently affect local travel/points only when analysis is live. The core
-  light stays steady rather than breathing to bass. Direct-stream fallback remains
-  explicitly receiver animation, not measured audio.
-  A touch or swipe in the field displaces nearby particles with a critically damped
-  impulse response and an 18-CSS-pixel ceiling; the dust reforms without bouncing.
-  Car Mode lowers the impulse strength. Touch works while paused without restarting
-  ambient travel. Native pinch zoom is retained; control gestures do not disturb
-  the field. Reduced motion disables drift/touch effects; hidden tabs stop rendering.
-  Rendering is capped at roughly 24fps / 1.5 DPR. Missing WebGL or context loss
-  leaves the SVG receiver beacon and every HTML control usable.
+- Local Three.js renders the Astra transmission in `broadcast-sky.js`: a
+  descending volumetric beam, sage/ice filaments and perspective particle depth.
+  Car Mode widens the galactic formation and reduces flow and touch strength.
+  The scene follows the viewport and existing readout/dock bounds; the dock and
+  all station information remain unchanged. Text and dock regions suppress light.
+  GPU ping-pong textures advect 65,536 particles through curl noise with weak
+  formation attraction; unsupported simulation targets use analytic shader flow.
+  Beam emission has a separate bloom pass; ACES and output conversion occur once.
+  Everything is procedural and same-origin, with no additional network assets.
+  Ready, tuning, playing, paused and error states have eased flow/light targets.
+  Pause retains quiet ambient motion. Valid analysis nudges flow without pulsing
+  the core; receiver animation keeps its existing unmeasured-source label.
+  Touch displaces nearby particles up to 24 CSS pixels and settles with damping;
+  farther particles respond less, and Car Mode reduces the effect further.
+  Native pinch zoom and the existing control gestures remain available.
+  Reduced motion renders still state/layout updates; hidden tabs suspend work.
+  Adaptive tiers reduce volume samples/resolution before particle count, starting
+  at 1.5 DPR, 32 volume samples and 65,536 particles. Sustained slow frames can
+  reduce this to 1 DPR, 16 samples and 32,768 drawn particles. These are quality
+  settings, not a claim of measured iPhone performance.
+  Missing WebGL leaves the SVG and controls usable; context restoration rebuilds
+  simulation targets. Renderer resources are disposed when leaving the page.
 - The field retains a code-native fallback beacon: cut receiving arcs, five
   station-name-seeded points and real station/program information. A station
   change triggers one restrained Anime.js transition; metadata refreshes do not.
