@@ -168,7 +168,7 @@ not remove a station or change playback.
   and keeps only HTTPS candidates with a positive directory health check.
 - Uses named station navigation instead of a simulated FM range. All station
   data, order, stream URLs and category queries are preserved. Historical display
-  positions remain only in the generated share-card artwork.
+  positions remain in the station data; the receiver and current share artwork use names.
 - The main player separates station identity from program data. Every station
   shows a plain-language description, genre, origin, stream quality, and source.
   The station list repeats a shorter description; detailed technical facts and
@@ -193,12 +193,13 @@ not remove a station or change playback.
   song or program. Stations that do not publish a usable browser endpoint stay
   honest: the player shows their format and says the live title is not published.
   It never invents a title from a schedule or station description.
-- Enables **Share Card** only for stations in the curated Top 20. The browser
-  draws a 1200 x 630 tuner capture locally on canvas with the station name, RG
-  display position, signal state, and direct `?station=` listening URL. Phones
-  that support file sharing receive the PNG in the native share sheet; other
-  browsers download it and copy the station link when clipboard access is
-  available. No image service, tracking call, or remote artwork is involved.
+- Enables **Share station** only for stations in the curated Top 20. Each station
+  has a static `/music/broadcast/stations/<uuid>/` receiver page with matching
+  Open Graph metadata and 1200 x 630 galaxy artwork. Native sharing sends the
+  station link, title and description together; it no longer attaches a separate
+  image file. Other browsers copy the link or expose it directly when clipboard
+  access is unavailable. Old `?station=` links still select their station.
+  No image service, tracking call, or remote artwork is involved.
 - Carries a Broadcast-only web-app manifest with `/music/broadcast/` as its ID,
   start URL, and scope. The former service worker was retired by the August 28
   direct-loading pass (`62c2ab5`). `pwa.js` unregisters only Broadcast-scoped
@@ -245,25 +246,49 @@ not remove a station or change playback.
   Larger point sprites, perspective sizing, distance fading and a sparse 180-point
   foreground volume distinguish near and far space. Original orbit sprites scale
   by 2.6 and galaxy sprites by 1.85 before perspective; original attribute arrays
-  remain intact. A slow observing angle and damped drag parallax reveal the depth.
+  remain intact. The camera and formations keep a fixed observing angle; shader
+  circulation carries dust continuously in one direction, with differential travel
+  and a local curl field. There is no rocking camera or reversing pose animation.
   ACES tone mapping and sRGB output are included in the procedural shaders.
   A perspective camera and larger framing add depth; faster local drift
-  makes the individual motion clearer. The existing procedural source incorporates
-  a narrow descending light, leaving the particle formation visually central.
+  makes the individual motion clearer. Astra's descending light uses ray/box
+  intersection and a 16-step integration through a narrow volume around the source.
+  Domain-warped filaments add faint dusk violet and sage. An authored seven-point
+  constellation references Astraea without claiming a historical star chart.
+  Local Anime.js 4.5.0 orchestrates a single 4.4-second arrival when the full field
+  first becomes visible; it settles into the ongoing flow and never repeats.
   Car Mode preserves the active panel and the dock's open/closed state on both
   entry and exit. Station information is unchanged. Existing compact/hidden
   field rules continue to prioritize browsing and keyboard space on small screens.
+  The compact Car galaxy spreads across the available field. A shader mask follows
+  the actual station readout bounds, with a soft edge and clearance below the header,
+  so wrapped titles remain readable as the particles move around them.
   Ready, tuning, playing, paused and error states ease between light/flow targets;
   pause retains quiet ambient movement. Valid analysis nudges local travel, with
   the same receiver-animation labels for unmeasured sources.
-  Touch uses the original damped impulse response with a 24-CSS-pixel ceiling,
-  corrected for perspective. Car Mode retains its gentler touch strength.
+  Touch uses the original damped impulse response with a 5-CSS-pixel ceiling,
+  corrected for perspective. It never tilts the viewing frame. Car Mode retains
+  its gentler touch strength.
+  More offers optional **Phone tilt** on devices exposing orientation events.
+  It starts off and requests iOS motion permission only after a tap. Small physical
+  tilts ease toward a bounded 0.025-radian angle per axis; there is no autonomous
+  rocking. Off, hidden tabs and reduced motion reset the pose. No location, camera,
+  sensor storage or network request is involved. Physical iPhone feel and permission
+  behavior still need device review; Firefox checks use injected orientation events.
   Reduced motion disables ambient/touch movement; hidden tabs suspend rendering.
   Rendering allows up to 60fps with a 1.5 DPR ceiling. No simulation textures or
   postprocessing chain are needed by this renderer. Physical iPhone performance
   remains a device check. Missing WebGL2 leaves the original SVG and controls
   usable, and context restoration resumes the renderer. Page exit releases its
   geometries and materials. All visuals are procedural and use local Three.js.
+- The lower-left dock's receiver animation retains its original pilot and bar
+  drawing functions, adding a third Astra motif after them: 360 depth-separated
+  particles flow toward a steady light along a helical stream. It uses a tiny
+  offscreen Three.js renderer copied into the existing dock canvas, with no new UI
+  or animation loop. Receiver time drives it; pause freezes it. The original
+  Signal-panel animations and measured waveform/spectrum remain unchanged.
+  Reduced motion and missing WebGL keep the existing instrument. Its graphics
+  resources are released on page exit; all dependencies are vendored locally.
 - The field retains a code-native fallback beacon: cut receiving arcs, five
   station-name-seeded points and real station/program information. A station
   change triggers one restrained Anime.js transition; metadata refreshes do not.
@@ -415,12 +440,18 @@ returns 404, so the station-site control uses the working HearMe.fm network home
 
 - The browser share action includes the selected station, format, authored or
   derived description, and the current song/program when valid live metadata is
-  available. Its generated 1200 by 630 tuner card carries the same station
-  identity and direct listen URL.
-- GitHub Pages serves one static Open Graph description for link crawlers. The
-  station-specific text and image are supplied through the browser share action;
-  a crawler-specific station preview would require generated per-station HTML or
-  a server endpoint.
+  available. It sends one station-specific URL without a separate PNG attachment.
+- All 20 curated station routes serve the full receiver with station-specific
+  Open Graph title, description, URL and galaxy artwork. The path selects the
+  matching station on arrival. Static preview text describes the station rather
+  than claiming a live song/program. The Broadcast root has a matching general
+  galaxy cover; installed-app and shared site icons are unchanged.
+- `node scripts/build-broadcast-share.mjs` regenerates the 20 pages and 21 PNGs
+  from the current receiver HTML and actual Three.js sky using a running Firefox
+  WebDriver BiDi instance on port 9224. Generated files are committed static assets;
+  the deployed site needs no build or preview-image service. Messaging apps control
+  their own preview cache and card display; native iPhone sharing remains a device
+  check.
 
 ## Public-surface rules
 

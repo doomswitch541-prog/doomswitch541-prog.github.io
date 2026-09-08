@@ -2,6 +2,8 @@
 // Extended directly from 10cef8f: original particles, seeds, formations and touch lifecycle.
 // The two compositions share an instrument frame, not a fabricated audio signal.
 import * as THREE from '/assets/vendor/broadcast-three-r185/three.module.min.js';
+import { createTimeline } from '/echofield/vendor/animejs/anime.esm.min.js';
+import { createSkyOrientation } from '/js/broadcast-motion.js?v=20260908-1';
 export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     const canvas = document.getElementById('broadcast-stars');
     const anchor = document.getElementById('station-beacon');
@@ -22,14 +24,29 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     camera.position.z = 1000;
     const focus = new THREE.Group();
     scene.add(focus);
+    const orientation=createSkyOrientation({reduced});
     let seed = 541;
     const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     const uniforms = {
         clock:{value:0}, energy:{value:0}, treble:{value:0}, bass:{value:0},
         galaxy:{value:0}, pixelRatio:{value:1}, light:{value:0.7}, cameraDepth:{value:1000},
+        opening:{value:1}, invocation:{value:1}, constellation:{value:0},
+        cameraLocal:{value:new THREE.Vector3(0,0,8)},
+        readoutBox:{value:new THREE.Vector4(-10000,-10000,0,0)},
+        headerEdge:{value:10000},
         touches:{value:Array.from({length:6}, () => new THREE.Vector4(0,0,1,0))},
         touchFlow:{value:Array.from({length:6}, () => new THREE.Vector2())}
     };
+    const textClearance=`
+        uniform vec4 readoutBox;
+        uniform float pixelRatio;
+        uniform float headerEdge;
+        float clearText(){
+            vec2 q=abs(gl_FragCoord.xy/pixelRatio-readoutBox.xy)-readoutBox.zw;
+            float distance=length(max(q,0.))+min(max(q.x,q.y),0.);
+            float belowHeader=smoothstep(0.,24.,headerEdge-gl_FragCoord.y/pixelRatio);
+            return smoothstep(0.,20.,distance)*belowHeader;
+        }`;
     const vertex = `
         attribute float size;
         attribute float phase;
@@ -41,6 +58,9 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         uniform float touchGain;
         uniform float sizeGain;
         uniform float depthGain;
+        uniform float opening;
+        uniform float circulation;
+        uniform float orbitShape;
         uniform float cameraDepth;
         uniform vec4 touches[6];
         uniform vec2 touchFlow[6];
@@ -58,8 +78,24 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             float seed=phase*91.7;
             vLight = .73 + .27 * noise(vec2(seed, clock * .38));
             vec3 local=position;
+            // Continuous travel in one direction: no reversing camera or repeating pose tween.
+            float orbitAspect=mix(1.,.39,orbitShape);
+            vec2 orbital=vec2(position.x,position.y/orbitAspect);
+            float travel=clock*circulation/mix(.45+length(orbital)*.65,1.,orbitShape);
+            vec2 transported=mat2(cos(travel),sin(travel),-sin(travel),cos(travel))*orbital;
+            local.xy=transported*vec2(1.,orbitAspect);
+            local.z+=(transported.y-orbital.y)*.2*orbitShape;
             local.xy += drift * vec2(noise(vec2(seed,clock*.58))-.5,
                 noise(vec2(seed+48.3,clock*.47))-.5);
+            // A gently advecting curl field connects individual drift into flowing dust lanes.
+            vec2 q=local.xy*2.3+vec2(clock*.065,-clock*.043);
+            vec2 curl=vec2(noise(q+vec2(0.,.12))-noise(q-vec2(0.,.12)),
+                noise(q-vec2(.12,0.))-noise(q+vec2(.12,0.)));
+            local.xy += curl*drift*.7;
+            float arrival=1.-opening;
+            float turn=arrival*(.4+phase*.07);
+            local.xy=mat2(cos(turn),-sin(turn),sin(turn),cos(turn))*local.xy*(1.-arrival*.16);
+            vLight *= smoothstep(phase*.045,phase*.045+.4,opening);
             local.z *= depthGain;
             vec4 view=modelViewMatrix*vec4(local,1.);
             vDepth = -view.z / cameraDepth;
@@ -74,16 +110,17 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                     float d=length(delta);
                     float reach=1.-smoothstep(0.,touches[i].z,d);
                     vec2 away=delta/max(d,2.);
-                    push+=(away*14.+touchFlow[i]*7.)*reach*reach*touches[i].w;
+                    push+=(away*4.+touchFlow[i]*1.5)*reach*reach*touches[i].w;
                 }
             }
             // All impulses share a displacement ceiling; repeated swipes cannot explode the disc.
-            view.xy += push * min(1.,24./max(length(push),.001)) * touchGain * max(1.,-view.z)/cameraDepth;
+            view.xy += push * min(1.,5./max(length(push),.001)) * touchGain * max(1.,-view.z)/cameraDepth;
             gl_Position = projectionMatrix * view;
             gl_PointSize = size * sizeGain * pixelRatio * clamp(cameraDepth/max(1.,-view.z),.45,2.4) * (1. + treble * .2);
         }
     `;
     const fragment = `
+        ${textClearance}
         uniform float opacity;
         varying vec3 vTint;
         varying float vLight;
@@ -92,7 +129,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             float d = length(gl_PointCoord - .5) * 2.;
             float edge = 1. - smoothstep(.65,1.,d);
             float core = (exp(-d*d*9.) + .18*exp(-d*d*2.)) * edge;
-            gl_FragColor = vec4(vTint, core * opacity * vLight);
+            gl_FragColor = vec4(vTint, core * opacity * vLight * clearText());
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
         }
@@ -112,7 +149,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         geometry.setAttribute('phase', new THREE.Float32BufferAttribute(phases, 1));
         geometry.setAttribute('tint', new THREE.Float32BufferAttribute(colors, 3));
         const material = new THREE.ShaderMaterial({
-            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}}, vertexShader:vertex, fragmentShader:fragment,
+            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}, circulation:{value:0}, orbitShape:{value:0}}, vertexShader:vertex, fragmentShader:fragment,
             transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
         });
         return new THREE.Points(geometry, material);
@@ -140,6 +177,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     orbitDust.rotation.z = -.32;
     orbitDust.material.uniforms.sizeGain.value = 2.6;
     orbitDust.material.uniforms.depthGain.value = 3.4;
+    orbitDust.material.uniforms.circulation.value = .035;
+    orbitDust.material.uniforms.orbitShape.value = 1;
     stellar.add(orbitDust);
     const rings = [];
     for (let i = 0; i < 2; i++) {
@@ -149,7 +188,12 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             coords.push(new THREE.Vector3(Math.cos(a) * (1.1 + i * .16), Math.sin(a) * (.46 + i * .08), 0));
         }
         const ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(coords),
-            new THREE.LineBasicMaterial({color:0xb8d9de, transparent:true, opacity:i ? .1 : .2, depthWrite:false}));
+            new THREE.ShaderMaterial({uniforms:{...uniforms,opacity:{value:i?.1:.2}},transparent:true,depthWrite:false,
+                vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+                fragmentShader:`${textClearance} uniform float opacity;void main(){gl_FragColor=vec4(.6,.78,.79,opacity*clearText());
+                    #include <tonemapping_fragment>
+                    #include <colorspace_fragment>
+                }`}));
         ring.rotation.z = i ? .7 : -.32;
         stellar.add(ring);
         rings.push(ring);
@@ -174,6 +218,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     const galacticDust = points(14000, locateGalaxy, .55);
     galacticDust.material.uniforms.sizeGain.value = 1.85;
     galacticDust.material.uniforms.depthGain.value = 2.4;
+    galacticDust.material.uniforms.circulation.value = .012;
     galaxy.add(galacticDust);
 
     // Additional layers follow the original draws, preserving every original seeded particle.
@@ -181,10 +226,13 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     orbitDepth.rotation.copy(orbitDust.rotation);
     orbitDepth.scale.set(1.035,1.10,2.2);
     orbitDepth.material.uniforms.sizeGain.value = 1.65;
+    orbitDepth.material.uniforms.circulation.value = .027;
+    orbitDepth.material.uniforms.orbitShape.value = 1;
     stellar.add(orbitDepth);
     const galaxyDepth = points(8000, locateGalaxy, .24, .17);
     galaxyDepth.scale.set(1.025,1.025,2.5);
     galaxyDepth.material.uniforms.sizeGain.value = 1.35;
+    galaxyDepth.material.uniforms.circulation.value = .01;
     galaxy.add(galaxyDepth);
 
     // A sparse volume around the original source gives the eye a foreground to travel through.
@@ -195,19 +243,62 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             size:1.2+random()*1.9,color:[.63,.84+random()*.1,.88]};
     },.42,.12);
     foreground.material.uniforms.sizeGain.value=3.2;
+    foreground.material.uniforms.circulation.value=.008;
     focus.add(foreground);
+
+    // Astraea: an authored constellation emerging from the existing orbital geometry.
+    // These are composition points, not a claimed historical star chart.
+    const constellationVertices=[[-.96,.16,.2],[-.62,.42,-.1],[-.2,.32,.16],[.19,.48,-.15],[.6,.22,.27],[.89,-.07,.1],[.44,-.35,.26]];
+    const constellationGeometry=new THREE.BufferGeometry().setFromPoints(constellationVertices.map(p=>new THREE.Vector3(...p)));
+    const constellationLine=new THREE.Line(constellationGeometry,new THREE.ShaderMaterial({uniforms,transparent:true,depthWrite:false,
+        vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+        fragmentShader:`${textClearance} uniform float constellation;void main(){gl_FragColor=vec4(.65,.84,.74,constellation*.25*clearText());
+            #include <tonemapping_fragment>
+            #include <colorspace_fragment>
+        }`}));
+    focus.add(constellationLine);
+    const constellationStars=points(constellationVertices.length,i=>({position:constellationVertices[i],size:4.5,color:[.78,.94,.87]}),0,0);
+    focus.add(constellationStars);
 
     // Local procedural light, not a screen-wide gradient or a full-screen bloom pass.
     const lightMaterial = new THREE.ShaderMaterial({
         uniforms, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-        vertexShader:`varying vec2 uvLocal; void main() { uvLocal=uv*2.-1.; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+        vertexShader:`varying vec2 uvLocal; varying vec3 surfacePoint; void main() { uvLocal=uv*2.-1.; surfacePoint=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
         fragmentShader:`
+            ${textClearance}
             varying vec2 uvLocal;
-            uniform float galaxy, clock, energy, bass, light;
+            varying vec3 surfacePoint;
+            uniform float galaxy, clock, energy, bass, light, invocation;
+            uniform vec3 cameraLocal;
             float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
             float noise(vec2 p) {
                 vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
                 return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+1.),f.x),f.y);
+            }
+            float fbm(vec2 p) {
+                float result=0.,weight=.55;
+                for(int i=0;i<3;i++){result+=noise(p)*weight;p=mat2(.8,-.6,.6,.8)*p*2.07+11.3;weight*=.48;}
+                return result;
+            }
+            // Ray/box intersection restricts the 3D light integration to its actual volume.
+            float invokedLight(vec3 origin,vec3 direction) {
+                vec3 inverse=1./(direction+vec3(.00001));
+                vec3 a=(vec3(-.2,-.025,-.22)-origin)*inverse;
+                vec3 b=(vec3(.2,1.8,.22)-origin)*inverse;
+                vec3 lo=min(a,b),hi=max(a,b);
+                float near=max(max(lo.x,lo.y),lo.z),far=min(min(hi.x,hi.y),hi.z);
+                if(far<=max(near,0.))return 0.;
+                float stepSize=(far-max(near,0.))/16.;
+                float glow=0.;
+                for(int i=0;i<16;i++){
+                    vec3 s=origin+direction*(max(near,0.)+(float(i)+.5)*stepSize);
+                    float warp=(fbm(vec2(s.y*2.7+clock*.035,s.z*8.))-.45)*.03;
+                    float radius=length(s.xz+vec2(warp,0.));
+                    float density=exp(-radius*radius*3800.)+.055*exp(-radius*radius*180.);
+                    float descending=smoothstep(1.8-invocation*1.84,1.9-invocation*1.84,s.y);
+                    glow+=density*exp(-s.y*.75)*descending*stepSize*5.;
+                }
+                return glow;
             }
             void main() {
                 vec2 p=uvLocal;
@@ -220,23 +311,21 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 float radius=length(q);
                 float angle=atan(q.y,q.x);
                 float lanes=.5+.5*sin(angle*3.-radius*20.);
-                float grain=noise(q*12.+clock*.012)*.6+noise(q*29.)*.4;
+                vec2 warp=vec2(fbm(q*2.+clock*.014),fbm(q*2.+vec2(17.,-clock*.011)))-.45;
+                float grain=fbm(q*12.+warp*2.+vec2(clock*.018,0.));
                 float cloud=exp(-radius*radius*3.) * (.065+.13*lanes) * grain;
                 float core=exp(-radius*radius*900.)*.8+exp(-radius*radius*90.)*.55+exp(-radius*14.)*.2;
                 // Keep the focal light steady; audio does not make the core breathe.
-                // A narrow descending transmission accumulates depth around the existing source.
-                float beam=0.;
-                for(int i=0;i<12;i++) {
-                    float z=(float(i)+.5)/12.-.5;
-                    float offset=(noise(vec2(p.y*5.+z,clock*.035))-.5)*.004;
-                    beam+=exp(-pow(p.x+offset,2.)*95000.-z*z*28.)/12.;
-                }
-                beam*=smoothstep(-.015,.04,p.y)*(.035+.025*noise(vec2(p.y*7.,clock*.025)));
-                float normal=center+flare+beam;
-                float car=cloud+core+beam*.65;
-                vec3 color=mix(vec3(.65,.86,.9),vec3(.9,.93,.87),exp(-r*25.));
+                // Astra's invoked light descends once and remains a slender luminous volume.
+                float beam=invokedLight(cameraLocal,normalize(surfacePoint-cameraLocal));
+                // Astraeus / dusk: faint violet-to-sage filaments behind the icy orbital source.
+                float dusk=exp(-radius*radius*2.8)*pow(grain,2.)*.18;
+                float normal=center+flare+beam*2.6+dusk;
+                float car=cloud+core+beam*1.8+dusk;
+                vec3 color=mix(vec3(.45,.38,.65),vec3(.58,.87,.76),smoothstep(.15,.75,grain));
+                color=mix(color,vec3(.8,.94,.9),clamp(center+core*galaxy+beam*2.,0.,1.));
                 float alpha=mix(normal,car,galaxy)*light*(1.-smoothstep(.8,1.,r));
-                gl_FragColor=vec4(color,alpha);
+                gl_FragColor=vec4(color,alpha*clearText());
                 #include <tonemapping_fragment>
                 #include <colorspace_fragment>
             }
@@ -252,13 +341,30 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     let impulseIndex = 0;
     let lastImpulse = -Infinity;
     let touchWasActive = false;
-    const viewAim = new THREE.Vector2();
-    const viewLean = new THREE.Vector2();
+    const inverseFocus = new THREE.Matrix4();
+    let openingTimeline, openingPlayed=false;
+    function settleOpening() {
+        openingTimeline?.cancel();
+        uniforms.opening.value=uniforms.invocation.value=1;
+        uniforms.constellation.value=.12;
+        canvas.dataset.opening='settled';
+    }
+    function beginOpening() {
+        if(openingPlayed || field.dataset.space!=='full')return;
+        openingPlayed=true;
+        if(reduced.matches){settleOpening();return;}
+        uniforms.opening.value=uniforms.invocation.value=0;
+        openingTimeline=createTimeline({onComplete:()=>{canvas.dataset.opening='settled';}})
+            .add(uniforms.invocation,{value:[0,1],duration:1500,ease:'out(3)'},0)
+            .add(uniforms.opening,{value:[0,1],duration:3000,ease:'out(3)'},250)
+            .add(uniforms.constellation,{value:[0,1],duration:1400,ease:'out(3)'},600)
+            .add(uniforms.constellation,{value:.12,duration:1800,ease:'inOut(3)'},2600);
+        canvas.dataset.opening='invoking';
+    }
     const impulses = Array.from({length:6}, () => ({born:-Infinity, strength:0}));
     function clearTouch() {
         if (gesture && field.hasPointerCapture(gesture.id)) field.releasePointerCapture(gesture.id);
         gesture = null;
-        viewAim.set(0,0);
         impulses.forEach((impulse, i) => {
             impulse.strength = 0; uniforms.touches.value[i].w = 0;
         });
@@ -280,13 +386,11 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         if (reduced.matches || stopped || event.button !== 0 || !event.isPrimary
             || gesture || event.target.closest('.field-readout')) return;
         gesture = {id:event.pointerId, x:event.clientX, y:event.clientY};
-        aimView(event);
         field.setPointerCapture(event.pointerId);
         addImpulse(event,0,0,true);
     });
     field.addEventListener('pointermove', event => {
         if (!gesture || event.pointerId !== gesture.id) return;
-        aimView(event);
         const dx = event.clientX-gesture.x, dy = event.clientY-gesture.y;
         if (Math.hypot(dx,dy)<2) return;
         if (performance.now()-lastImpulse>=45) {
@@ -294,16 +398,9 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             gesture.x=event.clientX; gesture.y=event.clientY;
         }
     });
-    function aimView(event) {
-        const rect=anchor.getBoundingClientRect();
-        viewAim.set(
-            THREE.MathUtils.clamp((event.clientX-rect.x-rect.width/2)/rect.width,-.7,.7),
-            THREE.MathUtils.clamp((event.clientY-rect.y-rect.height/2)/rect.height,-.7,.7));
-    }
     const releaseGesture = event => {
         if (event.pointerId !== gesture?.id) return;
         gesture = null;
-        viewAim.set(0,0);
         if (field.hasPointerCapture(event.pointerId)) field.releasePointerCapture(event.pointerId);
     };
     field.addEventListener('pointerup', releaseGesture);
@@ -325,9 +422,20 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const rect = anchor.getBoundingClientRect();
         bounds = {x:rect.x + rect.width / 2 - innerWidth / 2,
             y:innerHeight / 2 - rect.y - rect.height / 2, size:rect.width * (field.dataset.space === 'compact' ? .52 : .66)};
+        if(getCarMode()&&field.dataset.space==='compact'){
+            const room=field.getBoundingClientRect();
+            bounds.x=room.x+room.width*.42-innerWidth/2;
+            bounds.y=innerHeight/2-room.y-room.height/2;
+            bounds.size=Math.min(room.width*.6,Math.max(rect.width*.52,room.height*.7));
+        }
+        const text=document.querySelector('.field-readout').getBoundingClientRect();
+        uniforms.readoutBox.value.set(text.x+text.width/2,innerHeight-text.y-text.height/2,text.width/2+3,text.height/2+3);
+        const header=document.querySelector('.broadcast-head');
+        uniforms.headerEdge.value=header ? innerHeight-header.getBoundingClientRect().bottom : 10000;
         focus.position.set(bounds.x, bounds.y, 0);
         focus.scale.setScalar(bounds.size);
         focus.visible = field.dataset.space !== 'none';
+        beginOpening();
         dirty = true;
     }
     function resize() {
@@ -365,10 +473,13 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const moving = !reduced.matches;
         const flow = ({idle:.65,loading:.85,playing:1,paused:.35,error:.2})[frame.state] ?? .65;
         if (moving) phase += dt*flow;
-        viewLean.lerp(viewAim, reduced.matches ? 1 : 1-Math.exp(-dt*5));
-        // Slow observing angle plus touch parallax reveals the existing front/back geometry.
-        focus.rotation.set(moving ? Math.sin(phase*.14)*.045+viewLean.y*.22 : 0,
-            moving ? Math.sin(phase*.11)*.07+viewLean.x*.3 : 0,0);
+        // No automatic rocking. Optional phone tilt follows the physical device only.
+        const tilt=orientation.sample(dt);
+        focus.rotation.set(tilt.y,tilt.x,0);
+        focus.updateMatrixWorld(true);
+        uniforms.cameraLocal.value.copy(camera.position).applyMatrix4(inverseFocus.copy(focus.matrixWorld).invert());
+        constellationGeometry.setDrawRange(0,Math.max(0,Math.ceil(uniforms.opening.value*constellationVertices.length)));
+        constellationStars.material.uniforms.opacity.value=uniforms.constellation.value*.7;
         const live = playing && !reduced.matches && frame.mode === 'audio-analysis';
         uniforms.clock.value = phase;
         uniforms.galaxy.value = mix;
@@ -383,7 +494,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         orbitDust.material.uniforms.opacity.value = .6 * (1 - mix);
         orbitDepth.material.uniforms.opacity.value = .25 * (1 - mix);
         galaxyDepth.material.uniforms.opacity.value = .24 * mix;
-        rings.forEach((ring, i) => { ring.material.opacity = (i ? .1 : .2) * (1 - mix); });
+        rings.forEach((ring, i) => { ring.material.uniforms.opacity.value = (i ? .1 : .2) * (1 - mix); });
         galacticDust.material.uniforms.opacity.value = .55 * mix;
         stellar.visible = mix < .999;
         galaxy.visible = mix > .001;
@@ -412,7 +523,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         stopped=false;canvas.hidden=false;last=0;dirty=true;resize();raf=requestAnimationFrame(render);
     });
     window.addEventListener('pagehide', event => {
-        if(event.persisted)return;cancelAnimationFrame(raf);layoutObserver.disconnect();modeObserver.disconnect();
+        if(event.persisted)return;cancelAnimationFrame(raf);openingTimeline?.cancel();orientation.dispose();layoutObserver.disconnect();modeObserver.disconnect();
         const materials=new Set();
         for(const root of [scene,background])root.traverse(object=>{object.geometry?.dispose();if(object.material)materials.add(object.material);});
         materials.forEach(material=>material.dispose());renderer.dispose();
@@ -421,9 +532,11 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     document.addEventListener('visibilitychange', () => {
         cancelAnimationFrame(raf);
         clearTouch();
+        if(document.hidden)openingTimeline?.pause();
+        else if(!reduced.matches)openingTimeline?.resume();
         if (!document.hidden && !stopped) { last = 0; dirty = true; raf = requestAnimationFrame(render); }
     });
-    reduced.addEventListener('change', clearTouch);
+    reduced.addEventListener('change', () => {clearTouch();if(reduced.matches)settleOpening();});
     resize();
     raf = requestAnimationFrame(render);
 }

@@ -264,8 +264,7 @@ dialog button {min-height:44px;padding:10px 14px;border:1px solid var(--line);ba
 .beacon {width:220px;height:220px;flex-shrink:0;fill:none;stroke:var(--ice);stroke-width:1;overflow:visible}
 body[data-sky="ready"] .beacon {opacity:0}
 body[data-sky="ready"] .station-field {pointer-events:auto;touch-action:pinch-zoom}
-body[data-sky="ready"] .beacon {cursor:grab}
-body[data-sky="ready"] .beacon:active {cursor:grabbing}
+body[data-sky="ready"] .beacon {cursor:default}
 @media(prefers-reduced-motion:reduce) {
  body[data-sky="ready"] .station-field {pointer-events:none;touch-action:auto}
 }

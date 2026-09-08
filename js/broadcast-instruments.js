@@ -131,6 +131,11 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
         lastRenderAt: 0
     };
     let audioEvents;
+    let astraInstrument;
+    // Optional and locally vendored; failure keeps the two original motifs available.
+    void import('/js/broadcast-astra-instrument.js?v=20260908-1')
+        .then(module=>{astraInstrument=module.createAstraInstrument();})
+        .catch(()=>{});
 
     function setAnalysisState(state, label, note = '') {
         surfaces.forEach(surface => {
@@ -332,21 +337,22 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
         }
     }
 
-    function drawReceiverFallback(context, width, height, center) {
+    function drawReceiverFallback(context, width, height, center, playbackMs=model.fallbackPlaybackMs) {
         const active = ['loading', 'playing', 'paused'].includes(model.receiverState);
-        const elapsed = model.fallbackPlaybackMs % 28000;
+        const elapsed = playbackMs % 28000;
         const fade = clamp((elapsed - 26400) / 1600);
         const eased = fade * fade * (3 - 2 * fade);
-        const bars = active ? (Math.floor(model.fallbackPlaybackMs / 28000) % 2 ? 1 - eased : eased) : 0;
+        const bars = active ? (Math.floor(playbackMs / 28000) % 2 ? 1 - eased : eased) : 0;
+        const opacity=context.globalAlpha;
         if (bars < 1) {
             context.save();
-            context.globalAlpha = 1 - bars;
+            context.globalAlpha = opacity * (1 - bars);
             drawPilotFallback(context, width, height, center);
             context.restore();
         }
         if (bars > 0) {
             context.save();
-            context.globalAlpha = bars;
+            context.globalAlpha = opacity * bars;
             drawBarFallback(context, width, height, center);
             context.restore();
         }
@@ -513,7 +519,27 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
 
         context.save();
         if (!model.liveValidated) {
-            drawReceiverFallback(context, width, height, center);
+            // The Signal panel keeps its original trace/bars. The dock gains a third chapter.
+            const dock=surface.root.id==='dock-instruments';
+            const active=['playing','paused'].includes(model.receiverState);
+            const elapsed=model.fallbackPlaybackMs;
+            const chapter=Math.floor(elapsed/28000)%3;
+            const progress=clamp((elapsed%28000-25600)/2400);
+            const blend=progress*progress*(3-2*progress);
+            const astraWeight=dock&&active&&!reducedMotion.matches&&astraInstrument
+                ? chapter===1?blend:chapter===2?1-blend:0:0;
+            // Retain the original pilot-to-bars transition; let bars hand over to Astra.
+            const motifTime=dock&&astraInstrument&&!reducedMotion.matches
+                ? chapter===0?elapsed%28000:chapter===1?28000+Math.min(elapsed%28000,25000):0
+                : elapsed;
+            if(astraWeight<1){context.globalAlpha=1-astraWeight;drawReceiverFallback(context,width,height,center,motifTime);}
+            if(astraWeight>0){
+                context.globalAlpha=astraWeight;
+                if(!astraInstrument.draw(context,width,height,model.fallbackPhase/1.8,density)){
+                    context.globalAlpha=1;drawReceiverFallback(context,width,height,center);
+                }
+            }
+            surface.root.dataset.motif=astraWeight>.5?'astra':chapter===1&&dock?'bars':'pilot';
             context.restore();
             return;
         }

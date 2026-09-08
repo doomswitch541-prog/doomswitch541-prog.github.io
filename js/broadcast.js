@@ -1,6 +1,6 @@
-import { publishSignalFrame } from '/js/broadcast-console.js?v=20260907-4';
+import { publishSignalFrame } from '/js/broadcast-console.js?v=20260908-1';
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260906-2';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260908-1';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -801,9 +801,7 @@ function topStationIndex(station) {
 }
 
 function stationListenUrl(station) {
-    const url = new URL(location.pathname, location.origin);
-    url.searchParams.set('station', station.stationuuid);
-    return url.href;
+    return new URL(`/music/broadcast/stations/${encodeURIComponent(station.stationuuid)}/`,location.origin).href;
 }
 
 function shareCardFilename(station) {
@@ -1693,7 +1691,8 @@ function bindMediaSession() {
 }
 
 function selectInitialStation() {
-    const requestedUuid = new URLSearchParams(location.search).get('station');
+    const requestedUuid = new URLSearchParams(location.search).get('station')
+        || location.pathname.match(/\/music\/broadcast\/stations\/([^/]+)\/?$/)?.[1];
     if (requestedUuid) {
         const canonicalUuid = LEGACY_TOP_STATION_REPLACEMENTS.get(requestedUuid) || requestedUuid;
         const curated = ALL_CURATED_STATIONS.find(station => station.stationuuid === canonicalUuid);
@@ -1822,24 +1821,13 @@ shareButton.addEventListener('click', async () => {
     ].filter(Boolean).join('\n');
     shareButton.disabled = true;
     shareButton.setAttribute('aria-busy', 'true');
-    playerStatus.textContent = 'Capturing tuner card...';
+    playerStatus.textContent = 'Opening station share...';
     try {
-        const blob = await stationCardBlob(station, slotIndex);
-        const filename = shareCardFilename(station);
-        const file = typeof File === 'function' ? new File([blob], filename, { type: 'image/png' }) : null;
-        let canShareFile = false;
-        try {
-            canShareFile = Boolean(
-                file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })
-            );
-        } catch {
-            // File sharing support varies; the download fallback remains available.
-        }
-
-        if (canShareFile) {
+        // One URL owns its station-specific preview. File shares can discard or split the link on iOS.
+        if (navigator.share) {
             try {
-                await navigator.share({ title, text, url, files: [file] });
-                playerStatus.textContent = 'Share card opened.';
+                await navigator.share({ title, text, url });
+                playerStatus.textContent = 'Station share opened.';
                 return;
             } catch (error) {
                 if (error?.name === 'AbortError') {
@@ -1849,13 +1837,15 @@ shareButton.addEventListener('click', async () => {
             }
         }
 
-        downloadShareCard(blob, filename);
         const copied = await copyStationLink(url);
-        playerStatus.textContent = copied
-            ? 'Share card downloaded. Station link copied.'
-            : 'Share card downloaded.';
+        if(copied)playerStatus.textContent='Station link copied.';
+        else {
+            playerStatus.replaceChildren(document.createTextNode('Station link: '));
+            const link=document.createElement('a');link.href=url;link.textContent=url;
+            playerStatus.append(link);
+        }
     } catch (error) {
-        playerStatus.textContent = 'Share card was not available.';
+        playerStatus.textContent = 'Station sharing was not available.';
     } finally {
         shareButton.removeAttribute('aria-busy');
         shareButton.disabled = topStationIndex(currentStation) < 0;
