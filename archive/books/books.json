@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-07T10:26:17.158Z",
+  "updatedAt": "2026-09-08T09:46:53.327Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -152,6 +152,16 @@
       "description": "Book digitized by Google from the library of the New York Public Library and uploaded to the Internet Archive by user tpb.",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-07T10:26:17.158Z"
+    },
+    {
+      "date": "2026-09-08",
+      "identifier": "fieldmuseumofnat56chic",
+      "title": "Field Museum of Natural History bulletin",
+      "creator": "Chicago Natural History Museum",
+      "published": "[1930]-c1990",
+      "description": "Vols. for 1944-Feb. 1966 published by the museum under an alternate name: Chicago Natural History Museum",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-08T09:46:53.327Z"
     }
   ]
 }
