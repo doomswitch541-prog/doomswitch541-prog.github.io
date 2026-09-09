@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-08T09:46:53.327Z",
+  "updatedAt": "2026-09-09T09:50:55.288Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -162,6 +162,16 @@
       "description": "Vols. for 1944-Feb. 1966 published by the museum under an alternate name: Chicago Natural History Museum",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-08T09:46:53.327Z"
+    },
+    {
+      "date": "2026-09-09",
+      "identifier": "americanartameri02mont",
+      "title": "American art and American art collections; essays on artistic subjects",
+      "creator": "Montgomery, Walter",
+      "published": "1889",
+      "description": "Part of the plates accompanied by leaf with descriptive letterpress",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-09T09:50:55.288Z"
     }
   ]
 }
