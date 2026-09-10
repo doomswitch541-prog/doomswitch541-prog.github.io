@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-09T09:50:55.288Z",
+  "updatedAt": "2026-09-10T09:48:49.093Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -172,6 +172,16 @@
       "description": "Part of the plates accompanied by leaf with descriptive letterpress",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-09T09:50:55.288Z"
+    },
+    {
+      "date": "2026-09-10",
+      "identifier": "cu31924024780219",
+      "title": "Gaelic names of beasts (Mammalia), birds, fishes, insects, reptiles, etc. in two parts:",
+      "creator": "Forbes, Alexander Robert",
+      "published": "1905",
+      "description": "The metadata below describe the original scanning. Follow the \"All Files: HTTP\" link in the \"View the book\" box to the left to find XML files that contain more metadata about the original images and the derived formats (OCR results, PDF etc.). See also the What is the directory structure for the texts? FAQ for information about file content and naming conventions.",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-10T09:48:49.093Z"
     }
   ]
 }
