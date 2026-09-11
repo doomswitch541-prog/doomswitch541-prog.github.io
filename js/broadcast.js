@@ -1,6 +1,6 @@
-import { publishSignalFrame } from '/js/broadcast-console.js?v=20260908-1';
+import { publishSignalFrame } from '/js/broadcast-console.js?v=20260911-1';
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260908-1';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260911-1';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -1506,6 +1506,7 @@ function updateTransportAvailability() {
 
 function setCurrentStation(station, index = stations.findIndex(item => item.stationuuid === station.stationuuid)) {
     currentStation = station;
+    document.getElementById('station-field').dataset.station=station.stationuuid;
     currentIndex = index;
     receiverInstruments.setStation(station);
     mediaSessionMessageIndex = 0;

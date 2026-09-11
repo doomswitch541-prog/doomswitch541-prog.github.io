@@ -243,7 +243,10 @@ not remove a station or change playback.
   their position, size, phase and tint data. Extra layers are generated afterward,
   bringing the orbital formation to 4,800 and the Car galaxy to 22,000 particles.
   The two crossing arcs, original seeded flicker and original touch lifecycle remain.
-  Larger point sprites, perspective sizing, distance fading and a sparse 180-point
+  The second arc has a brighter fine line and a narrow translucent tube for local
+  glow. It rotates slowly in one direction independently of the fixed viewing angle;
+  its brightness does not pulse. The galaxy's outer dust layer is broader and deeper.
+  Larger point sprites, perspective sizing, distance fading and a sparse 260-point
   foreground volume distinguish near and far space. Original orbit sprites scale
   by 2.6 and galaxy sprites by 1.85 before perspective; original attribute arrays
   remain intact. The camera and formations keep a fixed observing angle; shader
@@ -255,8 +258,11 @@ not remove a station or change playback.
   intersection and a 16-step integration through a narrow volume around the source.
   Domain-warped filaments add faint dusk violet and sage. An authored seven-point
   constellation references Astraea without claiming a historical star chart.
-  Local Anime.js 4.5.0 orchestrates a single 4.4-second arrival when the full field
-  first becomes visible; it settles into the ongoing flow and never repeats.
+  Local Anime.js 4.5.0 orchestrates a single 4.4-second particle arrival when the
+  full field first becomes visible. A separate 1.8-second beam descent runs on
+  each new station UUID without restarting the particles. Metadata updates and
+  reselecting the same station do not invoke it. Rapid switches replace the pending
+  descent; hidden fields defer it until visible and hidden tabs pause its timeline.
   Car Mode preserves the active panel and the dock's open/closed state on both
   entry and exit. Station information is unchanged. Existing compact/hidden
   field rules continue to prioritize browsing and keyboard space on small screens.
@@ -266,15 +272,12 @@ not remove a station or change playback.
   Ready, tuning, playing, paused and error states ease between light/flow targets;
   pause retains quiet ambient movement. Valid analysis nudges local travel, with
   the same receiver-animation labels for unmeasured sources.
-  Touch uses the original damped impulse response with a 5-CSS-pixel ceiling,
-  corrected for perspective. It never tilts the viewing frame. Car Mode retains
-  its gentler touch strength.
-  More offers optional **Phone tilt** on devices exposing orientation events.
-  It starts off and requests iOS motion permission only after a tap. Small physical
-  tilts ease toward a bounded 0.025-radian angle per axis; there is no autonomous
-  rocking. Off, hidden tabs and reduced motion reset the pose. No location, camera,
-  sensor storage or network request is involved. Physical iPhone feel and permission
-  behavior still need device review; Firefox checks use injected orientation events.
+  Touch uses the original damped impulse response with a 9-CSS-pixel tap ceiling.
+  Sustained dragging builds reach, strength and settling time, up to a 28-pixel
+  ceiling corrected for perspective. Release gathers the dust back without bounce;
+  the effect never tilts the viewing frame. Car Mode retains gentler touch strength.
+  The optional Phone tilt control and orientation module were removed. The page
+  uses pointer input only and requests no orientation or motion-sensor access.
   Reduced motion disables ambient/touch movement; hidden tabs suspend rendering.
   Rendering allows up to 60fps with a 1.5 DPR ceiling. No simulation textures or
   postprocessing chain are needed by this renderer. Physical iPhone performance
