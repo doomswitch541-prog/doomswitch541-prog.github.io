@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-11T09:47:37.921Z",
+  "updatedAt": "2026-09-12T09:25:20.946Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -192,6 +192,16 @@
       "description": "statement of responsibility: publié par les ordres de Sa Majesté l'empereur Napoléon le Grand",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-11T09:47:37.921Z"
+    },
+    {
+      "date": "2026-09-12",
+      "identifier": "portfolio00whise",
+      "title": "The portfolio : an artistic periodical",
+      "creator": "Whistler, James McNeill",
+      "published": "1870",
+      "description": "v. : 37 cm",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-12T09:25:20.946Z"
     }
   ]
 }
