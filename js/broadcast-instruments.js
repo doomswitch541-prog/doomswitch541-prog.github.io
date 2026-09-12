@@ -133,7 +133,7 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
     let audioEvents;
     let astraInstrument;
     // Optional and locally vendored; failure keeps the two original motifs available.
-    void import('/js/broadcast-astra-instrument.js?v=20260911-1')
+    void import('/js/broadcast-astra-instrument.js?v=20260911-2')
         .then(module=>{astraInstrument=module.createAstraInstrument();})
         .catch(()=>{});
 

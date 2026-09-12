@@ -247,8 +247,15 @@ not remove a station or change playback.
   glow. It rotates slowly in one direction independently of the fixed viewing angle;
   its brightness does not pulse. The galaxy's outer dust layer is broader and deeper.
   Larger point sprites, perspective sizing, distance fading and a sparse 260-point
-  foreground volume distinguish near and far space. Original orbit sprites scale
-  by 2.6 and galaxy sprites by 1.85 before perspective; original attribute arrays
+  foreground volume distinguish near and far space.
+  An additional 640-mote travelling volume moves toward the observing plane around
+  the receiver. Perspective makes nearby dust pass faster; close motes grow softer
+  with lower peak brightness. Each mote has an independent speed and depth,
+  fades out before recycling, and takes a different lane on its next passage.
+  This layer uses the same touch impulses, text/header clearance and visibility
+  lifecycle, with lower opacity in the compact field. The camera and the original
+  formation stay fixed in place. No zoom timeline or shared travel reset is used.
+  Original orbit sprites scale by 2.6 and galaxy sprites by 1.85 before perspective; original attribute arrays
   remain intact. The camera and formations keep a fixed observing angle; shader
   circulation carries dust continuously in one direction, with differential travel
   and a local curl field. There is no rocking camera or reversing pose animation.

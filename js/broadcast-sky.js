@@ -33,6 +33,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         readoutBox:{value:new THREE.Vector4(-10000,-10000,0,0)},
         headerEdge:{value:10000},
         touchCeiling:{value:9},
+        fieldAnchor:{value:new THREE.Vector3()},
         touches:{value:Array.from({length:6}, () => new THREE.Vector4(0,0,1,0))},
         touchFlow:{value:Array.from({length:6}, () => new THREE.Vector2())}
     };
@@ -62,6 +63,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         uniform float orbitShape;
         uniform float cameraDepth;
         uniform float touchCeiling;
+        uniform float passage;
+        uniform vec3 fieldAnchor;
         uniform vec4 touches[6];
         uniform vec2 touchFlow[6];
         varying vec3 vTint;
@@ -98,6 +101,20 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             vLight *= smoothstep(phase*.045,phase*.045+.4,opening);
             local.z *= depthGain;
             vec4 view=modelViewMatrix*vec4(local,1.);
+            if(passage>0.){
+                // Travel through a volume around the receiver, with an unmoving observing angle.
+                // Every mote has its own speed and depth; a new lane starts only while invisible.
+                float journey=position.z+clock*(.018+phase*.0017);
+                float cycle=floor(journey),along=fract(journey);
+                float bearing=phase+hash(vec2(seed,cycle))*6.283185;
+                float radius=(.2+hash(vec2(seed+17.,cycle))*.95)*fieldAnchor.z;
+                float distance=cameraDepth*mix(1.85,.24,along);
+                vec2 lane=vec2(cos(bearing),sin(bearing)*.8)*radius;
+                lane+=vec2(noise(vec2(seed+21.,along*1.3))-.5,
+                    noise(vec2(seed+57.,along*1.3))-.5)*fieldAnchor.z*.1;
+                view=vec4(fieldAnchor.xy*distance/cameraDepth+lane,-distance,1.);
+                vLight*=smoothstep(0.,.13,along)*(1.-smoothstep(.78,1.,along));
+            }
             vDepth = -view.z / cameraDepth;
             // Atmospheric separation belongs to each particle, leaving the space between clear.
             float distanceFade = exp(-pow(max(0.,vDepth-1.)*2.8,2.));
@@ -117,18 +134,21 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             view.xy += push * min(1.,touchCeiling/max(length(push),.001)) * touchGain * max(1.,-view.z)/cameraDepth;
             gl_Position = projectionMatrix * view;
             gl_PointSize = size * sizeGain * pixelRatio * clamp(cameraDepth/max(1.,-view.z),.45,2.4) * (1. + treble * .2);
+            gl_PointSize *= 1.+passage*(1.-smoothstep(.3,.75,vDepth))*.35;
         }
     `;
     const fragment = `
         ${textClearance}
         uniform float opacity;
+        uniform float passage;
         varying vec3 vTint;
         varying float vLight;
         varying float vDepth;
         void main() {
             float d = length(gl_PointCoord - .5) * 2.;
             float edge = 1. - smoothstep(.65,1.,d);
-            float core = (exp(-d*d*9.) + .18*exp(-d*d*2.)) * edge;
+            float defocus=passage*(1.-smoothstep(.3,.75,vDepth));
+            float core = (exp(-d*d*mix(9.,3.8,defocus)) + .18*exp(-d*d*2.)) * edge * mix(1.,.55,defocus);
             gl_FragColor = vec4(vTint, core * opacity * vLight * clearText());
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
@@ -149,7 +169,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         geometry.setAttribute('phase', new THREE.Float32BufferAttribute(phases, 1));
         geometry.setAttribute('tint', new THREE.Float32BufferAttribute(colors, 3));
         const material = new THREE.ShaderMaterial({
-            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}, circulation:{value:0}, orbitShape:{value:0}}, vertexShader:vertex, fragmentShader:fragment,
+            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}, circulation:{value:0}, orbitShape:{value:0}, passage:{value:0}}, vertexShader:vertex, fragmentShader:fragment,
             transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
         });
         return new THREE.Points(geometry, material);
@@ -271,6 +291,16 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     focus.add(constellationLine);
     const constellationStars=points(constellationVertices.length,i=>({position:constellationVertices[i],size:4.5,color:[.78,.94,.87]}),0,0);
     focus.add(constellationStars);
+
+    // Sparse travelling dust provides the near/middle distance around the original formations.
+    // Added after all existing seeded draws. Screen-space text clearance applies to this layer too.
+    const passageDust=points(640,()=>({position:[random(),random(),random()],
+        size:.65+random()*1.2,color:[.58+random()*.12,.8+random()*.13,.86]}),.4,0);
+    passageDust.material.uniforms.passage.value=1;
+    passageDust.material.uniforms.sizeGain.value=2.8;
+    passageDust.material.uniforms.touchGain.value=.85;
+    passageDust.frustumCulled=false;
+    scene.add(passageDust);
 
     // Local procedural light, not a screen-wide gradient or a full-screen bloom pass.
     const lightMaterial = new THREE.ShaderMaterial({
@@ -468,7 +498,10 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         uniforms.headerEdge.value=header ? innerHeight-header.getBoundingClientRect().bottom : 10000;
         focus.position.set(bounds.x, bounds.y, 0);
         focus.scale.setScalar(bounds.size);
+        uniforms.fieldAnchor.value.set(bounds.x,bounds.y,bounds.size);
         focus.visible = field.dataset.space !== 'none';
+        passageDust.visible=focus.visible;
+        passageDust.material.uniforms.opacity.value=field.dataset.space==='compact'?.2:.4;
         beginOpening();
         if(!beamStarted&&field.dataset.space!=='none')invokeBeam();
         dirty = true;
