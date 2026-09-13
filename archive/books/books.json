@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-12T09:25:20.946Z",
+  "updatedAt": "2026-09-13T10:21:48.721Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -202,6 +202,16 @@
       "description": "v. : 37 cm",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-12T09:25:20.946Z"
+    },
+    {
+      "date": "2026-09-13",
+      "identifier": "archivioperlost01unkngoog",
+      "title": "Archivio per lo studio delle tradizioni popolari;",
+      "creator": "Ptrè, Giuseppe, 1841-1916, ed",
+      "published": "1893",
+      "description": "Book digitized by Google and uploaded to the Internet Archive by user tpb.",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-13T10:21:48.721Z"
     }
   ]
 }
