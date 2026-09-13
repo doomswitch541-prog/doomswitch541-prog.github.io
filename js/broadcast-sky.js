@@ -7,7 +7,6 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     const canvas = document.getElementById('broadcast-stars');
     const anchor = document.getElementById('station-beacon');
     const field = document.getElementById('station-field');
-    const receiver = document.getElementById('now-playing');
     if (!canvas) return;
     let renderer;
     try {
@@ -30,7 +29,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         clock:{value:0}, energy:{value:0}, treble:{value:0}, bass:{value:0},
         galaxy:{value:0}, pixelRatio:{value:1}, light:{value:0.7}, cameraDepth:{value:1000},
         opening:{value:1}, invocation:{value:1}, constellation:{value:0},
-        arrowLight:{value:0}, radiation:{value:1}, radiationAngle:{value:0}, impact:{value:0},
+        arrowLight:{value:0}, radiation:{value:1}, receptionSeed:{value:0}, impact:{value:0}, diffusion:{value:1},
         cameraLocal:{value:new THREE.Vector3(0,0,8)},
         readoutBox:{value:new THREE.Vector4(-10000,-10000,0,0)},
         headerEdge:{value:10000},
@@ -68,6 +67,10 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         uniform float passage;
         uniform float impact;
         uniform float impactGain;
+        uniform float radiation;
+        uniform float receptionSeed;
+        uniform float diffusion;
+        uniform float diffusionOnly;
         uniform vec3 fieldAnchor;
         uniform vec4 touches[6];
         uniform vec2 touchFlow[6];
@@ -104,6 +107,13 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             local.xy=mat2(cos(turn),-sin(turn),sin(turn),cos(turn))*local.xy*(1.-arrival*.16);
             vLight *= smoothstep(phase*.045,phase*.045+.4,opening);
             local.z *= depthGain;
+            if(diffusionOnly>0.){
+                // One opening cloud: individual motes drift out, disappear, and never rewind visibly.
+                local=position*(.025+pow(diffusion,.72)*1.65);
+                local.y+=diffusion*diffusion*(hash(vec2(seed,31.))-.5)*.45;
+                vLight*=smoothstep(0.,.06,diffusion)
+                    *(1.-smoothstep(.25+hash(vec2(seed,7.))*.25,1.,diffusion));
+            }
             vec4 view=modelViewMatrix*vec4(local,1.);
             if(passage>0.){
                 // Travel through a volume around the receiver, with an unmoving observing angle.
@@ -123,10 +133,16 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             // Atmospheric separation belongs to each particle, leaving the space between clear.
             float distanceFade = exp(-pow(max(0.,vDepth-1.)*2.8,2.));
             vLight *= distanceFade * mix(1.18,.72,smoothstep(.65,1.35,vDepth));
-            // Beam contact illuminates the whole formation once, then returns to its exact baseline.
-            float received=impact*impactGain;
-            vLight *= 1.+received*2.7;
-            vTint=mix(vTint,vec3(.86,.98,.94),received*.48);
+            // Reception passes through the existing dust. Each grain catches and releases light
+            // at its own depth/radius and phase; there is no synchronized scene-wide flash.
+            float grain=hash(vec2(seed,receptionSeed));
+            float arrivalTime=min(length(position.xy)*.17,.24)+grain*.17;
+            float catchLight=smoothstep(arrivalTime,arrivalTime+.035,radiation)
+                *(1.-smoothstep(arrivalTime+.09,arrivalTime+.34+grain*.2,radiation));
+            float shimmer=.65+.65*noise(vec2(seed+receptionSeed,radiation*(7.+grain*11.)));
+            float received=impact*impactGain*catchLight*shimmer;
+            vLight *= 1.+received*5.5;
+            vTint=mix(vTint,vec3(.86,.98,.94),min(received*.55,.72));
             vec2 push=vec2(0.);
             for (int i=0;i<6;i++) {
                 if (touches[i].w>0.) {
@@ -177,7 +193,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         geometry.setAttribute('phase', new THREE.Float32BufferAttribute(phases, 1));
         geometry.setAttribute('tint', new THREE.Float32BufferAttribute(colors, 3));
         const material = new THREE.ShaderMaterial({
-            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}, circulation:{value:0}, orbitShape:{value:0}, passage:{value:0}, impactGain:{value:1}}, vertexShader:vertex, fragmentShader:fragment,
+            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}, circulation:{value:0}, orbitShape:{value:0}, passage:{value:0}, impactGain:{value:1}, diffusionOnly:{value:0}}, vertexShader:vertex, fragmentShader:fragment,
             transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
         });
         return new THREE.Points(geometry, material);
@@ -384,6 +400,16 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     const passageTrails=new THREE.Mesh(trailGeometry,trailMaterial);
     passageTrails.frustumCulled=false;scene.add(passageTrails);
 
+    const openingDust=points(360,()=>{
+        const angle=random()*Math.PI*2,radius=.25+random()*.8;
+        return {position:[Math.cos(angle)*radius,Math.sin(angle)*radius*.55,(random()-.5)*.9],
+            size:.8+random()*1.5,color:[.65,.88,.85]};
+    },.55,0);
+    openingDust.material.uniforms.diffusionOnly.value=1;
+    openingDust.material.uniforms.impactGain.value=0;
+    openingDust.material.uniforms.sizeGain.value=1.8;
+    focus.add(openingDust);
+
     // Local procedural light, not a screen-wide gradient or a full-screen bloom pass.
     const lightMaterial = new THREE.ShaderMaterial({
         uniforms, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
@@ -393,7 +419,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             varying vec2 uvLocal;
             varying vec3 surfacePoint;
             uniform float galaxy, clock, energy, bass, light, invocation;
-            uniform float arrowLight,radiation,radiationAngle,impact;
+            uniform float arrowLight;
             uniform vec3 cameraLocal;
             float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
             float noise(vec2 p) {
@@ -417,18 +443,6 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 float edge=exp(-pow(chevron/.0035,2.));
                 float halo=exp(-pow(p.x/.021,2.))*exp(-pow((p.y-tip-.16)/.26,2.))*.16;
                 return (shaft+edge+halo)*arrowLight;
-            }
-            float radiatingLight(vec2 p){
-                // Separate angled filaments travel away from the receiver; no expanding pulse ring.
-                vec2 q=p*vec2(1.,1.35);
-                float radius=length(q),angle=(atan(q.y,q.x)+3.141593)/6.283185*9.;
-                float sector=floor(angle),offset=hash(vec2(sector,radiationAngle));
-                float direction=.22+offset*.56;
-                float ray=exp(-pow((fract(angle)-direction)/(.035+offset*.045),2.));
-                float front=radiation*(.65+offset*.75);
-                float wake=exp(-pow((radius-front)/(.07+offset*.13),2.));
-                return ray*wake*smoothstep(.025,.09,radius)
-                    *smoothstep(0.,.08,radiation)*(1.-smoothstep(.55,1.,radiation));
             }
             // Ray/box intersection restricts the 3D light integration to its actual volume.
             float invokedLight(vec3 origin,vec3 direction) {
@@ -468,7 +482,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 // Keep the focal light steady; audio does not make the core breathe.
                 // Each station invokes the descending light; the source itself stays steady.
                 float beam=invokedLight(cameraLocal,normalize(surfacePoint-cameraLocal));
-                float transmission=descendingArrow(p)*1.8+radiatingLight(p)*1.9;
+                float transmission=descendingArrow(p)*1.8;
                 // Astraeus / dusk: faint violet-to-sage filaments behind the icy orbital source.
                 float dusk=exp(-radius*radius*2.8)*pow(grain,2.)*.18;
                 float normal=center+flare+beam*3.3+dusk;
@@ -476,7 +490,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 vec3 color=mix(vec3(.45,.38,.65),vec3(.58,.87,.76),smoothstep(.15,.75,grain));
                 color=mix(color,vec3(.8,.94,.9),clamp(center+core*galaxy+beam*2.,0.,1.));
                 color=mix(color,vec3(.84,.98,.91),clamp(transmission,0.,1.));
-                float alpha=(mix(normal,car,galaxy)*light*(1.+impact*1.5)+transmission)*(1.-smoothstep(.8,1.,r));
+                float alpha=(mix(normal,car,galaxy)*light+transmission)*(1.-smoothstep(.8,1.,r));
                 gl_FragColor=vec4(color,alpha*clearText());
                 #include <tonemapping_fragment>
                 #include <colorspace_fragment>
@@ -518,37 +532,51 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     }
     const inverseFocus = new THREE.Matrix4();
     let openingTimeline, beamTimeline, openingPlayed=false, beamStarted=false, stationKey='';
-    let pendingBeam='',beamDelay=0,previousPresentation='';
-    let nextBeam=8+Math.random()*11;
-    function queueBeam(reason){pendingBeam=reason;beamDelay=.09;dirty=true;}
+    let pendingBeam='',beamDelay=0,beamCooldown=0,previousCar=getCarMode()?1:0;
+    let lastBeamedStation='',diffusionPlayed=false;
+    let nextBeam=75+Math.random()*90;
+    function queueBeam(reason){
+        if(reason==='car'&&pendingBeam==='station')return;
+        pendingBeam=reason;beamDelay=1.4;dirty=true;
+    }
     function invokeBeam(reason='opening'){
         beamTimeline?.cancel();beamStarted=true;
         pendingBeam='';
+        lastBeamedStation=field.dataset.station||stationKey;
         canvas.dataset.transmission=String(Number(canvas.dataset.transmission||0)+1);
         canvas.dataset.beamReason=reason;
         uniforms.arrowLight.value=0;uniforms.radiation.value=1;uniforms.impact.value=0;
-        nextBeam=8+Math.random()*11;
+        beamCooldown=18;nextBeam=75+Math.random()*90;
         if(reduced.matches){uniforms.invocation.value=1;canvas.dataset.beam='settled';dirty=true;return;}
+        const strength=reason==='passing-signal'?.35+Math.random()*.4:.85+Math.random()*.15;
         const descent=950+Math.random()*180;
-        uniforms.radiationAngle.value=Math.random()*1000;
+        uniforms.receptionSeed.value=Math.random()*1000;
+        canvas.dataset.beamStrength=String(strength);
         canvas.dataset.beam='descending';
         beamTimeline=createTimeline({onUpdate:()=>{dirty=true;},onComplete:()=>{canvas.dataset.beam='settled';}})
             .add(uniforms.invocation,{value:[0,1],duration:descent,ease:'in(1.6)'},0)
-            .add(uniforms.arrowLight,{value:[0,1],duration:160,ease:'out(2)'},0)
+            .add(uniforms.arrowLight,{value:[0,strength],duration:160,ease:'out(2)'},0)
             .add(uniforms.arrowLight,{value:0,duration:430,ease:'out(2)'},descent)
-            .add(uniforms.radiation,{value:[0,1],duration:1650,ease:'out(1.4)'},descent)
-            .add(uniforms.impact,{value:[0,1],duration:110,ease:'out(2)'},descent)
-            .add(uniforms.impact,{value:0,duration:1850,ease:'out(2)'},descent+110);
+            .add(uniforms.radiation,{value:[0,1],duration:4200,ease:'linear'},descent)
+            .add(uniforms.impact,{value:[strength,0],duration:4200,ease:'out(1.1)'},descent);
+        if(!diffusionPlayed){
+            diffusionPlayed=true;canvas.dataset.diffusions='1';
+            beamTimeline.add(uniforms.diffusion,{value:[0,1],duration:2900,ease:'linear'},descent);
+        }
         if(document.hidden)beamTimeline.pause();
     }
     function advanceBeam(dt,frame,target){
-        const presentation=`${field.dataset.space}:${target}:${receiver?.dataset.expanded}:${receiver?.dataset.view}`;
-        if(previousState&&frame.state!==previousState)queueBeam('receiver-'+frame.state);
-        if(previousPresentation&&presentation!==previousPresentation)queueBeam('dock-or-view');
-        previousPresentation=presentation;
-        if(!focus.visible)return;
-        if(pendingBeam){beamDelay-=dt;if(beamDelay<=0)invokeBeam(pendingBeam);return;}
-        if(!reduced.matches&&canvas.dataset.beam==='settled'){
+        // Transport, metadata and dock layout are not new transmissions.
+        if(target!==previousCar){if(target)queueBeam('car');else if(pendingBeam==='car')pendingBeam='';}
+        previousCar=target;
+        if(!focus.visible||reduced.matches)return;
+        beamCooldown=Math.max(0,beamCooldown-dt);
+        if(pendingBeam){
+            beamDelay-=dt;
+            if(beamDelay<=0&&beamCooldown===0&&canvas.dataset.beam==='settled')invokeBeam(pendingBeam);
+            return;
+        }
+        if(canvas.dataset.beam==='settled'){
             nextBeam-=dt;if(nextBeam<=0)invokeBeam('passing-signal');
         }
     }
@@ -556,6 +584,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const next=field.dataset.station||'';
         if(!next||next===stationKey)return;
         stationKey=next;
+        if(next===lastBeamedStation){if(pendingBeam==='station')pendingBeam='';return;}
         queueBeam('station');
     }
     function settleOpening() {
@@ -563,6 +592,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         beamTimeline?.cancel();canvas.dataset.beam='settled';
         uniforms.opening.value=uniforms.invocation.value=1;
         uniforms.arrowLight.value=0;uniforms.radiation.value=1;uniforms.impact.value=0;pendingBeam='';
+        uniforms.diffusion.value=1;
         uniforms.constellation.value=.12;
         canvas.dataset.opening='settled';
     }
@@ -703,6 +733,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const flow = ({idle:.65,loading:.85,playing:1,paused:.35,error:.2})[frame.state] ?? .65;
         if (moving) phase += dt*flow;
         advanceBeam(dt,frame,target);
+        openingDust.visible=uniforms.diffusion.value>0&&uniforms.diffusion.value<1;
         // Preserve the original X at every elapsed time; only the light travels around it.
         advanceRingSignal(focus.visible?dt:0,moving);
         if(!gesture)dragEnergy*=Math.exp(-dt*1.4);
@@ -725,8 +756,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         orbitDust.material.uniforms.opacity.value = .6 * (1 - mix);
         orbitDepth.material.uniforms.opacity.value = .25 * (1 - mix);
         galaxyDepth.material.uniforms.opacity.value = .24 * mix;
-        rings.forEach((ring, i) => { ring.material.uniforms.opacity.value = (i ? .42 : .24) * (1 - mix)*(1+uniforms.impact.value*.8); });
-        crossingGlow.material.uniforms.opacity.value=.075*(1-mix)*(1+uniforms.impact.value);
+        rings.forEach((ring, i) => { ring.material.uniforms.opacity.value = (i ? .42 : .24) * (1 - mix); });
+        crossingGlow.material.uniforms.opacity.value=.075*(1-mix);
         galacticDust.material.uniforms.opacity.value = .55 * mix;
         stellar.visible = mix < .999;
         galaxy.visible = mix > .001;

@@ -10,25 +10,31 @@ audio in the shared Firefox receiver during this pass. No Agenda uses its specif
 Icecast mount, idobi supplies artist/title JSON, and Emoscene supplies laut.fm's
 current-song JSON. Existing HearMe and other provider paths are unchanged.
 
-The main Three.js field now receives a narrow arrow-like descending beam, then
-the whole particle formation catches the light and returns to its original
-brightness. Uneven outward filaments accompany the impact. Both the orbital X
-and Car Mode's spiral use the same reception uniforms; the background starfield
-retains its normal brightness. Text/header clearance applies throughout.
+The September 13 reception revision keeps the narrow descending beam and moves
+its radiance into the existing galaxy particles. Individual grains catch and
+release light according to position and independently seeded variation. The
+formation returns to its original brightness without changing its positions.
+The opening alone releases 360 additional motes that diffuse outward and fade;
+later beams do not replay them. The radial light spokes have been removed. Both
+the orbital X and Car Mode's spiral share this reception; the core, rings and
+background starfield retain their normal brightness. Text/header clearance
+applies throughout.
 
-The locally vendored Anime.js timeline sequences the descent, arrow fade, outward
-filaments and formation illumination without a repeating loop. Station changes,
-receiver playback-state changes, Car Mode transitions and dock/view changes renew
-the descent. Changes within 90 ms coalesce into a single invocation. A further
-arrival can occur after a newly sampled 8–19 seconds of visible quiet time once
-the previous effect has settled. Hidden time is not accumulated. Reduced motion
-settles the reception uniforms without playing the effect.
+The locally vendored Anime.js timeline sequences descent and particle reception.
+Station changes wait for 1.4 seconds of settled selection and share an 18-second
+minimum between beam starts, coalescing quick browsing into the final station.
+Entering Car Mode requests an arrival through that same spacing. Playback,
+buffering, metadata and dock changes do not request beams. On an unchanged
+station, a softer arrival can occur after 75–165 seconds of newly sampled visible
+quiet time following the previous effect. Each arrival varies in strength and
+particle response. Hidden time is not accumulated. Reduced motion settles the
+reception uniforms without playing the effect.
 
-Verification includes both-view arrow/contact/radiation captures, exact frozen
-render return after impact, Car/dock/occasional re-invocation, and Personal
-playback/title/pause-state checks. The two original dock motifs and the small
-Astra instrument are unchanged; applying reception to that instrument is a later
-visual pass.
+Verification includes reception and exact frozen-render return in both views,
+opening-only diffusion, rapid station switching, transport/dock/title changes,
+quiet intervals and Car Mode spacing. Personal playback/title checks cover the
+four additions above. The two original dock motifs and the small Astra instrument
+are unchanged; applying reception to that instrument is a later visual pass.
 
 Reference: [Anime.js timelines](https://animejs.com/documentation/timeline/).
 
