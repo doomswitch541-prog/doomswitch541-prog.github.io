@@ -104,7 +104,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             if(passage>0.){
                 // Travel through a volume around the receiver, with an unmoving observing angle.
                 // Every mote has its own speed and depth; a new lane starts only while invisible.
-                float journey=position.z+clock*(.018+phase*.0017);
+                float journey=position.z+clock*(.026+phase*.0021);
                 float cycle=floor(journey),along=fract(journey);
                 float bearing=phase+hash(vec2(seed,cycle))*6.283185;
                 float radius=(.2+hash(vec2(seed+17.,cycle))*.95)*fieldAnchor.z;
@@ -201,6 +201,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     orbitDust.material.uniforms.orbitShape.value = 1;
     stellar.add(orbitDust);
     const rings = [];
+    const ringSignals = [];
     let crossingGlow;
     for (let i = 0; i < 2; i++) {
         const coords = [];
@@ -218,6 +219,27 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         ring.rotation.z = i ? .7 : -.32;
         stellar.add(ring);
         rings.push(ring);
+        // A travelling transmission follows the original ellipse; the silhouette never precesses.
+        const signalPath=new THREE.CatmullRomCurve3(coords.slice(0,-1),true);
+        const signalMaterial=new THREE.ShaderMaterial({
+            uniforms:{...uniforms,head:{value:0},origin:{value:0},span:{value:.1},strength:{value:0}},
+            transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+            vertexShader:'varying vec2 ringUv;void main(){ringUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+            fragmentShader:`${textClearance}
+                varying vec2 ringUv;uniform float head,origin,span,strength;
+                void main(){
+                    float behind=head-fract(ringUv.x-origin+1.);
+                    float trail=exp(-max(0.,behind)/span)*step(0.,behind)*step(behind,span*5.);
+                    float tip=exp(-pow(behind/.008,2.));
+                    float edge=pow(abs(cos(ringUv.y*6.283185)),3.);
+                    gl_FragColor=vec4(mix(vec3(.46,.81,.75),vec3(.88,1.,.96),tip),
+                        (trail*.5+tip*.8)*edge*strength*clearText());
+                    #include <tonemapping_fragment>
+                    #include <colorspace_fragment>
+                }`
+        });
+        const signal=new THREE.Mesh(new THREE.TubeGeometry(signalPath,256,.012,6,true),signalMaterial);
+        signal.rotation.copy(ring.rotation);stellar.add(signal);ringSignals.push(signal);
         if(i===1){
             const path=new THREE.CatmullRomCurve3(coords.slice(0,-1),true);
             crossingGlow=new THREE.Mesh(new THREE.TubeGeometry(path,192,.008,6,true),
@@ -302,6 +324,56 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     passageDust.frustumCulled=false;
     scene.add(passageDust);
 
+    // A single instanced draw for near dust: projected travel gives each mote its own short tail.
+    // These are world-space paths with perspective acceleration, not a radial screen overlay.
+    const trailGeometry=new THREE.InstancedBufferGeometry();
+    trailGeometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,0,0,1,0,0,-1,1,0,1,1,0],3));
+    trailGeometry.setIndex([0,1,2,2,1,3]);
+    const trailSeeds=Float32Array.from({length:144*4},()=>random());
+    trailGeometry.setAttribute('laneSeed',new THREE.InstancedBufferAttribute(trailSeeds,4));
+    trailGeometry.instanceCount=144;
+    const trailMaterial=new THREE.ShaderMaterial({
+        uniforms:{...uniforms,opacity:{value:.38}},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+        vertexShader:`
+            attribute vec4 laneSeed;
+            uniform float clock,cameraDepth,opening;
+            uniform vec3 fieldAnchor;
+            varying vec2 trailUv;varying float trailLight;
+            float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+            void main(){
+                float journey=laneSeed.x+clock*(.024+laneSeed.y*.018);
+                float cycle=floor(journey),along=fract(journey);
+                float angle=hash(vec2(laneSeed.z*713.,cycle))*6.283185;
+                float radius=(.28+laneSeed.w*.95)*fieldAnchor.z;
+                vec2 lane=vec2(cos(angle),sin(angle)*.85)*radius;
+                float depth=mix(1.65,.2,along);
+                vec2 current=fieldAnchor.xy+lane/depth;
+                float previousDepth=depth+(.024+laneSeed.y*.018)*1.45*.28;
+                vec2 previous=fieldAnchor.xy+lane/previousDepth;
+                vec2 velocity=current-previous;
+                float speed=length(velocity);
+                vec2 direction=velocity/max(speed,.001),normal=vec2(-direction.y,direction.x);
+                float near=1.-smoothstep(.25,1.1,depth);
+                float tail=clamp(speed,1.4,24.);
+                vec2 screen=current-direction*position.y*tail+normal*position.x*(.6+near*.65);
+                gl_Position=projectionMatrix*vec4(screen*depth,-cameraDepth*depth,1.);
+                trailUv=position.xy;
+                trailLight=smoothstep(0.,.15,along)*(1.-smoothstep(.75,1.,along))
+                    *(.2+near*.8)*opening;
+            }`,
+        fragmentShader:`${textClearance}
+            uniform float opacity;varying vec2 trailUv;varying float trailLight;
+            void main(){
+                float across=exp(-trailUv.x*trailUv.x*5.);
+                float tail=pow(1.-trailUv.y,2.2);
+                gl_FragColor=vec4(.64,.88,.87,across*tail*trailLight*opacity*clearText());
+                #include <tonemapping_fragment>
+                #include <colorspace_fragment>
+            }`
+    });
+    const passageTrails=new THREE.Mesh(trailGeometry,trailMaterial);
+    passageTrails.frustumCulled=false;scene.add(passageTrails);
+
     // Local procedural light, not a screen-wide gradient or a full-screen bloom pass.
     const lightMaterial = new THREE.ShaderMaterial({
         uniforms, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
@@ -362,8 +434,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 float beam=invokedLight(cameraLocal,normalize(surfacePoint-cameraLocal));
                 // Astraeus / dusk: faint violet-to-sage filaments behind the icy orbital source.
                 float dusk=exp(-radius*radius*2.8)*pow(grain,2.)*.18;
-                float normal=center+flare+beam*2.6+dusk;
-                float car=cloud+core+beam*1.8+dusk;
+                float normal=center+flare+beam*3.3+dusk;
+                float car=cloud+core+beam*2.3+dusk;
                 vec3 color=mix(vec3(.45,.38,.65),vec3(.58,.87,.76),smoothstep(.15,.75,grain));
                 color=mix(color,vec3(.8,.94,.9),clamp(center+core*galaxy+beam*2.,0.,1.));
                 float alpha=mix(normal,car,galaxy)*light*(1.-smoothstep(.8,1.,r));
@@ -384,6 +456,28 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     let lastImpulse = -Infinity;
     let touchWasActive = false;
     let dragEnergy = 0;
+    // Irregular arrivals in scene time, with a quiet interval after each complete traversal.
+    // No repeating timeline, no synchronized brightness cycle, no replay after a hidden tab.
+    let nextSignal=7+Math.random()*13,signalAge=-1,signalIndex=0,signalDuration=5;
+    function advanceRingSignal(dt,moving){
+        ringSignals.forEach(signal=>{signal.material.uniforms.strength.value=0;});
+        if(!moving)return;
+        if(signalAge<0){
+            nextSignal-=dt;
+            if(nextSignal>0)return;
+            signalIndex=Math.random()<.5?0:1;signalDuration=3.8+Math.random()*2.6;
+            const material=ringSignals[signalIndex].material;
+            material.uniforms.origin.value=Math.random();
+            material.uniforms.span.value=.045+Math.random()*.04;
+            signalAge=0;
+        }
+        signalAge+=dt;
+        const progress=signalAge/signalDuration;
+        const material=ringSignals[signalIndex].material;
+        material.uniforms.head.value=progress;
+        material.uniforms.strength.value=Math.min(1,signalAge*3)*(1-mix);
+        if(progress>1.45){signalAge=-1;nextSignal=10-Math.log(Math.max(.001,Math.random()))*14;}
+    }
     const inverseFocus = new THREE.Matrix4();
     let openingTimeline, beamTimeline, openingPlayed=false, beamStarted=false, stationKey='';
     function invokeBeam(){
@@ -501,7 +595,9 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         uniforms.fieldAnchor.value.set(bounds.x,bounds.y,bounds.size);
         focus.visible = field.dataset.space !== 'none';
         passageDust.visible=focus.visible;
+        passageTrails.visible=focus.visible;
         passageDust.material.uniforms.opacity.value=field.dataset.space==='compact'?.2:.4;
+        trailMaterial.uniforms.opacity.value=field.dataset.space==='compact'?.18:.42;
         beginOpening();
         if(!beamStarted&&field.dataset.space!=='none')invokeBeam();
         dirty = true;
@@ -543,9 +639,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const moving = !reduced.matches;
         const flow = ({idle:.65,loading:.85,playing:1,paused:.35,error:.2})[frame.state] ?? .65;
         if (moving) phase += dt*flow;
-        // The observing angle stays fixed; only the independent crossing ring travels.
-        rings[1].rotation.z=.7+phase*.008;
-        crossingGlow.rotation.copy(rings[1].rotation);
+        // Preserve the original X at every elapsed time; only the light travels around it.
+        advanceRingSignal(focus.visible?dt:0,moving);
         if(!gesture)dragEnergy*=Math.exp(-dt*1.4);
         uniforms.touchCeiling.value=9+dragEnergy*19;
         focus.updateMatrixWorld(true);

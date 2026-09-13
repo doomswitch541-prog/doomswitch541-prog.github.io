@@ -1,5 +1,60 @@
 # RG radio surfaces
 
+## September 12, 2026 — category discoveries and passage rendering
+
+Broadcast adds six official-player streams to its existing category matching.
+`CATEGORY_STATIONS` joins the curated search pool; the ordered Top 20 and Personal
+lists retain their entries. Conspiracy gains Revolution Radio Studio A, Studio B
+and No Agenda Stream. Rock gains idobi Radio, idobi Howl and Emoscene. These are
+category discoveries, not automatic Top 20 promotions. They also participate in
+name/tag search, Saved records and station query links through the existing paths.
+
+Source provenance:
+
+- [Revolution Radio](https://freedomslips.org/) publishes separate Studio A and B
+  HTTPS Zeno stream links. Retain those stable entry URLs, not the expiring signed
+  CDN redirects. Its [station statement](https://www.revolution.radio/) describes
+  uncensored programming spanning conspiracy, paranormal subjects and politics.
+- [No Agenda Stream](https://www.noagendashow.net/about/stream) publishes its direct
+  listening link and describes the live-show and curated-podcast rotation. The
+  existing Icecast adapter selects the `/noagenda` mount in its public status JSON;
+  other mounts on that server must not supply this channel's title.
+- [idobi](https://idobi.com/) embeds the `idobiradio.idobi.com` and
+  `idobihowl.idobi.com` players and reads `/radio/live/?c=idobi%20Radio` or
+  `idobi%20Howl` for current artist/title. A small additional adapter reads those
+  fields without changing existing provider adapters.
+- [Emoscene](https://laut.fm/emoscene) describes 2000s–2020s emo/pop-punk weekdays
+  and metal weekends. Its [station API](https://api.laut.fm/station/emoscene)
+  publishes the stream and current-song endpoints. The additional laut.fm adapter
+  reads `artist.name` and `title`; the description preserves the weekend distinction.
+
+All six streams returned HTTPS audio and decoded with advancing playback time in
+the shared Firefox receiver on September 12. All four new title feeds returned
+browser-readable current metadata. This is a dated playback sample, not a claim
+about every future program or availability. No clean-edit or language filter was
+added. Metadata remains independent of successful audio playback. Exact new
+metadata origins are added to the page CSP and portable hosting headers.
+
+The visual pass keeps the original two crossing ellipses at -0.32 and 0.7 radians.
+Light traverses an ellipse as a short head and trailing wake, with independent
+origin, duration and irregular arrival gaps; the ring geometry does not rotate
+out of its X silhouette. It has no repeating Anime.js timeline or whole-ring
+brightness pulse. Reduced motion clears the travelling signal.
+
+The existing 640 depth-travelling motes move forward a little faster. Another 144
+near-dust trails use one `InstancedBufferGeometry` draw: projected forward travel
+determines trail direction and length, with individual depths and invisible lane
+recycling. Original seeded formations and both original dock drawings stay intact.
+The fixed camera, text clearance and compact-field attenuation still apply.
+The descending entrance light is approximately 27% stronger; the existing Anime.js
+station-invocation lifecycle is retained.
+
+Rendering references: Three.js [geometry batching](https://threejs.org/manual/en/optimize-lots-of-objects.html),
+[instanced attributes](https://threejs.org/docs/pages/InstancedBufferAttribute.html)
+and [ShaderMaterial](https://threejs.org/docs/pages/ShaderMaterial.html). The new
+work uses the existing locally vendored renderer; it adds no runtime CDN library,
+screen-wide bloom buffer or additional animation loop.
+
 This note records the radio system recovered from the USB copy of `rgradio`, how
 its signal tester works, and how that design maps to the two browser-hosted RG HQ
 receivers.

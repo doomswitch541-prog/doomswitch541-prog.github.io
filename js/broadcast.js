@@ -1,6 +1,6 @@
-import { publishSignalFrame } from '/js/broadcast-console.js?v=20260911-2';
+import { publishSignalFrame } from '/js/broadcast-console.js?v=20260912-1';
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260911-2';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260912-1';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -261,8 +261,58 @@ const PERSONAL_STATIONS = [
     KZAP,
     ...PERSONAL_STATION_UUIDS.map(uuid => CURATED_TOP_STATIONS.find(station => station.stationuuid === uuid))
 ].filter(Boolean);
+// Category discoveries stay separate from the ordered Top 20 and Personal dial.
+// Official player URLs are retained, including redirects maintained by each broadcaster.
+const CATEGORY_STATIONS = [
+    {
+        stationuuid: 'official-revolution-radio-a', name: 'Revolution Radio — Studio A',
+        url_resolved: 'https://stream.zeno.fm/9ba85uq0av8uv', homepage: 'https://freedomslips.org/',
+        countrycode: 'US', codec: 'MP3', bitrate: 0, tags: 'conspiracy,uncensored talk,paranormal,alternative news',
+        hls: false, lastcheckok: true, source: 'official',
+        description: 'Listener-supported, uncensored talk: conspiracy, geopolitics, paranormal and hidden history. Studio A.'
+    },
+    {
+        stationuuid: 'official-revolution-radio-b', name: 'Revolution Radio — Studio B',
+        url_resolved: 'https://stream.zeno.fm/4vte0kd3hv8uv', homepage: 'https://freedomslips.org/',
+        countrycode: 'US', codec: 'MP3', bitrate: 0, tags: 'conspiracy,uncensored talk,paranormal,alternative news',
+        hls: false, lastcheckok: true, source: 'official',
+        description: 'A separate Revolution Radio schedule of uncensored interviews, conspiracy and paranormal talk. Studio B.'
+    },
+    {
+        stationuuid: 'official-no-agenda-stream', name: 'No Agenda Stream',
+        url_resolved: 'https://listen.noagendastream.com/noagenda', homepage: 'https://www.noagendashow.net/about/stream',
+        countrycode: 'US', codec: 'MP3', bitrate: 0, tags: 'conspiracy,media deconstruction,independent talk,podcast',
+        hls: false, lastcheckok: true, source: 'official',
+        description: 'No Agenda live recordings and a 24/7 rotation of independently produced podcasts and media deconstruction.',
+        now_playing: { type: 'icecast', url: 'https://listen.noagendastream.com/status-json.xsl', match: '/noagenda' }
+    },
+    {
+        stationuuid: 'official-idobi-radio', name: 'idobi Radio',
+        url_resolved: 'https://idobiradio.idobi.com/', homepage: 'https://idobi.com/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'emo,pop punk,post-hardcore,alternative rock',
+        hls: false, lastcheckok: true, source: 'official',
+        description: 'Pop-punk, emo and alternative from the scene that grew through MySpace and Warped Tour, alongside new releases.',
+        now_playing: { type: 'idobi', url: 'https://idobi.com/radio/live/?c=idobi%20Radio' }
+    },
+    {
+        stationuuid: 'official-idobi-howl', name: 'idobi Howl',
+        url_resolved: 'https://idobihowl.idobi.com/', homepage: 'https://idobi.com/',
+        countrycode: 'US', codec: 'MP3', bitrate: 128, tags: 'metalcore,post-hardcore,hardcore,metal,rock',
+        hls: false, lastcheckok: true, source: 'official',
+        description: 'The heavier side of the scene: metalcore, hardcore and metal, with new releases and specialist shows.',
+        now_playing: { type: 'idobi', url: 'https://idobi.com/radio/live/?c=idobi%20Howl' }
+    },
+    {
+        stationuuid: 'official-lautfm-emoscene', name: 'Emoscene',
+        url_resolved: 'https://emoscene.stream.laut.fm/emoscene', homepage: 'https://laut.fm/emoscene',
+        countrycode: 'PH', codec: 'MP3', bitrate: 128, tags: 'emo,pop punk,post-hardcore,metalcore,2000s',
+        hls: false, lastcheckok: true, source: 'official',
+        description: '2000s–2020s emo, pop-punk and post-hardcore on weekdays; a heavier metal rotation on weekends.',
+        now_playing: { type: 'laut-fm', url: 'https://api.laut.fm/station/emoscene/current_song' }
+    }
+];
 const ALL_CURATED_STATIONS = [...new Map(
-    [...CURATED_TOP_STATIONS, ...PERSONAL_STATIONS].map(station => [station.stationuuid, station])
+    [...CURATED_TOP_STATIONS, ...PERSONAL_STATIONS, ...CATEGORY_STATIONS].map(station => [station.stationuuid, station])
 ).values()];
 
 const LEGACY_TOP_STATION_REPLACEMENTS = new Map([
@@ -661,6 +711,14 @@ function programResult(station, value, note) {
 }
 
 function parseNowPlaying(station, config, data) {
+    if (config.type === 'idobi') {
+        const display = [cleanProgramText(data?.artist), cleanProgramText(data?.title)].filter(Boolean).join('  /  ');
+        return programResult(station, display, 'IDOBI LIVE DATA');
+    }
+    if (config.type === 'laut-fm') {
+        const display = [cleanProgramText(data?.artist?.name), cleanProgramText(data?.title)].filter(Boolean).join('  /  ');
+        return programResult(station, display, 'LAUT.FM CURRENT TRACK');
+    }
     if (config.type === 'radio-co') {
         const listeners = Number(data?.listeners);
         const note = Number.isFinite(listeners) ? `${listeners} LISTENING  /  LIVE NETWORK DATA` : 'LIVE NETWORK DATA';
