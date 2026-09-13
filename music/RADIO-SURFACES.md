@@ -1,5 +1,37 @@
 # RG radio surfaces
 
+## September 12, 2026 — beam reception and Personal additions
+
+Personal now appends No Agenda Stream, idobi Radio, idobi Howl and Emoscene to its
+original twelve stations. The first twelve retain their exact order and records;
+Top 20 is unchanged. These reuse the category records and live-title configurations
+added in the previous pass. All four returned current titles and decoded advancing
+audio in the shared Firefox receiver during this pass. No Agenda uses its specific
+Icecast mount, idobi supplies artist/title JSON, and Emoscene supplies laut.fm's
+current-song JSON. Existing HearMe and other provider paths are unchanged.
+
+The main Three.js field now receives a narrow arrow-like descending beam, then
+the whole particle formation catches the light and returns to its original
+brightness. Uneven outward filaments accompany the impact. Both the orbital X
+and Car Mode's spiral use the same reception uniforms; the background starfield
+retains its normal brightness. Text/header clearance applies throughout.
+
+The locally vendored Anime.js timeline sequences the descent, arrow fade, outward
+filaments and formation illumination without a repeating loop. Station changes,
+receiver playback-state changes, Car Mode transitions and dock/view changes renew
+the descent. Changes within 90 ms coalesce into a single invocation. A further
+arrival can occur after a newly sampled 8–19 seconds of visible quiet time once
+the previous effect has settled. Hidden time is not accumulated. Reduced motion
+settles the reception uniforms without playing the effect.
+
+Verification includes both-view arrow/contact/radiation captures, exact frozen
+render return after impact, Car/dock/occasional re-invocation, and Personal
+playback/title/pause-state checks. The two original dock motifs and the small
+Astra instrument are unchanged; applying reception to that instrument is a later
+visual pass.
+
+Reference: [Anime.js timelines](https://animejs.com/documentation/timeline/).
+
 ## September 12, 2026 — category discoveries and passage rendering
 
 Broadcast adds six official-player streams to its existing category matching.

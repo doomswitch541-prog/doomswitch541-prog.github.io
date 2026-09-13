@@ -7,6 +7,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     const canvas = document.getElementById('broadcast-stars');
     const anchor = document.getElementById('station-beacon');
     const field = document.getElementById('station-field');
+    const receiver = document.getElementById('now-playing');
     if (!canvas) return;
     let renderer;
     try {
@@ -29,6 +30,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         clock:{value:0}, energy:{value:0}, treble:{value:0}, bass:{value:0},
         galaxy:{value:0}, pixelRatio:{value:1}, light:{value:0.7}, cameraDepth:{value:1000},
         opening:{value:1}, invocation:{value:1}, constellation:{value:0},
+        arrowLight:{value:0}, radiation:{value:1}, radiationAngle:{value:0}, impact:{value:0},
         cameraLocal:{value:new THREE.Vector3(0,0,8)},
         readoutBox:{value:new THREE.Vector4(-10000,-10000,0,0)},
         headerEdge:{value:10000},
@@ -64,6 +66,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         uniform float cameraDepth;
         uniform float touchCeiling;
         uniform float passage;
+        uniform float impact;
+        uniform float impactGain;
         uniform vec3 fieldAnchor;
         uniform vec4 touches[6];
         uniform vec2 touchFlow[6];
@@ -119,6 +123,10 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             // Atmospheric separation belongs to each particle, leaving the space between clear.
             float distanceFade = exp(-pow(max(0.,vDepth-1.)*2.8,2.));
             vLight *= distanceFade * mix(1.18,.72,smoothstep(.65,1.35,vDepth));
+            // Beam contact illuminates the whole formation once, then returns to its exact baseline.
+            float received=impact*impactGain;
+            vLight *= 1.+received*2.7;
+            vTint=mix(vTint,vec3(.86,.98,.94),received*.48);
             vec2 push=vec2(0.);
             for (int i=0;i<6;i++) {
                 if (touches[i].w>0.) {
@@ -169,7 +177,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         geometry.setAttribute('phase', new THREE.Float32BufferAttribute(phases, 1));
         geometry.setAttribute('tint', new THREE.Float32BufferAttribute(colors, 3));
         const material = new THREE.ShaderMaterial({
-            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}, circulation:{value:0}, orbitShape:{value:0}, passage:{value:0}}, vertexShader:vertex, fragmentShader:fragment,
+            uniforms:{...uniforms, opacity:{value:opacity}, drift:{value:drift}, touchGain:{value:1}, sizeGain:{value:1}, depthGain:{value:1}, circulation:{value:0}, orbitShape:{value:0}, passage:{value:0}, impactGain:{value:1}}, vertexShader:vertex, fragmentShader:fragment,
             transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
         });
         return new THREE.Points(geometry, material);
@@ -181,6 +189,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     }), .48, .008);
     stars.material.uniforms.touchGain.value = .3;
     stars.material.uniforms.sizeGain.value = 1.65;
+    stars.material.uniforms.impactGain.value = 0;
     background.add(stars);
 
     // Normal listening: a suspended radio source and sharply drawn orbital dust.
@@ -321,6 +330,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     passageDust.material.uniforms.passage.value=1;
     passageDust.material.uniforms.sizeGain.value=2.8;
     passageDust.material.uniforms.touchGain.value=.85;
+    passageDust.material.uniforms.impactGain.value=.35;
     passageDust.frustumCulled=false;
     scene.add(passageDust);
 
@@ -383,6 +393,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             varying vec2 uvLocal;
             varying vec3 surfacePoint;
             uniform float galaxy, clock, energy, bass, light, invocation;
+            uniform float arrowLight,radiation,radiationAngle,impact;
             uniform vec3 cameraLocal;
             float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
             float noise(vec2 p) {
@@ -393,6 +404,31 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 float result=0.,weight=.55;
                 for(int i=0;i<3;i++){result+=noise(p)*weight;p=mat2(.8,-.6,.6,.8)*p*2.07+11.3;weight*=.48;}
                 return result;
+            }
+            float segment(vec2 p,vec2 a,vec2 b){
+                vec2 ab=b-a;return length(p-a-ab*clamp(dot(p-a,ab)/dot(ab,ab),0.,1.));
+            }
+            float descendingArrow(vec2 p){
+                float tip=(1.-invocation)*.91;
+                float shaft=exp(-pow(p.x/.005,2.))*smoothstep(tip-.006,tip+.012,p.y)
+                    *(1.-smoothstep(tip+.4,tip+.65,p.y));
+                float chevron=min(segment(p,vec2(-.034,tip+.052),vec2(0.,tip)),
+                    segment(p,vec2(.034,tip+.052),vec2(0.,tip)));
+                float edge=exp(-pow(chevron/.0035,2.));
+                float halo=exp(-pow(p.x/.021,2.))*exp(-pow((p.y-tip-.16)/.26,2.))*.16;
+                return (shaft+edge+halo)*arrowLight;
+            }
+            float radiatingLight(vec2 p){
+                // Separate angled filaments travel away from the receiver; no expanding pulse ring.
+                vec2 q=p*vec2(1.,1.35);
+                float radius=length(q),angle=(atan(q.y,q.x)+3.141593)/6.283185*9.;
+                float sector=floor(angle),offset=hash(vec2(sector,radiationAngle));
+                float direction=.22+offset*.56;
+                float ray=exp(-pow((fract(angle)-direction)/(.035+offset*.045),2.));
+                float front=radiation*(.65+offset*.75);
+                float wake=exp(-pow((radius-front)/(.07+offset*.13),2.));
+                return ray*wake*smoothstep(.025,.09,radius)
+                    *smoothstep(0.,.08,radiation)*(1.-smoothstep(.55,1.,radiation));
             }
             // Ray/box intersection restricts the 3D light integration to its actual volume.
             float invokedLight(vec3 origin,vec3 direction) {
@@ -432,13 +468,15 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
                 // Keep the focal light steady; audio does not make the core breathe.
                 // Each station invokes the descending light; the source itself stays steady.
                 float beam=invokedLight(cameraLocal,normalize(surfacePoint-cameraLocal));
+                float transmission=descendingArrow(p)*1.8+radiatingLight(p)*1.9;
                 // Astraeus / dusk: faint violet-to-sage filaments behind the icy orbital source.
                 float dusk=exp(-radius*radius*2.8)*pow(grain,2.)*.18;
                 float normal=center+flare+beam*3.3+dusk;
                 float car=cloud+core+beam*2.3+dusk;
                 vec3 color=mix(vec3(.45,.38,.65),vec3(.58,.87,.76),smoothstep(.15,.75,grain));
                 color=mix(color,vec3(.8,.94,.9),clamp(center+core*galaxy+beam*2.,0.,1.));
-                float alpha=mix(normal,car,galaxy)*light*(1.-smoothstep(.8,1.,r));
+                color=mix(color,vec3(.84,.98,.91),clamp(transmission,0.,1.));
+                float alpha=(mix(normal,car,galaxy)*light*(1.+impact*1.5)+transmission)*(1.-smoothstep(.8,1.,r));
                 gl_FragColor=vec4(color,alpha*clearText());
                 #include <tonemapping_fragment>
                 #include <colorspace_fragment>
@@ -480,26 +518,51 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
     }
     const inverseFocus = new THREE.Matrix4();
     let openingTimeline, beamTimeline, openingPlayed=false, beamStarted=false, stationKey='';
-    function invokeBeam(){
+    let pendingBeam='',beamDelay=0,previousPresentation='';
+    let nextBeam=8+Math.random()*11;
+    function queueBeam(reason){pendingBeam=reason;beamDelay=.09;dirty=true;}
+    function invokeBeam(reason='opening'){
         beamTimeline?.cancel();beamStarted=true;
+        pendingBeam='';
         canvas.dataset.transmission=String(Number(canvas.dataset.transmission||0)+1);
+        canvas.dataset.beamReason=reason;
+        uniforms.arrowLight.value=0;uniforms.radiation.value=1;uniforms.impact.value=0;
+        nextBeam=8+Math.random()*11;
         if(reduced.matches){uniforms.invocation.value=1;canvas.dataset.beam='settled';dirty=true;return;}
+        const descent=950+Math.random()*180;
+        uniforms.radiationAngle.value=Math.random()*1000;
         canvas.dataset.beam='descending';
         beamTimeline=createTimeline({onUpdate:()=>{dirty=true;},onComplete:()=>{canvas.dataset.beam='settled';}})
-            .add(uniforms.invocation,{value:[0,1],duration:1800,ease:'out(3)'},0);
+            .add(uniforms.invocation,{value:[0,1],duration:descent,ease:'in(1.6)'},0)
+            .add(uniforms.arrowLight,{value:[0,1],duration:160,ease:'out(2)'},0)
+            .add(uniforms.arrowLight,{value:0,duration:430,ease:'out(2)'},descent)
+            .add(uniforms.radiation,{value:[0,1],duration:1650,ease:'out(1.4)'},descent)
+            .add(uniforms.impact,{value:[0,1],duration:110,ease:'out(2)'},descent)
+            .add(uniforms.impact,{value:0,duration:1850,ease:'out(2)'},descent+110);
         if(document.hidden)beamTimeline.pause();
+    }
+    function advanceBeam(dt,frame,target){
+        const presentation=`${field.dataset.space}:${target}:${receiver?.dataset.expanded}:${receiver?.dataset.view}`;
+        if(previousState&&frame.state!==previousState)queueBeam('receiver-'+frame.state);
+        if(previousPresentation&&presentation!==previousPresentation)queueBeam('dock-or-view');
+        previousPresentation=presentation;
+        if(!focus.visible)return;
+        if(pendingBeam){beamDelay-=dt;if(beamDelay<=0)invokeBeam(pendingBeam);return;}
+        if(!reduced.matches&&canvas.dataset.beam==='settled'){
+            nextBeam-=dt;if(nextBeam<=0)invokeBeam('passing-signal');
+        }
     }
     function stationChanged(){
         const next=field.dataset.station||'';
         if(!next||next===stationKey)return;
         stationKey=next;
-        if(field.dataset.space==='none'){beamStarted=false;return;}
-        invokeBeam();
+        queueBeam('station');
     }
     function settleOpening() {
         openingTimeline?.cancel();
         beamTimeline?.cancel();canvas.dataset.beam='settled';
         uniforms.opening.value=uniforms.invocation.value=1;
+        uniforms.arrowLight.value=0;uniforms.radiation.value=1;uniforms.impact.value=0;pendingBeam='';
         uniforms.constellation.value=.12;
         canvas.dataset.opening='settled';
     }
@@ -639,6 +702,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         const moving = !reduced.matches;
         const flow = ({idle:.65,loading:.85,playing:1,paused:.35,error:.2})[frame.state] ?? .65;
         if (moving) phase += dt*flow;
+        advanceBeam(dt,frame,target);
         // Preserve the original X at every elapsed time; only the light travels around it.
         advanceRingSignal(focus.visible?dt:0,moving);
         if(!gesture)dragEnergy*=Math.exp(-dt*1.4);
@@ -661,8 +725,8 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         orbitDust.material.uniforms.opacity.value = .6 * (1 - mix);
         orbitDepth.material.uniforms.opacity.value = .25 * (1 - mix);
         galaxyDepth.material.uniforms.opacity.value = .24 * mix;
-        rings.forEach((ring, i) => { ring.material.uniforms.opacity.value = (i ? .42 : .24) * (1 - mix); });
-        crossingGlow.material.uniforms.opacity.value=.075*(1-mix);
+        rings.forEach((ring, i) => { ring.material.uniforms.opacity.value = (i ? .42 : .24) * (1 - mix)*(1+uniforms.impact.value*.8); });
+        crossingGlow.material.uniforms.opacity.value=.075*(1-mix)*(1+uniforms.impact.value);
         galacticDust.material.uniforms.opacity.value = .55 * mix;
         stellar.visible = mix < .999;
         galaxy.visible = mix > .001;

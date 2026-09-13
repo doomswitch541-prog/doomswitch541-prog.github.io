@@ -1,6 +1,6 @@
-import { publishSignalFrame } from '/js/broadcast-console.js?v=20260912-1';
+import { publishSignalFrame } from '/js/broadcast-console.js?v=20260912-2';
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260912-1';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260912-2';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [
@@ -253,14 +253,6 @@ const PERSONAL_STATION_UUIDS = [
     '960d3f6f-0601-11e8-ae97-52543be04c81',
     '70133397-5845-4524-bcda-701da75f46fa'
 ];
-const PERSONAL_STATIONS = [
-    BEHIND_THE_SCHEMES,
-    CAPRADIO_NEWS,
-    CAPRADIO_MUSIC,
-    KUEL,
-    KZAP,
-    ...PERSONAL_STATION_UUIDS.map(uuid => CURATED_TOP_STATIONS.find(station => station.stationuuid === uuid))
-].filter(Boolean);
 // Category discoveries stay separate from the ordered Top 20 and Personal dial.
 // Official player URLs are retained, including redirects maintained by each broadcaster.
 const CATEGORY_STATIONS = [
@@ -311,6 +303,16 @@ const CATEGORY_STATIONS = [
         now_playing: { type: 'laut-fm', url: 'https://api.laut.fm/station/emoscene/current_song' }
     }
 ];
+const PERSONAL_STATIONS = [
+    BEHIND_THE_SCHEMES,
+    CAPRADIO_NEWS,
+    CAPRADIO_MUSIC,
+    KUEL,
+    KZAP,
+    ...PERSONAL_STATION_UUIDS.map(uuid => CURATED_TOP_STATIONS.find(station => station.stationuuid === uuid)),
+    ...['official-no-agenda-stream', 'official-idobi-radio', 'official-idobi-howl', 'official-lautfm-emoscene']
+        .map(uuid => CATEGORY_STATIONS.find(station => station.stationuuid === uuid))
+].filter(Boolean);
 const ALL_CURATED_STATIONS = [...new Map(
     [...CURATED_TOP_STATIONS, ...PERSONAL_STATIONS, ...CATEGORY_STATIONS].map(station => [station.stationuuid, station])
 ).values()];
