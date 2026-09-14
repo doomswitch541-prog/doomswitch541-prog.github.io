@@ -1,5 +1,22 @@
 # RG radio surfaces
 
+## September 13, 2026 — dock Astra reception
+
+The third dock motif retains its 360 flowing particles and adds a fine descending
+arrow followed by light received by individual grains. Its first visible appearance
+gets one arrival. Later arrivals follow the main field's transmission identifier
+and strength while Astra is visible, with at least 18 seconds between starts.
+Returning from the pilot or bars does not itself replay reception; transmissions
+that happened while Astra was absent are not queued for later.
+
+Anime.js is advanced from the existing receiver draw loop. Pause holds the effect;
+hidden tabs, reduced motion, live audio analysis and WebGL loss clear it. The two
+original motif functions and their crossfade, the main galaxy field, station data,
+metadata adapters and shared audio path are unchanged. Firefox checks cover actual
+dock pixels, exact settled return, first appearance, transmission spacing/strength,
+pause, chapter transitions, context recovery and a real No Agenda playback handoff
+from bars to Astra. The instrument stays inside its existing canvas bounds.
+
 ## September 12, 2026 — beam reception and Personal additions
 
 Personal now appends No Agenda Stream, idobi Radio, idobi Howl and Emoscene to its
@@ -33,8 +50,8 @@ reception uniforms without playing the effect.
 Verification includes reception and exact frozen-render return in both views,
 opening-only diffusion, rapid station switching, transport/dock/title changes,
 quiet intervals and Car Mode spacing. Personal playback/title checks cover the
-four additions above. The two original dock motifs and the small Astra instrument
-are unchanged; applying reception to that instrument is a later visual pass.
+four additions above. The two original dock motifs are unchanged; the subsequent
+dock Astra reception pass is described above.
 
 Reference: [Anime.js timelines](https://animejs.com/documentation/timeline/).
 

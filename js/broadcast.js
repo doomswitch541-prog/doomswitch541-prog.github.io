@@ -1,6 +1,6 @@
-import { publishSignalFrame } from '/js/broadcast-console.js?v=20260913-1';
+import { publishSignalFrame } from '/js/broadcast-console.js?v=20260913-2';
 import { createRadioSurfaceMonitor } from '/js/radio-surfaces.js';
-import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260913-1';
+import { createBroadcastInstruments } from '/js/broadcast-instruments.js?v=20260913-2';
 
 const BOOTSTRAP_SERVER = 'https://all.api.radio-browser.info';
 const FALLBACK_SERVERS = [

@@ -132,8 +132,9 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
     };
     let audioEvents;
     let astraInstrument;
+    const skyCanvas=document.getElementById('broadcast-stars');
     // Optional and locally vendored; failure keeps the two original motifs available.
-    void import('/js/broadcast-astra-instrument.js?v=20260913-1')
+    void import('/js/broadcast-astra-instrument.js?v=20260913-2')
         .then(module=>{astraInstrument=module.createAstraInstrument();})
         .catch(()=>{});
 
@@ -507,7 +508,8 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
 
     function drawWaveform(surface) {
         const metrics = canvasMetrics(surface.waveform);
-        if (!metrics) return;
+        if (!metrics) {if(surface.root.id==='dock-instruments')astraInstrument?.suspend();return;}
+        if(surface.root.id==='dock-instruments'&&(model.liveValidated||reducedMotion.matches))astraInstrument?.suspend();
         const { context, width, height, density } = metrics;
         context.clearRect(0, 0, width, height);
 
@@ -528,6 +530,7 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
             const blend=progress*progress*(3-2*progress);
             const astraWeight=dock&&active&&!reducedMotion.matches&&astraInstrument
                 ? chapter===1?blend:chapter===2?1-blend:0:0;
+            if(dock&&astraWeight===0)astraInstrument?.suspend();
             // Retain the original pilot-to-bars transition; let bars hand over to Astra.
             const motifTime=dock&&astraInstrument&&!reducedMotion.matches
                 ? chapter===0?elapsed%28000:chapter===1?28000+Math.min(elapsed%28000,25000):0
@@ -535,7 +538,11 @@ export function createBroadcastInstruments({ audio, nowPlaying, replaceAudio, re
             if(astraWeight<1){context.globalAlpha=1-astraWeight;drawReceiverFallback(context,width,height,center,motifTime);}
             if(astraWeight>0){
                 context.globalAlpha=astraWeight;
-                if(!astraInstrument.draw(context,width,height,model.fallbackPhase/1.8,density)){
+                if(!astraInstrument.draw(context,width,height,model.fallbackPhase/1.8,density,{
+                    now:model.lastRenderAt,playing:model.receiverState==='playing'&&!audio.paused,
+                    weight:astraWeight,transmission:skyCanvas?.dataset.transmission,
+                    beamStrength:skyCanvas?.dataset.beamStrength
+                })){
                     context.globalAlpha=1;drawReceiverFallback(context,width,height,center);
                 }
             }
