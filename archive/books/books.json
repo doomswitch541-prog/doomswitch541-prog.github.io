@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-13T10:21:48.721Z",
+  "updatedAt": "2026-09-14T10:45:10.975Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -212,6 +212,16 @@
       "description": "Book digitized by Google and uploaded to the Internet Archive by user tpb.",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-13T10:21:48.721Z"
+    },
+    {
+      "date": "2026-09-14",
+      "identifier": "morphologyofpter00spor",
+      "title": "The morphology of pteridophytes; the structure of ferns and allied plants",
+      "creator": "Sporne, K. R",
+      "published": "1962",
+      "description": "Bibliography: p. 183-188",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-14T10:45:10.975Z"
     }
   ]
 }
