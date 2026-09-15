@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-14T10:45:10.975Z",
+  "updatedAt": "2026-09-15T10:08:35.548Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -222,6 +222,16 @@
       "description": "Bibliography: p. 183-188",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-14T10:45:10.975Z"
+    },
+    {
+      "date": "2026-09-15",
+      "identifier": "ietsoordieboesma00reen",
+      "title": "Iets oor die Boesmankultuur",
+      "creator": "Reenen, Reenen Jacob van",
+      "published": "1920",
+      "description": "\"'n Lesing gehou voor die Suid-Afrikaanse Akademie op Stellenbosch, Januarie 1920, en gedruk op las van die Akademie.\"",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-15T10:08:35.548Z"
     }
   ]
 }
