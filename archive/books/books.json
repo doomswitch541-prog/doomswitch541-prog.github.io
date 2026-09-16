@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-15T10:08:35.548Z",
+  "updatedAt": "2026-09-16T10:00:38.423Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -232,6 +232,16 @@
       "description": "\"'n Lesing gehou voor die Suid-Afrikaanse Akademie op Stellenbosch, Januarie 1920, en gedruk op las van die Akademie.\"",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-15T10:08:35.548Z"
+    },
+    {
+      "date": "2026-09-16",
+      "identifier": "eastofsunwestofm00asbj",
+      "title": "East of the sun and west of the moon : old tales from the North",
+      "creator": "Asbjørnsen, Peter Christen, 1812-1885",
+      "published": "[1922?]",
+      "description": "Fifteen stories from Norwegian folklore including East of the sun and west of the moon and One's own children are always prettiest",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-16T10:00:38.423Z"
     }
   ]
 }
