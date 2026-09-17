@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-16T10:00:38.423Z",
+  "updatedAt": "2026-09-17T10:03:15.136Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -242,6 +242,16 @@
       "description": "Fifteen stories from Norwegian folklore including East of the sun and west of the moon and One's own children are always prettiest",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-16T10:00:38.423Z"
+    },
+    {
+      "date": "2026-09-17",
+      "identifier": "vernacularlisto02lush",
+      "title": "Vernacular list of trees, shrubs, and woody climbers in the Madras Presidency",
+      "creator": "Lushington, Alfred Wyndham",
+      "published": "1915",
+      "description": "extracted picklist",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-17T10:03:15.136Z"
     }
   ]
 }
