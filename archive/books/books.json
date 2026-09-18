@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-17T10:03:15.136Z",
+  "updatedAt": "2026-09-18T09:50:40.262Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -252,6 +252,16 @@
       "description": "extracted picklist",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-17T10:03:15.136Z"
+    },
+    {
+      "date": "2026-09-18",
+      "identifier": "arsislamica51938detr",
+      "title": "Ars islamica",
+      "creator": "Detroit Institute of Arts",
+      "published": "1934",
+      "description": "Vols. 11-12, 13-14, 15-16 issued combined",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-18T09:50:40.262Z"
     }
   ]
 }
