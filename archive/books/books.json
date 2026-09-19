@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-18T09:50:40.262Z",
+  "updatedAt": "2026-09-19T09:34:52.815Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -262,6 +262,16 @@
       "description": "Vols. 11-12, 13-14, 15-16 issued combined",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-18T09:50:40.262Z"
+    },
+    {
+      "date": "2026-09-19",
+      "identifier": "celticfairytale00jacorich",
+      "title": "Celtic fairy tales",
+      "creator": "Jacobs, Joseph, 1854-1916",
+      "published": "1892",
+      "description": "\"Notes and references\": p. [237]-267",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-19T09:34:52.815Z"
     }
   ]
 }
