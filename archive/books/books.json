@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-19T09:34:52.815Z",
+  "updatedAt": "2026-09-20T09:51:14.663Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -272,6 +272,16 @@
       "description": "\"Notes and references\": p. [237]-267",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-19T09:34:52.815Z"
+    },
+    {
+      "date": "2026-09-20",
+      "identifier": "victoriasussex02pageuoft",
+      "title": "The Victoria history of the county of Sussex. Edited by William Page",
+      "creator": "Page, William, 1861-1934",
+      "published": "1905-",
+      "description": "v. 1. [Natural history.- Early man to Domesday.- Political history].--v. 2. [Religious houses.- Social and economic history].--v. 3. [Romano-British Sussex.- City of Chichester].--v. 4. The rape of Chichester.--v. 5, pt. 1. Arundel Rape (South-Western part) including Arundel.--v. 6. Bramber rape. pt. 1. (southern part). pt. 2. (north-western part) including Horsham.pt. 3. (north-eastern part) including Crawley New Town.--v. 7. The rape of Lewes.--v. 9. The rape of Hastings.--[v. 9a] Index to volumes I-IV, VII, and X",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-20T09:51:14.663Z"
     }
   ]
 }
