@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-20T09:51:14.663Z",
+  "updatedAt": "2026-09-21T10:48:20.117Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -282,6 +282,16 @@
       "description": "v. 1. [Natural history.- Early man to Domesday.- Political history].--v. 2. [Religious houses.- Social and economic history].--v. 3. [Romano-British Sussex.- City of Chichester].--v. 4. The rape of Chichester.--v. 5, pt. 1. Arundel Rape (South-Western part) including Arundel.--v. 6. Bramber rape. pt. 1. (southern part). pt. 2. (north-western part) including Horsham.pt. 3. (north-eastern part) including Crawley New Town.--v. 7. The rape of Lewes.--v. 9. The rape of Hastings.--[v. 9a] Index to volumes I-IV, VII, and X",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-20T09:51:14.663Z"
+    },
+    {
+      "date": "2026-09-21",
+      "identifier": "illustrationsse00loui",
+      "title": "Illustrations of selected works in the various national sections of the Department of art, with complete list of awards by the International jury, Universal exposition, St. Louis, 1904",
+      "creator": "Louisiana Purchase Exposition (1904 : Saint Louis, Mo.)",
+      "published": "1904",
+      "description": "lxxiv, 392 p. 20 cm",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-21T10:48:20.117Z"
     }
   ]
 }
