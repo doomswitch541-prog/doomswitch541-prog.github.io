@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-21T10:48:20.117Z",
+  "updatedAt": "2026-09-22T10:03:29.607Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -292,6 +292,16 @@
       "description": "lxxiv, 392 p. 20 cm",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-21T10:48:20.117Z"
+    },
+    {
+      "date": "2026-09-22",
+      "identifier": "talesofkingvikra00kincrich",
+      "title": "Tales of King Vikrama",
+      "creator": "Kincaid, C. A. (Charles Augustus), 1870-1954",
+      "published": "1921",
+      "description": "viii, 155 p. : 18 cm",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-22T10:03:29.607Z"
     }
   ]
 }
