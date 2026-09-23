@@ -30,6 +30,7 @@ const SiteNavigation = {
             ['/clock', 'Clock'],
             ['/weather', 'Weather'],
             ['/screensaver', 'Screensaver'],
+            ['/observatory', 'Observatory'],
             ['/visuals', 'Gallery'],
         ]},
         { label: 'Archive', href: '/archive', links: [

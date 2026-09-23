@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f0c15">
+  <meta name="description" content="An observatory to arrange, inhabit, and leave a thought in. A quiet room at RG HQ.">
+  <title>Observatory — RG HQ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/observatory/room.css">
+</head>
+<body class="observatory-page">
+  <div class="bg-layer night" id="bg-night"></div><div class="bg-layer evening" id="bg-evening"></div><div class="bg-layer afternoon" id="bg-afternoon"></div><div class="bg-layer day" id="bg-day"></div>
+  <nav class="navbar"><div class="nav-left"><a href="/" class="btn">RG</a></div><div class="nav-center"><a href="/visuals" class="btn">Visuals</a></div><div class="nav-right"><button id="theme-switch" class="btn">Auto</button></div></nav>
+  <main class="room-shell">
+    <header class="room-heading"><h1>Observatory</h1><p>A place to leave things a little different.</p></header>
+    <section class="room-stage" aria-label="Observatory room">
+      <canvas id="room" tabindex="0" aria-label="Interactive room. Drag an object to move it. Drag empty space to orbit. Use the Objects button for keyboard controls."></canvas>
+      <div id="note-markers" class="note-markers"></div>
+      <p id="render-status" class="render-status" role="status">Opening the room…</p>
+      <div class="room-caption"><span class="caption-line"></span><span id="room-caption">Make yourself at home.</span></div>
+    </section>
+    <footer class="room-footer">
+      <div class="room-tools"><button id="add-note">Leave a note</button><button id="open-objects">Objects <span aria-hidden="true">↗</span></button><button id="reset-view">Reset view</button><button id="open-saves" aria-label="Open arrangement backup controls">Keep a copy</button></div>
+      <div class="room-meta"><span id="storage-status" role="status">Saved in this browser</span><span class="room-help">Drag to arrange · drag the room to look around</span></div>
+    </footer>
+    <aside class="room-panel" id="object-panel" aria-labelledby="object-title" hidden>
+      <div class="panel-head"><h2 id="object-title">Objects</h2><button class="close-panel" data-close="object-panel" aria-label="Close objects">×</button></div>
+      <div id="object-list" class="object-list"></div>
+      <div id="object-controls" hidden><h3 id="selected-name"></h3><p class="control-hint">Move across its surface. Arrow keys work while the room is focused; [ and ] rotate.</p><div class="move-controls"><button data-move="0,-0.16" aria-label="Move away">↑</button><button data-move="-0.16,0" aria-label="Move left">←</button><button data-move="0,0.16" aria-label="Move closer">↓</button><button data-move="0.16,0" aria-label="Move right">→</button></div><div class="control-row"><button data-rotate="-0.261799">Rotate left</button><button data-rotate="0.261799">Rotate right</button></div><div class="control-row"><button id="home-object">Return to start</button><button id="note-object">Attach a note</button></div><button id="toggle-lamp" hidden>Turn lamp off</button></div>
+      <div class="notes-list"><h3>Notes in the room</h3><div id="notes-list"></div></div>
+    </aside>
+    <aside class="room-panel" id="save-panel" aria-labelledby="save-title" hidden>
+      <div class="panel-head"><h2 id="save-title">Keep this arrangement</h2><button class="close-panel" data-close="save-panel" aria-label="Close backup controls">×</button></div>
+      <p>This room saves on this browser. Export a copy to keep elsewhere, or bring back an arrangement you saved.</p><button id="export-room">Export arrangement</button><label class="file-label">Import arrangement<input id="import-room" type="file" accept="application/json,.json"></label><p id="import-status" role="status"></p>
+    </aside>
+  </main>
+  <dialog id="note-editor"><form method="dialog" id="note-form"><div class="panel-head"><h2 id="note-title">Leave a note</h2><button value="cancel" formnovalidate aria-label="Close note">×</button></div><label for="note-text">Your note</label><textarea id="note-text" maxlength="500" rows="6" required placeholder="Something for the room…"></textarea><div class="note-foot"><span id="note-count">0 / 500</span><span>Plain text, kept here.</span></div><label for="note-anchor">Leave it on</label><select id="note-anchor"><option value="wall">The note wall</option></select><div class="note-actions"><button type="button" id="remove-note" hidden>Remove note</button><button type="submit" value="save" class="primary">Keep note</button></div></form></dialog>
+  <script src="/assets/vendor/three/three.min.js"></script>
+  <script src="/assets/vendor/three/OrbitControls.js"></script>
+  <script src="/js/site.js"></script>
+  <script type="module" src="/observatory/room.js"></script>
+</body>
+</html>
