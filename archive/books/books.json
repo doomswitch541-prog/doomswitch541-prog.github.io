@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-22T10:03:29.607Z",
+  "updatedAt": "2026-09-23T10:03:34.575Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -302,6 +302,16 @@
       "description": "viii, 155 p. : 18 cm",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-22T10:03:29.607Z"
+    },
+    {
+      "date": "2026-09-23",
+      "identifier": "nationallistofsc01unit",
+      "title": "National list of scientific plant names",
+      "creator": "United States. Soil Conservation Service",
+      "published": "1982",
+      "description": "Includes bibliographical references",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-23T10:03:34.575Z"
     }
   ]
 }
