@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/broadcast.css?v=20260913-2">
     <link rel="stylesheet" href="/css/radio-surfaces.css">
+    <link rel="stylesheet" href="/css/broadcast-fullscreen.css?v=20260924-2">
 </head>
 <body class="broadcast-app">
  <canvas id="broadcast-stars" aria-hidden="true"></canvas>
@@ -32,6 +33,7 @@
   <a href="/music" class="back-link" aria-label="Back to Listen">RG<span aria-hidden="true"> / </span>Listen</a><h1>Broadcast</h1>
   <div class="head-controls">
    <button id="car-mode-shortcut" type="button" aria-label="Enter Car Mode" aria-pressed="false" title="Car Mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 10 2-5h10l2 5M4 10h16v8H4zM6 18v2m12-2v2M7 14h2m6 0h2"/></svg></button>
+   <button id="fullscreen-toggle" type="button" aria-label="Enter Fullscreen mode" aria-pressed="false" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/><path class="fullscreen-star" d="M12 9v6m-3-3h6"/></svg></button>
    <button id="site-menu-toggle" type="button" aria-label="Site menu" aria-expanded="false" aria-controls="broadcast-site-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h14"/></svg></button>
   </div>
   <nav id="broadcast-site-menu" class="broadcast-site-menu" aria-label="Site navigation" hidden inert><a href="/">Home</a><a href="/music">Listen</a></nav>
@@ -87,7 +89,7 @@
     <section class="console-pane more-pane" id="pane-more" aria-labelledby="tab-more" hidden inert>
      <div class="more-heading"><h2>Your receiver</h2><p id="current-description">Choose a station to begin.</p></div>
      <div class="receiver-actions"><button id="random-station" type="button" disabled>Surprise me</button><button id="share-station" type="button" disabled>Share station</button><a id="station-home" href="/music/broadcast" target="_blank" rel="noopener" aria-disabled="true">Station site</a>
-      <button class="car-mode-button" id="car-mode-toggle" type="button" aria-pressed="false" aria-label="Enter Car Mode"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 9 2-5h10l2 5 2 2v7H3v-7zM3 10h18M6 18v3M18 18v3M6 14h2M16 14h2"/></svg><span class="car-mode-button-label">Car Mode</span></button>
+      <div class="receiver-display-modes" role="group" aria-label="Display modes"><button class="car-mode-button" id="car-mode-toggle" type="button" aria-pressed="false" aria-label="Enter Car Mode"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 9 2-5h10l2 5 2 2v7H3v-7zM3 10h18M6 18v3M18 18v3M6 14h2M16 14h2"/></svg><span class="car-mode-button-label">Car Mode</span></button><button id="fullscreen-mode-toggle" type="button" aria-pressed="false" aria-label="Enter Fullscreen mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/><path class="fullscreen-star" d="M12 9v6m-3-3h6"/></svg><span>Fullscreen</span></button></div>
       <button class="install-app" id="install-app" type="button" hidden>Add app</button>
      </div>
      <div class="car-dock-options"><button class="car-dock-control" id="car-text-open" type="button"><span>Car text</span><small id="car-text-state">RG rotation</small></button><button class="car-dock-control" id="car-awake-toggle" type="button" aria-pressed="false"><span>Keep awake</span><small id="car-awake-state">Off</small></button><button class="car-dock-control" id="car-dim-toggle" type="button" aria-pressed="false"><span>Dim</span><small id="car-dim-state">Off</small></button></div>
@@ -154,9 +156,10 @@
     </dialog>
 
 
- <script type="module" src="/js/broadcast-console.js?v=20260913-2"></script>
- <script type="module" src="/js/broadcast.js?v=20260913-2"></script>
- <script type="module" src="/js/broadcast-car.js?v=20260913-2"></script>
+ <script type="module" src="/js/broadcast-fullscreen.js?v=20260924-2"></script>
+ <script type="module" src="/js/broadcast-console.js?v=20260924-2"></script>
+ <script type="module" src="/js/broadcast.js?v=20260924-2"></script>
+ <script type="module" src="/js/broadcast-car.js?v=20260924-2"></script>
  <script type="module" src="/music/broadcast/pwa.js?v=20260828-7"></script>
 </body>
 </html>

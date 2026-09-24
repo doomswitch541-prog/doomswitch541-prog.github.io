@@ -670,6 +670,7 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
         return active;
     }
     function layout() {
+        const immersive = document.body.classList.contains('broadcast-immersive');
         const rect = anchor.getBoundingClientRect();
         bounds = {x:rect.x + rect.width / 2 - innerWidth / 2,
             y:innerHeight / 2 - rect.y - rect.height / 2, size:rect.width * (field.dataset.space === 'compact' ? .52 : .66)};
@@ -679,14 +680,17 @@ export function createBroadcastSky({getFrame, getCarMode, reduced}) {
             bounds.y=innerHeight/2-room.y-room.height/2;
             bounds.size=Math.min(room.width*.6,Math.max(rect.width*.52,room.height*.7));
         }
+        if(immersive){bounds.x=0;bounds.y=0;bounds.size=Math.min(innerWidth,innerHeight)*.5;}
         const text=document.querySelector('.field-readout').getBoundingClientRect();
         uniforms.readoutBox.value.set(text.x+text.width/2,innerHeight-text.y-text.height/2,text.width/2+3,text.height/2+3);
+        if(immersive)uniforms.readoutBox.value.set(-10000,-10000,0,0);
         const header=document.querySelector('.broadcast-head');
         uniforms.headerEdge.value=header ? innerHeight-header.getBoundingClientRect().bottom : 10000;
+        if(immersive)uniforms.headerEdge.value=10000;
         focus.position.set(bounds.x, bounds.y, 0);
         focus.scale.setScalar(bounds.size);
         uniforms.fieldAnchor.value.set(bounds.x,bounds.y,bounds.size);
-        focus.visible = field.dataset.space !== 'none';
+        focus.visible = immersive || field.dataset.space !== 'none';
         passageDust.visible=focus.visible;
         passageTrails.visible=focus.visible;
         passageDust.material.uniforms.opacity.value=field.dataset.space==='compact'?.2:.4;
