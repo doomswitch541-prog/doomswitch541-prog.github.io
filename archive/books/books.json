@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-24T10:07:26.977Z",
+  "updatedAt": "2026-09-25T10:15:08.513Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -322,6 +322,16 @@
       "description": "Issued by the Freer Gallery of Art, Smithsonian Institution and Department of the History of Art, University of Michigan",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-24T10:07:26.977Z"
+    },
+    {
+      "date": "2026-09-25",
+      "identifier": "fortyfourturkish001862",
+      "title": "Forty-four Turkish fairy tales",
+      "creator": "1862-1945",
+      "published": "[191-?]",
+      "description": "xi, 362 p., [14] leaves of plates : 25 cm",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-25T10:15:08.513Z"
     }
   ]
 }
