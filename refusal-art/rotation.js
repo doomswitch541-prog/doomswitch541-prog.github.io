@@ -4,9 +4,10 @@ export const isPaternal=r=>/frustrat|feeling|feel |feels|defensive|angry|fed up|
 export const isHedge=r=>/important|careful|gently|need to|have to|however|grounded|sensitivity|nuance|respectful|constructive|clarify|clear and|positive and uplifting|without lecturing|without flattening/i.test(r.excerpt);
 export const isTone=r=>isPaternal(r)||isHedge(r);
 const shuffle=rows=>{const a=[...rows];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
-export function createRotation(records){
+export function createRotation(records,mode='regular'){
  const pools={paternal:records.filter(isPaternal),hedge:records.filter(isHedge),dan:records.filter(isDan),tiger:records.filter(r=>/tiger/i.test(r.excerpt)),generic:records.filter(r=>!isDan(r)&&/sorry|cannot|can.t|won.t/i.test(r.excerpt)&&r.excerpt.length<150),all:records};
- const order=['paternal','hedge','generic','paternal','dan','hedge','paternal','tiger','hedge','generic','paternal','all'],bags={};let step=0,recent=[];
+ const order=mode==='tiger'?['tiger','tiger','generic','tiger','hedge']:mode==='dan'?['dan','dan','hedge','dan','generic']:['paternal','hedge','generic','paternal','dan','hedge','paternal','tiger','hedge','generic','paternal','all'];
+ const bags={};let step=0,recent=[];
  return {next(){
   const preferred=order[step++%order.length],key=pools[preferred].length?preferred:'all';
   if(!pools[key].length)return null;

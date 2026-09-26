@@ -9,41 +9,48 @@ export async function createField(canvas,{onAdvance,onPick}){
  const motion=matchMedia('(prefers-reduced-motion: reduce)');
  let width=1,height=1,mosh,records=[],current=null,time=0,readTime=0,age=0,last=0,frame=0;
  let paused=motion.matches,intensity=.7,speed=1,hitBoxes=[],layout=null;
- let preset=presets.drift,seed=1;
+ let preset=presets.overload,seed=1,mode='regular';
  let scene=0,cycle=0,nextPopup=.4,serial=0,popups=[],remnants=[],poolKey='';
+ let echoes=[],echoSerial=0;
  let rotation=createRotation([]),endApology=null,endHealth=null;
- const ending=()=>scene>=preset.cycle-10;
+ const ending=()=>scene>=preset.cycle-8;
  const pick=items=>items[Math.floor(Math.random()*items.length)];
  const density=()=>clamp(scene/preset.cycle,0,1);
  const envelope=(t,life,fade)=>clamp(t/.035,0,1)*clamp((life-t)/fade,0,1);
- function resetScene(){scene=0;readTime=0;nextPopup=.4;serial=0;popups=[];remnants=[];endApology=null;endHealth=null;mosh?.reset();}
+ function resetScene(){scene=0;readTime=0;nextPopup=.4;serial=0;popups=[];remnants=[];echoes=[];echoSerial=0;endApology=null;endHealth=null;mosh?.reset();if(current)remember(current);}
+ function remember(record){
+  if(!record||motion.matches)return;
+  const n=echoSerial++,size=clamp(width*(width<760?.06:.028),21,42);
+  const w=width*(width<760?.88:.48),lines=wrap(record.excerpt,w,size);
+  echoes.push({record,n,size,w,lines:lines.slice(0,3),born:readTime,color:[colors.sage,colors.paper,colors.pink][n%3]});
+  if(echoes.length>12)echoes.shift();
+ }
  function pool(next){
   const key=next.map(r=>r.id).sort().join(',');records=next;
-  if(key!==poolKey){poolKey=key;resetScene();rotation=createRotation(records);}
+  if(key!==poolKey){poolKey=key;resetScene();rotation=createRotation(records,mode);}
   if(current&&!records.some(r=>r.id===current.id)){current=null;layout=null;}
  }
- function slots(){
-  const compact=width<760;
-  if(compact)return [{x:width*.075,y:92,w:width*.85,h:Math.max(70,height*.34-112)}];
-  const right=width*.69,w=width*.26;
-  return [{x:width*.065,y:96,w:width*.55,h:Math.max(70,height*.3-112)},
-   {x:right,y:100,w,h:height*.22},{x:right+8,y:height*.38,w:w-8,h:height*.22},
-   {x:right-12,y:height*.67,w:w+12,h:Math.max(60,height*.33-140)}];
- }
+ const overlaps=(a,b,gap=22)=>a.x<b.x+b.w+gap&&a.x+a.w+gap>b.x&&a.y<b.y+b.h+gap&&a.y+a.h+gap>b.y;
+ const mainBox=()=>layout?{x:layout.left,y:layout.top,w:layout.w,h:Math.min(layout.capacity,layout.pages[0].lines.length)*layout.lineHeight}:null;
  function popup(){
-  const regions=slots(),limit=width<760?1:2;
+  const compact=width<760,limit=compact?2:3;
   if(popups.length>=limit)return;
-  const free=regions.map((r,i)=>i).filter(i=>!popups.some(p=>p.slot===i));if(!free.length)return;
   const record=rotation.next();if(!record)return;
-  const n=serial++,slot=free[n%free.length],box={...regions[slot]};
-  if(width>=760){box.x+=(n%3-1)*8;box.y+=(n%2)*7;box.w-=8;box.h-=7;}
+  const n=serial++,w=width*(compact?.64+(n%3)*.08:.25+(n%3)*.055);
   const size=clamp(width*.02,20,28),lineHeight=size*1.28;
-  const all=wrap(record.excerpt,box.w-24,size),capacity=Math.max(1,Math.floor((box.h-24)/lineHeight));
-  const start=(Math.floor(n/regions.length)%Math.ceil(all.length/capacity))*capacity,lines=all.slice(start,start+capacity);
+  const all=wrap(record.excerpt,w-24,size),capacity=Math.max(1,Math.min(compact?3:4,Math.floor((height*.3-24)/lineHeight)));
+  const start=(Math.floor(n/3)%Math.ceil(all.length/capacity))*capacity,lines=all.slice(start,start+capacity);
+  const h=lines.length*lineHeight+24,blockers=[mainBox(),...popups].filter(Boolean);let box;
+  for(let i=0;i<32;i++){
+   const candidate={x:16+Math.random()*Math.max(0,width-w-32),y:90+Math.random()*Math.max(0,height-h-225),w,h};
+   if(!blockers.some(b=>overlaps(candidate,b))){box=candidate;break;}
+  }
+  if(!box)return;
   const words=lines.join(' ').split(/\s+/).length;
   const p={record,lines,...box,h:lines.length*lineHeight+24,size,lineHeight,born:scene,bornRead:readTime,
-   life:Math.max(preset.popupLife,Math.min(4.5,1.1+words*.11)),color:[colors.paper,colors.sage,colors.pink][n%3],n,slot};
+   life:Math.max(1.35,Math.min(3.2,.8+words*.09)),color:[colors.paper,colors.sage,colors.pink][n%3],n,slot:n};
   popups.push(p);remnants.push(p);
+  remember(record);
   if(remnants.length>preset.maxFrames)remnants.shift();
  }
  function panel(c,p,alpha,ghost=false){
@@ -92,16 +99,17 @@ export async function createField(canvas,{onAdvance,onPick}){
  function endCut(){
   if(!endApology){
    endApology=records.find(r=>r.id==='4116af5ce03f975d50e1')||pick(records.filter(r=>/sorry/i.test(r.excerpt)))||current;
-   endHealth=records.find(r=>r.id==='574f4a38c954244bd85a')||records.find(r=>r.id==='7b783adfd77cbf2e834e')||current;
+   endHealth=mode==='tiger'?records.find(r=>/tiger/i.test(r.excerpt)):mode==='dan'?records.find(r=>/Developer Mode|CLASSIC|Normal Output/i.test(r.excerpt)):records.find(r=>r.id==='77a9033b79abcd340448');
+   endHealth ||= current;
   }
-  const t=scene-(preset.cycle-10),countdown=t>=7;
-  const record=t<3?endApology:endHealth;
+  const t=scene-(preset.cycle-8),countdown=t>=5;
+  const record=t<2?endApology:endHealth;
   context.fillStyle=colors.black;context.fillRect(0,0,width,height);
-  canvas.dataset.phase=countdown?'countdown':t<3?'apology':'health';
-  canvas.dataset.countdown=countdown?String(3-Math.floor(t-7)):'';
+  canvas.dataset.phase=countdown?'countdown':t<2?'apology':'check';
+  canvas.dataset.countdown=countdown?String(3-Math.floor(t-5)):'';
   // The countdown is authored artwork, never an attributed archive quotation.
   if(countdown){
-   const tick=t-7,n=3-Math.floor(tick),size=clamp(width*.045,26,62);
+   const tick=t-5,n=3-Math.floor(tick),size=clamp(width*.045,26,62);
    const lines=wrap('mental health evaluation in',width*.84,size),lh=size*1.2;
    const numeral=clamp(height*.22,72,180),top=(height-(lines.length*lh+numeral+32))/2;
    context.save();context.globalAlpha=tick%1<.12?.12:1;
@@ -129,7 +137,7 @@ export async function createField(canvas,{onAdvance,onPick}){
   if(scene>=preset.cycle){cycle++;resetScene();age=0;}
   popups=popups.filter(p=>readTime-p.bornRead<p.life);
   if(scene<.4||ending())return;
-  if(scene>=nextPopup){popup();nextPopup=scene+preset.interval*(1-density()*.2);}
+  if(scene>=nextPopup){popup();nextPopup=scene+(.65+Math.random()*.5)*(1-density()*.2);}
  }
  const finale=()=>motion.matches?0:clamp((density()-.48)/.35,0,1)*preset.burst;
  function wrap(value,maxWidth,size){
@@ -143,20 +151,65 @@ export async function createField(canvas,{onAdvance,onPick}){
  }
  function arrange(){
   if(!current)return;
-  const compact=width<760,left=width*(compact?.075:.06+(seed%3)*.008),top=Math.max(compact?210:190,height*(.36+(seed%3)*.014));
-  const w=width*(compact?.85:.55),available=Math.max(72,height-(compact?150:150)-top);
-  let size=clamp(width*(compact?.074:.033+(seed%4)*.003),26,58),lines=wrap(current.excerpt,w,size);
-  const lineHeight=size*1.32,capacity=Math.max(1,Math.min(6,Math.floor(available/lineHeight)));
-  const pages=[];for(let i=0;i<lines.length;i+=capacity){const part=lines.slice(i,i+capacity);pages.push({lines:part,duration:clamp(part.join(' ').split(/\s+/).length*.12+1.1,1.9,5.2)});}
-  layout={left,top,w,size,lineHeight,pages,compact,total:pages.reduce((sum,p)=>sum+p.duration,0)};
+  const compact=width<760,w=width*(compact?.74+(seed%3)*.035:.4+(seed%4)*.055);
+  const available=Math.max(72,(height-230)*.64);
+  let size=clamp(width*(compact?.07:.03+(seed%3)*.003),25,52),lines=wrap(current.excerpt,w,size);
+  const lineHeight=size*1.25,capacity=Math.max(1,Math.min(5,Math.floor(available/lineHeight)));
+  const pages=[];for(let i=0;i<lines.length;i+=capacity){const part=lines.slice(i,i+capacity);pages.push({lines:part,duration:clamp(part.join(' ').split(/\s+/).length*.095+.85,1.6,4)});}
+  const h=Math.min(lines.length,capacity)*lineHeight;let chosen;
+  for(let i=0;i<16;i++){
+   const box={x:18+((seed*(i+3)%997)/997)*Math.max(0,width-w-36),y:96+((seed*(i+7)%991)/991)*Math.max(0,height-h-242),w,h};
+   chosen=box;if(!popups.some(p=>overlaps(box,p,28)))break;
+  }
+  popups=popups.filter(p=>!overlaps(chosen,p,28));
+  layout={left:chosen.x,top:chosen.y,w,size,lineHeight,pages,capacity,compact,total:pages.reduce((sum,p)=>sum+p.duration,0)};
  }
  function currentPage(){let start=0;for(let i=0;i<layout.pages.length;i++){const p=layout.pages[i];if(age<start+p.duration)return {...p,index:i,localAge:age-start};start+=p.duration;}return {...layout.pages.at(-1),index:layout.pages.length-1,localAge:0};}
  function stroke(c,x1,y1,x2,y2,color=colors.red,alpha=.5){c.save();c.globalAlpha=alpha;c.strokeStyle=color;c.lineWidth=.75;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();c.restore();}
  function text(c,value,x,y,size=10,color=colors.dim,font=mono){c.font=`${size}px ${font}`;c.fillStyle=color;c.textBaseline='top';c.fillText(value,x,y);}
+ function refusalTrails(){
+  if(motion.matches||!echoes.length)return;
+  const surge=finale(),compact=width<760,count=Math.min(echoes.length,compact?7:10);
+  const recent=echoes.slice(-count),travelHeight=Math.max(240,height-150);
+  recent.forEach((p,i)=>{
+   const t=readTime-p.born,slot=(p.n*.61803398875)%1;
+   // Wide, separated ribbons move through depth; the source remains refusal text.
+   const y=78+((slot*travelHeight-t*(8+surge*13))%travelHeight+travelHeight)%travelHeight;
+   const x=width*(compact?-.07:.1)+Math.sin(t*.42+p.n*1.7)*width*(compact?.17:.24);
+   const cut=Math.floor(time*(1.8+surge*2)+p.n),jump=cut%7===0?(cut%3-1)*width*.16:0;
+   const scale=.9+(p.n%3)*.12+surge*.18,alpha=(.34+surge*.23)*clamp((18-t)/4,0,1);
+   if(alpha<=0)return;
+   ctx.save();ctx.translate(x+jump,y);ctx.transform(scale,0,Math.sin(t*.3+p.n)*.09,1,0,0);
+   const h=p.lines.length*p.size*1.22;
+   // Offset copies form a short, visible datamosh wake rather than a wall of type.
+   for(let trail=2;trail>=0;trail--){
+    ctx.globalAlpha=alpha*(trail===0?1:.1+surge*.05);
+    const dx=trail*(10+surge*18),dy=trail*(5+surge*6);
+    p.lines.forEach((line,j)=>text(ctx,line,dx,j*p.size*1.22+dy,p.size,p.color,face));
+   }
+   frameEdges(ctx,{x:-8,y:-8,w:p.w+16,h:h+16,record:p.record},p.color,.32+surge*.22);
+   if(cut%3===0){ctx.globalAlpha=.65;ctx.fillStyle=p.color;ctx.fillRect(p.w+12,0,3,3);ctx.fillRect(p.w+12,h,3,3);}
+   ctx.restore();
+  });
+  // A larger refusal crosses the field on cuts, feeding the temporal feedback.
+  const pulse=(readTime*.8)%3,large=recent.at(-1);
+  if(pulse<.25&&surge>.2){
+   ctx.save();ctx.globalAlpha=.12+surge*.1;ctx.translate(-width*.08,height*.68);
+   ctx.scale(1.25+surge*.4,1.25+surge*.4);
+   text(ctx,large.lines[0],0,0,large.size*1.5,colors.pink,face);ctx.restore();
+  }
+ }
+ function readingSpace(c,x,y,w,h){
+  // Feathered contrast behind the readable layer, without blanking the whole scene.
+  c.save();const feather=18,g=c.createLinearGradient(0,y-feather,0,y+h+feather);
+  g.addColorStop(0,'rgba(5,7,6,0)');g.addColorStop(feather/(h+feather*2),'rgba(5,7,6,.9)');
+  g.addColorStop((h+feather)/(h+feather*2),'rgba(5,7,6,.9)');g.addColorStop(1,'rgba(5,7,6,0)');
+  c.fillStyle=g;c.fillRect(x-12,y-feather,w+24,h+feather*2);c.restore();
+ }
  function background(){
   ctx.fillStyle=colors.black;ctx.fillRect(0,0,width,height);
-
-  // Sparse pixels and retained corners build pressure without stacking letters.
+  refusalTrails();
+  // Tracking geometry builds along with the moving refusal ribbons.
   for(const p of remnants){
    if(readTime-p.bornRead>p.life)frameEdges(ctx,p,p.color,.07+finale()*.08);
    if(finale()>.6){
@@ -178,6 +231,7 @@ export async function createField(canvas,{onAdvance,onPick}){
  }
  function mainText(c,page,sharp){
   const {left:x,top:y,w,size,lineHeight}=layout,h=page.lines.length*lineHeight;
+  if(sharp)readingSpace(c,x,y,w,h);
   c.save();c.shadowColor=colors.black;c.shadowBlur=sharp?18:0;
   page.lines.forEach((value,i)=>text(c,value,x,y+i*lineHeight,size,colors.paper,face));c.restore();
   if(sharp){
@@ -191,13 +245,14 @@ export async function createField(canvas,{onAdvance,onPick}){
   trackingLines();
   for(const p of popups){
    const alpha=envelope(readTime-p.bornRead,p.life,preset.fade);
+   context.save();context.globalAlpha=alpha;readingSpace(context,p.x,p.y,p.w,p.h);context.restore();
    panel(context,p,alpha);
    if(alpha>.35)hitBoxes.unshift({...p,id:p.record.id});
   }
  }
  function render(){
   hitBoxes=[];
-  canvas.dataset.frames=String(remnants.length);canvas.dataset.cycle=String(cycle);canvas.dataset.scene=scene.toFixed(2);canvas.dataset.phase=scene<.4?'clear':'build';canvas.dataset.countdown='';canvas.dataset.active=String(popups.length);canvas.dataset.record=current?.id||'';
+  canvas.dataset.frames=String(remnants.length);canvas.dataset.cycle=String(cycle);canvas.dataset.scene=scene.toFixed(2);canvas.dataset.phase=scene<.4?'clear':'build';canvas.dataset.countdown='';canvas.dataset.active=String(popups.length);canvas.dataset.record=current?.id||'';canvas.dataset.echoes=String(echoes.length);
   if(!current||!mosh||!layout||(!motion.matches&&!paused&&scene<.4)){
    context.fillStyle=colors.black;context.fillRect(0,0,width,height);return;
   }
@@ -207,7 +262,6 @@ export async function createField(canvas,{onAdvance,onPick}){
   background();
   const opacity=motion.matches||paused?1:envelope(page.localAge,page.duration,.8);
   context.drawImage(mosh.render(source,motion.matches?0:intensity,time),0,0,width,height);
-  accumulated(context);
   // The entire passage fades as one object. No individual word highlights.
   context.save();context.globalAlpha=opacity;mainText(context,page,true);context.restore();
   if(opacity<.35)hitBoxes=[];
@@ -227,5 +281,8 @@ export async function createField(canvas,{onAdvance,onPick}){
  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;}else if(!frame){last=performance.now();frame=requestAnimationFrame(tick);}});
  motion.addEventListener('change',()=>{if(motion.matches)paused=true;mosh.reset();render();});
  window.addEventListener('resize',resize);resize();last=performance.now();frame=requestAnimationFrame(tick);
- return {setRecords(next){pool(next);render();},setCurrent(record){current=record;seed=Array.from(record.excerpt).reduce((n,c)=>(n*31+c.codePointAt(0))>>>0,7);age=0;arrange();render();},configure(settings){preset=presets[settings.preset]||presets.drift;intensity=settings.intensity;speed=settings.speed;paused=settings.paused||motion.matches;arrange();render();},clear(){resetScene();render();},get paused(){return paused;},get time(){return time;},render};
+ return {setRecords(next){pool(next);render();},setCurrent(record){current=record;remember(record);seed=Array.from(record.excerpt).reduce((n,c)=>(n*31+c.codePointAt(0))>>>0,7);age=0;arrange();render();},configure(settings){
+  const nextMode=settings.mode||'regular';if(nextMode!==mode){mode=nextMode;current=null;layout=null;rotation=createRotation(records,mode);resetScene();}
+  canvas.dataset.modeName=mode;preset=presets.overload;intensity=settings.intensity;speed=settings.speed;paused=settings.paused||motion.matches;arrange();render();
+ },clear(){resetScene();render();},get paused(){return paused;},get time(){return time;},render};
 }

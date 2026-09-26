@@ -1,5 +1,4 @@
 import {createField} from '/refusal-art/field.js';
-import {presets} from '/refusal-art/presets.js';
 import {createRotation} from '/refusal-art/rotation.js';
 import {request} from '/refusal-art/data.js';
 const $=s=>document.querySelector(s),reader=$('#reader');
@@ -7,8 +6,7 @@ let data,field,selected,rotation,saveTimer,wasPaused=false,reading=0;
 function save(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await request('/api/settings',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data.settings)});}catch{$('#status').textContent='Settings could not save.';}},350);}
 function choose(record){if(!record)return;selected=record.id;data.settings.selected=selected;field.setCurrent(record);save();}
 function next(){choose(rotation.next());}
-function syncPlay(){$('#play').textContent=field.paused?'Play':'Pause';}
-function pause(value){data.settings.paused=value;field.configure(data.settings);syncPlay();save();}
+function pause(value){data.settings.paused=value;field.configure(data.settings);save();}
 async function open(id){
  if(!id||reader.open)return;const ticket=++reading;
  try{const record=await request('/api/record/'+id);if(ticket!==reading)return;$('#message-text').textContent=record.excerpt;wasPaused=field.paused;pause(true);reader.showModal();}
@@ -16,21 +14,22 @@ async function open(id){
 }
 try{
  data=await request('/api/index');
- const records=data.records.filter(r=>data.curation[r.id]!=='exclude');rotation=createRotation(records);
+ const records=data.records.filter(r=>data.curation[r.id]!=='exclude');
+ data.settings.mode ||= 'regular';data.settings.paused=false;rotation=createRotation(records,data.settings.mode);
  if(data.settings.motionEdition!=='readable-cuts-2')Object.assign(data.settings,{intensity:Math.min(data.settings.intensity,.4),speed:Math.min(data.settings.speed,1),motionEdition:'readable-cuts-2'});
- field=await createField($('#field'),{onAdvance:next,onPick:open});field.configure(data.settings);field.setRecords(records);next();syncPlay();
+ field=await createField($('#field'),{onAdvance:next,onPick:open});field.configure(data.settings);field.setRecords(records);next();
  for(const key of ['intensity','speed'])$('#'+key).value=data.settings[key];
- for(const [key,preset] of Object.entries(presets)){
-  const button=document.querySelector('[data-preset="'+key+'"]');button.setAttribute('aria-pressed',String(data.settings.preset===key));
-  button.onclick=()=>{Object.assign(data.settings,{preset:key,intensity:preset.intensity,speed:preset.speed});field.configure(data.settings);for(const k of ['intensity','speed'])$('#'+k).value=data.settings[k];for(const b of document.querySelectorAll('[data-preset]'))b.setAttribute('aria-pressed',String(b===button));save();};
+ for(const button of document.querySelectorAll('button[data-mode]')){
+  button.setAttribute('aria-pressed',String(data.settings.mode===button.dataset.mode));
+  button.onclick=()=>{data.settings.mode=button.dataset.mode;data.settings.paused=false;rotation=createRotation(records,data.settings.mode);field.configure(data.settings);field.clear();next();for(const b of document.querySelectorAll('button[data-mode]'))b.setAttribute('aria-pressed',String(b===button));save();};
  }
  document.body.dataset.ready='true';
 }catch(error){$('#status').textContent='Could not open the piece: '+error.message;console.error(error);}
-$('#next').onclick=next;$('#clear').onclick=()=>field.clear();$('#play').onclick=()=>pause(!field.paused);$('#inspect').onclick=()=>open(selected);
+$('#inspect').onclick=()=>open(selected);
 $('#close-reader').onclick=()=>reader.close();
 reader.addEventListener('click',event=>{if(event.target===reader){const r=reader.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)reader.close();}});
 reader.addEventListener('close',()=>{pause(wasPaused);$('#inspect').focus({preventScroll:true});});
-document.addEventListener('keydown',event=>{if(event.code==='Space'&&event.target===document.body){event.preventDefault();$('#play').click();}});
+document.addEventListener('keydown',event=>{if(event.code==='Space'&&event.target===document.body){event.preventDefault();pause(!field.paused);}});
 for(const key of ['intensity','speed'])$('#'+key).oninput=event=>{data.settings[key]=Number(event.target.value);field.configure(data.settings);save();};
 $('#record').onclick=async()=>{
  const button=$('#record');if(!window.MediaRecorder||!$('#field').captureStream){$('#status').textContent='Recording is unavailable in this browser.';return;}
