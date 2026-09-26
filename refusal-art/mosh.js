@@ -12,14 +12,14 @@ export function createMosh(width,height){
    vec4 vector=texture2D(motion,vec2(uv.x,1.-uv.y));
    vec2 flow=(vector.rg-.5)*8.*vec2(1./64.,-1./36.);
    vec2 cell=floor(uv*vec2(64.,36.));float gate=step(.65,noise(cell+floor(time*.35)));
-   flow+=vec2(sin(cell.y*.51+time*.17),cos(cell.x*.31+time*.13))*.004*carry*gate;
+   flow+=vec2(sin(cell.y*.51+time*.7),cos(cell.x*.31+time*.43))*.018*carry*gate;
    vec2 prior=clamp(uv+flow*carry*.65,vec2(0.),vec2(1.));
    vec3 held=texture2D(historyFrame,prior).rgb;
-   float retention=carry*(.82+.06*gate)*(1.-fresh);
+   float retention=carry*(.63+.1*gate)*(1.-fresh);
    vec3 color=mix(now,held,retention);
    float edges=length(now-texture2D(currentFrame,uv+vec2(2./resolution.x,0.)).rgb);
-   color.r=mix(color.r,texture2D(historyFrame,prior+vec2(.003*carry,0.)).r,edges*carry*.38);
-   color.b=mix(color.b,texture2D(historyFrame,prior-vec2(.002*carry,0.)).b,edges*carry*.32);
+   color.r=mix(color.r,texture2D(historyFrame,prior+vec2(.009*carry,0.)).r,clamp(edges*carry*.7,0.,.7));
+   color.b=mix(color.b,texture2D(historyFrame,prior-vec2(.007*carry,0.)).b,clamp(edges*carry*.65,0.,.65));
    color+=vec3(noise(gl_FragCoord.xy+floor(time*12.))-.5)*.018;
    gl_FragColor=vec4(max(vec3(0.),color),1.);
  }`;

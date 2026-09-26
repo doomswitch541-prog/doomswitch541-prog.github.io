@@ -31,7 +31,12 @@ export async function createField(canvas,{onAdvance,onPick}){
   if(current&&!records.some(r=>r.id===current.id)){current=null;layout=null;}
  }
  const overlaps=(a,b,gap=22)=>a.x<b.x+b.w+gap&&a.x+a.w+gap>b.x&&a.y<b.y+b.h+gap&&a.y+a.h+gap>b.y;
- const mainBox=()=>layout?{x:layout.left,y:layout.top,w:layout.w,h:Math.min(layout.capacity,layout.pages[0].lines.length)*layout.lineHeight}:null;
+ function tracked(p,n=0){
+  if(motion.matches)return p;
+  const gain=(width<760?5:9)*(1+intensity*.9),phase=n%37;
+  return {...p,x:clamp(p.x+Math.sin(time*.82+phase)*gain,12,Math.max(12,width-p.w-12)),y:clamp(p.y+Math.cos(time*.67+phase*1.7)*gain,80,Math.max(80,height-p.h-142))};
+ }
+ const mainBox=()=>layout?tracked({x:layout.left,y:layout.top,w:layout.w,h:currentPage().lines.length*layout.lineHeight},seed):null;
  function popup(){
   const compact=width<760,limit=compact?2:3;
   if(popups.length>=limit)return;
@@ -69,31 +74,40 @@ export async function createField(canvas,{onAdvance,onPick}){
   c.restore();
  }
  function trackingLabel(c,p,t){
-  const blink=motion.matches?true:t<.07||(t>.24&&t<.29)||(t>1.35&&t<1.44);
+  const phase=t%.68,blink=motion.matches?true:phase<.085||(phase>.16&&phase<.225);
   if(!blink)return;
   const label=isPaternal(p.record)?'PATERNALISM':isHedge(p.record)?'CONTROL':/tiger|DAN|Developer|CLASSIC|Normal Output/i.test(p.record.excerpt)?'DON’T HAVE FUN':'PERMISSION DENIED';
-  c.save();c.globalAlpha*=.8;c.font='10px '+mono;c.fillStyle=p.color;
-  c.fillText(label,p.x+1,p.y-12);c.strokeStyle=p.color;c.lineWidth=.5;
-  const w=c.measureText(label).width;c.beginPath();c.moveTo(p.x+w+8,p.y-7);c.lineTo(p.x+w+25,p.y-7);c.lineTo(p.x+w+32,p.y);c.stroke();c.restore();
+  c.save();c.globalAlpha=Math.max(.85,c.globalAlpha);c.font=(width<760?'12px ':'13px ')+mono;
+  c.fillStyle=phase<.085?colors.paper:colors.pink;c.strokeStyle=colors.black;c.lineWidth=3;
+  c.strokeText(label,p.x+1,p.y-16);c.fillText(label,p.x+1,p.y-16);c.strokeStyle=p.color;c.lineWidth=.8;
+  const w=c.measureText(label).width;c.beginPath();c.moveTo(p.x+w+8,p.y-8);c.lineTo(p.x+w+25,p.y-8);c.lineTo(p.x+w+32,p.y);c.stroke();
+  c.fillRect(p.x-3,p.y-10,3,3);c.restore();
  }
  function frameEdges(c,p,color,alpha){
-  c.save();c.globalAlpha*=alpha;c.strokeStyle=color;c.lineWidth=.7;
+  c.save();c.globalAlpha*=alpha;c.strokeStyle=color;c.lineWidth=.9;
   c.globalAlpha*=.45;c.strokeRect(p.x,p.y,p.w,p.h);c.globalAlpha/=.45;
-  const l=12;c.beginPath();c.moveTo(p.x,p.y+l);c.lineTo(p.x,p.y);c.lineTo(p.x+l,p.y);
-  c.moveTo(p.x+p.w-l,p.y+p.h);c.lineTo(p.x+p.w,p.y+p.h);c.lineTo(p.x+p.w,p.y+p.h-l);c.stroke();
+  const l=12;c.beginPath();
+  for(const [x,y,sx,sy] of [[p.x,p.y,1,1],[p.x+p.w,p.y,-1,1],[p.x,p.y+p.h,1,-1],[p.x+p.w,p.y+p.h,-1,-1]]){c.moveTo(x,y+sy*l);c.lineTo(x,y);c.lineTo(x+sx*l,y);}
+  c.stroke();
   if(/tiger/i.test(p.record.excerpt)){c.globalAlpha*=.35;c.strokeRect(p.x,p.y,p.w,p.h);}
   c.restore();
  }
  function trackingLines(){
-  const visible=popups.filter(p=>envelope(readTime-p.bornRead,p.life,preset.fade)>.25);
-  if(layout&&visible.length)visible.unshift({x:layout.left-12,y:layout.top-12,w:layout.w+24,h:currentPage().lines.length*layout.lineHeight+24});
+  const visible=popups.filter(p=>envelope(readTime-p.bornRead,p.life,preset.fade)>.2).map(p=>({...tracked(p,p.n),alpha:envelope(readTime-p.bornRead,p.life,preset.fade)}));
+  // Connect to the same remnant frames drawn in the feedback layer when no satellite is live.
+  for(const p of remnants.slice(-4))if(visible.length<3&&!popups.includes(p)&&readTime-p.bornRead<p.life+5)visible.push({...p,alpha:.42});
+  if(layout){const box=mainBox();visible.unshift({...box,x:box.x-12,y:box.y-12,w:box.w+24,h:box.h+24});}
+  const anchors=p=>[[p.x,p.y+p.h*.5],[p.x+p.w,p.y+p.h*.5],[p.x+p.w*.5,p.y],[p.x+p.w*.5,p.y+p.h]];
   for(let i=1;i<visible.length;i++){
-   const a=visible[i-1],b=visible[i],separate=b.x>a.x+a.w;
-   const ax=a.x+a.w,bx=separate?b.x:b.x+b.w,ay=a.y+a.h*.5,by=b.y+b.h*.5;
-   const elbow=separate?(ax+bx)*.5:Math.min(width-8,Math.max(ax,bx)+10);
-   context.save();context.globalAlpha=.22*envelope(readTime-b.bornRead,b.life,preset.fade);context.strokeStyle=b.color;context.lineWidth=.65;
-   context.beginPath();context.moveTo(ax,ay);context.lineTo(elbow,ay);context.lineTo(elbow,by);context.lineTo(bx,by);context.stroke();
-   context.fillStyle=b.color;context.fillRect(ax-1,ay-1,2,2);context.fillRect(bx-1,by-1,2,2);context.restore();
+   const a=visible[0],b=visible[i];let closest,dist=Infinity;
+   for(const aa of anchors(a))for(const bb of anchors(b)){const d=Math.hypot(aa[0]-bb[0],aa[1]-bb[1]);if(d<dist){dist=d;closest=[...aa,...bb];}}
+   const [ax,ay,bx,by]=closest;
+   context.save();context.globalAlpha=(.58+intensity*.23)*b.alpha;context.strokeStyle=i%2?colors.red:colors.sage;context.lineWidth=.9;
+   context.beginPath();context.moveTo(ax,ay);
+   if(Math.abs(bx-ax)>Math.abs(by-ay)){const elbow=(ax+bx)/2;context.lineTo(elbow,ay);context.lineTo(elbow,by);}else{const elbow=(ay+by)/2;context.lineTo(ax,elbow);context.lineTo(bx,elbow);}
+   context.lineTo(bx,by);context.stroke();
+   context.fillStyle=context.strokeStyle;context.fillRect(ax-2,ay-2,4,4);context.fillRect(bx-2,by-2,4,4);
+   context.restore();
   }
  }
  function endCut(){
@@ -175,16 +189,16 @@ export async function createField(canvas,{onAdvance,onPick}){
    const t=readTime-p.born,slot=(p.n*.61803398875)%1;
    // Wide, separated ribbons move through depth; the source remains refusal text.
    const y=78+((slot*travelHeight-t*(8+surge*13))%travelHeight+travelHeight)%travelHeight;
-   const x=width*(compact?-.07:.1)+Math.sin(t*.42+p.n*1.7)*width*(compact?.17:.24);
-   const cut=Math.floor(time*(1.8+surge*2)+p.n),jump=cut%7===0?(cut%3-1)*width*.16:0;
-   const scale=.9+(p.n%3)*.12+surge*.18,alpha=(.34+surge*.23)*clamp((18-t)/4,0,1);
+   const x=width*(compact?-.07:.1)+Math.sin(t*(.42+intensity*.3)+p.n*1.7)*width*(compact?.23:.29);
+   const cut=Math.floor(time*(2.8+surge*2+intensity*2)+p.n),jump=cut%5===0?(cut%3-1)*width*(.16+intensity*.12):0;
+   const scale=.9+(p.n%3)*.12+surge*.18,alpha=(.4+surge*.25+intensity*.14)*clamp((18-t)/4,0,1);
    if(alpha<=0)return;
-   ctx.save();ctx.translate(x+jump,y);ctx.transform(scale,0,Math.sin(t*.3+p.n)*.09,1,0,0);
+   ctx.save();ctx.translate(x+jump,y);ctx.transform(scale,Math.sin(t*.6+p.n)*.025*intensity,Math.sin(t*.3+p.n)*(.09+intensity*.12),1,0,0);
    const h=p.lines.length*p.size*1.22;
    // Offset copies form a short, visible datamosh wake rather than a wall of type.
    for(let trail=2;trail>=0;trail--){
     ctx.globalAlpha=alpha*(trail===0?1:.1+surge*.05);
-    const dx=trail*(10+surge*18),dy=trail*(5+surge*6);
+    const dx=trail*(10+surge*18+intensity*13),dy=trail*(5+surge*6);
     p.lines.forEach((line,j)=>text(ctx,line,dx,j*p.size*1.22+dy,p.size,p.color,face));
    }
    frameEdges(ctx,{x:-8,y:-8,w:p.w+16,h:h+16,record:p.record},p.color,.32+surge*.22);
@@ -219,8 +233,8 @@ export async function createField(canvas,{onAdvance,onPick}){
    }
   }
   for(const p of popups){
-   const t=readTime-p.bornRead,gain=finale(),dx=Math.sin(t*5+p.n)*gain*16;
-   frameEdges(ctx,{...p,x:p.x+dx},p.color,.35);
+   const t=readTime-p.bornRead,gain=finale(),position=tracked(p,p.n);
+   frameEdges(ctx,position,p.color,.5);
    if(t<.18||gain>.7){ctx.fillStyle=p.color;for(let i=0;i<4;i++)ctx.fillRect(p.x+p.w+8+(i%2)*7,p.y+((p.n*19+i*37)%Math.max(1,p.h)),3+i%3,2);}
   }
   for(let i=0;i<14;i++){ctx.fillStyle=colors.dim;ctx.fillRect(Math.round(width*(.08+i*.065)),Math.round(height*.28+Math.cos(i*.8+time*.17)*12),2,2);}
@@ -230,25 +244,26 @@ export async function createField(canvas,{onAdvance,onPick}){
   }
  }
  function mainText(c,page,sharp){
-  const {left:x,top:y,w,size,lineHeight}=layout,h=page.lines.length*lineHeight;
+  const {w,size,lineHeight}=layout,h=page.lines.length*lineHeight,{x,y}=mainBox();
   if(sharp)readingSpace(c,x,y,w,h);
   c.save();c.shadowColor=colors.black;c.shadowBlur=sharp?18:0;
   page.lines.forEach((value,i)=>text(c,value,x,y+i*lineHeight,size,colors.paper,face));c.restore();
   if(sharp){
    hitBoxes.push({x:x-12,y:y-12,w:w+24,h:h+24,id:current.id});
    const box={x:x-12,y:y-12,w:w+24,h:h+24,record:current,color:colors.sage};
-   frameEdges(c,box,colors.sage,.55);trackingLabel(c,box,page.localAge);
+   frameEdges(c,box,colors.sage,.82);trackingLabel(c,box,page.localAge);
   }
   if(sharp&&/tiger/i.test(current.excerpt)){text(c,'🐅',x,y-40,30,colors.paper,face);frameEdges(c,{x:x-12,y:y-12,w:w+24,h:h+24,record:current},colors.sage,.7);}
  }
  function satellites(){
-  trackingLines();
   for(const p of popups){
    const alpha=envelope(readTime-p.bornRead,p.life,preset.fade);
-   context.save();context.globalAlpha=alpha;readingSpace(context,p.x,p.y,p.w,p.h);context.restore();
-   panel(context,p,alpha);
-   if(alpha>.35)hitBoxes.unshift({...p,id:p.record.id});
+   const position=tracked(p,p.n);
+   context.save();context.globalAlpha=alpha;readingSpace(context,position.x,position.y,p.w,p.h);context.restore();
+   panel(context,position,alpha);
+   if(alpha>.35)hitBoxes.unshift({...position,id:p.record.id});
   }
+  trackingLines();
  }
  function render(){
   hitBoxes=[];
