@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-26T09:56:00.510Z",
+  "updatedAt": "2026-09-27T10:35:38.898Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -342,6 +342,16 @@
       "description": "",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-26T09:56:00.510Z"
+    },
+    {
+      "date": "2026-09-27",
+      "identifier": "worldscolumbian00worlb",
+      "title": "World's Columbian Exposition, 1893 : official catalogue.Part X. Department K. Fine arts",
+      "creator": "World's Columbian Exposition (1893 : Chicago, Ill.)",
+      "published": "1893",
+      "description": "CHM copy 39088012146460 has been donated by the Larry Zim World's Fair Collection",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-27T10:35:38.898Z"
     }
   ]
 }
