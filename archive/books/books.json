@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-27T10:35:38.898Z",
+  "updatedAt": "2026-09-28T11:45:38.982Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -352,6 +352,16 @@
       "description": "CHM copy 39088012146460 has been donated by the Larry Zim World's Fair Collection",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-27T10:35:38.898Z"
+    },
+    {
+      "date": "2026-09-28",
+      "identifier": "mayareligionmyth00bowd",
+      "title": "Maya religion and mythology",
+      "creator": "Bowditch, Charles P",
+      "published": "1881",
+      "description": "Includes bibliographical references",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-09-28T11:45:38.982Z"
     }
   ]
 }
