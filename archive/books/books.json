@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-28T11:45:38.982Z",
+  "updatedAt": "2026-09-29T11:24:30.179Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -362,6 +362,16 @@
       "description": "Includes bibliographical references",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-09-28T11:45:38.982Z"
+    },
+    {
+      "date": "2026-09-29",
+      "identifier": "botanischeshilfs00wink",
+      "title": "Botanisches Hilfsbuch für Pflanzer, Kolonialbeamte, Tropenkaufleute und Forschungsreisende",
+      "creator": "Winkler, Hubert, 1875-1941",
+      "published": "1912",
+      "description": "Bibliography: p. vi",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-09-29T11:24:30.179Z"
     }
   ]
 }
