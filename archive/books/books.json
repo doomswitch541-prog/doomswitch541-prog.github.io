@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-29T11:24:30.179Z",
+  "updatedAt": "2026-09-30T11:12:19.359Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -372,6 +372,16 @@
       "description": "Bibliography: p. vi",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-09-29T11:24:30.179Z"
+    },
+    {
+      "date": "2026-09-30",
+      "identifier": "runningfencedraf00envi",
+      "title": "Running fence : draft environmental impact report : prepared under contract to the Sonoma County Planning Department, Santa Rosa, California",
+      "creator": "Environmental Science Associates",
+      "published": "1975",
+      "description": "Sample piece of fabric from fence in pocket at end of v. 2 Digitized for the exhibition \"Christo and Jeanne-Claude: Remembering the Running Fence\" at the Smithsonian American Art Museum, Washington, DC held April 2, 2010 – September 26, 2010",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-09-30T11:12:19.359Z"
     }
   ]
 }
