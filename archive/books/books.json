@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-09-30T11:12:19.359Z",
+  "updatedAt": "2026-10-01T11:39:51.226Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -382,6 +382,16 @@
       "description": "Sample piece of fabric from fence in pocket at end of v. 2 Digitized for the exhibition \"Christo and Jeanne-Claude: Remembering the Running Fence\" at the Smithsonian American Art Museum, Washington, DC held April 2, 2010 – September 26, 2010",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-09-30T11:12:19.359Z"
+    },
+    {
+      "date": "2026-10-01",
+      "identifier": "morecelticfairyt00jaco",
+      "title": "More Celtic fairy tales",
+      "creator": "Jacobs, Joseph, 1854-1916",
+      "published": "1895",
+      "description": "Notes and references : p. [219]-234",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-01T11:39:51.226Z"
     }
   ]
 }
