@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-01T11:39:51.226Z",
+  "updatedAt": "2026-10-02T11:09:21.962Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -392,6 +392,16 @@
       "description": "Notes and references : p. [219]-234",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-01T11:39:51.226Z"
+    },
+    {
+      "date": "2026-10-02",
+      "identifier": "notesonsomebird00Roos",
+      "title": "Notes on some of the birds of Oyster Bay, Long Island",
+      "creator": "Roosevelt, Theodore, 1858-1919",
+      "published": "1879",
+      "description": "1 sheet ([1] p.) ; 25 cm., bound to 30 cm",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-02T11:09:21.962Z"
     }
   ]
 }
