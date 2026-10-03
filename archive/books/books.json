@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-02T11:09:21.962Z",
+  "updatedAt": "2026-10-03T10:27:19.651Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -402,6 +402,16 @@
       "description": "1 sheet ([1] p.) ; 25 cm., bound to 30 cm",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-02T11:09:21.962Z"
+    },
+    {
+      "date": "2026-10-03",
+      "identifier": "lescollectionsde00font",
+      "title": "Les collections de l'Académie royale de peinture et de sculpture",
+      "creator": "Fontaine, André, 1869-",
+      "published": "1910",
+      "description": "xvi, 294 p., 1 . 26 cm",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-03T10:27:19.651Z"
     }
   ]
 }
