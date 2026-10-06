@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-05T12:20:40.655Z",
+  "updatedAt": "2026-10-06T12:04:56.206Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -432,6 +432,16 @@
       "description": "Vols. for 1944-Feb. 1966 published by the museum under an alternate name: Chicago Natural History Museum",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-05T12:20:40.655Z"
+    },
+    {
+      "date": "2026-10-06",
+      "identifier": "ladycharlottesch01schr",
+      "title": "Lady Charlotte Schreiber's journals : confidences of a collector of ceramics & antiques throughout Britain, France, Holland, Belgium, Spain, Portugal, Turkey, Austria & Germany from the year 1869 to 1885",
+      "creator": "Schreiber, Charlotte, Lady, 1812-1895",
+      "published": "1911",
+      "description": "In 1884, Lady Schreiber presented 2000 pieces of English pottery, from her collection, to the South Kensington Museum, as a memorial to her husband, Charles Schreiber",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-06T12:04:56.206Z"
     }
   ]
 }
