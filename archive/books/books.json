@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-07T11:49:57.666Z",
+  "updatedAt": "2026-10-08T12:04:58.586Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -452,6 +452,16 @@
       "description": "Book digitized by Google from the library of the New York Public Library and uploaded to the Internet Archive by user tpb.",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-07T11:49:57.666Z"
+    },
+    {
+      "date": "2026-10-08",
+      "identifier": "notesofbotanisto00spruuoft",
+      "title": "Notes of a botanist on the Amazon & Andes : being records of travel on the Amazon and its tributaries, the Trombetas, Rio Negro, Uaupés, Casiquiari, Pacimoni, Huallaga, and Pastasa; as also to the cataracts of the Orinoco, along the eastern side of the Andes of Peru and Ecuador, and the shores of th",
+      "creator": "Spruce, Richard, 1817-1893",
+      "published": "1908",
+      "description": "\"List of books and papers published by Richard Spruce\": p. x1ix-1ii",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-08T12:04:58.586Z"
     }
   ]
 }
