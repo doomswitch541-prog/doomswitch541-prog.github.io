@@ -538,6 +538,25 @@ const IdleManager = {
     },
 };
 
+// === Resonance ===
+// A pyreflies light-field over the time-of-day backgrounds: ambient motes drift up and a
+// trail follows the pointer / a finger. One hook lights it up on every page that uses the
+// shared background system; immersive pages (no .bg-layer) are untouched. The photos are
+// not altered — the motion rides on a transparent canvas behind all content.
+function initResonance() {
+    if (!document.querySelector('.bg-layer')) return;
+    if (document.querySelector('canvas[data-pyreflies]')) return;
+    const c = document.createElement('canvas');
+    c.className = 'resonance';
+    c.setAttribute('data-pyreflies', '');
+    c.setAttribute('data-ambient', '3');   // sparse + quiet — rghq's detail language
+    c.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(c);
+    const s = document.createElement('script');
+    s.src = '/js/pyreflies.js';
+    document.body.appendChild(s);
+}
+
 // === Init ===
 document.addEventListener('DOMContentLoaded', () => {
     SiteNavigation.init();
@@ -545,4 +564,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('hours')) ClockManager.init();
     IdleManager.init();
     HomeWeather.init();
+    initResonance();
 });

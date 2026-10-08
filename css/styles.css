@@ -160,6 +160,17 @@ body::before {
   transition: background var(--transition-slow);
 }
 
+/* === Resonance — pyreflies motion over the photos, behind all content (js/pyreflies.js,
+   injected by site.js on background pages). The images are not altered. === */
+.resonance {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
 /* === Idle Mode — fade chrome so the background breathes ===
    Toggled by IdleManager in script.js. Activates only on the screensaver
    page (presence of .clock-section). Any input event removes .idle. */
