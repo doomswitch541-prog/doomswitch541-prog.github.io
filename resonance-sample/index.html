@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#05060c">
+    <title>Resonance · RG HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+      :root { --ink: #05060c; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        background: var(--ink);
+        color: #e8ecf5;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+        cursor: none;                 /* no hand cursor — the pyreflies are the pointer */
+        touch-action: none;           /* stirring the field never scrolls/zooms */
+        overscroll-behavior: none;
+      }
+      /* the kept background: a dark nebula sky, galaxy bloom off-centre, magenta wisps,
+         a faint horizon glow toward the bottom (the pyreflies rise through it) */
+      .sky {
+        position: fixed; inset: 0; z-index: 0;
+        background:
+          radial-gradient(60% 42% at 60% 34%, rgba(96,128,224,0.24), transparent 60%),
+          radial-gradient(40% 30% at 38% 28%, rgba(206,70,150,0.14), transparent 60%),
+          radial-gradient(30% 22% at 62% 36%, rgba(180,210,255,0.16), transparent 55%),
+          radial-gradient(70% 36% at 50% 82%, rgba(150,64,184,0.13), transparent 60%),
+          linear-gradient(180deg, #05060c 0%, #080a14 46%, #05060e 72%, #030409 100%);
+      }
+      /* a whisper of a horizon line, like the reference */
+      .horizon {
+        position: fixed; left: 0; right: 0; bottom: 20%; height: 1px; z-index: 0;
+        background: linear-gradient(90deg, transparent, rgba(190,110,210,0.5), transparent);
+        filter: blur(0.5px);
+      }
+      canvas.field { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+
+      .hint {
+        position: fixed; left: 0; right: 0; bottom: 8%; z-index: 2; text-align: center;
+        font-weight: 300; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
+        color: rgba(220,228,245,0.55);
+        animation: hintFade 7s ease forwards;
+      }
+      @keyframes hintFade { 0%,55% { opacity: 1; } 100% { opacity: 0; } }
+
+      .back {
+        position: fixed; top: 16px; left: 18px; z-index: 3;
+        font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+        color: rgba(220,228,245,0.6); text-decoration: none; cursor: none;
+      }
+      .back:hover { color: #fff; }
+
+      @media (prefers-reduced-motion: reduce) { .hint { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="sky"></div>
+    <div class="horizon"></div>
+    <canvas class="field" data-pyreflies data-stars="1" aria-hidden="true"></canvas>
+    <p class="hint">move · touch · stir the field</p>
+    <a class="back" href="/">← RG HQ</a>
+
+    <script src="/js/pyreflies.js"></script>
+</body>
+</html>
