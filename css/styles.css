@@ -160,14 +160,24 @@ body::before {
   transition: background var(--transition-slow);
 }
 
-/* === Resonance — pyreflies motion over the photos, behind all content (js/pyreflies.js,
-   injected by site.js on background pages). The images are not altered. === */
+/* === Resonance — pyreflies motion over the photos, behind all content === */
 .resonance {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
   z-index: -1;
+  pointer-events: none;
+}
+
+/* === Imageflow — WebGL layer that deforms the background photo itself (flow warp + water
+   reflection), covering the plain .bg-layer behind it. Fails safe to the plain photo. === */
+.imageflow {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
   pointer-events: none;
 }
 

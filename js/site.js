@@ -545,15 +545,14 @@ const IdleManager = {
 // not altered — the motion rides on a transparent canvas behind all content.
 function initResonance() {
     if (!document.querySelector('.bg-layer')) return;
-    if (document.querySelector('canvas[data-pyreflies]')) return;
+    if (document.querySelector('canvas[data-imageflow]')) return;
     const c = document.createElement('canvas');
-    c.className = 'resonance';
-    c.setAttribute('data-pyreflies', '');
-    c.setAttribute('data-ambient', '3');   // sparse + quiet — rghq's detail language
+    c.className = 'imageflow';
+    c.setAttribute('data-imageflow', '');  // WebGL flow-warp + water reflection of the real photo
     c.setAttribute('aria-hidden', 'true');
     document.body.appendChild(c);
     const s = document.createElement('script');
-    s.src = '/js/pyreflies.js';
+    s.src = '/js/imageflow.js';
     document.body.appendChild(s);
 }
 
