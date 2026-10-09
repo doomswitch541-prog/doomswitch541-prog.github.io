@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-08T12:04:58.586Z",
+  "updatedAt": "2026-10-09T11:56:55.424Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -462,6 +462,16 @@
       "description": "\"List of books and papers published by Richard Spruce\": p. x1ix-1ii",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-08T12:04:58.586Z"
+    },
+    {
+      "date": "2026-10-09",
+      "identifier": "metalsmetalworki00gowl",
+      "title": "Metals and metal-working in old Japan",
+      "creator": "Gowland, William, 1842-1922",
+      "published": "1915",
+      "description": "\"Reprinted from the Transactions of the Japan Society of London, vol. XIII.\"",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-09T11:56:55.424Z"
     }
   ]
 }
