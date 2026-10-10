@@ -3,7 +3,7 @@
 :root {
   /* Base variables — will be overridden by theme */
   --bg-primary: #0a0810;
-  --bg-overlay: rgba(10, 8, 16, 0.4);
+  --bg-overlay: rgba(10, 8, 16, 0.5);
   
   /* Glass layers */
   --glass-bg: rgba(255, 255, 255, 0.05);
@@ -13,8 +13,8 @@
   
   /* Text */
   --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-tertiary: rgba(255, 255, 255, 0.35);
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-tertiary: rgba(255, 255, 255, 0.45);
   
   /* Accent — will change based on theme */
   --accent: #c49a6c;
@@ -50,8 +50,8 @@
   --glass-border-hover: rgba(220, 180, 220, 0.18);
   --glass-highlight: rgba(200, 160, 200, 0.12);
   --text-primary: rgba(255, 245, 255, 0.95);
-  --text-secondary: rgba(220, 190, 220, 0.65);
-  --text-tertiary: rgba(180, 150, 180, 0.4);
+  --text-secondary: rgba(220, 190, 220, 0.68);
+  --text-tertiary: rgba(190, 162, 190, 0.5);
   --accent: #d4a5a5;
   --accent-soft: rgba(212, 165, 165, 0.2);
   --accent-glow: rgba(212, 165, 165, 0.4);
@@ -60,14 +60,14 @@
 /* === Evening Theme (bg-evening-1) — Dusk Coral/Violet, between Day and Night === */
 [data-theme="evening"] {
   --bg-primary: #1c1424;
-  --bg-overlay: rgba(28, 20, 36, 0.45);
+  --bg-overlay: rgba(28, 20, 36, 0.5);
   --glass-bg: rgba(230, 170, 180, 0.07);
   --glass-border: rgba(230, 170, 200, 0.12);
   --glass-border-hover: rgba(240, 190, 220, 0.2);
   --glass-highlight: rgba(230, 180, 210, 0.14);
   --text-primary: rgba(255, 245, 245, 0.95);
-  --text-secondary: rgba(240, 200, 210, 0.7);
-  --text-tertiary: rgba(220, 170, 180, 0.45);
+  --text-secondary: rgba(240, 200, 210, 0.72);
+  --text-tertiary: rgba(225, 180, 190, 0.55);
   --accent: #e69b78;
   --accent-soft: rgba(230, 155, 120, 0.22);
   --accent-glow: rgba(230, 155, 120, 0.45);
@@ -76,14 +76,14 @@
 /* === Day Theme (bg-day-1) — Sunset Orange/Blue === */
 [data-theme="day"] {
   --bg-primary: #1a1420;
-  --bg-overlay: rgba(26, 20, 32, 0.4);
+  --bg-overlay: rgba(26, 20, 32, 0.54);
   --glass-bg: rgba(255, 200, 160, 0.06);
   --glass-border: rgba(255, 180, 140, 0.1);
   --glass-border-hover: rgba(255, 200, 160, 0.18);
   --glass-highlight: rgba(255, 180, 140, 0.12);
-  --text-primary: rgba(255, 250, 245, 0.95);
-  --text-secondary: rgba(255, 220, 190, 0.7);
-  --text-tertiary: rgba(255, 190, 160, 0.45);
+  --text-primary: rgba(255, 250, 245, 0.96);
+  --text-secondary: rgba(255, 222, 194, 0.74);
+  --text-tertiary: rgba(255, 200, 172, 0.58);
   --accent: #ff9f6e;
   --accent-soft: rgba(255, 159, 110, 0.2);
   --accent-glow: rgba(255, 159, 110, 0.4);
@@ -92,14 +92,14 @@
 /* === Afternoon Theme (bg-afternoon-1) — Warm Gold/Amber, between Day and Evening === */
 [data-theme="afternoon"] {
   --bg-primary: #1d1620;
-  --bg-overlay: rgba(29, 22, 32, 0.42);
+  --bg-overlay: rgba(29, 22, 32, 0.54);
   --glass-bg: rgba(245, 200, 140, 0.07);
   --glass-border: rgba(245, 195, 135, 0.11);
   --glass-border-hover: rgba(250, 210, 150, 0.19);
   --glass-highlight: rgba(245, 200, 140, 0.13);
-  --text-primary: rgba(255, 250, 240, 0.95);
-  --text-secondary: rgba(250, 220, 180, 0.7);
-  --text-tertiary: rgba(230, 195, 150, 0.45);
+  --text-primary: rgba(255, 250, 240, 0.96);
+  --text-secondary: rgba(250, 222, 184, 0.74);
+  --text-tertiary: rgba(238, 205, 162, 0.58);
   --accent: #f5c47a;
   --accent-soft: rgba(245, 196, 122, 0.22);
   --accent-glow: rgba(245, 196, 122, 0.45);
@@ -149,12 +149,19 @@ body {
   opacity: 1;
 }
 
-/* === Overlay for readability === */
+/* === Overlay for readability ===
+   Per-theme flat tint (--bg-overlay) PLUS a subtle top/bottom gradient so the
+   navbar zone and the footer labels stay legible over bright day/afternoon photos
+   without dulling the vivid centre of the image. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: var(--bg-overlay);
+  background:
+    linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.28), transparent 26%,
+      transparent 68%, rgba(0, 0, 0, 0.38)),
+    var(--bg-overlay);
   backdrop-filter: blur(0px);
   z-index: -1;
   transition: background var(--transition-slow);
