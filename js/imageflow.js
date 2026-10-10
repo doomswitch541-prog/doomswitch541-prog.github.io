@@ -36,16 +36,20 @@
     '  vec2 flow=flowAmp*vec2(sin(uv.y*9.0+time*0.5)+0.5*sin(uv.x*6.0-time*0.4),',
     '                         cos(uv.x*8.0+time*0.45)+0.5*cos(uv.y*5.0+time*0.37));',
     // pointer ripple — a ring expanding from the touch point
-    '  float td=distance(uv,touch.xy);',
-    '  float ring=sin(td*42.0-time*3.2)*exp(-td*7.0)*touch.z*0.02;',
+    '  vec2 toP=uv-touch.xy;',
+    '  float td=length(toP);',
+    // a soft lens that PULLS the image toward the finger — broad and smooth so a drag
+    // flows the photo under it instead of blipping, and a trailing ring behind it
+    '  vec2 lens=-toP*exp(-td*3.2)*touch.z*0.11;',
+    '  float ring=sin(td*34.0-time*3.0)*exp(-td*6.0)*touch.z*0.012;',
     '  vec4 col;',
     '  if(uv.y<horizon){',           // --- upper: flowed image ---
-    '    col=samp(d+flow+ring);',
+    '    col=samp(d+flow+lens+ring);',
     '  } else {',                    // --- lower: rippling water reflection ---
     '    float depth=(uv.y-horizon)/max(0.001,1.0-horizon);',   // 0 at waterline .. 1 bottom
     '    float ry=horizon-(uv.y-horizon);',                     // mirror across the horizon
     '    float rip=sin(uv.y*70.0-time*2.1)*0.006*depth + sin(uv.x*26.0+time*1.4)*0.004*depth;',
-    '    vec2 ruv=vec2(uv.x+rip+ring, ry+rip*0.4);',
+    '    vec2 ruv=vec2(uv.x+rip+ring+lens.x, ry+rip*0.4+lens.y);',
     '    col=samp(ruv);',
     '    col.rgb*=mix(0.9,0.42,depth);',                         // darken with depth
     '    col.rgb=mix(col.rgb, col.rgb*vec3(0.8,0.88,1.05), 0.35*depth);', // cool water tint
@@ -96,8 +100,15 @@
     var mix = 0, curUrl = '', loading = false;
     var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    function resize() {
-      var b = canvas.getBoundingClientRect(); W = b.width; H = b.height;
+    var lastCW = 0, lastCH = 0;
+    function resize(force) {
+      var b = canvas.getBoundingClientRect(); var w = b.width, h = b.height;
+      // Mobile browsers grow/shrink the viewport as the address bar hides on scroll.
+      // That fires the observer constantly; reconfiguring the buffer each time clears
+      // the canvas and flashes the photo. Only reconfigure on a real width change or a
+      // big (orientation-scale) height change — ignore the toolbar jitter.
+      if (!force && w === lastCW && Math.abs(h - lastCH) < 160) return;
+      lastCW = w; lastCH = h; W = w; H = h;
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);
       recover('a'); recover('b');
@@ -148,9 +159,13 @@
       });
     }
 
-    var touch = [0.5, 0.5, 0];
-    function onPointer(e) { var b = canvas.getBoundingClientRect(); touch = [(e.clientX - b.left) / W, (e.clientY - b.top) / H, 1]; }
-    function onTouch(e) { if (!e.touches.length) return; var b = canvas.getBoundingClientRect(); touch = [(e.touches[0].clientX - b.left) / W, (e.touches[0].clientY - b.top) / H, 1]; }
+    // tgt = where the finger is + desired strength; cur = the smoothed value the shader
+    // actually uses. Easing cur toward tgt makes a drag glide; tgt.z decaying each frame
+    // (and being re-set to 1 by every move) holds the warp while dragging, then fades on release.
+    var tgt = [0.5, 0.5, 0], cur = [0.5, 0.5, 0];
+    function aim(cx, cy) { var b = canvas.getBoundingClientRect(); tgt = [(cx - b.left) / W, (cy - b.top) / H, 1]; }
+    function onPointer(e) { aim(e.clientX, e.clientY); }
+    function onTouch(e) { if (!e.touches.length) return; aim(e.touches[0].clientX, e.touches[0].clientY); }
 
     var t0 = null;
     function render(ts) {
@@ -162,15 +177,18 @@
       gl.uniform1f(U.time, time);
       gl.uniform1f(U.horizon, 0.66);
       gl.uniform1f(U.flowAmp, reduce ? 0.004 : 0.006);
-      gl.uniform3fv(U.touch, touch);
-      touch[2] *= 0.94;                  // ripple settles
+      cur[0] += (tgt[0] - cur[0]) * 0.18;  // glide toward the finger
+      cur[1] += (tgt[1] - cur[1]) * 0.18;
+      cur[2] += (tgt[2] - cur[2]) * 0.14;  // ease strength up/down (no snap)
+      tgt[2] *= 0.95;                      // fades when no new move; a drag keeps re-setting it to 1
+      gl.uniform3fv(U.touch, cur);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       if (!reduce) requestAnimationFrame(render);
     }
 
-    resize();
-    if (window.ResizeObserver) new ResizeObserver(resize).observe(canvas);
-    else window.addEventListener('resize', resize);
+    resize(true);
+    if (window.ResizeObserver) new ResizeObserver(function () { resize(false); }).observe(canvas);
+    else window.addEventListener('resize', function () { resize(false); });
 
     // first image, then watch for switcher changes
     (function first() {
