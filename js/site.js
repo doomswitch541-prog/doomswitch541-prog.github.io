@@ -9,7 +9,7 @@
 // photos are in that folder but deliberately NOT in this rotation.
 const BG = '/assets/backgrounds/';
 const BACKGROUND_MANIFEST = {
-    day:       [BG + 'bg-day-1.png', BG + 'bg-day-2.jpg', BG + 'bg-day-3.png'],
+    day:       [BG + 'bg-day-1.png', BG + 'bg-day-2.jpg', BG + 'bg-day-3.png', BG + 'bg-day-4.jpg', BG + 'bg-day-5.jpg'],
     afternoon: [BG + 'bg-afternoon-1.jpg', BG + 'bg-afternoon-2.jpg'],
     evening:   [BG + 'bg-evening-1.jpg', BG + 'bg-evening-2.jpg', BG + 'bg-evening-3.png'],
     night:     [BG + 'bg-night-1.png', BG + 'bg-night-2.png', BG + 'bg-night-3.png', BG + 'bg-night-4.png'],
