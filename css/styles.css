@@ -76,14 +76,14 @@
 /* === Day Theme (bg-day-1) — Sunset Orange/Blue === */
 [data-theme="day"] {
   --bg-primary: #1a1420;
-  --bg-overlay: rgba(26, 20, 32, 0.54);
-  --glass-bg: rgba(255, 200, 160, 0.06);
-  --glass-border: rgba(255, 180, 140, 0.1);
-  --glass-border-hover: rgba(255, 200, 160, 0.18);
-  --glass-highlight: rgba(255, 180, 140, 0.12);
+  --bg-overlay: rgba(24, 18, 29, 0.60);
+  --glass-bg: rgba(255, 200, 160, 0.08);
+  --glass-border: rgba(255, 180, 140, 0.12);
+  --glass-border-hover: rgba(255, 200, 160, 0.2);
+  --glass-highlight: rgba(255, 180, 140, 0.14);
   --text-primary: rgba(255, 250, 245, 0.96);
-  --text-secondary: rgba(255, 222, 194, 0.74);
-  --text-tertiary: rgba(255, 200, 172, 0.58);
+  --text-secondary: rgba(255, 224, 197, 0.78);
+  --text-tertiary: rgba(255, 204, 177, 0.64);
   --accent: #ff9f6e;
   --accent-soft: rgba(255, 159, 110, 0.2);
   --accent-glow: rgba(255, 159, 110, 0.4);
@@ -92,14 +92,14 @@
 /* === Afternoon Theme (bg-afternoon-1) — Warm Gold/Amber, between Day and Evening === */
 [data-theme="afternoon"] {
   --bg-primary: #1d1620;
-  --bg-overlay: rgba(29, 22, 32, 0.54);
-  --glass-bg: rgba(245, 200, 140, 0.07);
-  --glass-border: rgba(245, 195, 135, 0.11);
-  --glass-border-hover: rgba(250, 210, 150, 0.19);
-  --glass-highlight: rgba(245, 200, 140, 0.13);
-  --text-primary: rgba(255, 250, 240, 0.96);
-  --text-secondary: rgba(250, 222, 184, 0.74);
-  --text-tertiary: rgba(238, 205, 162, 0.58);
+  --bg-overlay: rgba(27, 20, 29, 0.66);
+  --glass-bg: rgba(245, 200, 140, 0.09);
+  --glass-border: rgba(245, 195, 135, 0.14);
+  --glass-border-hover: rgba(250, 210, 150, 0.22);
+  --glass-highlight: rgba(245, 200, 140, 0.15);
+  --text-primary: rgba(255, 251, 243, 0.97);
+  --text-secondary: rgba(252, 228, 196, 0.82);
+  --text-tertiary: rgba(244, 214, 174, 0.70);
   --accent: #f5c47a;
   --accent-soft: rgba(245, 196, 122, 0.22);
   --accent-glow: rgba(245, 196, 122, 0.45);
@@ -123,8 +123,18 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
+  /* dvh tracks the *visible* viewport, so content pages don't scroll under the
+     mobile URL bar the way 100vh (large-viewport) does. */
+  min-height: 100dvh;
   line-height: 1.5;
   overflow-x: hidden;
+}
+
+/* === Home / clock page: one flat screen, never scrolls === */
+body.home {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 /* === Dynamic Background === */
@@ -884,7 +894,7 @@ body.nav-open .nav-drawer-cat {
   /* dvh tracks the *visible* viewport, so the clock stays centred and doesn't
      scroll under the mobile URL bar the way 100vh (large-viewport) does. */
   min-height: 100dvh;
-  padding: calc(var(--space-2xl) + var(--space-lg)) var(--space-lg) var(--space-2xl);
+  padding: calc(var(--space-2xl) + var(--space-lg)) var(--space-lg) var(--space-xl);
   gap: var(--space-2xl);
 }
 
@@ -1216,7 +1226,18 @@ option {
     width: 160px;
     height: 160px;
   }
-  
+
+  /* Fit the whole clock screen inside a regular-iPhone viewport (SE ~667 tall)
+     without a scrollbar — tighten the standoff padding and the stack gaps. */
+  .main-container {
+    padding: calc(var(--space-2xl) + var(--space-xs)) var(--space-md) var(--space-lg);
+    gap: var(--space-xl);
+  }
+
+  .clock-section {
+    gap: var(--space-lg);
+  }
+
   .navbar {
     top: var(--space-md);
     padding: 6px;
