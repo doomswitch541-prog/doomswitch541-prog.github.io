@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-09T11:56:55.424Z",
+  "updatedAt": "2026-10-10T11:13:21.811Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -472,6 +472,16 @@
       "description": "\"Reprinted from the Transactions of the Japan Society of London, vol. XIII.\"",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-10-09T11:56:55.424Z"
+    },
+    {
+      "date": "2026-10-10",
+      "identifier": "jewishmagicsuper00trac_0",
+      "title": "Jewish magic and superstition; a study in folk religion",
+      "creator": "Trachtenberg, Joshua, 1904-1959",
+      "published": "1939",
+      "description": "xii pages, 1 leaf., 356 pages: 24 cm",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-10T11:13:21.811Z"
     }
   ]
 }
