@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-10T11:13:21.811Z",
+  "updatedAt": "2026-10-11T11:26:51.705Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -482,6 +482,16 @@
       "description": "xii pages, 1 leaf., 356 pages: 24 cm",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-10T11:13:21.811Z"
+    },
+    {
+      "date": "2026-10-11",
+      "identifier": "narrativeofsecon12ross",
+      "title": "Narrative of a second voyage in search of a north-west passage, and of a residence in the Arctic regions during the years 1829, 1830, 1831, 1832, 1833",
+      "creator": "Ross, John, Sir, 1777-1856",
+      "published": "1835",
+      "description": "[Vol. 2] \"Appendix ...\" (containing vocabularies in English, Danish and Eskimo, sketch of the Eskimos, report on the natural history, scientific observations etc.)",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-11T11:26:51.705Z"
     }
   ]
 }
