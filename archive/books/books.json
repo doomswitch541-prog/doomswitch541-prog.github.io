@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-11T11:26:51.705Z",
+  "updatedAt": "2026-10-12T13:14:48.552Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -492,6 +492,16 @@
       "description": "[Vol. 2] \"Appendix ...\" (containing vocabularies in English, Danish and Eskimo, sketch of the Eskimos, report on the natural history, scientific observations etc.)",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-11T11:26:51.705Z"
+    },
+    {
+      "date": "2026-10-12",
+      "identifier": "arsislamica11934detr",
+      "title": "Ars islamica",
+      "creator": "Detroit Institute of Arts",
+      "published": "1934",
+      "description": "Vols. 11-12, 13-14, 15-16 issued combined",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-12T13:14:48.552Z"
     }
   ]
 }
