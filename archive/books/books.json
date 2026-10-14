@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-13T12:45:47.460Z",
+  "updatedAt": "2026-10-14T10:17:50.609Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -512,6 +512,16 @@
       "description": "Mode of access: Internet",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-13T12:45:47.460Z"
+    },
+    {
+      "date": "2026-10-14",
+      "identifier": "mobot31753002839139",
+      "title": "Köhler's Medizinal-Pflanzen in naturgetreuen Abbildungen mit kurz erläuterndem Texte : Atlas zur Pharmacopoea germanica, austriaca, belgica, danica, helvetica, hungarica, rossica, suecica, Neerlandica, British pharmacopoeia, zum Codex medicamentarius, sowie zur Pharmacopoeia of the United States of ",
+      "creator": "Brandt, Wilhelm,",
+      "published": "1883",
+      "description": "",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-14T10:17:50.609Z"
     }
   ]
 }
