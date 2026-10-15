@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-14T10:17:50.609Z",
+  "updatedAt": "2026-10-15T10:01:05.682Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -522,6 +522,16 @@
       "description": "",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-14T10:17:50.609Z"
+    },
+    {
+      "date": "2026-10-15",
+      "identifier": "flowersfromshak00cran",
+      "title": "Flowers from Shakespeare's garden : a posy from the plays",
+      "creator": "Crane, Walter, 1845-1915",
+      "published": "1909",
+      "description": "statement of responsibility: pictured by Walter Crane",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-15T10:01:05.682Z"
     }
   ]
 }
