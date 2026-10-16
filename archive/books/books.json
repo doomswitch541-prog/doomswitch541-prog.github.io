@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-15T10:01:05.682Z",
+  "updatedAt": "2026-10-16T09:54:21.080Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -532,6 +532,16 @@
       "description": "statement of responsibility: pictured by Walter Crane",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-10-15T10:01:05.682Z"
+    },
+    {
+      "date": "2026-10-16",
+      "identifier": "cu31924074094412",
+      "title": "Flower lore; the teachings of flowers, historical, legendary, poetical & symbolical",
+      "creator": "[Carruthers, Miss]",
+      "published": "1879",
+      "description": "The metadata below describe the original scanning. Follow the \"All Files: HTTP\" link in the \"View the book\" box to the left to find XML files that contain more metadata about the original images and the derived formats (OCR results, PDF etc.). See also the What is the directory structure for the texts? FAQ for information about file content and naming conventions.",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-16T09:54:21.080Z"
     }
   ]
 }
