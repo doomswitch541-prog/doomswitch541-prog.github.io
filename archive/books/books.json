@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-16T09:54:21.080Z",
+  "updatedAt": "2026-10-17T09:27:20.560Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -542,6 +542,16 @@
       "description": "The metadata below describe the original scanning. Follow the \"All Files: HTTP\" link in the \"View the book\" box to the left to find XML files that contain more metadata about the original images and the derived formats (OCR results, PDF etc.). See also the What is the directory structure for the texts? FAQ for information about file content and naming conventions.",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-16T09:54:21.080Z"
+    },
+    {
+      "date": "2026-10-17",
+      "identifier": "ugandaprotectora02johnfo",
+      "title": "The Uganda protectorate; an attempt to give some description of the physical geography, botany, zoology, anthropology, languages and history of the territories under British protection in East Central Africa, between the Congo Free State and the Rift Valley and between the first degree of south lati",
+      "creator": "Johnston, Harry Hamilton, Sir, 1858-1927",
+      "published": "1902",
+      "description": "Paged continuously",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-17T09:27:20.560Z"
     }
   ]
 }
