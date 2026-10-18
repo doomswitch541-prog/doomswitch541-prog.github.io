@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-17T09:27:20.560Z",
+  "updatedAt": "2026-10-18T09:40:59.815Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -552,6 +552,16 @@
       "description": "Paged continuously",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-17T09:27:20.560Z"
+    },
+    {
+      "date": "2026-10-18",
+      "identifier": "robesdePaulPoir00Irib",
+      "title": "Les robes de Paul Poiret",
+      "creator": "Iribe, Paul, 1883-1935",
+      "published": "1908",
+      "description": "statement of responsibility: racontées par Paul Iribe",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-18T09:40:59.815Z"
     }
   ]
 }
