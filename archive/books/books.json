@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-18T09:40:59.815Z",
+  "updatedAt": "2026-10-19T10:51:56.175Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -562,6 +562,16 @@
       "description": "statement of responsibility: racontées par Paul Iribe",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-10-18T09:40:59.815Z"
+    },
+    {
+      "date": "2026-10-19",
+      "identifier": "northcarolinafol1719univ",
+      "title": "North Carolina folklore",
+      "creator": "University of North Carolina at Chapel Hill. Folklore Council.ﾠ",
+      "published": "1969-1971",
+      "description": "Published 1948 by the Folklore Council of the University of North Carolina; 1954- by the North Carolina Folklore Society and the council; by the North Carolina Folklore Society.",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-19T10:51:56.175Z"
     }
   ]
 }
