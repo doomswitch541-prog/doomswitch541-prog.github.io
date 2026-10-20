@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-19T10:51:56.175Z",
+  "updatedAt": "2026-10-20T10:08:19.797Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -572,6 +572,16 @@
       "description": "Published 1948 by the Folklore Council of the University of North Carolina; 1954- by the North Carolina Folklore Society and the council; by the North Carolina Folklore Society.",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-19T10:51:56.175Z"
+    },
+    {
+      "date": "2026-10-20",
+      "identifier": "boletndelasoci11soci",
+      "title": "Boletín de la Sociedad Española de Historia Natural",
+      "creator": "Sociedad Española de Historia Natural",
+      "published": "1911",
+      "description": "Suspended July 1937-Dec. 1939",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-20T10:08:19.797Z"
     }
   ]
 }
