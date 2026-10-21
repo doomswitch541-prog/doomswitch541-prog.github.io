@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-20T10:08:19.797Z",
+  "updatedAt": "2026-10-21T10:16:11.962Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -582,6 +582,16 @@
       "description": "Suspended July 1937-Dec. 1939",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-20T10:08:19.797Z"
+    },
+    {
+      "date": "2026-10-21",
+      "identifier": "natureart1218661867lond",
+      "title": "Nature and art",
+      "creator": "Creator not listed",
+      "published": "1866",
+      "description": "Each issue illustrated with chromolithographs",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-21T10:16:11.962Z"
     }
   ]
 }
