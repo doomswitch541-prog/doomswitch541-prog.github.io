@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-21T10:16:11.962Z",
+  "updatedAt": "2026-10-22T10:17:05.674Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -592,6 +592,16 @@
       "description": "Each issue illustrated with chromolithographs",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-10-21T10:16:11.962Z"
+    },
+    {
+      "date": "2026-10-22",
+      "identifier": "introductiontopo00croorich",
+      "title": "An introduction to the popular religion and folklore of northern India",
+      "creator": "Crooke, William, 1848-1923",
+      "published": "1894",
+      "description": "Bibliography: p. [397]-401",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-22T10:17:05.674Z"
     }
   ]
 }
