@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-23T10:10:11.269Z",
+  "updatedAt": "2026-10-24T09:35:57.858Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -612,6 +612,16 @@
       "description": "Includes bibliographic references (xlvii-lx) and indexes",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-23T10:10:11.269Z"
+    },
+    {
+      "date": "2026-10-24",
+      "identifier": "encyclopdiehis03demm",
+      "title": "Encyclopédie historique, archéologique, biographique, chronologique et monogrammatique des beaux-arts plastiques, architecture et mosaïque, céramique, sculpture, peinture et gravure",
+      "creator": "Demmin, Auguste, 1823?-1898",
+      "published": "1873",
+      "description": "t. 1. Introduction générale et historique. Êpigraphie, paléographie, blason. L'architecture civile et religieuse. La céramique.--t. 2. La sculpture. La peinture.--t. 3. La gravure",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-24T09:35:57.858Z"
     }
   ]
 }
