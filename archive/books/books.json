@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-24T09:35:57.858Z",
+  "updatedAt": "2026-10-25T09:53:01.690Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -622,6 +622,16 @@
       "description": "t. 1. Introduction générale et historique. Êpigraphie, paléographie, blason. L'architecture civile et religieuse. La céramique.--t. 2. La sculpture. La peinture.--t. 3. La gravure",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-10-24T09:35:57.858Z"
+    },
+    {
+      "date": "2026-10-25",
+      "identifier": "afm3499.0011.001.umich.edu",
+      "title": "Biblioteca delle tradizioni popolari siciliane",
+      "creator": "Pitrè, Giuseppe, 1841-1916. ed",
+      "published": "1872",
+      "description": "Mode of access: Internet",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-25T09:53:01.690Z"
     }
   ]
 }
