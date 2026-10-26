@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-25T09:53:01.690Z",
+  "updatedAt": "2026-10-26T11:12:16.364Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -632,6 +632,16 @@
       "description": "Mode of access: Internet",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-25T09:53:01.690Z"
+    },
+    {
+      "date": "2026-10-26",
+      "identifier": "shengwumingcheng00ecye",
+      "title": "sheng wu ming cheng he sheng wu xue shu yu de ci yuan",
+      "creator": "E.C.ye ge",
+      "published": "1979",
+      "description": "",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-26T11:12:16.364Z"
     }
   ]
 }
