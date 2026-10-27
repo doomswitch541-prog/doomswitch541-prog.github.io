@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-26T11:12:16.364Z",
+  "updatedAt": "2026-10-27T10:39:31.399Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -642,6 +642,16 @@
       "description": "",
       "shelf": "Biodiversity Heritage Library",
       "archivedAt": "2026-10-26T11:12:16.364Z"
+    },
+    {
+      "date": "2026-10-27",
+      "identifier": "exhibitionofroya00exhi",
+      "title": "The Exhibition of the Royal Academy of Arts MDCCCC : the one hundred and thirty-second",
+      "creator": "Exhibition of the Royal Academy of Arts (132th : 1900 : London, England)",
+      "published": "1900",
+      "description": "160 p. : 14 cm",
+      "shelf": "Smithsonian Libraries",
+      "archivedAt": "2026-10-27T10:39:31.399Z"
     }
   ]
 }
