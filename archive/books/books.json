@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-27T10:39:31.399Z",
+  "updatedAt": "2026-10-28T11:23:52.959Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -652,6 +652,16 @@
       "description": "160 p. : 14 cm",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-10-27T10:39:31.399Z"
+    },
+    {
+      "date": "2026-10-28",
+      "identifier": "afm3499.0016.001.umich.edu",
+      "title": "Biblioteca delle tradizioni popolari siciliane",
+      "creator": "Pitrè, Giuseppe, 1841-1916. ed",
+      "published": "1872",
+      "description": "Mode of access: Internet",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-28T11:23:52.959Z"
     }
   ]
 }
