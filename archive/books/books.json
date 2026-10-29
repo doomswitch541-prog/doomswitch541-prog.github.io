@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-28T11:23:52.959Z",
+  "updatedAt": "2026-10-29T11:34:23.481Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -662,6 +662,16 @@
       "description": "Mode of access: Internet",
       "shelf": "Americana Folklore",
       "archivedAt": "2026-10-28T11:23:52.959Z"
+    },
+    {
+      "date": "2026-10-29",
+      "identifier": "botanikeradressb00dr",
+      "title": "Botaniker-Adressbuch, Sammlung von Namen und Adressen der lebenden Botaniker aller Länder, der botanischen Gärten und der die Botanik pfegenden institute, Gesellschaften und periodischen Publikationen",
+      "creator": "Dörfler, I.",
+      "published": "1909",
+      "description": "52",
+      "shelf": "Biodiversity Heritage Library",
+      "archivedAt": "2026-10-29T11:34:23.481Z"
     }
   ]
 }
