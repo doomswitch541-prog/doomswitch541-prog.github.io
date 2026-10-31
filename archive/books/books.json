@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "updatedAt": "2026-10-30T11:26:32.538Z",
+  "updatedAt": "2026-10-31T10:57:37.643Z",
   "books": [
     {
       "date": "2026-08-24",
@@ -682,6 +682,16 @@
       "description": "Vols. 11-12, 13-14, 15-16 issued combined",
       "shelf": "Smithsonian Libraries",
       "archivedAt": "2026-10-30T11:26:32.538Z"
+    },
+    {
+      "date": "2026-10-31",
+      "identifier": "frankcbrowncolle00fran",
+      "title": "The Frank C. Brown Collection of North Carolina Folklore; the folklore of North Carolina, collected by Dr. Frank C. Brown during the years 1912 to 1943, in collaboration with the North Carolina Folklore Society",
+      "creator": "Frank C. Brown Collection of North Carolina Folklore",
+      "published": "1952",
+      "description": "Each vol. has also special t.p",
+      "shelf": "Americana Folklore",
+      "archivedAt": "2026-10-31T10:57:37.643Z"
     }
   ]
 }
